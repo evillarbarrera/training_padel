@@ -16,20 +16,21 @@
       <!-- Título -->
       <h1 class="login-title">Bienvenido</h1>
       <p class="login-sub">Ingresá para continuar</p>
+      
 
-      <!-- Inputs -->
-      <ion-item class="nike-input">
-        <ion-input type="email" placeholder="Correo electrónico" [(ngModel)]="email"></ion-input>
-      </ion-item>
+              <!-- Inputs -->
+        <ion-item class="nike-input">
+          <ion-input type="email" placeholder="Correo electrónico" [(ngModel)]="usuario"></ion-input>
+        </ion-item>
 
-      <ion-item class="nike-input">
-        <ion-input type="password" placeholder="Contraseña" [(ngModel)]="password"></ion-input>
-      </ion-item>
+        <ion-item class="nike-input">
+          <ion-input type="password" placeholder="Contraseña" [(ngModel)]="password"></ion-input>
+        </ion-item>
 
-      <!-- Botón -->
-      <ion-button expand="block" class="nike-button" (click)="login()">
-        Iniciar sesión
-      </ion-button>
+        <!-- Botón -->
+        <ion-button expand="block" class="nike-button" (click)="login()">
+          Iniciar sesión
+        </ion-button>
 
       <!-- Link a registro -->
       <p class="login-footer">

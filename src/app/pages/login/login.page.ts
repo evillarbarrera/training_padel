@@ -6,9 +6,10 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { HttpClientModule } from '@angular/common/http';
 import { MysqlService } from 'src/app/services/mysql.service';
-import { Usuario } from '../../../model/usuario.model';
 import { ToastController } from '@ionic/angular/standalone';
 import { HttpClient } from '@angular/common/http';
+import { AlertController } from '@ionic/angular';
+import { Usuario } from '../../models/usuario.model';
 
 @Component({
   selector: 'app-login',
@@ -17,54 +18,55 @@ import { HttpClient } from '@angular/common/http';
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],   
 })
+
 export class LoginPage {
-  email = '';
-  password = '';
 
-  constructor(private authService: AuthService, private router: Router,private mysql: MysqlService, private toastCtrl: ToastController,private http: HttpClient) {}
+  usuario: string = '';
+  password: string = '';
 
-async showError(message: string) {
-  const toast = await this.toastCtrl.create({
-    message,
-    duration: 2500,
-    position: 'bottom',
-    color: 'danger',
-    icon: 'alert-circle-outline'
-  });
-  await toast.present();
-}
+  constructor(
+    private mysql: MysqlService,
+    private router: Router,
+    private alertCtrl: AlertController
+  ) {}
 
+  login() {
+    this.mysql.getUsers().subscribe(
+      (users) => {
+        const user = users.find(
+          u => u.usuario === this.usuario && u.password === this.password
+        );
 
+        if (!user) {
+          this.presentAlert('Acceso denegado', 'Usuario o contraseña incorrectos');
+          return;
+        }
 
-  // Se ejecuta **solo cuando el usuario hace click en el botón**
-async login() {
-  this.mysql.login(this.email, this.password).subscribe({
-    next: async (res) => {
-      if (!res.success) {
-        this.showError('Usuario o contraseña incorrectos');
-        return;
+        localStorage.setItem('user', JSON.stringify(user));
+
+        if (user.rol === 'entrenador') {
+          this.router.navigate(['/entrenador-home']);
+        } else {
+          this.router.navigate(['/jugador-home']);
+        }
+      },
+      () => {
+        this.presentAlert('Error', 'No se pudo conectar con el servidor');
       }
+    );
+  }
 
-      localStorage.setItem('usuario', JSON.stringify(res.usuario));
+  async presentAlert(title: string, message: string) {
+    const alert = await this.alertCtrl.create({
+      header: title,
+      message,
+      buttons: ['OK'],
+    });
 
-      if (res.usuario.rol === 'entrenador') {
-        this.router.navigateByUrl('/entrenador');
-      } else {
-        this.router.navigateByUrl('/jugador');
-      }
-    },
-    error: () => this.showError('Error de conexión')
-  });
-}
-
-
-
+    await alert.present();
+  }
 
   goToRegister() {
     this.router.navigate(['/register']);
   }
-
-  ngOnInit() {
-
-}
 }
