@@ -1,0 +1,86 @@
+<ion-content>
+
+  <!-- HERO ESTILO NIKE -->
+<div class="header-nike">
+  <div class="header-overlay"></div>
+  <div class="header-content">
+    <h1 class="header-title">Hola, {{ jugadorNombre }}</h1>
+    <p class="header-sub">Tu progreso • {{ entrenamientosRealizados }} completados</p>
+  </div>
+</div>
+  <!-- DASHBOARD -->
+  <div class="dashboard-container">
+
+    <!-- Estadísticas -->
+    <div class="stats-grid">
+
+      <div class="stat-card">
+        <h3>{{ entrenamientosRealizados }}</h3>
+        <p>Realizados</p>
+      </div>
+
+      <div class="stat-card">
+        <h3>{{ entrenamientosPendientes }}</h3>
+        <p>Pendientes</p>
+      </div>
+
+      <div class="stat-card">
+        <h3>{{ totalMes }}</h3>
+        <p>Este mes</p>
+      </div>
+
+    </div>
+
+    <!-- ACCIONES PRINCIPALES -->
+    <div class="acciones-container">
+
+      <div class="module-card">
+        <img src="/assets/mod-agenda.jpg" class="module-img" />
+        <div class="module-info">
+          <h2>Agendar Entrenamiento</h2>
+          <p>Reserva tu próximo entrenamiento con tu coach</p>
+
+          <ion-button class="boton-menu" expand="block" >
+            <ion-icon slot="start" name="calendar-outline"></ion-icon>
+            Agendar
+          </ion-button>
+        </div>
+      </div>
+
+      <div class="module-card">
+        <img src="/assets/mod-packs.jpg" class="module-img" />
+
+        <div class="module-info">
+          <h2>Packs de Clases</h2>
+          <p>Crea y gestiona tus packs disponibles</p>
+          <ion-button class="boton-menu" expand="block" >
+            <ion-icon slot="start" name="albums-outline"></ion-icon>
+            Packs de Entrenamiento
+          </ion-button>
+        </div>
+      </div>
+
+
+      <!-- <ion-button expand="block" class="btn-accion" (click)="comprarPack()">
+        <ion-icon name="bag-check-outline"></ion-icon>
+        Comprar Pack
+      </ion-button> -->
+
+      <div class="module-card">
+        <img src="/assets/mod-alumnos.jpg" class="module-img" />
+        <div class="module-info">
+          <h2>Mis Habilidades</h2>
+          <p>Revisa tu progreso y áreas por mejorar</p>
+
+          <ion-button class="boton-menu" expand="block" (click)="misHabilidades()">
+            <ion-icon slot="start" name="barbell-outline"></ion-icon>
+            Ver Habilidades
+          </ion-button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</ion-content>

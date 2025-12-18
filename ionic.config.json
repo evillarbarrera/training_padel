@@ -1,5 +1,12 @@
 {
   "name": "training",
   "integrations": {},
-  "type": "angular-standalone"
+  "type": "angular-standalone",
+  "proxies": {
+    "/api": {
+      "target": "http://c2701752.ferozo.com",
+      "secure": false,
+      "changeOrigin": true
+    }
+  }
 }

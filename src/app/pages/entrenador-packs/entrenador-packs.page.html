@@ -1,0 +1,40 @@
+<ion-content class="packs-content">
+
+  <!-- Imagen superior -->
+  <div class="header-image">
+    <div class="header-overlay"></div>
+    <h1 class="page-title">Packs de Entrenamientos</h1>
+  </div>
+
+  <!-- Contenido -->
+  <div class="content-wrapper">
+
+    <!-- Botón crear pack -->
+    <ion-button expand="block" class="btn-crear-pack" >
+      <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+      Crear Nuevo Pack
+    </ion-button>
+
+    <!-- Filtro -->
+    <ion-item class="filtro-item">
+      <ion-input placeholder="Buscar pack..." [(ngModel)]="filtro" ></ion-input>
+    </ion-item>
+
+    <!-- Listado de packs -->
+    <div *ngFor="let pack of packsFiltrados" class="pack-card">
+      <h2>{{ pack.nombre }}</h2>
+      <p><strong>Precio:</strong> ${{ pack.precio }}</p>
+      <p><strong>Clases:</strong> {{ pack.cantidadClases }}</p>
+      <p><strong>Ubicación:</strong> {{ pack.ubicacion }}</p>
+      <p class="descripcion">{{ pack.descripcion }}</p>
+
+      <ion-button fill="clear" >
+        <ion-icon name="create-outline"></ion-icon> Editar
+      </ion-button>
+    </div>
+  </div>
+</ion-content>
+
+<ion-button fill="clear" class="btn-volver" (click)="goBack()">
+ <ion-icon src="/assets/icon/chevron-left-svgrepo-com.svg"></ion-icon>
+</ion-button>

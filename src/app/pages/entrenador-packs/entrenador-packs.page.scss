@@ -1,0 +1,103 @@
+/* Imagen principal */
+.header-image {
+  position: relative;
+  width: 100%;
+  height: 170px;
+  background: url('/assets/fondo-padel.png') center/cover no-repeat;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 20px;
+}
+
+/* Capa oscura */
+.header-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* Título */
+.page-title {
+  position: relative;
+  z-index: 2;
+  color: white;
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Contenido general */
+.content-wrapper {
+  padding: 20px;
+  margin-top: 15px;
+}
+
+/* Botón crear pack */
+.btn-crear-pack {
+  --border-radius: 14px;
+  font-size: 17px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+/* Filtro */
+.filtro-item {
+  border-radius: 12px;
+  margin-bottom: 20px;
+  --background: #ffffff;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+/* Card de pack */
+.pack-card {
+  background: white;
+  padding: 18px;
+  border-radius: 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.pack-card h2 {
+  margin: 0 0 10px 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.pack-card .descripcion {
+  margin-top: 8px;
+  color: #444;
+}
+
+.pack-card ion-button {
+  margin-top: 10px;
+  padding-left: 0;
+}
+
+
+.btn-volver {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+
+  width: 55px;
+  height: 55px;
+
+  border-radius: 50%;
+  --border-radius: 50%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 999;
+  
+  --background: #3880ff; /* azul Ionic */
+  --color: white;
+  box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
+}

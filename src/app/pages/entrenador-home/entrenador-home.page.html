@@ -1,0 +1,80 @@
+<ion-content class="dashboard-content">
+
+  <!-- Fondo -->
+  <div class="background-image"></div>
+
+  <div class="background-overlay"></div>
+
+ 
+  <!-- BIENVENIDA -->
+  <div class="welcome-box">
+    <img src="/assets/fondo-cancha.png" class="welcome-img" />
+    <h1 class="welcome-title">Hola, Entrenador</h1>
+    <p class="welcome-sub">Administra tus clases</p>
+  </div>
+
+  <!-- TARJETAS -->
+  <div class="module-container">
+
+    <!-- PACKS -->
+    <div class="module-card">
+      <img src="/assets/mod-packs.jpg" class="module-img" />
+      <div class="module-info">
+        <h2>Packs de Clases</h2>
+        <p>Crea y gestiona tus packs a la venta</p>
+      <ion-button expand="block" class="boton-menu" (click)="goToPacks()">
+            <ion-icon name="albums-outline" slot="start"></ion-icon>
+            Packs de Entrenamientos
+          </ion-button>
+
+      </div>
+    </div>
+
+    <!-- CLASES -->
+    <div class="module-card">
+      <img src="/assets/mod-alumnos.jpg" class="module-img" />
+      <div class="module-info">
+        <h2>Clases por Jugador</h2>
+        <p>Revisa detalles y progreso de cada alumno</p>
+          <ion-button expand="block" class="boton-menu" (click)="goToAlumnos()">
+            <ion-icon name="albums-outline" slot="start"></ion-icon>
+            Ingresar
+          </ion-button>
+
+      </div>
+    </div>
+
+    <!-- AGENDA -->
+    <div class="module-card">
+      <img src="/assets/mod-agenda.jpg" class="module-img" />
+      <div class="module-info">
+        <h2>Agenda</h2>
+        <p>Monitorea tus clases y tu calendario</p>
+           <ion-button expand="block" class="boton-menu" (click)="goToAgenda()">
+            <ion-icon name="albums-outline" slot="start"></ion-icon>
+            Ingresar
+          </ion-button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MENÚ INFERIOR -->
+  <!-- <div class="bottom-menu">
+    <div class="menu-item" >
+      <ion-icon name="home-outline"></ion-icon>
+      <span>Inicio</span>
+    </div>
+
+    <div class="menu-item" >
+      <ion-icon name="calendar-outline"></ion-icon>
+      <span>Agenda</span>
+    </div>
+
+    <div class="menu-item">
+      <ion-icon name="person-outline"></ion-icon>
+      <span>Perfil</span>
+    </div>
+  </div> -->
+
+</ion-content>

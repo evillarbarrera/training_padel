@@ -1,0 +1,46 @@
+<ion-header>
+  <ion-toolbar class="nike-header">
+    <ion-title>Detalle Alumno</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="light">
+
+  <!-- AVATAR -->
+  <div class="avatar-container">
+    <img src="https://i.pravatar.cc/200?img=12" class="avatar-img" />
+    <h2 class="alumno-nombre">Jugador #{{ alumnoId }}</h2>
+  </div>
+
+  <!-- GRÁFICO RADAR -->
+  <div class="chart-container">
+    <canvas id="radarChart"></canvas>
+  </div>
+
+  <ion-list>
+    <ion-item>
+      <ion-label>Packs Comprados</ion-label>
+      <ion-label slot="end">3</ion-label>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Clases Realizadas</ion-label>
+      <ion-label slot="end">12</ion-label>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Clases Pendientes</ion-label>
+      <ion-label slot="end">4</ion-label>
+    </ion-item>
+
+
+  </ion-list>
+
+  <!-- BOTÓN FLOTANTE -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button class="btn-nike" (click)="goBack()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

@@ -1,0 +1,43 @@
+<ion-content class="nike-content">
+
+  <!-- Fondo -->
+  <div class="background-image"></div>
+  <div class="background-overlay"></div>
+
+  <!-- Centrado perfecto -->
+  <div class="center-wrapper">
+
+    <!-- Cuadro blanco -->
+    <div class="login-container">
+
+      <!-- Avatar -->
+      <img src="assets/avatar.png" class="avatar-login" />
+
+      <!-- Título -->
+      <h1 class="login-title">Bienvenido</h1>
+      <p class="login-sub">Ingresá para continuar</p>
+
+      <!-- Inputs -->
+      <ion-item class="nike-input">
+        <ion-input type="email" placeholder="Correo electrónico" [(ngModel)]="email"></ion-input>
+      </ion-item>
+
+      <ion-item class="nike-input">
+        <ion-input type="password" placeholder="Contraseña" [(ngModel)]="password"></ion-input>
+      </ion-item>
+
+      <!-- Botón -->
+      <ion-button expand="block" class="nike-button" (click)="login()">
+        Iniciar sesión
+      </ion-button>
+
+      <!-- Link a registro -->
+      <p class="login-footer">
+        ¿No tienes cuenta?
+        <span class="link" (click)="goToRegister()">Regístrate</span>
+      </p>
+
+    </div>
+  </div>
+
+</ion-content>

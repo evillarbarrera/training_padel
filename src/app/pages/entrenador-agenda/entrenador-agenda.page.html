@@ -1,0 +1,71 @@
+<!-- HEADER ESTILO NIKE -->
+<ion-header class="nike-header" collapse="fade">
+
+  <!-- Imagen principal con overlay oscuro -->
+  <div class="hero-header-modern">
+    <img src="https://png.pngtree.com/thumb_back/fh260/background/20250423/pngtree-close-up-of-a-tennis-ball-on-padel-court-with-net-image_17217089.jpg" class="hero-img" />
+    <div class="hero-overlay"></div>
+
+    <div class="hero-text">
+      <h1 class="hero-title">Agenda del Entrenador</h1>
+      <p class="hero-subtitle">Planifica. Juega. Mejora.</p>
+    </div>
+  </div>
+
+  <!-- Avatar del entrenador estilo moderno -->
+  <div class="player-header-modern">
+    <img [src]="avatarUrl" class="player-avatar-modern" />
+
+    <div>
+      <h2 class="player-name-modern">{{ entrenadorNombre }}</h2>
+      <p class="player-role-modern">Agenda semanal</p>
+    </div>
+  </div>
+
+  <!-- Buscador moderno -->
+  <div class="search-container-modern">
+    <ion-input
+      [(ngModel)]="busqueda"
+      placeholder="Buscar alumno o clase..."
+      class="search-input-modern">
+    </ion-input>
+  </div>
+
+<ion-button fill="clear" class="btn-volver" (click)="volver()">
+ <ion-icon src="/assets/icon/chevron-left-svgrepo-com.svg"></ion-icon>
+</ion-button>
+
+  <!-- CALENDARIO SEMANAL -->
+<div class="agenda-scroll">
+
+  <div class="dia" *ngFor="let d of semana">
+
+      <div class="dia-header">
+        <span class="dia-nombre">{{ d.nombre }}</span>
+        <span class="dia-numero">{{ d.numero }}</span>
+      </div>
+
+      <div class="entrenamientos-lista">
+        <div class="entrenamiento-cuadro"
+             *ngFor="let e of entrenamientosPorDia[d.nombre]">
+          <span class="entrenamiento-texto">
+            {{ e.hora }} — {{ e.alumno }} — {{ e.tipo }}
+                <div class="entrenamiento-botones">
+                  <ion-button fill="clear" size="small" class="btn-mini" (click)="reagendarClase(e)">
+                  <ion-icon src="/assets/icon/settings.png"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" size="small" class="btn-mini cancelar" (click)="cancelarClase(e)">
+                   <ion-icon src="/assets/icon/cross.png"></ion-icon>
+                  </ion-button>
+          </div>
+          </span>
+        </div>
+      </div>
+
+  </div>
+
+</div>
+
+
+
+</ion-header>

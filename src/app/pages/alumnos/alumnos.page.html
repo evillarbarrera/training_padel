@@ -1,0 +1,56 @@
+<!-- HEADER -->
+<div class="header-image">
+  <div class="header-overlay"></div>
+  <h1 class="page-title">Alumnos</h1>
+</div>
+
+<ion-content>
+
+  <!-- 🔍 BUSCADOR -->
+  <div class="search-container">
+    <ion-item lines="none" class="search-item">
+      <ion-icon name="search-outline" slot="start"></ion-icon>
+      <ion-input
+        placeholder="Buscar alumno..."
+        [(ngModel)]="filtro"
+        clear-input="true">
+      </ion-input>
+    </ion-item>
+  </div>
+
+  <!-- 🔘 TOGGLE ACTIVOS -->
+  <div class="toggle-container">
+    <ion-label>Mostrar solo activos</ion-label>
+    <ion-toggle [(ngModel)]="mostrarSoloActivos"></ion-toggle>
+  </div>
+
+  <!-- 👥 LISTA DE ALUMNOS -->
+  <div class="alumnos-list">
+    <div
+      *ngFor="let alumno of alumnosFiltrados"
+      class="alumno-card"
+      (click)="verDetalle(alumno)"
+    >
+      <div class="info">
+        <h3>{{ alumno.nombre }}</h3>
+        
+        <p class="estado" [class.activo]="alumno.activo" [class.inactivo]="!alumno.activo">
+          {{ alumno.activo ? 'Activo' : 'Inactivo' }}
+        </p>
+
+        <p class="pack">Pack: {{ alumno.pack || 'Sin pack' }}</p>
+      </div>
+
+      <ion-icon
+        name="chevron-forward-outline"
+        class="icon"
+      ></ion-icon>
+    </div>
+  </div>
+
+</ion-content>
+
+<!-- 🔙 BOTÓN VOLVER FLOTANTE -->
+<ion-button class="btn-volver" (click)="goBack()">
+  <ion-icon src="/assets/icon/chevron-left-svgrepo-com.svg"></ion-icon>
+</ion-button>

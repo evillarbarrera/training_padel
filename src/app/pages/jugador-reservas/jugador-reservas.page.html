@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>Agendar Entrenamiento</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- Selección del pack -->
+  <ion-item>
+    <ion-label>Selecciona tu pack</ion-label>
+    <ion-select [(ngModel)]="packSeleccionado" (ionChange)="onPackChange()">
+      <ion-select-option *ngFor="let pack of packs" [value]="pack">
+        {{ pack.profesor }} - {{ pack.nombre }} ({{ pack.clasesRestantes }} restantes)
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <!-- Horarios disponibles -->
+  <div *ngIf="horarios.length > 0" class="horarios-container">
+    <h2 class="titulo">Horarios disponibles</h2>
+
+    <ion-list>
+      <ion-item *ngFor="let h of horarios" (click)="agendar(h)" button detail>
+        <ion-label>
+          <strong>{{ h.fecha | date:'fullDate' }}</strong><br>
+          {{ h.hora }}
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <!-- Loading -->
+  <ion-spinner *ngIf="cargando" name="crescent"></ion-spinner>
+
+  <!-- Sin horarios -->
+  <p *ngIf="packSeleccionado && horarios.length === 0 && !cargando">
+    No hay horarios disponibles para este profesor.
+  </p>
+
+</ion-content>
