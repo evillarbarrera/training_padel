@@ -27,34 +27,27 @@ export class LoginPage {
   constructor(
     private mysql: MysqlService,
     private router: Router,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private toastCtrl: ToastController
   ) {}
 
-  login() {
-    this.mysql.getUsers().subscribe(
-      (users) => {
-        const user = users.find(
-          u => u.usuario === this.usuario && u.password === this.password
-        );
+login() {
+  this.mysql.login(this.usuario, this.password).subscribe({
+    next: res => {
+      localStorage.setItem('token', res.token);
 
-        if (!user) {
-          this.presentAlert('Acceso denegado', 'Usuario o contraseña incorrectos');
-          return;
-        }
-
-        localStorage.setItem('user', JSON.stringify(user));
-
-        if (user.rol === 'entrenador') {
-          this.router.navigate(['/entrenador-home']);
-        } else {
-          this.router.navigate(['/jugador-home']);
-        }
-      },
-      () => {
-        this.presentAlert('Error', 'No se pudo conectar con el servidor');
+      if (res.rol === 'entrenador') {
+        this.router.navigate(['/entrenador-home']);
+      } else {
+        this.router.navigate(['/jugador-home']);
       }
-    );
-  }
+    },
+    error: () => {
+      this.showError('Credenciales incorrectas');
+    }
+  });
+}
+
 
   async presentAlert(title: string, message: string) {
     const alert = await this.alertCtrl.create({
@@ -65,6 +58,19 @@ export class LoginPage {
 
     await alert.present();
   }
+
+  async showError(message: string) {
+  const toast = await this.toastCtrl.create({
+    message,
+    duration: 2500,
+    position: 'top',
+    color: 'danger',
+    icon: 'alert-circle-outline'
+  });
+
+  await toast.present();
+}
+
 
   goToRegister() {
     this.router.navigate(['/register']);
