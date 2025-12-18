@@ -2,26 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Location } from '@angular/common';
-import {
-  IonContent,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonItem,
-  IonInput,
-  IonList,
-  IonSelect,
-  IonSelectOption,
-  IonLabel,
-  IonIcon,
-  IonFab,
-  IonFabButton,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonButton,
-} from '@ionic/angular/standalone';
+import { PacksService } from '../../services/pack.service';
+import { Router } from '@angular/router';
+
+import { IonicModule } from '@ionic/angular';
 
 @Component({
   selector: 'app-entrenador-packs',
@@ -31,69 +15,85 @@ import {
   imports: [
     CommonModule,
     FormsModule,
-
-    // Ionic standalone components
-    IonContent,
-    IonButton,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonInput,
-    IonItem,
-    IonList,
-    IonSelect,
-    IonSelectOption,
-    IonLabel,
-    IonIcon,
-    IonFab,
-    IonFabButton,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardContent
+    IonicModule  // aquí está todo lo que necesitas
   ]
 })
 export class EntrenadorPacksPage implements OnInit {
-
   packs: any[] = [];
-  filtered: any[] = [];
-  filtro: string = '';
-  searchText: string = '';
-  filterUbicacion: string = '';
   packsFiltrados: any[] = [];
+  filtro: string = '';
+  mostrarFormulario = false;
 
-  constructor(private location: Location) {}
+  nuevoPack: any = {
+    nombre: '',
+    tipo: 'individual',
+    sesiones_totales: 0,
+    duracion_sesion_min: 60,
+    precio: 0,
+    descripcion: ''
+  };
+
+  modalOpen = false;
+
+  constructor(
+    private location: Location,
+    private packsService: PacksService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     this.cargarPacks();
   }
 
   cargarPacks() {
-    // aquí luego conectamos Firestore
-    this.packs = [
-      { nombre: 'Pack 4 clases', precio: 40000, cantidad: 4, ubicacion: 'Rancagua', descripcion: 'Entrenamientos básicos' },
-      { nombre: 'Pack 8 clases', precio: 70000, cantidad: 8, ubicacion: 'Machalí', descripcion: 'Entrenamientos avanzados' },
-    ];
-    this.filtered = [...this.packs];
+    this.packsService.getMisPacks().subscribe(resp => {
+      this.packs = resp;
+      this.filtrarPacks();
+    });
   }
 
-  filtrar() {
-    this.filtered = this.packs.filter(p =>
-      p.nombre.toLowerCase().includes(this.searchText.toLowerCase()) &&
-      (this.filterUbicacion ? p.ubicacion === this.filterUbicacion : true)
+  filtrarPacks() {
+    this.packsFiltrados = this.packs.filter(p =>
+      p.nombre.toLowerCase().includes(this.filtro.toLowerCase())
     );
   }
 
-  goCreate() {
-    console.log("Ir a crear pack");
+  toggleFormulario() {
+    this.mostrarFormulario = !this.mostrarFormulario;
   }
 
-  goEdit(id: string) {
-    console.log("Ir a editar pack", id);
-}
+  crearPack() {
+    this.packsService.crearPack(this.nuevoPack).subscribe({
+      next: (resp) => {
+        console.log('Pack creado:', resp);
+        this.cerrarModal();
+        this.resetFormulario();
+        this.cargarPacks();
+      },
+      error: (err) => console.error('Error al crear pack', err)
+    });
+  }
 
   goBack() {
-    this.location.back();
+    this.router.navigate(['/entrenador-home']);
   }
 
+  abrirModal() {
+    this.modalOpen = true;
+  }
+
+  cerrarModal() {
+    this.modalOpen = false;
+  }
+
+  resetFormulario() {
+    this.nuevoPack = {
+      nombre: '',
+      tipo: 'individual',
+      sesiones_totales: null,
+      duracion_sesion_min: 60,
+      precio: null,
+      descripcion: ''
+    };
+  }
 }

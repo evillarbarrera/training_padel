@@ -1,30 +1,26 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Firestore, collectionData, collection, addDoc, updateDoc, deleteDoc, doc } from '@angular/fire/firestore';
-import { Pack } from '../models/pack.model';
 import { Observable } from 'rxjs';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class PacksService {
 
-  private packRef = collection(this.firestore, 'packs');
+  private apiUrl = 'http://api.rojasrefrigeracion.cl/packs';
+  // Token en Base64
+  private token = btoa('1|padel_academy');
+  private headers = new HttpHeaders({
+    'Authorization': `Bearer ${this.token}`,
+    'Content-Type': 'application/json'
+  });
+  constructor(private http: HttpClient) {}
 
-  constructor(private firestore: Firestore) {}
-
-  getPacks(): Observable<Pack[]> {
-    return collectionData(this.packRef, { idField: 'id' }) as Observable<Pack[]>;
+  getMisPacks(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/get_mis_packs.php`, { headers: this.headers });
   }
 
-  createPack(pack: Pack) {
-    return addDoc(this.packRef, pack);
-  }
-
-  updatePack(id: string, pack: Partial<Pack>) {
-    const docRef = doc(this.firestore, `packs/${id}`);
-    return updateDoc(docRef, pack);
-  }
-
-  deletePack(id: string) {
-    const docRef = doc(this.firestore, `packs/${id}`);
-    return deleteDoc(docRef);
+  crearPack(pack: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/create_pack.php`, pack, { headers: this.headers });
   }
 }

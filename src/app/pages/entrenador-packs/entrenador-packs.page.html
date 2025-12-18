@@ -10,31 +10,105 @@
   <div class="content-wrapper">
 
     <!-- Botón crear pack -->
-    <ion-button expand="block" class="btn-crear-pack" >
+    <ion-button expand="block" class="btn-crear-pack" (click)="abrirModal()">
       <ion-icon name="add-circle-outline" slot="start"></ion-icon>
       Crear Nuevo Pack
     </ion-button>
 
     <!-- Filtro -->
-    <ion-item class="filtro-item">
-      <ion-input placeholder="Buscar pack..." [(ngModel)]="filtro" ></ion-input>
-    </ion-item>
+    <ion-input
+      placeholder="Buscar pack..."
+      [(ngModel)]="filtro"
+      (ionInput)="filtrarPacks()">
+    </ion-input>
+
+
+
 
     <!-- Listado de packs -->
-    <div *ngFor="let pack of packsFiltrados" class="pack-card">
-      <h2>{{ pack.nombre }}</h2>
-      <p><strong>Precio:</strong> ${{ pack.precio }}</p>
-      <p><strong>Clases:</strong> {{ pack.cantidadClases }}</p>
-      <p><strong>Ubicación:</strong> {{ pack.ubicacion }}</p>
-      <p class="descripcion">{{ pack.descripcion }}</p>
+<div *ngFor="let pack of packsFiltrados" class="pack-card-horizontal">
+  <img src="assets/fondo_alumnos.png" alt="{{ pack.nombre }}" class="pack-image">
 
-      <ion-button fill="clear" >
-        <ion-icon name="create-outline"></ion-icon> Editar
-      </ion-button>
-    </div>
+  <div class="pack-content">
+    <h3>{{ pack.nombre }}</h3>
+    <p><strong>Precio:</strong> ${{ pack.precio }} | 
+       <strong>Clases:</strong> {{ pack.sesiones_totales }} | 
+       <strong>Tipo:</strong> {{ pack.tipo }} | 
+       <strong>Duración:</strong> {{ pack.duracion_sesion_min }} min
+    </p>
+  </div>
+
+<div class="pack-actions">
+    <ion-button fill="outline" size="small" color="primary">
+      <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+    </ion-button>
+    <ion-button fill="outline" size="small" color="danger">
+      <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+    </ion-button>
+  </div>
+</div>
+
+
   </div>
 </ion-content>
 
 <ion-button fill="clear" class="btn-volver" (click)="goBack()">
  <ion-icon src="/assets/icon/chevron-left-svgrepo-com.svg"></ion-icon>
 </ion-button>
+
+
+<ion-modal [isOpen]="modalOpen" (didDismiss)="cerrarModal()">
+  <ng-template>
+
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Nuevo Pack</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarModal()">Cerrar</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+
+      <ion-item>
+        <ion-label position="stacked">Nombre del Pack</ion-label>
+        <ion-input [(ngModel)]="nuevoPack.nombre"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Tipo</ion-label>
+        <ion-select [(ngModel)]="nuevoPack.tipo">
+          <ion-select-option value="individual">Individual</ion-select-option>
+          <ion-select-option value="grupal">Grupal</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Cantidad de Clases</ion-label>
+        <ion-input type="number" [(ngModel)]="nuevoPack.sesiones_totales"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Duración (min)</ion-label>
+        <ion-input type="number" [(ngModel)]="nuevoPack.duracion_sesion_min"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Precio</ion-label>
+        <ion-input type="number" [(ngModel)]="nuevoPack.precio"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Descripción</ion-label>
+        <ion-textarea [(ngModel)]="nuevoPack.descripcion"></ion-textarea>
+      </ion-item>
+
+      <ion-button expand="block" color="success" (click)="crearPack()">
+        Guardar Pack
+      </ion-button>
+
+    </ion-content>
+
+  </ng-template>
+</ion-modal>
