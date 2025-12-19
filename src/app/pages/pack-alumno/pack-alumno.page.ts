@@ -4,6 +4,9 @@ import { PacksService } from '../../services/pack.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AlertController, ModalController } from '@ionic/angular';
+import { ConfirmarPackModal } from '../../modals/confirmar-pack.modal';
+
 import {
   IonicModule,
   IonItem,
@@ -42,9 +45,12 @@ export class PackAlumnoPage implements OnInit {
   
 
 
-  constructor(private packsAlumno: PackAlumnoService, 
+  constructor(private modalCtrl: ModalController,
+              private packsAlumno: PackAlumnoService, 
               private packsService: PacksService,
-              private router: Router) {}
+              private router: Router,
+              private alertCtrl: AlertController
+            ) {}
 
   ngOnInit() {
     this.cargarPacks();
@@ -114,15 +120,7 @@ export class PackAlumnoPage implements OnInit {
       this.packsPaginados = this.packsFiltrados.slice(start, end);
     }
 
-    // get totalPages(): number {
-    //   return Math.ceil(this.packsFiltrados.length / this.pageSize);
-    // }
 
-
-  comprarPack(pack: any) {
-    // Guardar pack o redirigir a proceso de compra
-    console.log('Comprar pack:', pack);
-  }
 
   goToHome() {
     this.router.navigate(['/jugador-home']);
@@ -137,4 +135,73 @@ export class PackAlumnoPage implements OnInit {
     localStorage.removeItem('userId');
     this.router.navigate(['/login']);
   }
+
+  volver() {
+  this.router.navigate(['/jugador-home']); // o la ruta correcta
+  }
+
+
+
+  async comprarPack(pack: any) {
+    const modal = await this.modalCtrl.create({
+      component: ConfirmarPackModal,
+      componentProps: { pack }
+    });
+
+    await modal.present();
+
+
+    const { data } = await modal.onDidDismiss();
+
+    if (data?.confirmar) {
+      this.confirmarCompra(pack);
+    }
+  }
+
+
+  confirmarCompra(pack: any) {
+      const jugadorId = Number(localStorage.getItem('userId'));
+
+      const payload = {
+        pack_id: Number(pack.id),
+        jugador_id: jugadorId,
+        sesiones_usadas: 0,
+        fecha_inicio: new Date().toISOString().split('T')[0],
+        fecha_fin: null
+      };
+
+      console.log('PAYLOAD ENVIADO:', payload);
+
+      this.packsAlumno.insertPackAlumno(payload).subscribe({
+        next: () => {
+          this.mostrarCompraExitosa();
+        },
+        error: err => {
+          console.error(err);
+          this.mostrarError();
+        }
+      });
+    }
+
+    async mostrarCompraExitosa() {
+      const alert = await this.alertCtrl.create({
+        header: 'Compra registrada',
+        message: 'El pack fue asignado correctamente. Coordina el pago directamente con el profesor.',
+        buttons: ['OK']
+      });
+
+      await alert.present();
+    }
+    
+    async mostrarError() {
+      const alert = await this.alertCtrl.create({
+        header: 'Error',
+        message: 'No se pudo registrar la compra. Intenta nuevamente.',
+        buttons: ['OK']
+      });
+
+      await alert.present();
+    }
+
+
 }

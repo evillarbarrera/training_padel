@@ -16,11 +16,6 @@ export class PacksService {
   });
   constructor(private http: HttpClient) {}
 
-  // getMisPacks(): Observable<any[]> {
-  //   // return this.http.get<any[]>(`${this.apiUrl}/get_mis_packs.php`, { headers: this.headers });
-  //   const userId = Number(localStorage.getItem('userId')); // recuperar ID
-  //   return this.http.get<any[]>(`${this.apiUrl}/get_mis_packs.php?entrenador_id=${userId}`, { headers: this.headers });
-  // }
 
   getMisPacks(): Observable<any> {
     const userId = Number(localStorage.getItem('userId')); // recupera ID guardado

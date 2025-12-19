@@ -7,8 +7,8 @@ import { Observable } from 'rxjs';
 })
 export class PackAlumnoService {
 
-  private apiUrl = 'http://api.rojasrefrigeracion.cl/packs';
-  // Token en Base64
+private apiUrl = 'http://api.rojasrefrigeracion.cl/alumno';
+
   private token = btoa('1|padel_academy');
   private headers = new HttpHeaders({
     'Authorization': `Bearer ${this.token}`,
@@ -16,5 +16,14 @@ export class PackAlumnoService {
   });
   constructor(private http: HttpClient) {}
 
+  insertPackAlumno(data: any) {
+    return this.http.post(
+      `${this.apiUrl}/insert_pack.php`,
+      data,
+      { headers: this.headers } // 👈 AQUÍ ESTABA EL ERROR
+    );
+
+
+  }
 
 }

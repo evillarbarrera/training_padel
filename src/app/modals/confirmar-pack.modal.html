@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Confirmar compra</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">✕</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <h2>{{ pack.nombre }}</h2>
+
+  <p><strong>Entrenador:</strong> {{ pack.entrenador_nombre }}</p>
+  <p><strong>Sesiones:</strong> {{ pack.sesiones_totales }}</p>
+  <p class="precio">$ {{ pack.precio }}</p>
+
+  <ion-text color="medium">
+    La transferencia será realizada directamente con el profesor.
+  </ion-text>
+
+  <ion-button expand="block" color="primary" (click)="confirmar()">
+    Confirmar compra
+  </ion-button>
+
+  <ion-button expand="block" fill="clear" (click)="cerrar()">
+    Cancelar
+  </ion-button>
+
+</ion-content>
