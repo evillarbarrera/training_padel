@@ -1,0 +1,94 @@
+<ion-content>
+
+  <!-- HEADER ESTILO NIKE -->
+  <div class="header-nike">
+    <div class="header-overlay"></div>
+    <div class="header-content">
+      <h1 class="header-title">Packs de Entrenamiento</h1>
+      <p class="header-sub">Elige el pack que más se ajuste a ti</p>
+    </div>
+  </div>
+
+  <!-- FILTRO POR ENTRENADOR -->
+  <div class="filter-container">
+    <ion-item>
+      <ion-label>Filtrar por Entrenador</ion-label>
+      <ion-select
+        placeholder="Selecciona entrenador"
+        [(ngModel)]="selectedEntrenador"
+        (ionChange)="filtrarPacks()"
+      >
+        <ion-select-option
+          *ngFor="let entrenador of entrenadores"
+          [value]="entrenador.id"
+        >
+          {{ entrenador.nombre }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+  </div>
+
+  <!-- LISTADO DE PACKS -->
+  <div class="packs-container">
+    <div class="pack-card" *ngFor="let pack of packsPaginados">
+
+      <!-- INFO -->
+      <div class="pack-info">
+        <h3>{{ pack.nombre }}</h3>
+        <p>{{ pack.descripcion }}</p>
+        <p class="entrenador">Entrenador: {{ pack.entrenador_nombre }}</p>
+        <p class="precio">${{ pack.precio }}</p>
+      </div>
+
+      <!-- IMAGEN -->
+      <img
+        class="pack-img"
+        [src]="pack.imagen || '/assets/mod-packs.jpg'"
+        alt="Pack entrenamiento"
+      />
+
+      <!-- BOTÓN -->
+      <div class="pack-action">
+        <ion-button
+          color="primary"
+          size="small"
+          (click)="comprarPack(pack)"
+        >
+          Comprar
+        </ion-button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PAGINACIÓN -->
+  <div class="pagination">
+    <ion-button
+      *ngFor="let p of totalPages"
+      size="small"
+      [fill]="page === p ? 'solid' : 'outline'"
+      (click)="setPage(p)"
+    >
+      {{ p }}
+    </ion-button>
+  </div>
+
+  <!-- MENÚ INFERIOR -->
+  <div class="bottom-menu">
+    <div class="menu-item" (click)="goToHome()">
+      <ion-icon name="home-outline"></ion-icon>
+      <span>Inicio</span>
+    </div>
+
+    <div class="menu-item" (click)="goToAgenda()">
+      <ion-icon name="calendar-outline"></ion-icon>
+      <span>Agenda</span>
+    </div>
+
+    <div class="menu-item" (click)="logout()">
+      <ion-icon name="log-out-outline"></ion-icon>
+      <span>Cerrar Sesión</span>
+    </div>
+  </div>
+
+</ion-content>

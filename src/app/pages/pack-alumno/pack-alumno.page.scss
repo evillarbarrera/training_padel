@@ -1,0 +1,176 @@
+/* =======================
+   HEADER ESTILO NIKE
+======================= */
+.header-nike {
+  position: relative;
+  height: 180px;
+  background: url('/assets/mod-packs.jpg') no-repeat center center;
+  background-size: cover;
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+  color: #fff;
+
+  .header-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .header-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .header-title {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .header-sub {
+    font-size: 14px;
+    opacity: 0.85;
+  }
+}
+
+/* =======================
+   FILTRO
+======================= */
+.filter-container {
+  padding: 12px 20px;
+}
+
+/* =======================
+   LISTADO DE PACKS
+======================= */
+.packs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px 90px; // espacio para el bottom-menu
+}
+
+/* =======================
+   PACK CARD (HORIZONTAL)
+======================= */
+.pack-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* Imagen izquierda */
+.pack-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+  margin-right: 12px;
+}
+
+/* Info central */
+
+.pack-info {
+  flex: 1;
+  padding-right: 10px;
+
+  h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: #111;
+  }
+
+  p {
+    margin: 2px 0;
+    font-size: 13px;
+    color: #555;
+  }
+
+  .precio {
+    font-weight: 600;
+    color: #000;
+  }
+}
+
+/* Botón derecha */
+.pack-action {
+  display: flex;
+  align-items: center;
+
+  ion-button {
+    --border-radius: 20px;
+    font-size: 12px;
+    height: 32px;
+  }
+}
+
+/* =======================
+   PAGINACIÓN.pack-info 
+======================= */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0 90px;
+}
+
+.pagination ion-button {
+  margin: 0 4px;
+}
+
+/* =======================
+   MENÚ INFERIOR
+======================= */
+.bottom-menu {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-top: 1px solid #e5e5e5;
+  display: flex;
+  justify-content: space-around;
+  padding: 6px 0;
+  z-index: 10;
+}
+
+.bottom-menu .menu-item {
+  text-align: center;
+  font-size: 12px;
+  color: #222;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bottom-menu ion-icon {
+  font-size: 22px;
+  margin-bottom: 2px;
+}
+
+/* IMAGEN DERECHA */
+.pack-img {
+  width: 70px;
+  height: 70px;
+  border-radius: 12px;
+  object-fit: cover;
+  margin: 0 10px;
+}
+
+/* BOTÓN */
+.pack-action {
+  display: flex;
+  align-items: center;
+
+  ion-button {
+    --border-radius: 20px;
+    font-size: 12px;
+    height: 32px;
+    padding: 0 12px;
+  }
+}

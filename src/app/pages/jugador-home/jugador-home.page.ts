@@ -4,6 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
 import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
+
+
+
+
 @Component({
   selector: 'app-jugador-home',
   templateUrl: './jugador-home.page.html',
@@ -58,6 +62,10 @@ export class JugadorHomePage implements OnInit {
     // Redirigir al login
     this.router.navigate(['/login']);
   }
+
+  goToPackAlumno() {
+  this.router.navigate(['/pack-alumno']);
+}
 
 
 }

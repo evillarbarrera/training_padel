@@ -23,9 +23,13 @@ export class PacksService {
   // }
 
   getMisPacks(): Observable<any> {
-  const userId = Number(localStorage.getItem('userId')); // recupera ID guardado
-  console.log("Recuperado userId en PacksService:", userId);
-  return this.http.get(`${this.apiUrl}/get_mis_packs.php?entrenador_id=${userId}`, { headers: this.headers });
+    const userId = Number(localStorage.getItem('userId')); // recupera ID guardado
+    console.log("Recuperado userId en PacksService:", userId);
+    return this.http.get(`${this.apiUrl}/get_mis_packs.php?entrenador_id=${userId}`, { headers: this.headers });
+}
+
+  getAllPacks(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/get_all_packs.php`, { headers: this.headers });
 }
   
   
