@@ -35,7 +35,9 @@ login() {
   this.mysql.login(this.usuario, this.password).subscribe({
     next: res => {
       localStorage.setItem('token', res.token);
-
+      console.log(res);
+         // Guardar ID del usuario
+      localStorage.setItem('userId', res.id.toString());
       if (res.rol === 'entrenador') {
         this.router.navigate(['/entrenador-home']);
       } else {

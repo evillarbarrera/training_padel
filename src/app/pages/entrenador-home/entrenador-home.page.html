@@ -11,6 +11,8 @@
     <img src="/assets/fondo-cancha.png" class="welcome-img" />
     <h1 class="welcome-title">Hola, Entrenador</h1>
     <p class="welcome-sub">Administra tus clases</p>
+
+
   </div>
 
   <!-- TARJETAS -->
@@ -60,21 +62,23 @@
   </div>
 
   <!-- MENÚ INFERIOR -->
-  <!-- <div class="bottom-menu">
-    <div class="menu-item" >
-      <ion-icon name="home-outline"></ion-icon>
-      <span>Inicio</span>
-    </div>
+<!-- MENÚ INFERIOR ESTILO TARJETAS -->
+<div class="bottom-menu-grid">
+  <div class="menu-card" (click)="goToHome()">
+    <ion-icon name="home-outline" class="menu-icon"></ion-icon>
+    <span>Inicio</span>
+  </div>
 
-    <div class="menu-item" >
-      <ion-icon name="calendar-outline"></ion-icon>
-      <span>Agenda</span>
-    </div>
+  <div class="menu-card" (click)="goToAgenda()">
+    <ion-icon name="calendar-outline" class="menu-icon"></ion-icon>
+    <span>Agenda</span>
+  </div>
 
-    <div class="menu-item">
-      <ion-icon name="person-outline"></ion-icon>
-      <span>Perfil</span>
-    </div>
-  </div> -->
+  <div class="menu-card" (click)="logout()">
+    <ion-icon name="log-out-outline" class="menu-icon"></ion-icon>
+    <span>Cerrar Sesión</span>
+  </div>
+</div>
+
 
 </ion-content>

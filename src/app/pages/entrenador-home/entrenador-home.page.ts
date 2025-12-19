@@ -34,8 +34,17 @@ export class EntrenadorHomePage {
   }
 
   async logout() {
+    // Limpiar token y userId del localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
     await this.authService.logout
     this.router.navigate(['/login']);
   }
+
+  goToHome() {
+  this.router.navigate(['/entrenador-home']);
+}
+
+
   
 }

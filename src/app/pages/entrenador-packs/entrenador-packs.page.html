@@ -39,10 +39,12 @@
   </div>
 
 <div class="pack-actions">
-    <ion-button fill="outline" size="small" color="primary">
+   <ion-button fill="outline" size="small" color="primary" (click)="editarPack(pack)">
       <ion-icon slot="icon-only" name="create-outline"></ion-icon>
     </ion-button>
-    <ion-button fill="outline" size="small" color="danger">
+
+    <!-- Eliminar pack -->
+    <ion-button fill="outline" size="small" color="danger" (click)="eliminarPack(pack.id)">
       <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
     </ion-button>
   </div>

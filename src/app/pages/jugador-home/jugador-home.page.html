@@ -1,19 +1,19 @@
 <ion-content>
 
   <!-- HERO ESTILO NIKE -->
-<div class="header-nike">
-  <div class="header-overlay"></div>
-  <div class="header-content">
-    <h1 class="header-title">Hola, {{ jugadorNombre }}</h1>
-    <p class="header-sub">Tu progreso • {{ entrenamientosRealizados }} completados</p>
+  <div class="header-nike">
+    <div class="header-overlay"></div>
+    <div class="header-content">
+      <h1 class="header-title">Hola, {{ jugadorNombre }}</h1>
+      <p class="header-sub">Tu progreso • {{ entrenamientosRealizados }} completados</p>
+    </div>
   </div>
-</div>
+
   <!-- DASHBOARD -->
   <div class="dashboard-container">
 
     <!-- Estadísticas -->
     <div class="stats-grid">
-
       <div class="stat-card">
         <h3>{{ entrenamientosRealizados }}</h3>
         <p>Realizados</p>
@@ -28,11 +28,21 @@
         <h3>{{ totalMes }}</h3>
         <p>Este mes</p>
       </div>
-
     </div>
 
     <!-- ACCIONES PRINCIPALES -->
     <div class="acciones-container">
+      <div class="module-card">
+        <img src="/assets/mod-packs.jpg" class="module-img" />
+        <div class="module-info">
+          <h2>Packs de Clases</h2>
+          <p>Crea y gestiona tus packs disponibles</p>
+          <ion-button class="boton-menu" expand="block" >
+            <ion-icon slot="start" name="albums-outline"></ion-icon>
+            Packs de Entrenamiento
+          </ion-button>
+        </div>
+      </div>
 
       <div class="module-card">
         <img src="/assets/mod-agenda.jpg" class="module-img" />
@@ -47,24 +57,6 @@
         </div>
       </div>
 
-      <div class="module-card">
-        <img src="/assets/mod-packs.jpg" class="module-img" />
-
-        <div class="module-info">
-          <h2>Packs de Clases</h2>
-          <p>Crea y gestiona tus packs disponibles</p>
-          <ion-button class="boton-menu" expand="block" >
-            <ion-icon slot="start" name="albums-outline"></ion-icon>
-            Packs de Entrenamiento
-          </ion-button>
-        </div>
-      </div>
-
-
-      <!-- <ion-button expand="block" class="btn-accion" (click)="comprarPack()">
-        <ion-icon name="bag-check-outline"></ion-icon>
-        Comprar Pack
-      </ion-button> -->
 
       <div class="module-card">
         <img src="/assets/mod-alumnos.jpg" class="module-img" />
@@ -80,7 +72,25 @@
       </div>
 
     </div>
+    
+  </div>
 
+  <!-- MENÚ INFERIOR ESTILO TARJETAS -->
+  <div class="bottom-menu-grid">
+    <div class="menu-card" (click)="goToHome()">
+      <ion-icon name="home-outline" class="menu-icon"></ion-icon>
+      <span>Inicio</span>
+    </div>
+
+    <div class="menu-card" (click)="goToAgenda()">
+      <ion-icon name="calendar-outline" class="menu-icon"></ion-icon>
+      <span>Agenda</span>
+    </div>
+
+    <div class="menu-card" (click)="logout()">
+      <ion-icon name="log-out-outline" class="menu-icon"></ion-icon>
+      <span>Cerrar Sesión</span>
+    </div>
   </div>
 
 </ion-content>

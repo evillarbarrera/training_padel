@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Location } from '@angular/common';
 import { PacksService } from '../../services/pack.service';
 import { Router } from '@angular/router';
-
+import { AlertController } from '@ionic/angular';
 import { IonicModule } from '@ionic/angular';
 
 @Component({
@@ -38,7 +38,8 @@ export class EntrenadorPacksPage implements OnInit {
   constructor(
     private location: Location,
     private packsService: PacksService,
-    private router: Router
+    private router: Router,
+    private alertController: AlertController,
   ) {}
 
   ngOnInit() {
@@ -63,6 +64,19 @@ export class EntrenadorPacksPage implements OnInit {
   }
 
   crearPack() {
+ if (this.nuevoPack.id) {
+    // EDITAR
+    this.packsService.editarPack(this.nuevoPack).subscribe({
+      next: (resp) => {
+        console.log('Pack editado:', resp);
+        this.cerrarModal();
+        this.resetFormulario();
+        this.cargarPacks();
+      },
+      error: (err) => console.error('Error al editar pack', err)
+    });
+  } else {
+    // CREAR
     this.packsService.crearPack(this.nuevoPack).subscribe({
       next: (resp) => {
         console.log('Pack creado:', resp);
@@ -73,6 +87,10 @@ export class EntrenadorPacksPage implements OnInit {
       error: (err) => console.error('Error al crear pack', err)
     });
   }
+  }
+
+
+
 
   goBack() {
     this.router.navigate(['/entrenador-home']);
@@ -96,4 +114,54 @@ export class EntrenadorPacksPage implements OnInit {
       descripcion: ''
     };
   }
+
+  editarPack(pack: any) {
+  // Abrir modal con formulario y precargar los datos del pack
+  this.nuevoPack = { ...pack };
+  this.abrirModal();
+}
+
+ async eliminarPack(packId: number) {
+    const alert = await this.alertController.create({
+      header: 'Confirmar',
+      message: '¿Seguro quieres eliminar este pack?',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+        },
+        {
+          text: 'Eliminar',
+          role: 'confirm',
+          handler: () => {
+            // Aquí se llama al servicio para "eliminar" (actualizar activo a 0)
+            this.packsService.eliminarPack(packId).subscribe({
+              next: () => {
+                // Actualizar la lista local
+                this.packs = this.packs.map(p => 
+                  p.id === packId ? { ...p, activo: 0 } : p
+                );
+                this.filtrarPacks();
+              },
+              error: (err) => console.error("Error eliminando pack:", err)
+            });
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+  
+guardarEdicion() {
+  this.packsService.editarPack(this.nuevoPack).subscribe({
+    next: (resp) => {
+      this.cerrarModal();
+      this.resetFormulario();
+      this.cargarPacks();
+    },
+    error: (err) => console.error("Error editando pack:", err)
+  });
+}
+
 }
