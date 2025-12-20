@@ -1,0 +1,67 @@
+.nike-modal {
+  --background: #f5f5f5;
+}
+
+/* HEADER */
+.modal-header {
+  padding: 24px 20px 12px;
+  text-align: center;
+
+  h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  p {
+    margin-top: 4px;
+    font-size: 14px;
+    color: #777;
+  }
+}
+
+/* CARD */
+.modal-card {
+  margin: 16px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+/* TIME STACKED */
+.time-vertical {
+  margin-bottom: 16px;
+}
+
+.time-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+ion-datetime {
+  --background: #f2f2f2;
+  --border-radius: 16px;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+
+/* CLUB */
+.club-select {
+  margin-top: 10px;
+  --background: #f2f2f2;
+  border-radius: 16px;
+}
+
+/* ACTIONS */
+.modal-actions {
+  padding: 20px;
+
+  ion-button {
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+}

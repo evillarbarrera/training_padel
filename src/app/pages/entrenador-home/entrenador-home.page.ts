@@ -84,7 +84,7 @@ export class EntrenadorHomePage {
           text: 'Horarios disponibles',
           icon: 'time-outline',
           handler: () => {
-            this.router.navigate(['/disponibilidad-profesor']);
+            this.router.navigate(['/disponibilidad-entrenador']);
           }
         },
         {

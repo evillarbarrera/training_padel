@@ -13,10 +13,12 @@ import { provideAuth, getAuth } from '@angular/fire/auth';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { firebaseConfig } from './firebase.config';
 
+
+
 bootstrapApplication(AppComponent, {
   providers: [
-    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-
+    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy,},
+    
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
 

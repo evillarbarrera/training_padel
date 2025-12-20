@@ -1,0 +1,61 @@
+<ion-content class="nike-modal">
+
+  <!-- HEADER -->
+  <div class="modal-header">
+    <h2>{{ dia.nombre }}</h2>
+    <p>Configura tu horario</p>
+  </div>
+
+  <!-- CARD -->
+  <div class="modal-card">
+
+    <!-- INICIO -->
+    <div class="time-vertical">
+      <span class="time-label">Hora inicio</span>
+      <ion-datetime
+        presentation="time"
+        size="small"
+        [(ngModel)]="horaInicio">
+      </ion-datetime>
+    </div>
+
+    <!-- FIN -->
+    <div class="time-vertical">
+      <span class="time-label">Hora fin</span>
+      <ion-datetime
+        presentation="time"
+        size="small"
+        [(ngModel)]="horaFin">
+      </ion-datetime>
+    </div>
+
+    <!-- CLUB -->
+    <ion-item lines="none" class="club-select">
+      <ion-label>Club</ion-label>
+      <ion-select [(ngModel)]="clubId" interface="action-sheet">
+        <ion-select-option
+          *ngFor="let club of clubes"
+          [value]="club.id">
+          {{ club.nombre }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="modal-actions">
+    <ion-button expand="block" color="dark" shape="round" (click)="confirmar()">
+      Guardar horario
+    </ion-button>
+
+    <ion-button
+      expand="block"
+      fill="clear"
+      color="medium"
+      (click)="cerrar()">
+      Cancelar
+    </ion-button>
+  </div>
+
+</ion-content>

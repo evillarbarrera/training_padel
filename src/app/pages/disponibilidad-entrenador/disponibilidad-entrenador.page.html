@@ -1,0 +1,54 @@
+<ion-content class="nike-bg">
+
+  <!-- HEADER -->
+  <div class="header-nike">
+    <div class="header-overlay"></div>
+    <div class="header-content">
+      <h1>Disponibilidad</h1>
+      <p>Configura tus horarios semanales</p>
+    </div>
+  </div>
+
+  <!-- LISTA DE DÍAS -->
+  <div class="dias-container">
+
+    <div class="dia-card" *ngFor="let dia of dias">
+
+      <div class="dia-header">
+        <h2>{{ dia.nombre }}</h2>
+
+        <ion-toggle
+          [(ngModel)]="dia.activo"
+          color="success">
+        </ion-toggle>
+      </div>
+
+      <!-- RESUMEN -->
+      <div class="dia-resumen" *ngIf="dia.activo">
+        <p>
+          ⏰ {{ dia.hora_inicio }} - {{ dia.hora_fin }}
+        </p>
+        <p *ngIf="dia.club_nombre">
+          📍 {{ dia.club_nombre }}
+        </p>
+
+        <ion-button
+          size="small"
+          fill="outline"
+          (click)="abrirHorario(dia)">
+          Configurar horario
+        </ion-button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- GUARDAR -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="dark" (click)="guardarDisponibilidad()">
+      <ion-icon name="save-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

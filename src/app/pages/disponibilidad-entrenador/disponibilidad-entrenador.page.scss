@@ -1,0 +1,67 @@
+.nike-bg {
+  --background: #f6f6f6;
+}
+
+/* HEADER */
+.header-nike {
+  position: relative;
+  height: 180px;
+  background: url('/assets/fondo-padel.png') center/cover no-repeat;
+}
+
+.header-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,.6), transparent);
+}
+
+.header-content {
+  position: relative;
+  padding: 40px 20px;
+  color: white;
+}
+
+.header-content h1 {
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.header-content p {
+  opacity: .9;
+}
+
+/* DÍAS */
+.dias-container {
+  padding: 20px;
+}
+
+.dia-card {
+  background: white;
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.12);
+}
+
+.dia-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dia-header h2 {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.dia-resumen {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dia-resumen .club {
+  opacity: .6;
+}

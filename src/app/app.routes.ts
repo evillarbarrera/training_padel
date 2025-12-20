@@ -50,4 +50,8 @@ export const routes: Routes = [
     path: 'pack-alumno',
     loadComponent: () => import('./pages/pack-alumno/pack-alumno.page').then( m => m.PackAlumnoPage)
   },
+  {
+    path: 'disponibilidad-entrenador',
+    loadComponent: () => import('./pages/disponibilidad-entrenador/disponibilidad-entrenador.page').then( m => m.DisponibilidadEntrenadorPage)
+  },
 ];
