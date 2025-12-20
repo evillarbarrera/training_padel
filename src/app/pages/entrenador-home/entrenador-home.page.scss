@@ -244,3 +244,11 @@
   font-weight: 600;
   font-size: 14px;
 }
+
+ion-fab {
+  z-index: 9999 !important;
+}
+
+ion-fab-button {
+  --box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}

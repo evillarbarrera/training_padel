@@ -63,7 +63,7 @@
 
   <!-- MENÚ INFERIOR -->
 <!-- MENÚ INFERIOR ESTILO TARJETAS -->
-<div class="bottom-menu-grid">
+<!-- <div class="bottom-menu-grid">
   <div class="menu-card" (click)="goToHome()">
     <ion-icon name="home-outline" class="menu-icon"></ion-icon>
     <span>Inicio</span>
@@ -79,6 +79,12 @@
     <span>Cerrar Sesión</span>
   </div>
 </div>
-
+ -->
+<!-- BOTÓN FLOTANTE AJUSTES -->
+<ion-fab vertical="bottom" horizontal="start" slot="fixed">
+  <ion-fab-button color="light" (click)="openSettings()">
+    <ion-icon name="settings-outline"></ion-icon>
+  </ion-fab-button>
+</ion-fab>
 
 </ion-content>

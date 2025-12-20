@@ -1,21 +1,45 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
-import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
+import { ActionSheetController } from '@ionic/angular';
+import {
+  IonContent,
+  IonFab,
+  IonFabButton,
+  IonIcon,
+  IonButton
+} from '@ionic/angular/standalone';
+
+import { addIcons } from 'ionicons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-entrenador-home',
   standalone: true,
-  imports: [IonicModule, CommonModule],
+  imports: [CommonModule, IonContent,
+    IonFab,
+    IonFabButton,
+    IonIcon,
+    IonButton],
   templateUrl: './entrenador-home.page.html',
-  styleUrls: ['./entrenador-home.page.scss'],
+  styleUrls: ['./entrenador-home.page.scss']
 })
 export class EntrenadorHomePage {
 
-  constructor(private router: Router,
-    private authService: AuthService
-  ) {}
+  constructor(
+    
+    private router: Router,
+    private authService: AuthService,
+    private actionSheetCtrl: ActionSheetController,
+    
+  ) {
+    addIcons({
+        settingsOutline,
+        homeOutline,
+        calendarOutline,
+        logOutOutline});
+    }
 
   goToPacks() {
     this.router.navigate(['/entrenador-packs']);
@@ -44,6 +68,44 @@ export class EntrenadorHomePage {
   goToHome() {
   this.router.navigate(['/entrenador-home']);
 }
+
+  async openSettings() {
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: 'Ajustes del Entrenador',
+      buttons: [
+        {
+          text: 'Mi Perfil',
+          icon: 'person-outline',
+          handler: () => {
+            this.router.navigate(['/perfil-profesor']);
+          }
+        },
+        {
+          text: 'Horarios disponibles',
+          icon: 'time-outline',
+          handler: () => {
+            this.router.navigate(['/disponibilidad-profesor']);
+          }
+        },
+        {
+          text: 'Cerrar sesión',
+          icon: 'log-out-outline',
+          role: 'destructive',
+          handler: () => {
+            this.logout();
+          }
+        },
+        {
+          text: 'Cancelar',
+          icon: 'close',
+          role: 'cancel'
+        }
+      ]
+    });
+
+    await actionSheet.present();
+  }
+
 
 
   
