@@ -41,9 +41,14 @@ export class HorarioModalComponent {
   constructor(private modalCtrl: ModalController) {}
 
   ngOnInit() {
-    this.horaInicio = this.dia.hora_inicio;
-    this.horaFin = this.dia.hora_fin;
+ if (this.dia) {
+    this.horaInicio = this.dia.hora_inicio || '07:00';
+    this.horaFin = this.dia.hora_fin || '21:00';
     this.clubId = this.dia.club_id;
+  } else {
+    this.horaInicio = '07:00';
+    this.horaFin = '21:00';
+  }
   }
 
   confirmar() {

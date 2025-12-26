@@ -11,6 +11,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HorarioModalComponent } from '../../components/horario-modal/horario-modal.component';
+import { EntrenamientoService } from '../../services/entrenamiento.service';
+
 
 @Component({
   selector: 'app-disponibilidad-entrenador',
@@ -31,6 +33,10 @@ import { HorarioModalComponent } from '../../components/horario-modal/horario-mo
 })
 export class DisponibilidadEntrenadorPage {
 
+  ngOnInit() {
+    this.getSemanaSiguiente();
+  }
+
   entrenador_id = Number(localStorage.getItem('userId'));
 
   clubes = [
@@ -38,17 +44,20 @@ export class DisponibilidadEntrenadorPage {
     { id: 2, nombre: 'Malloa Padel' }
   ];
 
-  dias = [
-    { nombre: 'Lunes', activo: false, hora_inicio: '09:00', hora_fin: '13:00', club_id: null, club_nombre: '' },
-    { nombre: 'Martes', activo: false, hora_inicio: '09:00', hora_fin: '13:00', club_id: null, club_nombre: '' },
-    { nombre: 'Miércoles', activo: false, hora_inicio: '09:00', hora_fin: '13:00', club_id: null, club_nombre: '' },
-    { nombre: 'Jueves', activo: false, hora_inicio: '09:00', hora_fin: '13:00', club_id: null, club_nombre: '' },
-    { nombre: 'Viernes', activo: false, hora_inicio: '09:00', hora_fin: '13:00', club_id: null, club_nombre: '' },
-    { nombre: 'Sábado', activo: false, hora_inicio: '09:00', hora_fin: '13:00', club_id: null, club_nombre: '' },
-    { nombre: 'Domingo', activo: false, hora_inicio: '09:00', hora_fin: '13:00', club_id: null, club_nombre: '' }
-  ];
+  diasMap: any = {
+  'Lunes': 1,
+  'Martes': 2,
+  'Miércoles': 3,
+  'Jueves': 4,
+  'Viernes': 5,
+  'Sábado': 6,
+  'Domingo': 7
+};
 
-  constructor(private modalCtrl: ModalController) {}
+  dias: any[] = [];
+  semanaActual: string = '';
+
+  constructor(private modalCtrl: ModalController, private entrenamientoService: EntrenamientoService) {}
 
   async abrirHorario(dia: any) {
     const modal = await this.modalCtrl.create({
@@ -70,19 +79,130 @@ export class DisponibilidadEntrenadorPage {
       dia.club_nombre = data.club_nombre;
     }
   }
+guardarDisponibilidad() {
+  const payload = this.dias
+    .filter(d => d.activo && d.club_id)
+    .map(d => {
+      const fecha = d.fecha;
+      const horaInicio = d.hora_inicio.split('T')[1].split(':').slice(0, 2).join(':');
+      const horaFin = d.hora_fin;
 
-  guardarDisponibilidad() {
-    const payload = this.dias
-      .filter(d => d.activo)
-      .map(d => ({
-        entrenador_id: this.entrenador_id,
-        dia: d.nombre,
-        hora_inicio: d.hora_inicio,
-        hora_fin: d.hora_fin,
-        club_id: d.club_id
-      }));
+      const fechaInicio = `${fecha} ${horaInicio}:00`;
+      const fechaFin = `${fecha} ${horaFin}:00`;
 
-    console.log('Disponibilidad a guardar:', payload);
-    // 👉 aquí va tu API
+      return {
+        profesor_id: this.entrenador_id,
+        fecha_inicio: fechaInicio,
+        fecha_fin: fechaFin,
+        club_id: d.club_id,
+        activo: 1
+      };
+    });
+
+  console.log('Disponibilidad a guardar:', payload);
+
+  this.entrenamientoService.addDisponibilidad(payload).subscribe({
+    next: (res: any) => console.log('OK', res),
+    error: (err: any) => console.error('ERROR', err)
+  });
+}
+
+
+  getSemanaSiguienteActual() {
+    const hoy = new Date();
+    const diaActual = hoy.getDay(); 
+    const diffLunes = diaActual === 0 ? -6 : 1 - diaActual;
+    const lunes = new Date(hoy);
+    lunes.setDate(hoy.getDate() + diffLunes + 7);
+    this.dias = this.obtenerDiasSemana(lunes);
   }
+
+  getSemanaActual() {
+    if (!this.dias || this.dias.length === 0) {
+      return '';
+    }
+    const lunes = new Date(this.dias[0].fecha);
+    const domingo = new Date(this.dias[6].fecha);
+    const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'long', year: 'numeric' };
+    return `del ${lunes.toLocaleDateString('es-ES', options)} al ${domingo.toLocaleDateString('es-ES', options)}`;
+  }
+
+  getSemanaSiguiente() {
+    if (!this.dias || this.dias.length === 0) {
+        this.getSemanaSiguienteActual();
+        return;
+      }
+      const lunes = new Date(this.dias[0].fecha);
+      lunes.setDate(lunes.getDate() + 7);
+      this.dias = this.obtenerDiasSemana(lunes);
+  }
+
+  duplicarSemanaAnterior() {
+    const lunes = new Date(this.dias[0].fecha);
+      lunes.setDate(lunes.getDate() - 7);
+      this.dias = this.obtenerDiasSemana(lunes, true);
+  }
+
+
+
+  anteriorSemana() {
+    const lunes = new Date(this.dias[0].fecha);
+    lunes.setDate(lunes.getDate() - 7);
+    this.dias = this.obtenerDiasSemana(lunes);
+  }
+
+  get getSemanaAnterior() {
+    if (!this.dias || this.dias.length === 0) {
+        return;
+      }
+      const lunes = new Date(this.dias[0].fecha);
+      lunes.setDate(lunes.getDate() - 7);
+      this.dias = this.obtenerDiasSemana(lunes);
+  }
+
+  formatFecha(fecha: Date) {
+    return fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+  }
+
+  obtenerDiasSemana(lunes: Date, duplicar: boolean = false): any[] {
+    const diasSemana = [
+      'Lunes',
+      'Martes',
+      'Miércoles',
+      'Jueves',
+      'Viernes',
+      'Sábado',
+      'Domingo'
+    ];
+
+    this.dias = diasSemana.map((nombre, index) => {
+      const fecha = new Date(lunes);
+      fecha.setDate(lunes.getDate() + index);
+
+      if (duplicar) {
+        const diaAnterior = this.dias.find(d => d.nombre === nombre && d.fecha === fecha.toISOString().split('T')[0]);
+        return {
+          nombre,
+          fecha: fecha.toISOString().split('T')[0],
+          activo: diaAnterior ? diaAnterior.activo : false,
+          hora_inicio: diaAnterior ? diaAnterior.hora_inicio : 'en 07:00',
+          hora_fin: diaAnterior ? diaAnterior.hora_fin : '21:00',
+          club_id: diaAnterior ? diaAnterior.club_id : null,
+          club_nombre: diaAnterior ? diaAnterior.club_nombre : ''
+        };
+      } else {
+        return {
+          nombre,
+          fecha: fecha.toISOString().split('T')[0],
+          activo: false,
+          hora_inicio: '07:00',
+          hora_fin: '21:00',
+          club_id: null,
+          club_nombre: ''
+        };
+      }
+    });
+    return this.dias;
+  }
+
 }

@@ -5,9 +5,16 @@
     <div class="header-overlay"></div>
     <div class="header-content">
       <h1>Disponibilidad</h1>
-      <p>Configura tus horarios semanales</p>
+      <p>Configura tus horarios semanales para {{ getSemanaActual() }}</p>
     </div>
   </div>
+
+  <!-- CONTROLES DE SEMANA -->
+  <!-- <div class="semana-controles">
+    <ion-button (click)="getSemanaAnterior()">Semana Anterior</ion-button>
+    <ion-button (click)="getSemanaSiguiente()">Semana Siguiente</ion-button>
+    <ion-button (click)="duplicarSemanaAnterior()">Duplicar Semana Anterior</ion-button>
+  </div> -->
 
   <!-- LISTA DE DÍAS -->
   <div class="dias-container">

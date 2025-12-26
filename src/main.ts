@@ -13,7 +13,15 @@ import { provideAuth, getAuth } from '@angular/fire/auth';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { firebaseConfig } from './firebase.config';
 
+import { addIcons } from 'ionicons';
+import { alertCircleOutline, saveOutline, timeOutline, calendarOutline  } from 'ionicons/icons';
 
+addIcons({
+  'alert-circle-outline': alertCircleOutline,
+    'save-outline': saveOutline,
+  'time-outline': timeOutline,
+  'calendar-outline': calendarOutline
+});
 
 bootstrapApplication(AppComponent, {
   providers: [
