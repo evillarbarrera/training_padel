@@ -1,109 +1,185 @@
-ion-content {
-  --background: #f7f7f7;
-  padding-bottom: 30px;
+/* =======================
+   HEADER ESTILO NIKE
+======================= */
+.header-nike {
+  position: relative;
+  height: 180px;
+  background: url('/assets/mod-packs.jpg') no-repeat center center;
+  background-size: cover;
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+  color: #fff;
+
+  .header-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .header-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .header-title {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .header-sub {
+    font-size: 14px;
+    opacity: 0.85;
+  }
 }
 
-/* ---------- TÍTULOS ---------- */
-.titulo {
-  font-size: 1.4rem;
-  font-weight: 700;
-  margin-top: 20px;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #111;
+/* =======================
+   FILTRO
+======================= */
+.filter-container {
+  padding: 12px 20px;
 }
 
-/* ---------- SELECT PACK ---------- */
-ion-item {
-  --background: #fff;
-  border-radius: 14px;
-  margin-bottom: 15px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+/* =======================
+   LISTADO DE PACKS
+======================= */
+.packs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px 90px; // espacio para el bottom-menu
 }
 
-/* Label del select */
-ion-label {
-  font-weight: 600;
-  color: #333;
-}
-
-/* Opciones */
-ion-select-option {
-  font-weight: 500;
-}
-
-/* ---------- CONTENEDOR DE HORARIOS ---------- */
-.horarios-container {
-  margin-top: 10px;
-}
-
-/* ---------- ITEMS DE HORARIOS ---------- */
-ion-list {
-  background: transparent !important;
-  padding: 0;
-}
-
-ion-item {
-  margin: 12px 0;
-  border-radius: 18px;
-  --padding-start: 16px;
-  --inner-padding-end: 16px;
-}
-
-/* Estilo del item clickable */
-ion-item[button] {
+/* =======================
+   PACK CARD (HORIZONTAL)
+======================= */
+.pack-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   background: #fff;
-  border: 1px solid #e5e5e5;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
 
-  &:active {
-    transform: scale(0.97);
+/* Imagen izquierda */
+.pack-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+  margin-right: 12px;
+}
+
+/* Info central */
+
+.pack-info {
+  flex: 1;
+  padding-right: 10px;
+
+  h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: #111;
   }
 
-  &:hover {
-    box-shadow: 0 6px 16px rgba(0,0,0,0.09);
+  p {
+    margin: 2px 0;
+    font-size: 13px;
+    color: #555;
+  }
+
+  .precio {
+    font-weight: 600;
+    color: #000;
   }
 }
 
-ion-label strong {
-  font-size: 1rem;
-  color: #000;
+/* Botón derecha */
+.pack-action {
+  display: flex;
+  align-items: center;
+
+  ion-button {
+    --border-radius: 20px;
+    font-size: 12px;
+    height: 32px;
+  }
 }
 
-ion-label {
-  font-size: 0.9rem;
-  color: #444;
+/* =======================
+   PAGINACIÓN.pack-info 
+======================= */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0 90px;
 }
 
-/* ---------- LOADING ---------- */
-ion-spinner {
-  display: block;
-  margin: 30px auto;
+.pagination ion-button {
+  margin: 0 4px;
 }
 
-/* ---------- TEXTO SIN HORARIOS ---------- */
-p {
+/* =======================
+   MENÚ INFERIOR
+======================= */
+.bottom-menu {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-top: 1px solid #e5e5e5;
+  display: flex;
+  justify-content: space-around;
+  padding: 6px 0;
+  z-index: 10;
+}
+
+.bottom-menu .menu-item {
   text-align: center;
-  color: #666;
-  margin-top: 20px;
-  font-weight: 500;
+  font-size: 12px;
+  color: #222;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* ---------- VIBRA NÍKE ---------- */
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+.bottom-menu ion-icon {
+  font-size: 22px;
+  margin-bottom: 2px;
+}
+
+/* IMAGEN DERECHA */
+.pack-img {
+  width: 70px;
+  height: 70px;
+  border-radius: 12px;
+  object-fit: cover;
+  margin: 0 10px;
+}
+
+/* BOTÓN */
+.pack-action {
+  display: flex;
+  align-items: center;
+
+  ion-button {
+    --border-radius: 20px;
+    font-size: 12px;
+    height: 32px;
+    padding: 0 12px;
   }
 }
 
-.horarios-container,
-ion-item,
-.titulo {
-  animation: fadeUp 0.35s ease forwards;
+.back-container {
+  padding: 10px 20px;
+
+  ion-button {
+    font-weight: 600;
+    text-transform: uppercase;
+  }
 }

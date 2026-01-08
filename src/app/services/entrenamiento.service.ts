@@ -31,5 +31,12 @@ export class EntrenamientoService {
     return this.http.post<any>(`${this.api}/disponibilidad/add.php`, data, {  headers: this.headers  });
   }
 
+  getEntrenadorPorJugador(jugadorId: number) {
+
+    return this.http.get<any>(
+      `${this.api}/alumno/get_pack.php?jugador_id=${jugadorId}`,{ headers: this.headers}
+    );
+  }
+
 
 }

@@ -65,7 +65,7 @@ export class JugadorHomePage implements OnInit {
 
   // Navegar a la agenda
   goToAgenda() {
-   
+    this.router.navigate(['/jugador-reservas']); // o la ruta que tengas de inicio
   }
 
   // Cerrar sesión
