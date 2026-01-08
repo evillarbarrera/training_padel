@@ -11,4 +11,6 @@ export class EntrenadorService {
     const snap = await getDocs(ref);
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   }
+
+  
 }

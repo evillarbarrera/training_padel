@@ -15,6 +15,7 @@
       <ion-label>Filtrar por Entrenador</ion-label>
       <ion-select
         placeholder="Selecciona entrenador"
+        (ionChange)="onEntrenadorChange()"
         [(ngModel)]="selectedEntrenador">
         <ion-select-option
           *ngFor="let entrenador of entrenadores"
@@ -25,6 +26,80 @@
     </ion-item>
   </div>
 
+  <ion-segment
+  *ngIf="dias.length"
+  [(ngModel)]="diaSeleccionado"
+  scrollable
+>
+
+  <ion-segment-button
+    *ngFor="let d of dias"
+    [value]="d">
+
+    <ion-label>
+      {{ d | date:'EEE dd' }}
+    </ion-label>
+
+  </ion-segment-button>
+
+</ion-segment>
+
+<ion-segment [(ngModel)]="tramoSeleccionado">
+
+  <ion-segment-button value="manana">
+    <ion-label>☀️ Mañana</ion-label>
+  </ion-segment-button>
+
+  <ion-segment-button value="tarde">
+    <ion-label>🌤️ Tarde</ion-label>
+  </ion-segment-button>
+
+  <ion-segment-button value="noche">
+    <ion-label>🌙 Noche</ion-label>
+  </ion-segment-button>
+
+</ion-segment>
+
+
+<div
+  class="horarios-grid"
+  *ngIf="
+    diaSeleccionado &&
+    horariosPorDia[diaSeleccionado] &&
+    horariosPorDia[diaSeleccionado][tramoSeleccionado]?.length
+  ">
+
+  <div
+    class="horario-card"
+    *ngFor="let h of horariosPorDia[diaSeleccionado][tramoSeleccionado]">
+
+    <div class="hora">
+      {{ h.hora_inicio | date:'HH:mm' }} -
+      {{ h.hora_fin | date:'HH:mm' }}
+    </div>
+
+    <ion-button
+      expand="block"
+      size="small"
+      (click)="reservarHorario(h)">
+      Reservar
+    </ion-button>
+
+  </div>
+</div>
+
+
+<ion-text
+  color="medium"
+  *ngIf="
+    diaSeleccionado &&
+    horariosPorDia[diaSeleccionado] &&
+    !horariosPorDia[diaSeleccionado][tramoSeleccionado]?.length
+  ">
+  <p class="ion-text-center ion-padding">
+    No hay horarios disponibles en este tramo
+  </p>
+</ion-text>
 
   <!-- <div class="back-container">
   <ion-button fill="clear" (click)="volver()">

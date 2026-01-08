@@ -183,3 +183,78 @@
     text-transform: uppercase;
   }
 }
+
+.horarios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 12px;
+}
+
+.horario-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 14px;
+  text-align: center;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+}
+
+.hora {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+ion-segment {
+  margin: 12px;
+}
+
+ion-segment-button {
+  --indicator-color: #000;
+  font-weight: 600;
+}
+
+.horarios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 12px;
+}
+
+.horario-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  text-align: center;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.hora {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+ion-segment {
+  margin: 10px;
+}
+
+.horarios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 12px;
+}
+
+.horario-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px;
+  text-align: center;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+.hora {
+  font-weight: 600;
+  margin-bottom: 10px;
+}

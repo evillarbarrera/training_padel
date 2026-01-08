@@ -32,11 +32,17 @@ export class EntrenamientoService {
   }
 
   getEntrenadorPorJugador(jugadorId: number) {
-
     return this.http.get<any>(
       `${this.api}/alumno/get_pack.php?jugador_id=${jugadorId}`,{ headers: this.headers}
     );
   }
+
+  getDisponibilidadEntrenador(entrenadorId: number) {
+  return this.http.get<any[]>(
+    `${this.api}/entrenador/get_disponibilidad.php?entrenador_id=${entrenadorId}`, { headers: this.headers}
+  );
+}
+
 
 
 }
