@@ -1,67 +1,185 @@
-.nike-bg {
+/* ===============================
+   FONDO GENERAL
+================================ */
+ion-content.nike-bg {
   --background: #f6f6f6;
 }
 
-/* HEADER */
+/* ===============================
+   HEADER
+================================ */
 .header-nike {
   position: relative;
-  height: 180px;
-  background: url('/assets/fondo-padel.png') center/cover no-repeat;
+  height: 190px;
+  background: url('/assets/fondo-padel.png') center / cover no-repeat;
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+  overflow: hidden;
 }
 
-.header-overlay {
+.header-nike::after {
+  content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,.6), transparent);
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.55),
+    rgba(0, 0, 0, 0.15)
+  );
 }
 
 .header-content {
   position: relative;
-  padding: 40px 20px;
-  color: white;
+  padding: 36px 20px;
+  color: #fff;
 }
 
 .header-content h1 {
   font-size: 28px;
   font-weight: 900;
+  letter-spacing: -0.5px;
 }
 
 .header-content p {
-  opacity: .9;
-}
-
-/* DÍAS */
-.dias-container {
-  padding: 20px;
-}
-
-.dia-card {
-  background: white;
-  border-radius: 18px;
-  padding: 16px;
-  margin-bottom: 18px;
-  box-shadow: 0 8px 18px rgba(0,0,0,.12);
-}
-
-.dia-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.dia-header h2 {
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.dia-resumen {
-  display: flex;
-  justify-content: space-between;
-  margin: 10px 0;
+  margin-top: 6px;
   font-size: 14px;
-  font-weight: 600;
+  opacity: 0.9;
 }
 
-.dia-resumen .club {
-  opacity: .6;
+/* ===============================
+   SEGMENTO DÍAS
+================================ */
+.dias-segment {
+  margin: 14px 10px 6px;
+  --background: transparent;
+}
+
+ion-segment-button {
+  --background: #eaeaea;
+  --color: #222;
+  --indicator-color: transparent;
+  border-radius: 14px;
+  margin: 0 6px;
+  font-weight: 700;
+}
+
+ion-segment-button.segment-button-checked {
+  --background: #000;
+  --color: #fff;
+}
+
+/* ===============================
+   ACCIONES
+================================ */
+.acciones-bloques {
+  padding: 8px 16px;
+}
+
+.acciones-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.accion-btn {
+  flex: 1;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.accion-btn ion-icon {
+  font-size: 18px;
+}
+
+.accion-btn:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+}
+
+.accion-btn.limpiar {
+  background: #f1f1f1;
+  color: #111;
+}
+
+/* ===============================
+   BLOQUES
+================================ */
+.bloques-container {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  animation: fadeUp 0.25s ease;
+}
+
+.bloque {
+  padding: 16px 6px;
+  border-radius: 16px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 13px;
+  background: #ffffff;
+  color: #111;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.bloque:active {
+  transform: scale(0.97);
+}
+
+.bloque.seleccionado {
+  background: #000;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+}
+
+.bloque.ocupado {
+  background: #e0e0e0;
+  color: #888;
+  text-decoration: line-through;
+  box-shadow: none;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* ===============================
+   FAB GUARDAR
+================================ */
+ion-fab-button {
+  --background: #000;
+  --background-activated: #111;
+  --box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+}
+
+ion-fab-button ion-icon {
+  font-size: 22px;
+}
+
+/* ===============================
+   ANIMACIONES
+================================ */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

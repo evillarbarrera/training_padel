@@ -1,58 +1,93 @@
 <ion-content class="nike-bg">
 
-  <!-- HEADER -->
+  <!-- ===============================
+       HEADER
+  ================================ -->
   <div class="header-nike">
     <div class="header-overlay"></div>
     <div class="header-content">
       <h1>Disponibilidad</h1>
-      <p>Configura tus horarios semanales para {{ getSemanaActual() }}</p>
+      <p>Selecciona tus horarios disponibles</p>
     </div>
   </div>
 
-  <!-- CONTROLES DE SEMANA -->
-  <!-- <div class="semana-controles">
-    <ion-button (click)="getSemanaAnterior()">Semana Anterior</ion-button>
-    <ion-button (click)="getSemanaSiguiente()">Semana Siguiente</ion-button>
-    <ion-button (click)="duplicarSemanaAnterior()">Duplicar Semana Anterior</ion-button>
-  </div> -->
+  <!-- ===============================
+       DÍAS
+  ================================ -->
+  <ion-segment
+    scrollable
+    [(ngModel)]="diaSeleccionado"
+    class="dias-segment">
 
-  <!-- LISTA DE DÍAS -->
-  <div class="dias-container">
+    <ion-segment-button
+      *ngFor="let d of dias"
+      [value]="d.fecha">
 
-    <div class="dia-card" *ngFor="let dia of dias">
+      <ion-label>
+        {{ d.nombre }}<br />
+        <small>{{ d.fecha | date:'dd/MM' }}</small>
+      </ion-label>
 
-      <div class="dia-header">
-        <h2>{{ dia.nombre }}</h2>
+    </ion-segment-button>
 
-        <ion-toggle
-          [(ngModel)]="dia.activo"
-          color="success">
-        </ion-toggle>
-      </div>
+  </ion-segment>
 
-      <!-- RESUMEN -->
-      <div class="dia-resumen" *ngIf="dia.activo">
-        <p>
-          ⏰ {{ dia.hora_inicio }} - {{ dia.hora_fin }}
-        </p>
-        <p *ngIf="dia.club_nombre">
-          📍 {{ dia.club_nombre }}
-        </p>
+  <!-- ===============================
+       ACCIONES
+  ================================ -->
+  <div
+    class="acciones-bloques"
+    *ngIf="bloquesPorDia[diaSeleccionado]">
 
-        <ion-button
-          size="small"
-          fill="outline"
-          (click)="abrirHorario(dia)">
-          Configurar horario
-        </ion-button>
-      </div>
+    <div class="acciones-card">
+
+      <button
+        *ngIf="!todosSeleccionados"
+        class="accion-btn"
+        (click)="seleccionarTodos()">
+
+        <ion-icon name="checkmark-done-outline"></ion-icon>
+        <span>Seleccionar todo</span>
+
+      </button>
+
+      <button
+        *ngIf="todosSeleccionados"
+        class="accion-btn limpiar"
+        (click)="deseleccionarTodos()">
+
+        <ion-icon name="close-circle-outline"></ion-icon>
+        <span>Limpiar</span>
+
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ===============================
+       BLOQUES
+  ================================ -->
+  <div
+    class="bloques-container"
+    *ngIf="bloquesPorDia[diaSeleccionado]">
+
+    <div
+      class="bloque"
+      *ngFor="let b of bloquesPorDia[diaSeleccionado]"
+      [class.seleccionado]="b.seleccionado"
+      [class.ocupado]="b.ocupado"
+      (click)="toggleBloque(b)">
+
+      {{ b.hora_inicio }} - {{ b.hora_fin }}
 
     </div>
 
   </div>
 
-  <!-- GUARDAR -->
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+  <!-- ===============================
+       GUARDAR
+  ================================ -->
+  <ion-fab vertical="bottom" horizontal="end">
     <ion-fab-button color="dark" (click)="guardarDisponibilidad()">
       <ion-icon name="save-outline"></ion-icon>
     </ion-fab-button>

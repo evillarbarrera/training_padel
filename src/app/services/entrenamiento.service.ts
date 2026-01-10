@@ -43,6 +43,28 @@ export class EntrenamientoService {
   );
 }
 
+crearReserva(payload: any): Observable<any> {
+    return this.http.post(
+      `${this.api}/disponibilidad/reservas.php`, payload, { headers: this.headers }
+    );
+  }
+
+
+getDisponibilidad(entrenadorId: number, clubId: number): Observable<any[]> {
+  return this.http.get<any[]>(
+    `${this.api}/disponibilidad/get.php?entrenador_id=${entrenadorId}&club_id=${clubId}`,
+    { headers: this.headers }
+  );
+}
+
+syncDisponibilidad(payload: { crear: any[]; eliminar: any[] }): Observable<any> {
+  return this.http.post<any>(
+    `${this.api}/disponibilidad/sync.php`,
+    payload,
+    { headers: this.headers }
+  );
+}
+
 
 
 }

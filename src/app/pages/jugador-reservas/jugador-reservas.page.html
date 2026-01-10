@@ -26,11 +26,10 @@
     </ion-item>
   </div>
 
-  <ion-segment
-  *ngIf="dias.length"
+<ion-segment
+  class="dias-segment"
   [(ngModel)]="diaSeleccionado"
-  scrollable
->
+  scrollable>
 
   <ion-segment-button
     *ngFor="let d of dias"
@@ -44,45 +43,58 @@
 
 </ion-segment>
 
-<ion-segment [(ngModel)]="tramoSeleccionado">
+
+<ion-segment
+  class="tramos-segment"
+  [(ngModel)]="tramoSeleccionado" scrollable>
 
   <ion-segment-button value="manana">
-    <ion-label>☀️ Mañana</ion-label>
+    <ion-label>☀️ MAÑANA</ion-label>
   </ion-segment-button>
 
   <ion-segment-button value="tarde">
-    <ion-label>🌤️ Tarde</ion-label>
+    <ion-label>🌤️ TARDE</ion-label>
   </ion-segment-button>
 
   <ion-segment-button value="noche">
-    <ion-label>🌙 Noche</ion-label>
+    <ion-label>🌙 NOCHE</ion-label>
   </ion-segment-button>
 
 </ion-segment>
-
 
 <div
   class="horarios-grid"
   *ngIf="
     diaSeleccionado &&
     horariosPorDia[diaSeleccionado] &&
-    horariosPorDia[diaSeleccionado][tramoSeleccionado]?.length
+    horariosPorDia[diaSeleccionado][tramoSeleccionado]
   ">
 
   <div
     class="horario-card"
-    *ngFor="let h of horariosPorDia[diaSeleccionado][tramoSeleccionado]">
+    *ngFor="let h of horariosPorDia[diaSeleccionado][tramoSeleccionado]"
+    [class.ocupado]="h.ocupado">
 
+    <!-- HORA -->
     <div class="hora">
-      {{ h.hora_inicio | date:'HH:mm' }} -
-      {{ h.hora_fin | date:'HH:mm' }}
+      {{ h.hora_inicio | date:'HH:mm' }} – {{ h.hora_fin | date:'HH:mm' }}
     </div>
 
+    <!-- ESTADO -->
+    <div class="estado" *ngIf="h.ocupado">
+      ⛔ No disponible
+    </div>
+
+    <!-- BOTÓN -->
     <ion-button
       expand="block"
       size="small"
+      [disabled]="h.ocupado"
+      [color]="h.ocupado ? 'medium' : 'dark'"
       (click)="reservarHorario(h)">
-      Reservar
+
+      {{ h.ocupado ? 'Ocupado' : 'Reservar clase' }}
+
     </ion-button>
 
   </div>
@@ -94,20 +106,12 @@
   *ngIf="
     diaSeleccionado &&
     horariosPorDia[diaSeleccionado] &&
-    !horariosPorDia[diaSeleccionado][tramoSeleccionado]?.length
+    horariosPorDia[diaSeleccionado][tramoSeleccionado] &&
+    !horariosPorDia[diaSeleccionado][tramoSeleccionado].length
   ">
   <p class="ion-text-center ion-padding">
     No hay horarios disponibles en este tramo
   </p>
 </ion-text>
 
-  <!-- <div class="back-container">
-  <ion-button fill="clear" (click)="volver()">
-    <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
-    Volver
-  </ion-button>
-</div> -->
-
 </ion-content>
-
-  <!-- MODAL -->

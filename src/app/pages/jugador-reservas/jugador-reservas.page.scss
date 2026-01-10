@@ -4,28 +4,33 @@
 .header-nike {
   position: relative;
   height: 180px;
-  background: url('/assets/mod-packs.jpg') no-repeat center center;
-  background-size: cover;
+  background: url('/assets/mod-packs.jpg') center / cover no-repeat;
   display: flex;
   align-items: flex-end;
   padding: 20px;
   color: #fff;
 
-  .header-overlay {
+  &::after {
+    content: '';
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.7),
+      rgba(0, 0, 0, 0.25)
+    );
   }
 
   .header-content {
     position: relative;
-    z-index: 2;
+    z-index: 1;
   }
 
   .header-title {
     font-size: 26px;
     font-weight: 800;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.6px;
+    margin-bottom: 4px;
   }
 
   .header-sub {
@@ -35,226 +40,147 @@
 }
 
 /* =======================
-   FILTRO
+   FILTROS
 ======================= */
 .filter-container {
-  padding: 12px 20px;
+  padding: 14px 18px;
 }
 
 /* =======================
-   LISTADO DE PACKS
+   SEGMENTOS (BASE)
 ======================= */
-.packs-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 0 16px 90px; // espacio para el bottom-menu
+ion-segment {
+  margin: 5% 5%;
 }
 
 /* =======================
-   PACK CARD (HORIZONTAL)
+   SEGMENT DÍAS
 ======================= */
-.pack-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #fff;
-  border-radius: 16px;
-  padding: 14px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+.dias-segment,
+.tramos-segment {
+  background: #f2f2f2;
+  border-radius: 28px;
+  padding: 6px;
 }
 
-/* Imagen izquierda */
-.pack-img {
-  width: 80px;
-  height: 80px;
-  border-radius: 12px;
-  object-fit: cover;
-  margin-right: 12px;
+.dias-segment ion-segment-button,
+.tramos-segment ion-segment-button {
+  --background: transparent;
+  --background-checked: #000;
+  --color: #444;
+  --color-checked: #fff;
+  --indicator-color: transparent;
+  --border-width: 0;
+  --border-radius: 22px;
+
+  min-height: 38px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
 }
 
-/* Info central */
-
-.pack-info {
-  flex: 1;
-  padding-right: 10px;
-
-  h3 {
-    font-size: 16px;
-    font-weight: 700;
-    margin: 0 0 4px;
-    color: #111;
-  }
-
-  p {
-    margin: 2px 0;
-    font-size: 13px;
-    color: #555;
-  }
-
-  .precio {
-    font-weight: 600;
-    color: #000;
-  }
-}
-
-/* Botón derecha */
-.pack-action {
-  display: flex;
-  align-items: center;
-
-  ion-button {
-    --border-radius: 20px;
-    font-size: 12px;
-    height: 32px;
-  }
+/* 🔥 Quita líneas internas */
+ion-segment-button::part(indicator),
+ion-segment-button::part(native) {
+  border: none !important;
 }
 
 /* =======================
-   PAGINACIÓN.pack-info 
+   SEGMENT TRAMOS (MAÑANA / TARDE / NOCHE)
 ======================= */
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin: 16px 0 90px;
+.tramos-segment {
+  background: #f3f3f3;
+  border-radius: 20px;
+  padding: 3px;
 }
 
-.pagination ion-button {
-  margin: 0 4px;
+.tramos-segment ion-segment-button {
+  --background: transparent;
+  --background-checked: #000;
+  --color: #555;
+  --color-checked: #fff;
+  --indicator-color: transparent;
+
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  border-radius: 20px;
+  min-height: 26px;
 }
 
 /* =======================
-   MENÚ INFERIOR
+   GRID HORARIOS
 ======================= */
-.bottom-menu {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #fff;
-  border-top: 1px solid #e5e5e5;
-  display: flex;
-  justify-content: space-around;
-  padding: 6px 0;
-  z-index: 10;
-}
-
-.bottom-menu .menu-item {
-  text-align: center;
-  font-size: 12px;
-  color: #222;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.bottom-menu ion-icon {
-  font-size: 22px;
-  margin-bottom: 2px;
-}
-
-/* IMAGEN DERECHA */
-.pack-img {
-  width: 70px;
-  height: 70px;
-  border-radius: 12px;
-  object-fit: cover;
-  margin: 0 10px;
-}
-
-/* BOTÓN */
-.pack-action {
-  display: flex;
-  align-items: center;
-
-  ion-button {
-    --border-radius: 20px;
-    font-size: 12px;
-    height: 32px;
-    padding: 0 12px;
-  }
-}
-
-.back-container {
-  padding: 10px 20px;
-
-  ion-button {
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-}
-
 .horarios-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
-  padding: 12px;
+display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  padding: 20px 16px 90px;
 }
+
 
 .horario-card {
   background: #ffffff;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 14px;
-  text-align: center;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .hora {
   font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 8px;
+  font-weight: 700;
+  color: #000;
+  text-align: center;
 }
 
-ion-segment {
-  margin: 12px;
+.horario-card ion-button {
+  --background: #2f6fed;
+  --background-activated: #1e55c9;
+  --border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  height: 38px;
 }
 
-ion-segment-button {
-  --indicator-color: #000;
-  font-weight: 600;
-}
+.horario-card.ocupado {
+  opacity: 0.5;
 
-.horarios-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
-  padding: 12px;
+  .hora {
+    text-decoration: line-through;
+  }
 }
 
 .horario-card {
   background: #fff;
   border-radius: 16px;
   padding: 14px;
-  text-align: center;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.15s ease;
+}
+
+.horario-card:not(.ocupado):hover {
+  transform: translateY(-2px);
+}
+
+.horario-card.ocupado {
+  opacity: 0.6;
 }
 
 .hora {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 10px;
-}
-
-ion-segment {
-  margin: 10px;
-}
-
-.horarios-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
-  padding: 12px;
-}
-
-.horario-card {
-  background: #fff;
-  border-radius: 18px;
-  padding: 14px;
+  font-weight: 800;
+  font-size: 15px;
   text-align: center;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
 }
 
-.hora {
-  font-weight: 600;
-  margin-bottom: 10px;
+.estado {
+  text-align: center;
+  font-size: 12px;
+  color: #c62828;
+  font-weight: 700;
 }

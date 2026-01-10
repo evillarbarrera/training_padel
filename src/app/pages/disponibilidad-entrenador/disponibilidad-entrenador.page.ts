@@ -1,18 +1,37 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   IonContent,
   IonFab,
   IonFabButton,
   IonIcon,
-  IonToggle,
   IonButton,
-  ModalController
+  IonSegment,
+  IonSegmentButton,
+  IonLabel,
+  ToastController
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HorarioModalComponent } from '../../components/horario-modal/horario-modal.component';
 import { EntrenamientoService } from '../../services/entrenamiento.service';
 
+/* =============================
+   INTERFACES
+============================== */
+interface BloqueHorario {
+  fecha: string;
+  hora_inicio: string;
+  hora_fin: string;
+  seleccionado: boolean;
+  ocupado: boolean;
+}
+
+interface DiaSemana {
+  nombre: string;
+  fecha: string;
+  hora_inicio: string;
+  hora_fin: string;
+  duracion: number;
+}
 
 @Component({
   selector: 'app-disponibilidad-entrenador',
@@ -26,183 +45,233 @@ import { EntrenamientoService } from '../../services/entrenamiento.service';
     IonFab,
     IonFabButton,
     IonIcon,
-    IonToggle,
     IonButton,
-    HorarioModalComponent
+    IonSegment,
+    IonSegmentButton,
+    IonLabel
   ]
 })
-export class DisponibilidadEntrenadorPage {
-
-  ngOnInit() {
-    this.getSemanaSiguiente();
-  }
+export class DisponibilidadEntrenadorPage implements OnInit {
 
   entrenador_id = Number(localStorage.getItem('userId'));
+  club_id = 1;
 
-  clubes = [
-    { id: 1, nombre: 'Win Padel' },
-    { id: 2, nombre: 'Malloa Padel' }
-  ];
+  dias: DiaSemana[] = [];
+  diaSeleccionado!: string;
 
-  diasMap: any = {
-  'Lunes': 1,
-  'Martes': 2,
-  'Miércoles': 3,
-  'Jueves': 4,
-  'Viernes': 5,
-  'Sábado': 6,
-  'Domingo': 7
-};
+  bloquesPorDia: { [fecha: string]: BloqueHorario[] } = {};
 
-  dias: any[] = [];
-  semanaActual: string = '';
+  /** Guarda lo que YA EXISTE en BD */
+  disponibilidadExistente: Set<string> = new Set();
 
-  constructor(private modalCtrl: ModalController, private entrenamientoService: EntrenamientoService) {}
+  constructor(private entrenamientoService: EntrenamientoService, private toastCtrl: ToastController) {}
 
-  async abrirHorario(dia: any) {
-    const modal = await this.modalCtrl.create({
-      component: HorarioModalComponent,
-      componentProps: {
-        dia,
-        clubes: this.clubes
-      }
-    });
-
-    await modal.present();
-
-    const { data } = await modal.onDidDismiss();
-
-    if (data) {
-      dia.hora_inicio = data.hora_inicio;
-      dia.hora_fin = data.hora_fin;
-      dia.club_id = data.club_id;
-      dia.club_nombre = data.club_nombre;
-    }
+  /* =============================
+     INIT
+  ============================== */
+  ngOnInit() {
+    this.crearSemanaDesdeHoy();
+    this.generarBloquesSemana();
+    this.cargarDisponibilidadExistente();
   }
-guardarDisponibilidad() {
-  const payload = this.dias
-    .filter(d => d.activo && d.club_id)
-    .map(d => {
-      const fecha = d.fecha;
-      const horaInicio = d.hora_inicio.split('T')[1].split(':').slice(0, 2).join(':');
-      const horaFin = d.hora_fin;
 
-      const fechaInicio = `${fecha} ${horaInicio}:00`;
-      const fechaFin = `${fecha} ${horaFin}:00`;
-
-      return {
-        profesor_id: this.entrenador_id,
-        fecha_inicio: fechaInicio,
-        fecha_fin: fechaFin,
-        club_id: d.club_id,
-        activo: 1
-      };
-    });
-
-  console.log('Disponibilidad a guardar:', payload);
-
-  this.entrenamientoService.addDisponibilidad(payload).subscribe({
-    next: (res: any) => console.log('OK', res),
-    error: (err: any) => console.error('ERROR', err)
-  });
-}
-
-
-  getSemanaSiguienteActual() {
+  /* =============================
+     SEMANA (10 DÍAS)
+  ============================== */
+  crearSemanaDesdeHoy() {
     const hoy = new Date();
-    const diaActual = hoy.getDay(); 
-    const diffLunes = diaActual === 0 ? -6 : 1 - diaActual;
-    const lunes = new Date(hoy);
-    lunes.setDate(hoy.getDate() + diffLunes + 7);
-    this.dias = this.obtenerDiasSemana(lunes);
-  }
+    hoy.setHours(0, 0, 0, 0);
 
-  getSemanaActual() {
-    if (!this.dias || this.dias.length === 0) {
-      return '';
-    }
-    const lunes = new Date(this.dias[0].fecha);
-    const domingo = new Date(this.dias[6].fecha);
-    const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'long', year: 'numeric' };
-    return `del ${lunes.toLocaleDateString('es-ES', options)} al ${domingo.toLocaleDateString('es-ES', options)}`;
-  }
+    const TOTAL_DIAS = 10;
 
-  getSemanaSiguiente() {
-    if (!this.dias || this.dias.length === 0) {
-        this.getSemanaSiguienteActual();
-        return;
-      }
-      const lunes = new Date(this.dias[0].fecha);
-      lunes.setDate(lunes.getDate() + 7);
-      this.dias = this.obtenerDiasSemana(lunes);
-  }
-
-  duplicarSemanaAnterior() {
-    const lunes = new Date(this.dias[0].fecha);
-      lunes.setDate(lunes.getDate() - 7);
-      this.dias = this.obtenerDiasSemana(lunes, true);
-  }
-
-
-
-  anteriorSemana() {
-    const lunes = new Date(this.dias[0].fecha);
-    lunes.setDate(lunes.getDate() - 7);
-    this.dias = this.obtenerDiasSemana(lunes);
-  }
-
-  get getSemanaAnterior() {
-    if (!this.dias || this.dias.length === 0) {
-        return;
-      }
-      const lunes = new Date(this.dias[0].fecha);
-      lunes.setDate(lunes.getDate() - 7);
-      this.dias = this.obtenerDiasSemana(lunes);
-  }
-
-  formatFecha(fecha: Date) {
-    return fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
-  }
-
-  obtenerDiasSemana(lunes: Date, duplicar: boolean = false): any[] {
-    const diasSemana = [
+    const nombresDias = [
+      'Domingo',
       'Lunes',
       'Martes',
       'Miércoles',
       'Jueves',
       'Viernes',
-      'Sábado',
-      'Domingo'
+      'Sábado'
     ];
 
-    this.dias = diasSemana.map((nombre, index) => {
-      const fecha = new Date(lunes);
-      fecha.setDate(lunes.getDate() + index);
+    this.dias = [];
 
-      if (duplicar) {
-        const diaAnterior = this.dias.find(d => d.nombre === nombre && d.fecha === fecha.toISOString().split('T')[0]);
-        return {
-          nombre,
-          fecha: fecha.toISOString().split('T')[0],
-          activo: diaAnterior ? diaAnterior.activo : false,
-          hora_inicio: diaAnterior ? diaAnterior.hora_inicio : 'en 07:00',
-          hora_fin: diaAnterior ? diaAnterior.hora_fin : '21:00',
-          club_id: diaAnterior ? diaAnterior.club_id : null,
-          club_nombre: diaAnterior ? diaAnterior.club_nombre : ''
-        };
-      } else {
-        return {
-          nombre,
-          fecha: fecha.toISOString().split('T')[0],
-          activo: false,
-          hora_inicio: '07:00',
-          hora_fin: '21:00',
-          club_id: null,
-          club_nombre: ''
-        };
+    for (let i = 0; i <= TOTAL_DIAS; i++) {
+      const fecha = new Date(hoy);
+      fecha.setDate(hoy.getDate() + i);
+
+      this.dias.push({
+        nombre: nombresDias[fecha.getDay()],
+        fecha: fecha.toISOString().split('T')[0],
+        hora_inicio: '07:00',
+        hora_fin: '21:00',
+        duracion: 60
+      });
+    }
+
+    this.diaSeleccionado = this.dias[0].fecha;
+  }
+
+  /* =============================
+     BLOQUES
+  ============================== */
+  generarBloquesSemana() {
+    this.bloquesPorDia = {};
+
+    this.dias.forEach(dia => {
+      this.bloquesPorDia[dia.fecha] = this.generarBloquesDia(
+        dia.fecha,
+        dia.hora_inicio,
+        dia.hora_fin,
+        dia.duracion
+      );
+    });
+  }
+
+  generarBloquesDia(
+    fecha: string,
+    horaInicio: string,
+    horaFin: string,
+    duracion: number
+  ): BloqueHorario[] {
+    const bloques: BloqueHorario[] = [];
+
+    let inicio = new Date(`${fecha}T${horaInicio}:00`);
+    const fin = new Date(`${fecha}T${horaFin}:00`);
+
+    while (inicio < fin) {
+      const finBloque = new Date(inicio.getTime() + duracion * 60000);
+      if (finBloque > fin) break;
+
+      const key = `${fecha} ${inicio.toTimeString().slice(0, 5)}:00-${fecha} ${finBloque.toTimeString().slice(0, 5)}:00`;
+
+      bloques.push({
+        fecha,
+        hora_inicio: inicio.toTimeString().slice(0, 5),
+        hora_fin: finBloque.toTimeString().slice(0, 5),
+        seleccionado: this.disponibilidadExistente.has(key),
+        ocupado: false
+      });
+
+      inicio = finBloque;
+    }
+
+    return bloques;
+  }
+
+  /* =============================
+     CARGAR DISPONIBILIDAD BD
+  ============================== */
+  cargarDisponibilidadExistente() {
+    this.entrenamientoService
+      .getDisponibilidad(this.entrenador_id, this.club_id)
+      .subscribe((data: any[]) => {
+        data.forEach(d => {
+          const key = `${d.fecha_inicio}-${d.fecha_fin}`;
+          this.disponibilidadExistente.add(key);
+        });
+
+        // Re-generar bloques con selección aplicada
+        this.generarBloquesSemana();
+      });
+  }
+
+  /* =============================
+     SELECCIÓN
+  ============================== */
+  toggleBloque(b: BloqueHorario) {
+    if (b.ocupado) return;
+    b.seleccionado = !b.seleccionado;
+  }
+
+  seleccionarTodos() {
+    this.bloquesPorDia[this.diaSeleccionado].forEach(b => {
+      if (!b.ocupado) b.seleccionado = true;
+    });
+  }
+
+  deseleccionarTodos() {
+    this.bloquesPorDia[this.diaSeleccionado].forEach(b => {
+      if (!b.ocupado) b.seleccionado = false;
+    });
+  }
+
+  get todosSeleccionados(): boolean {
+    return this.bloquesPorDia[this.diaSeleccionado]?.every(
+      b => b.seleccionado || b.ocupado
+    );
+  }
+
+  /* =============================
+     GUARDAR (SYNC REAL)
+  ============================== */
+guardarDisponibilidad() {
+  const crear: any[] = [];
+  const eliminar: any[] = [];
+
+  Object.values(this.bloquesPorDia).forEach(bloques => {
+    bloques.forEach(b => {
+      const key = `${b.fecha} ${b.hora_inicio}:00-${b.fecha} ${b.hora_fin}:00`;
+      const existia = this.disponibilidadExistente.has(key);
+
+      if (b.seleccionado && !existia) {
+        crear.push({
+          profesor_id: this.entrenador_id,
+          fecha_inicio: `${b.fecha} ${b.hora_inicio}:00`,
+          fecha_fin: `${b.fecha} ${b.hora_fin}:00`,
+          club_id: this.club_id
+        });
+      }
+
+      if (!b.seleccionado && existia) {
+        eliminar.push({
+          profesor_id: this.entrenador_id,
+          fecha_inicio: `${b.fecha} ${b.hora_inicio}:00`,
+          fecha_fin: `${b.fecha} ${b.hora_fin}:00`,
+          club_id: this.club_id
+        });
       }
     });
-    return this.dias;
+  });
+
+  // 👉 Si no hay cambios
+  if (crear.length === 0 && eliminar.length === 0) {
+    this.mostrarToast('⚠️ No hay cambios para guardar', 'warning');
+    return;
   }
+
+  this.entrenamientoService
+    .syncDisponibilidad({ crear, eliminar })
+    .subscribe({
+      next: () => {
+        this.disponibilidadExistente.clear();
+
+        crear.forEach(c =>
+          this.disponibilidadExistente.add(
+            `${c.fecha_inicio}-${c.fecha_fin}`
+          )
+        );
+
+        this.mostrarToast('✔️ Disponibilidad guardada correctamente', 'success');
+      },
+      error: () => {
+        this.mostrarToast('❌ Error al guardar disponibilidad', 'danger');
+      }
+    });
+}
+
+
+  async mostrarToast(
+  mensaje: string,
+  color: 'success' | 'danger' | 'warning' = 'success'
+) {
+  const toast = await this.toastCtrl.create({
+    message: mensaje,
+    duration: 2500,
+    position: 'top',
+    color
+  });
+  toast.present();
+}
 
 }

@@ -16,6 +16,11 @@ import { firebaseConfig } from './firebase.config';
 import { addIcons } from 'ionicons';
 import { alertCircleOutline, saveOutline, timeOutline, calendarOutline  } from 'ionicons/icons';
 
+import { LOCALE_ID } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeEs from '@angular/common/locales/es';
+registerLocaleData(localeEs);
+
 addIcons({
   'alert-circle-outline': alertCircleOutline,
     'save-outline': saveOutline,
@@ -31,6 +36,8 @@ bootstrapApplication(AppComponent, {
     provideRouter(routes, withPreloading(PreloadAllModules)),
 
     provideHttpClient(),   // 🔥 ESTA LÍNEA FALTABA
+     // 🔥 ESTO ES LO QUE DEBES AGREGAR
+    { provide: LOCALE_ID, useValue: 'es-CL' },
 
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
     provideAuth(() => getAuth()),
