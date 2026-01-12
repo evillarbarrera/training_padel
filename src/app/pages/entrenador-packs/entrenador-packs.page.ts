@@ -7,6 +7,10 @@ import { Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import { IonicModule } from '@ionic/angular';
 
+import { addIcons } from 'ionicons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline } from 'ionicons/icons';
+import { chevronBackOutline, createOutline, trashOutline } from 'ionicons/icons';
+
 @Component({
   selector: 'app-entrenador-packs',
   templateUrl: './entrenador-packs.page.html',
@@ -40,7 +44,16 @@ export class EntrenadorPacksPage implements OnInit {
     private packsService: PacksService,
     private router: Router,
     private alertController: AlertController,
-  ) {}
+  ) {
+    addIcons({
+        settingsOutline,
+        homeOutline,
+        calendarOutline,
+         chevronBackOutline,
+         createOutline,
+        trashOutline,
+        logOutOutline});
+    }
 
   ngOnInit() {
     this.cargarPacks();

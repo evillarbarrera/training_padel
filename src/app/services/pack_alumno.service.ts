@@ -22,10 +22,13 @@ private apiUrl = 'http://api.rojasrefrigeracion.cl/alumno';
     return this.http.post(
       `${this.apiUrl}/insert_pack.php`,
       data,
-      { headers: this.headers } // 👈 AQUÍ ESTABA EL ERROR
+      { headers: this.headers } 
     );
 
+  }
 
+    getAlumnosProfesor(entrenador_id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/get_alumno.php?entrenador_id=${entrenador_id}`, { headers: this.headers} );
   }
 
 }

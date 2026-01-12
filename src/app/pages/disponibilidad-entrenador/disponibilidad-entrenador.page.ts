@@ -205,73 +205,45 @@ export class DisponibilidadEntrenadorPage implements OnInit {
   /* =============================
      GUARDAR (SYNC REAL)
   ============================== */
-guardarDisponibilidad() {
-  const crear: any[] = [];
-  const eliminar: any[] = [];
+  guardarDisponibilidad() {
+    const crear: any[] = [];
+    const eliminar: any[] = [];
 
-  Object.values(this.bloquesPorDia).forEach(bloques => {
-    bloques.forEach(b => {
-      const key = `${b.fecha} ${b.hora_inicio}:00-${b.fecha} ${b.hora_fin}:00`;
-      const existia = this.disponibilidadExistente.has(key);
+    Object.values(this.bloquesPorDia).forEach(bloques => {
+      bloques.forEach(b => {
+        const key = `${b.fecha} ${b.hora_inicio}:00-${b.fecha} ${b.hora_fin}:00`;
+        const existia = this.disponibilidadExistente.has(key);
 
-      if (b.seleccionado && !existia) {
-        crear.push({
-          profesor_id: this.entrenador_id,
-          fecha_inicio: `${b.fecha} ${b.hora_inicio}:00`,
-          fecha_fin: `${b.fecha} ${b.hora_fin}:00`,
-          club_id: this.club_id
-        });
-      }
+        if (b.seleccionado && !existia) {
+          crear.push({
+            profesor_id: this.entrenador_id,
+            fecha_inicio: `${b.fecha} ${b.hora_inicio}:00`,
+            fecha_fin: `${b.fecha} ${b.hora_fin}:00`,
+            club_id: this.club_id
+          });
+        }
 
-      if (!b.seleccionado && existia) {
-        eliminar.push({
-          profesor_id: this.entrenador_id,
-          fecha_inicio: `${b.fecha} ${b.hora_inicio}:00`,
-          fecha_fin: `${b.fecha} ${b.hora_fin}:00`,
-          club_id: this.club_id
-        });
-      }
+        if (!b.seleccionado && existia) {
+          eliminar.push({
+            profesor_id: this.entrenador_id,
+            fecha_inicio: `${b.fecha} ${b.hora_inicio}:00`,
+            fecha_fin: `${b.fecha} ${b.hora_fin}:00`,
+            club_id: this.club_id
+          });
+        }
+      });
     });
-  });
 
-  // 👉 Si no hay cambios
-  if (crear.length === 0 && eliminar.length === 0) {
-    this.mostrarToast('⚠️ No hay cambios para guardar', 'warning');
-    return;
+    this.entrenamientoService
+      .syncDisponibilidad({ crear, eliminar })
+      .subscribe(() => {
+        // Refresca estado local
+        this.disponibilidadExistente.clear();
+        crear.forEach(c =>
+          this.disponibilidadExistente.add(`${c.fecha_inicio}-${c.fecha_fin}`)
+        );
+      });
   }
 
-  this.entrenamientoService
-    .syncDisponibilidad({ crear, eliminar })
-    .subscribe({
-      next: () => {
-        this.disponibilidadExistente.clear();
-
-        crear.forEach(c =>
-          this.disponibilidadExistente.add(
-            `${c.fecha_inicio}-${c.fecha_fin}`
-          )
-        );
-
-        this.mostrarToast('✔️ Disponibilidad guardada correctamente', 'success');
-      },
-      error: () => {
-        this.mostrarToast('❌ Error al guardar disponibilidad', 'danger');
-      }
-    });
-}
-
-
-  async mostrarToast(
-  mensaje: string,
-  color: 'success' | 'danger' | 'warning' = 'success'
-) {
-  const toast = await this.toastCtrl.create({
-    message: mensaje,
-    duration: 2500,
-    position: 'top',
-    color
-  });
-  toast.present();
-}
-
+  
 }

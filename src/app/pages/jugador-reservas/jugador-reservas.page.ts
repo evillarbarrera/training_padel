@@ -3,6 +3,10 @@ import { EntrenamientoService } from '../../services/entrenamiento.service';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { addIcons } from 'ionicons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline } from 'ionicons/icons';
+import { chevronBackOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-jugador-reservas',
@@ -32,8 +36,16 @@ export class JugadorReservasPage implements OnInit {
 
   constructor(
     private entrenamientoService: EntrenamientoService,
-    private toastCtrl: ToastController
-  ) {}
+    private toastCtrl: ToastController,
+     private router: Router,
+  ){
+    addIcons({
+        settingsOutline,
+        homeOutline,
+        calendarOutline,
+         chevronBackOutline,
+        logOutOutline});
+    }
 
   ngOnInit() {
     this.cargarEntrenadores();
@@ -85,48 +97,73 @@ export class JugadorReservasPage implements OnInit {
       });
   }
 
-  generarBloquesHorarios(disponibilidades: any[]) {
-    this.horariosPorDia = {};
-    this.dias = [];
+generarBloquesHorarios(disponibilidades: any[]) {
 
-    disponibilidades.forEach(d => {
-      let inicio = new Date(d.fecha_inicio);
-      const fin = new Date(d.fecha_fin);
-      const ocupado = Boolean(d.ocupado);
+  this.horariosPorDia = {};
+  this.dias = [];
 
-      while (inicio < fin) {
-        const bloqueInicio = new Date(inicio);
-        const bloqueFin = new Date(inicio);
-        bloqueFin.setHours(bloqueFin.getHours() + 1);
+  const bloquesUnicos = new Set<string>(); // 👈 CLAVE
 
-        if (bloqueFin <= fin) {
-          const fecha = bloqueInicio.toISOString().split('T')[0];
-          const hora = bloqueInicio.getHours();
+  disponibilidades.forEach(d => {
 
-          let tramo: 'manana' | 'tarde' | 'noche' = 'noche';
-          if (hora >= 6 && hora < 12) tramo = 'manana';
-          else if (hora >= 12 && hora < 18) tramo = 'tarde';
+    let inicio = new Date(d.fecha_inicio);
+    const fin = new Date(d.fecha_fin);
+    const ocupado = Boolean(d.ocupado);
 
-          if (!this.horariosPorDia[fecha]) {
-            this.horariosPorDia[fecha] = { manana: [], tarde: [], noche: [] };
-            this.dias.push(fecha);
-          }
+    while (inicio < fin) {
 
-          this.horariosPorDia[fecha][tramo].push({
-            fecha,
-            hora_inicio: bloqueInicio,
-            hora_fin: bloqueFin,
-            ocupado
-          });
+      const bloqueInicio = new Date(inicio);
+      const bloqueFin = new Date(inicio);
+      bloqueFin.setHours(bloqueFin.getHours() + 1);
+
+      if (bloqueFin <= fin) {
+
+        const fecha = bloqueInicio.toISOString().split('T')[0];
+        const horaInicio = bloqueInicio.toTimeString().slice(0, 5);
+        const horaFin = bloqueFin.toTimeString().slice(0, 5);
+
+        const key = `${fecha} ${horaInicio}-${horaFin}`;
+
+        // 🚫 SI YA EXISTE, NO SE AGREGA
+        if (bloquesUnicos.has(key)) {
+          inicio.setHours(inicio.getHours() + 1);
+          continue;
         }
 
-        inicio.setHours(inicio.getHours() + 1);
-      }
-    });
+        bloquesUnicos.add(key);
 
-    this.diaSeleccionado = this.dias[0];
-    this.tramoSeleccionado = 'manana';
-  }
+        const hora = bloqueInicio.getHours();
+        let tramo: 'manana' | 'tarde' | 'noche' = 'noche';
+
+        if (hora >= 6 && hora < 12) tramo = 'manana';
+        else if (hora >= 12 && hora < 18) tramo = 'tarde';
+
+        if (!this.horariosPorDia[fecha]) {
+          this.horariosPorDia[fecha] = {
+            manana: [],
+            tarde: [],
+            noche: []
+          };
+          this.dias.push(fecha);
+        }
+
+        this.horariosPorDia[fecha][tramo].push({
+          fecha,
+          hora_inicio: bloqueInicio,
+          hora_fin: bloqueFin,
+          ocupado
+        });
+      }
+
+      inicio.setHours(inicio.getHours() + 1);
+    }
+  });
+
+  this.dias.sort();
+  this.diaSeleccionado = this.dias[0];
+  this.tramoSeleccionado = 'manana';
+}
+
 
   reservarHorario(horario: any) {
     if (horario.ocupado) {
@@ -169,4 +206,9 @@ export class JugadorReservasPage implements OnInit {
     });
     toast.present();
   }
+
+  goToHome() {
+    this.router.navigate(['/jugador-home']);
+  }
+
 }

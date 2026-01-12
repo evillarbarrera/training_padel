@@ -17,6 +17,9 @@ import {
   IonIcon
 } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
+import { addIcons } from 'ionicons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline } from 'ionicons/icons';
+import { chevronBackOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-pack-alumno',
@@ -50,7 +53,14 @@ export class PackAlumnoPage implements OnInit {
               private packsService: PacksService,
               private router: Router,
               private alertCtrl: AlertController
-            ) {}
+            ) {
+    addIcons({
+        settingsOutline,
+        homeOutline,
+        calendarOutline,
+         chevronBackOutline,
+        logOutOutline});
+    }
 
   ngOnInit() {
     this.cargarPacks();

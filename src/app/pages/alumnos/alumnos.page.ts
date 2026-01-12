@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -15,13 +15,21 @@ import {
   IonIcon
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
-import { Location } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+
+interface AlumnoApi {
+  jugador_id: number;
+  jugador_nombre: string;
+  pack_nombre: string | null;
+  sesiones_pendientes: number;
+  activo: number;
+}
 
 @Component({
   selector: 'app-alumnos',
+  standalone: true,
   templateUrl: './alumnos.page.html',
   styleUrls: ['./alumnos.page.scss'],
-  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
@@ -38,32 +46,78 @@ import { Location } from '@angular/common';
     IonIcon
   ],
 })
-export class AlumnosPage {
+export class AlumnosPage implements OnInit {
 
   filtro: string = '';
   mostrarSoloActivos: boolean = false;
 
-  alumnos = [
-    { id: 1, nombre: 'Juan Pérez', activo: true, pack: 'Pack 10 clases', realizadas: 6, pendientes: 4, puntuacion: 78 },
-    { id: 2, nombre: 'Carlos Díaz', activo: true, pack: 'Pack 5 clases', realizadas: 3, pendientes: 2, puntuacion: 82 },
-    { id: 3, nombre: 'Andrés Molina', activo: false, pack: null, realizadas: 0, pendientes: 0, puntuacion: 0 },
-  ];
+  alumnos: {
+    id: number;
+    nombre: string;
+    pack: string | null;
+    pendientes: number;
+    activo: number;
+  }[] = [];
 
-  get alumnosFiltrados() {
-    return this.alumnos.filter(alumno => {
-      const coincideFiltro = alumno.nombre.toLowerCase().includes(this.filtro.toLowerCase());
-      const coincideActivo = this.mostrarSoloActivos ? alumno.activo === true : true;
-      return coincideFiltro && coincideActivo;
+  constructor(
+    private router: Router,
+    private http: HttpClient
+  ) {}
+
+  ngOnInit() {
+    this.cargarAlumnos();
+  }
+
+  cargarAlumnos() {
+    const profesorId = localStorage.getItem('userId');
+
+    this.http.get<AlumnoApi[]>(
+      `http://api.rojasrefrigeracion.cl/alumno/get_alumno.php?entrenador_id=${profesorId}`,
+      {
+        headers: {
+          Authorization: 'Bearer ' + btoa('1|padel_academy')
+        }
+      }
+    ).subscribe({
+      next: (res: AlumnoApi[]) => {
+        this.alumnos = res.map((a: AlumnoApi) => ({
+          id: a.jugador_id,
+          nombre: a.jugador_nombre,
+          pack: a.pack_nombre,
+          pendientes: a.sesiones_pendientes,
+          activo: a.activo
+        }));
+      },
+      error: (err: any) => {
+        console.error('Error cargando alumnos', err);
+      }
     });
   }
 
-  constructor(private router: Router, private location: Location) {}
+  get alumnosFiltrados() {
+    return this.alumnos.filter(alumno => {
+      const coincideNombre =
+        alumno.nombre
+          .toLowerCase()
+          .includes(this.filtro.toLowerCase());
 
-    verDetalle(alumno: any) {
-    this.router.navigate(['/alumno', alumno.id]);
-    }
+      const coincideActivo = this.mostrarSoloActivos
+        ? alumno.activo === 1
+        : true;
 
-    goBack() {
-   this.router.navigate(['/entrenador-home']);
+      return coincideNombre && coincideActivo;
+    });
+  }
+
+  irAEvaluacion(alumno: any) {
+    this.router.navigate(['/evaluar-alumno', alumno.id]);
+  }
+
+  goToHome() {
+    this.router.navigate(['/entrenador-home']);
+  }
+
+  evaluar(alumnoId: number) {
+    this.router.navigate(['/evaluar-alumno', alumnoId]);
   }
 }
