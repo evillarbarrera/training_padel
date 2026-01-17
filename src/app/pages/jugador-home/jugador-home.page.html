@@ -1,101 +1,82 @@
 <ion-content>
 
-  <!-- HERO ESTILO NIKE -->
+  <!-- Hero Header -->
   <div class="header-nike">
     <div class="header-overlay"></div>
     <div class="header-content">
       <h1 class="header-title">Hola, {{ jugadorNombre }}</h1>
-      <p class="header-sub">Tu progreso • {{ entrenamientosRealizados }} completados</p>
+      <p class="header-sub">Padel Player • {{ entrenamientosRealizados }} clases</p>
     </div>
   </div>
 
-  <!-- DASHBOARD -->
+  <!-- Main Content -->
   <div class="dashboard-container">
 
-    <!-- Estadísticas -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h3>{{ entrenamientosRealizados }}</h3>
-        <p>Realizados</p>
+    <!-- Stats Section -->
+    <div class="stats-row animate-up">
+      <div class="nike-card stat-card">
+        <span class="stat-value">{{ entrenamientosRealizados }}</span>
+        <span class="stat-label">Realizados</span>
       </div>
 
-      <div class="stat-card">
-        <h3>{{ entrenamientosPendientes }}</h3>
-        <p>Pendientes</p>
+      <div class="nike-card stat-card">
+        <span class="stat-value">{{ entrenamientosPendientes }}</span>
+        <span class="stat-label">Pendientes</span>
       </div>
 
-      <div class="stat-card">
-        <h3>{{ totalMes }}</h3>
-        <p>Este mes</p>
+      <div class="nike-card stat-card">
+        <span class="stat-value">{{ totalMes }}</span>
+        <span class="stat-label">Mes</span>
       </div>
     </div>
 
-    <!-- ACCIONES PRINCIPALES -->
-    <div class="acciones-container">
-      <div class="module-card">
-        <img src="/assets/mod-packs.jpg" class="module-img" />
-        <div class="module-info">
-          <h2>Packs de Clases</h2>
-          <p>Crea y gestiona tus packs disponibles</p>
-           <ion-button class="boton-menu" expand="block" (click)="goToPackAlumno()">
-            <ion-icon slot="start" name="albums-outline"></ion-icon>
-            Packs de Entrenamiento
-          </ion-button>
-        </div>
-      </div>
+    <!-- Modules Grid -->
+    <div class="modules-column animate-up" style="animation-delay: 0.1s;">
 
-      <div class="module-card">
+      <!-- Agenda Card -->
+      <div class="nike-card module-card" (click)="goToAgenda()">
         <img src="/assets/mod-agenda.jpg" class="module-img" />
-        <div class="module-info">
-          <h2>Agendar Entrenamiento</h2>
-          <p>Reserva tu próximo entrenamiento con tu coach</p>
-
-          <ion-button class="boton-menu" expand="block" (click)="goToAgenda()">
-            <ion-icon slot="start" name="calendar-outline"></ion-icon>
-            Agendar
-          </ion-button>
+        <div class="module-body">
+          <div class="module-text">
+            <h3>Agendar Clase</h3>
+            <p>Reserva tu próximo entrenamiento</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
         </div>
       </div>
 
+      <!-- Packs Card -->
+      <div class="nike-card module-card" (click)="goToPackAlumno()">
+        <img src="/assets/mod-packs.jpg" class="module-img" />
+        <div class="module-body">
+          <div class="module-text">
+            <h3>Packs de Entrenamiento</h3>
+            <p>Gestiona tus sesiones disponibles</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
+        </div>
+      </div>
 
-      <div class="module-card">
+      <!-- Skills Card -->
+      <div class="nike-card module-card" (click)="misHabilidades()">
         <img src="/assets/mod-alumnos.jpg" class="module-img" />
-        <div class="module-info">
-          <h2>Mis Habilidades</h2>
-          <p>Revisa tu progreso y áreas por mejorar</p>
-
-          <ion-button class="boton-menu" expand="block" (click)="misHabilidades()">
-            <ion-icon slot="start" name="barbell-outline"></ion-icon>
-            Ver Habilidades
-          </ion-button>
+        <div class="module-body">
+          <div class="module-text">
+            <h3>Mis Habilidades</h3>
+            <p>Seguimiento de tu progreso técnico</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
         </div>
       </div>
 
     </div>
-    
   </div>
 
-  <!-- MENÚ INFERIOR ESTILO TARJETAS -->
-  <!-- <div class="bottom-menu-grid">
-    <div class="menu-card" (click)="goToHome()">
-      <ion-icon name="home-outline" class="menu-icon"></ion-icon>
-      <span>Inicio</span>
-    </div>
-
-    <div class="menu-card" (click)="goToAgenda()">
-      <ion-icon name="calendar-outline" class="menu-icon"></ion-icon>
-      <span>Agenda</span>
-    </div>
-
-    <div class="menu-card" (click)="logout()">
-      <ion-icon name="log-out-outline" class="menu-icon"></ion-icon>
-      <span>Cerrar Sesión</span>
-    </div>
-  </div> -->
-<ion-fab vertical="bottom" horizontal="start" slot="fixed">
-  <ion-fab-button color="light" (click)="openSettings()">
-    <ion-icon name="settings-outline"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+  <!-- Settings FAB -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button class="nike-fab" (click)="openSettings()">
+      <ion-icon name="person-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 
 </ion-content>

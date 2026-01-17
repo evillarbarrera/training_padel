@@ -7,49 +7,52 @@
   <!-- Contenedor centrado -->
   <div class="center-wrapper">
 
-    <!-- Cuadro blanco -->
-    <div class="register-container">
+    <!-- Hero Branding -->
+    <div class="hero-section">
+      <img src="assets/avatar.png" class="brand-logo" />
+      <h1 class="brand-title">Unirse</h1>
+      <p class="brand-tagline">Academy Padel</p>
+    </div>
 
-      <!-- Avatar -->
-      <img src="assets/avatar.png" class="avatar-login" />
+    <!-- Form Container -->
+    <div class="form-wrapper animate-up">
+      <div class="nike-card">
+        <h2 class="login-header">Nueva Cuenta</h2>
+        <p class="login-sub">Crea tu perfil para comenzar</p>
 
-      <h1 class="login-title">Crear cuenta</h1>
-      <p class="login-sub">Regístrate para comenzar</p>
+        <div class="input-group">
+          <ion-item lines="none" class="nike-item">
+            <ion-icon name="person-outline" slot="start"></ion-icon>
+            <ion-input type="text" placeholder="Nombre completo" [(ngModel)]="nombre"></ion-input>
+          </ion-item>
 
-      <!-- Nombre -->
-      <ion-item class="nike-input">
-        <ion-input placeholder="Nombre completo" [(ngModel)]="nombre"></ion-input>
-      </ion-item>
+          <ion-item lines="none" class="nike-item">
+            <ion-icon name="mail-outline" slot="start"></ion-icon>
+            <ion-input type="email" placeholder="Correo electrónico" [(ngModel)]="email"></ion-input>
+          </ion-item>
 
-      <!-- Email -->
-      <ion-item class="nike-input">
-        <ion-input type="email" placeholder="Correo electrónico" [(ngModel)]="email"></ion-input>
-      </ion-item>
+          <ion-item lines="none" class="nike-item">
+            <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+            <ion-input type="password" placeholder="Contraseña" [(ngModel)]="password"></ion-input>
+          </ion-item>
 
-      <!-- Password -->
-      <ion-item class="nike-input">
-        <ion-input type="password" placeholder="Contraseña" [(ngModel)]="password"></ion-input>
-      </ion-item>
+          <ion-item lines="none" class="nike-item">
+            <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
+            <ion-select placeholder="Selecciona tu rol" [(ngModel)]="rol" interface="popover">
+              <ion-select-option value="jugador">Jugador</ion-select-option>
+              <ion-select-option value="entrenador">Entrenador</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
 
-      <!-- Rol -->
-      <ion-item class="nike-input">
-        <ion-select placeholder="Rol" [(ngModel)]="rol">
-          <ion-select-option value="jugador">Jugador</ion-select-option>
-          <ion-select-option value="entrenador">Entrenador</ion-select-option>
-        </ion-select>
-      </ion-item>
+        <ion-button expand="block" class="nike-button main-btn" (click)="register()">
+          Registrarme
+        </ion-button>
 
-      <!-- Botón -->
-      <ion-button expand="block" class="nike-button" (click)="register()">
-        Crear cuenta
-      </ion-button>
-
-      <!-- Link a login -->
-      <p class="login-footer">
-        ¿Ya tienes cuenta?
-        <span class="link" (click)="goToLogin()">Iniciar sesión</span>
-      </p>
-
+        <p class="footer-text">
+          ¿Ya tienes cuenta? <span class="link" (click)="goToLogin()">Inicia Sesión</span>
+        </p>
+      </div>
     </div>
 
   </div>

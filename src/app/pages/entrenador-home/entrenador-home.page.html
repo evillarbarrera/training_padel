@@ -1,90 +1,64 @@
-<ion-content class="dashboard-content">
+<ion-content>
 
-  <!-- Fondo -->
-  <div class="background-image"></div>
-
-  <div class="background-overlay"></div>
-
- 
-  <!-- BIENVENIDA -->
-  <div class="welcome-box">
-    <img src="/assets/fondo-cancha.png" class="welcome-img" />
-    <h1 class="welcome-title">Hola, Entrenador</h1>
-    <p class="welcome-sub">Administra tus clases</p>
-
-
-  </div>
-
-  <!-- TARJETAS -->
-  <div class="module-container">
-
-    <!-- PACKS -->
-    <div class="module-card">
-      <img src="/assets/mod-packs.jpg" class="module-img" />
-      <div class="module-info">
-        <h2>Packs de Clases</h2>
-        <p>Crea y gestiona tus packs a la venta</p>
-      <ion-button expand="block" class="boton-menu" (click)="goToPacks()">
-            <ion-icon name="albums-outline" slot="start"></ion-icon>
-            Packs de Entrenamientos
-          </ion-button>
-
-      </div>
+  <!-- Hero Header -->
+  <div class="header-nike">
+    <div class="header-overlay"></div>
+    <div class="header-content">
+      <h1 class="header-title">Hola, {{ coachNombre }}</h1>
+      <p class="header-sub">Gestión Academy • Padel</p>
     </div>
+  </div>
 
-    <!-- CLASES -->
-    <div class="module-card">
-      <img src="/assets/mod-alumnos.jpg" class="module-img" />
-      <div class="module-info">
-        <h2>Clases por Jugador</h2>
-        <p>Revisa detalles y progreso de cada alumno</p>
-          <ion-button expand="block" class="boton-menu" (click)="goToAlumnos()">
-            <ion-icon name="albums-outline" slot="start"></ion-icon>
-            Ingresar
-          </ion-button>
+  <!-- Main Content -->
+  <div class="dashboard-container">
 
+    <!-- Modules Grid -->
+    <div class="modules-column animate-up">
+
+      <!-- Agenda Card -->
+      <div class="nike-card module-card" (click)="goToAgenda()">
+        <img src="/assets/mod-agenda.jpg" class="module-img" />
+        <div class="module-body">
+          <div class="module-text">
+            <h3>Mi Agenda</h3>
+            <p>Monitorea tus clases y calendario</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
+        </div>
       </div>
-    </div>
 
-    <!-- AGENDA -->
-    <div class="module-card">
-      <img src="/assets/mod-agenda.jpg" class="module-img" />
-      <div class="module-info">
-        <h2>Agenda</h2>
-        <p>Monitorea tus clases y tu calendario</p>
-           <ion-button expand="block" class="boton-menu" (click)="goToAgenda()">
-            <ion-icon name="albums-outline" slot="start"></ion-icon>
-            Ingresar
-          </ion-button>
+      <!-- Alumnos Card -->
+      <div class="nike-card module-card" (click)="goToAlumnos()">
+        <img src="/assets/mod-alumnos.jpg" class="module-img" />
+        <div class="module-body">
+          <div class="module-text">
+            <h3>Mis Alumnos</h3>
+            <p>Progreso y detalles de cada jugador</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
+        </div>
       </div>
+
+      <!-- Packs Card -->
+      <div class="nike-card module-card" (click)="goToPacks()">
+        <img src="/assets/mod-packs.jpg" class="module-img" />
+        <div class="module-body">
+          <div class="module-text">
+            <h3>Packs de Entrenamiento</h3>
+            <p>Gestiona tus ofertas y sesiones</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
+        </div>
+      </div>
+
     </div>
-
   </div>
 
-  <!-- MENÚ INFERIOR -->
-<!-- MENÚ INFERIOR ESTILO TARJETAS -->
-<!-- <div class="bottom-menu-grid">
-  <div class="menu-card" (click)="goToHome()">
-    <ion-icon name="home-outline" class="menu-icon"></ion-icon>
-    <span>Inicio</span>
-  </div>
-
-  <div class="menu-card" (click)="goToAgenda()">
-    <ion-icon name="calendar-outline" class="menu-icon"></ion-icon>
-    <span>Agenda</span>
-  </div>
-
-  <div class="menu-card" (click)="logout()">
-    <ion-icon name="log-out-outline" class="menu-icon"></ion-icon>
-    <span>Cerrar Sesión</span>
-  </div>
-</div>
- -->
-<!-- BOTÓN FLOTANTE AJUSTES -->
-<ion-fab vertical="bottom" horizontal="start" slot="fixed">
-  <ion-fab-button color="light" (click)="openSettings()">
-    <ion-icon name="settings-outline"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+  <!-- Settings FAB -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button class="nike-fab" (click)="openSettings()">
+      <ion-icon name="person-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 
 </ion-content>

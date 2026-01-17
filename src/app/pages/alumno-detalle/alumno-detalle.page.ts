@@ -7,15 +7,13 @@ import {
   IonHeader,
   IonToolbar,
   IonTitle,
-  IonButtons,
-  IonButton,
   IonList,
   IonItem,
   IonLabel,
-  IonChip,
   IonFab,
   IonFabButton,
   IonIcon,
+  IonButton,
 } from '@ionic/angular/standalone';
 
 import { Chart, RadarController, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend } from 'chart.js';
@@ -33,15 +31,13 @@ Chart.register(RadarController, RadialLinearScale, PointElement, LineElement, Fi
     IonHeader,
     IonToolbar,
     IonTitle,
-    IonButtons,
-    IonButton,
     IonList,
     IonItem,
     IonLabel,
-    IonChip,
     IonFab,
     IonFabButton,
     IonIcon,
+    IonButton,
   ]
 })
 export class AlumnoDetallePage implements OnInit, AfterViewInit {
@@ -52,7 +48,7 @@ export class AlumnoDetallePage implements OnInit, AfterViewInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.alumnoId = this.route.snapshot.paramMap.get('id');
@@ -82,7 +78,7 @@ export class AlumnoDetallePage implements OnInit, AfterViewInit {
             label: 'Puntuación',
             data: [80, 90, 75, 85, 95, 70, 88],
             fill: true,
-         
+
             borderColor: 'black',
             pointBackgroundColor: 'black'
           }

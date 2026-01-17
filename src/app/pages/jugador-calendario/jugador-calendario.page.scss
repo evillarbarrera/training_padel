@@ -1,0 +1,258 @@
+/* --- HEADER ESTILO NIKE --- */
+.header-nike {
+  height: 200px;
+  position: relative;
+  background: url('/assets/fondo-padel.png') center/cover no-repeat;
+  display: flex;
+  align-items: flex-end;
+  padding: 30px 25px;
+  border-radius: 0 0 30px 30px;
+  overflow: hidden;
+}
+
+.header-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.7));
+  z-index: 1;
+}
+
+.header-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  color: white;
+
+  .header-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -1px;
+  }
+
+  .header-sub {
+    margin: 4px 0 0;
+    opacity: 0.9;
+    font-size: 15px;
+    font-weight: 500;
+  }
+}
+
+/* SEGMENTO NIKE */
+.segment-wrapper {
+  padding: 20px 25px 5px;
+}
+
+.nike-segment {
+  --background: #f2f2f7;
+  border-radius: 14px;
+  padding: 4px;
+
+  ion-segment-button {
+    --indicator-color: white;
+    --color: #8e8e93;
+    --color-checked: var(--ion-color-primary);
+    --border-radius: 10px;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    min-height: 44px;
+
+    &::before {
+      border: none !important;
+    }
+  }
+}
+
+/* CONTAINER */
+.dashboard-container {
+  padding: 20px 25px 100px;
+}
+
+/* STATES */
+.state-container {
+  text-align: center;
+  padding: 60px 20px;
+
+  ion-spinner {
+    --color: var(--ion-color-primary);
+    width: 40px;
+    height: 40px;
+    margin-bottom: 15px;
+  }
+
+  .empty-icon-box {
+    width: 70px;
+    height: 70px;
+    background: #f2f2f7;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+
+    ion-icon {
+      font-size: 32px;
+      color: #c7c7cc;
+    }
+  }
+
+  h2 {
+    font-size: 20px;
+    margin: 0;
+  }
+
+  p {
+    color: #8e8e93;
+    margin: 8px 0 25px;
+    font-size: 15px;
+  }
+
+  .nike-button-small {
+    --background: var(--ion-color-primary);
+    --border-radius: 12px;
+    font-weight: 700;
+    text-transform: none;
+    height: 50px;
+  }
+}
+
+/* SESSIONS LIST */
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.session-card {
+  padding: 0;
+  margin-bottom: 0;
+
+  .card-header {
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f2f2f7;
+
+    .date-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+
+      .day {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--ion-color-primary);
+        line-height: 1;
+      }
+
+      .month {
+        font-size: 11px;
+        font-weight: 800;
+        color: #8e8e93;
+        margin-top: 2px;
+      }
+    }
+
+    .status-tag {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+
+      &.pendiente {
+        background: #fff9c4;
+        color: #fbc02d;
+      }
+
+      &.confirmada {
+        background: #e8f5e9;
+        color: #4caf50;
+      }
+
+      &.cancelada {
+        background: #ffebee;
+        color: #ef5350;
+      }
+
+      &.completada {
+        background: #f2f2f7;
+        color: #8e8e93;
+      }
+    }
+  }
+
+  .card-body {
+    padding: 15px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .time-row,
+    .coach-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #48484a;
+
+      ion-icon {
+        font-size: 16px;
+        color: #c7c7cc;
+      }
+
+      strong {
+        color: var(--ion-color-primary);
+      }
+    }
+
+    .pack-row {
+      margin-top: 5px;
+
+      .pack-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #8e8e93;
+        background: #f2f2f7;
+        padding: 4px 10px;
+        border-radius: 6px;
+      }
+    }
+  }
+}
+
+/* FABs */
+.nike-fab {
+  --background: var(--ion-color-primary);
+  --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+
+  ion-icon {
+    font-size: 24px;
+    color: white;
+  }
+
+  &.back-fab {
+    --background: white;
+
+    ion-icon {
+      color: var(--ion-color-primary);
+    }
+  }
+}
+
+@keyframes animate-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade {
+  animation: animate-fade 0.5s ease;
+}

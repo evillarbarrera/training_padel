@@ -1,13 +1,129 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>entrenador-entrenamientos</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">entrenador-entrenamientos</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <!-- Hero Header -->
+  <div class="header-nike">
+    <div class="header-overlay"></div>
+    <div class="header-content">
+      <h1 class="header-title">Mi Agenda</h1>
+      <p class="header-sub">Sesiones programadas</p>
+    </div>
+  </div>
+
+  <!-- Day Selector (Premium Tabs) -->
+  <div class="segment-wrapper animate-up">
+    <ion-segment scrollable [(ngModel)]="diaSeleccionado" mode="md" class="nike-segment-days">
+      <ion-segment-button *ngFor="let d of dias" [value]="d.fecha">
+        <ion-label>
+          <span class="day-name">{{ d.nombre | slice:0:3 }}</span>
+          <span class="day-date">{{ d.fecha | date:'dd' }}</span>
+        </ion-label>
+        <div *ngIf="d.data.length > 0" class="dot-indicator"></div>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <!-- Main Container -->
+  <div class="dashboard-container">
+
+    <!-- Loading State -->
+    <div *ngIf="cargando" class="state-container animate-fade">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando agenda...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!cargando && agendaActual.length === 0" class="state-container animate-up">
+      <div class="empty-icon-box">
+        <ion-icon name="fitness-outline"></ion-icon>
+      </div>
+      <h2>Agenda Libre</h2>
+      <p>No tienes clases para este día.</p>
+    </div>
+
+    <!-- Agenda List -->
+    <div class="agenda-list" *ngIf="!cargando && agendaActual.length > 0">
+
+      <!-- Reserva Individual -->
+      <div class="nike-card training-card animate-up" 
+        *ngFor="let item of agendaActual; let i = index"
+        [style.animation-delay]="(i * 0.05) + 's'"
+        [ngClass]="item.tipo === 'grupal' ? 'pack-grupal' : 'reserva-individual'">
+
+        <div class="card-header">
+          <div class="time-badge">
+            <ion-icon name="time-outline"></ion-icon>
+            <!-- Para reservas individual mostrar fecha, para grupal mostrar hora -->
+            <ng-container *ngIf="item.tipo === 'grupal'">
+              <span>{{ item.hora_inicio | slice:0:5 }}</span>
+            </ng-container>
+            <ng-container *ngIf="item.tipo !== 'grupal'">
+              <span>{{ item.hora_inicio | slice:0:5 }} - {{ item.hora_fin | slice:0:5 }}</span>
+            </ng-container>
+          </div>
+          <div class="status-tag" [ngClass]="getEstadoText(item)?.toLowerCase()">
+            {{ getEstadoText(item) }}
+          </div>
+        </div>
+
+        <div class="card-body">
+          <!-- INDIVIDUAL -->
+          <div *ngIf="item.tipo !== 'grupal'" class="player-profile">
+            <div class="avatar-circle">
+              <ion-icon name="person"></ion-icon>
+            </div>
+            <div class="player-details">
+              <h3>{{ item.jugador_nombre }}</h3>
+              <p>{{ item.jugador_email }}</p>
+            </div>
+          </div>
+
+          <!-- GRUPAL - Mostrar info del pack grupal -->
+          <div *ngIf="item.tipo === 'grupal'" class="grupal-info">
+            <div class="grupal-header">
+              <div class="tipo-badge">👥 GRUPAL</div>
+              <span class="categoria">{{ item.categoria }}</span>
+            </div>
+            <div class="cupos-info">
+              <span class="badge-cupos" [ngClass]="item.estado_grupo">
+                {{ item.cupos_ocupados }}/{{ item.capacidad_maxima }} cupos
+              </span>
+              <span class="duracion">⏱️ {{ item.duracion_calculada || 0 }}min</span>
+            </div>
+            <!-- Lista de inscritos -->
+            <div class="inscritos-list" *ngIf="item.inscritos && item.inscritos.length > 0">
+              <p class="inscritos-title">Inscritos:</p>
+              <div class="inscritos-avatars">
+                <div *ngFor="let inscrito of item.inscritos" class="inscrito-avatar" [title]="inscrito.nombre">
+                  <ion-icon name="person-circle"></ion-icon>
+                  <span class="nombre-corto">{{ inscrito.nombre | slice:0:1 }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pack-row">
+            <span class="pack-label">{{ item.pack_nombre }}</span>
+          </div>
+        </div>
+
+        <div class="card-footer" *ngIf="(item.estado !== 'cancelado' || item.estado_grupo !== 'cancelado')">
+          <ion-button fill="clear" color="danger" class="btn-cancel" (click)="confirmarCancelacion(item)">
+            <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+            Cancelar {{ item.tipo === 'grupal' ? 'Pack' : 'Entrenamiento' }}
+          </ion-button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Back FAB -->
+  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+    <ion-fab-button class="nike-fab back-fab" (click)="goBack()">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
 </ion-content>

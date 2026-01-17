@@ -1,208 +1,590 @@
-/* =======================
-   HEADER ESTILO NIKE
-======================= */
+/* --- HEADER ESTILO NIKE --- */
 .header-nike {
+  height: 200px;
   position: relative;
-  height: 180px;
-  background: url('/assets/mod-packs.jpg') center / cover no-repeat;
+  background: url('/assets/mod-agenda.jpg') center/cover no-repeat;
   display: flex;
   align-items: flex-end;
-  padding: 20px;
-  color: #fff;
+  padding: 30px 25px;
+  border-radius: 0 0 30px 30px;
+  overflow: hidden;
+}
 
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.7),
-      rgba(0, 0, 0, 0.25)
-    );
-  }
+.header-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.7));
+  z-index: 1;
+}
 
-  .header-content {
-    position: relative;
-    z-index: 1;
-  }
+.header-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  color: white;
 
   .header-title {
-    font-size: 26px;
+    font-size: 32px;
     font-weight: 800;
-    letter-spacing: -0.6px;
-    margin-bottom: 4px;
+    margin: 0;
+    letter-spacing: -1px;
   }
 
   .header-sub {
-    font-size: 14px;
-    opacity: 0.85;
+    margin: 4px 0 0;
+    opacity: 0.9;
+    font-size: 15px;
+    font-weight: 500;
   }
 }
 
-/* =======================
-   FILTROS
-======================= */
-.filter-container {
-  padding: 14px 18px;
+/* COACH FILTER */
+.filter-section {
+  padding: 20px 25px 0;
 }
 
-/* =======================
-   SEGMENTOS (BASE)
-======================= */
-ion-segment {
-  margin: 5% 5%;
-}
-
-/* =======================
-   SEGMENT DÍAS
-======================= */
-.dias-segment,
-.tramos-segment {
-  background: #f2f2f2;
-  border-radius: 28px;
-  padding: 6px;
-}
-
-.dias-segment ion-segment-button,
-.tramos-segment ion-segment-button {
-  --background: transparent;
-  --background-checked: #000;
-  --color: #444;
-  --color-checked: #fff;
-  --indicator-color: transparent;
-  --border-width: 0;
-  --border-radius: 22px;
-
-  min-height: 38px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-}
-
-/* 🔥 Quita líneas internas */
-ion-segment-button::part(indicator),
-ion-segment-button::part(native) {
-  border: none !important;
-}
-
-/* =======================
-   SEGMENT TRAMOS (MAÑANA / TARDE / NOCHE)
-======================= */
-.tramos-segment {
-  background: #f3f3f3;
-  border-radius: 20px;
-  padding: 3px;
-}
-
-.tramos-segment ion-segment-button {
-  --background: transparent;
-  --background-checked: #000;
-  --color: #555;
-  --color-checked: #fff;
-  --indicator-color: transparent;
-
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  border-radius: 20px;
-  min-height: 26px;
-}
-
-/* =======================
-   GRID HORARIOS
-======================= */
-.horarios-grid {
-display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  padding: 20px 16px 90px;
-}
-
-
-.horario-card {
-  background: #ffffff;
+.nike-card-filter {
+  background: white;
   border-radius: 16px;
-  padding: 14px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  padding: 2px 15px;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.hora {
-  font-size: 16px;
-  font-weight: 700;
-  color: #000;
-  text-align: center;
-}
-
-.horario-card ion-button {
-  --background: #2f6fed;
-  --background-activated: #1e55c9;
-  --border-radius: 14px;
-  font-size: 13px;
-  font-weight: 700;
-  height: 38px;
-}
-
-.horario-card.ocupado {
-  opacity: 0.5;
-
-  .hora {
-    text-decoration: line-through;
-  }
-}
-
-.horario-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 14px;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  transition: transform 0.15s ease;
-}
-
-.horario-card:not(.ocupado):hover {
-  transform: translateY(-2px);
-}
-
-.horario-card.ocupado {
-  opacity: 0.6;
-}
-
-.hora {
-  font-weight: 800;
-  font-size: 15px;
-  text-align: center;
-}
-
-.estado {
-  text-align: center;
-  font-size: 12px;
-  color: #c62828;
-  font-weight: 700;
-}
-
-.btn-volver {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-
-  width: 55px;
-  height: 55px;
-
-  border-radius: 50%;
-  --border-radius: 50%;
-
-  display: flex;
-  justify-content: center;
   align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f2f2f7;
 
-  z-index: 999;
-  
-  --background: #3880ff; /* azul Ionic */
-  --color: white;
-  box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
+  ion-icon {
+    font-size: 24px;
+    color: #8e8e93;
+  }
+
+  ion-select {
+    width: 100%;
+    --padding-start: 0;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ion-color-primary);
+  }
+}
+
+/* DAY SELECTOR */
+.segment-wrapper {
+  padding: 15px 25px 0;
+}
+
+.nike-segment-days-light {
+  --background: transparent;
+
+  ion-segment-button {
+    --indicator-color: transparent;
+    --color: #8e8e93;
+    --color-checked: var(--ion-color-primary);
+    min-width: 65px;
+    margin: 0 5px;
+
+    ion-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 0;
+    }
+
+    .day-label {
+      font-size: 11px;
+      font-weight: 800;
+      opacity: 0.7;
+    }
+
+    .date-label {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    &.segment-button-checked {
+      background: #f2f2f7;
+      border-radius: 14px;
+    }
+  }
+}
+
+/* PERIOD SELECTOR */
+.period-wrapper {
+  padding: 15px 25px 5px;
+}
+
+.nike-segment-periods {
+  --background: #f2f2f7;
+  border-radius: 14px;
+  padding: 4px;
+
+  ion-segment-button {
+    --indicator-color: white;
+    --color: #8e8e93;
+    --color-checked: var(--ion-color-primary);
+    --border-radius: 10px;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    min-height: 40px;
+
+    &::before {
+      border: none !important;
+    }
+  }
+}
+
+/* CONTAINER */
+.dashboard-container {
+  padding: 20px 25px 100px;
+}
+
+/* GRID HORARIOS */
+.horarios-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.horario-card {
+  padding: 15px;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+  position: relative;
+
+  .hora-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .time {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--ion-color-primary);
+    }
+
+    .duration {
+      font-size: 11px;
+      font-weight: 600;
+      color: #8e8e93;
+      margin-top: 2px;
+    }
+  }
+
+  .status-indicator {
+    ion-badge {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 5px 10px;
+      border-radius: 6px;
+    }
+  }
+
+  .arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #c7c7cc;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  &:not(.ocupado):active {
+    transform: scale(0.96);
+    background: #f2f2f7;
+
+    .arrow {
+      opacity: 1;
+    }
+  }
+
+  &.ocupado {
+    opacity: 0.5;
+    background: #f2f2f7;
+
+    .time {
+      text-decoration: line-through;
+    }
+  }
+}
+
+.empty-tramo {
+  grid-column: span 2;
+  text-align: center;
+  padding: 40px 20px;
+  color: #8e8e93;
+
+  ion-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+  }
+
+  p {
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+/* FABs */
+.nike-fab {
+  --background: var(--ion-color-primary);
+  --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+
+  ion-icon {
+    font-size: 24px;
+    color: white;
+  }
+
+  &.back-fab {
+    --background: white;
+
+    ion-icon {
+      color: var(--ion-color-primary);
+    }
+  }
+}
+
+/* --- MIS ENTRENAMIENTOS SECTION --- */
+.mis-entrenamientos-view {
+  padding: 20px 25px 100px;
+
+  .loading-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 20px;
+    
+    ion-spinner {
+      color: var(--ion-color-primary);
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    
+    ion-icon {
+      font-size: 48px;
+      color: #c7c7cc;
+      margin-bottom: 15px;
+    }
+    
+    h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+      margin: 0 0 8px;
+    }
+    
+    p {
+      font-size: 14px;
+      color: #8e8e93;
+      margin: 0 0 20px;
+    }
+    
+    ion-button {
+      --padding-start: 25px;
+      --padding-end: 25px;
+      --height: 44px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+  }
+}
+
+/* Entrenamientos Sections */
+.entrenamientos-section {
+  margin-bottom: 30px;
+
+  .section-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #333;
+    margin: 25px 0 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0 0 10px;
+    border-bottom: 2px solid #f2f2f7;
+
+    ion-icon {
+      margin-right: 8px;
+      font-size: 18px;
+      vertical-align: middle;
+    }
+  }
+
+  .empty-message {
+    text-align: center;
+    padding: 30px 20px;
+    color: #8e8e93;
+    
+    ion-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+      opacity: 0.5;
+    }
+    
+    p {
+      font-size: 13px;
+      font-weight: 500;
+      margin: 0;
+    }
+  }
+}
+
+/* Entrenamiento Card */
+.entrenamiento-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid #f2f2f7;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    .fecha-badge {
+      background: var(--ion-color-primary);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .estado-badge {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+
+      &.pendiente {
+        background: rgba(255, 193, 7, 0.15);
+        color: #f57f17;
+      }
+
+      &.activo {
+        background: rgba(76, 175, 80, 0.15);
+        color: #388e3c;
+      }
+
+      &.completo {
+        background: rgba(244, 67, 54, 0.15);
+        color: #d32f2f;
+      }
+    }
+  }
+
+  .tiempo-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+
+    ion-icon {
+      font-size: 16px;
+      color: var(--ion-color-primary);
+    }
+  }
+
+  .entrenador-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #8e8e93;
+
+    ion-icon {
+      font-size: 16px;
+      color: #c7c7cc;
+    }
+  }
+
+  .pack-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--ion-color-primary);
+    font-weight: 600;
+
+    ion-icon {
+      font-size: 14px;
+    }
+  }
+
+  /* Grupal Variant */
+  &.grupal {
+    border-left: 5px solid #2196f3;
+    background: linear-gradient(135deg, #ffffff 0%, rgba(33, 150, 243, 0.03) 100%);
+
+    .card-header {
+      border-bottom: 1px solid #f2f2f7;
+      padding-bottom: 12px;
+    }
+
+    .categoria-badge {
+      background: rgba(33, 150, 243, 0.15);
+      color: #1976d2;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+    }
+
+    .cupos-badge {
+      background: rgba(33, 150, 243, 0.1);
+      border: 1px solid rgba(33, 150, 243, 0.3);
+      color: #1976d2;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+
+      &.pendiente {
+        background: rgba(255, 193, 7, 0.1);
+        border-color: rgba(255, 193, 7, 0.3);
+        color: #f57f17;
+      }
+
+      &.activo {
+        background: rgba(76, 175, 80, 0.1);
+        border-color: rgba(76, 175, 80, 0.3);
+        color: #388e3c;
+      }
+
+      &.completo {
+        background: rgba(244, 67, 54, 0.1);
+        border-color: rgba(244, 67, 54, 0.3);
+        color: #d32f2f;
+      }
+    }
+
+    .otros-inscritos {
+      border-top: 1px solid #f2f2f7;
+      padding-top: 12px;
+
+      .inscritos-label {
+        font-size: 11px;
+        font-weight: 800;
+        color: #8e8e93;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      .compañeros-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .compañero {
+          background: #f2f2f7;
+          color: #333;
+          padding: 6px 10px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+
+          ion-icon {
+            margin-right: 4px;
+            font-size: 12px;
+          }
+        }
+      }
+
+      .no-inscritos {
+        font-size: 12px;
+        color: #8e8e93;
+        font-style: italic;
+      }
+    }
+
+    .duracion-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ion-color-primary);
+
+      ion-icon {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+/* Agendar Nueva Section */
+.agendar-nueva-view {
+  padding: 20px 25px 100px;
+}
+
+/* Segment Tabs */
+.entrenamientos-segment {
+  --background: transparent;
+  margin-bottom: 0;
+
+  ion-segment-button {
+    --indicator-color: var(--ion-color-primary);
+    --color: #8e8e93;
+    --color-checked: var(--ion-color-primary);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.5px;
+    min-height: 50px;
+    border-bottom: 2px solid #f2f2f7;
+
+    &.segment-button-checked {
+      border-bottom-color: var(--ion-color-primary);
+    }
+
+    ion-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      ion-icon {
+        font-size: 18px;
+      }
+    }
+  }
 }

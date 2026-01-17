@@ -1,96 +1,67 @@
-<ion-content class="nike-bg">
+<ion-content>
 
-  <!-- ===============================
-       HEADER
-  ================================ -->
+  <!-- Hero Header -->
   <div class="header-nike">
     <div class="header-overlay"></div>
     <div class="header-content">
-      <h1>Disponibilidad</h1>
-      <p>Selecciona tus horarios disponibles</p>
+      <h1 class="header-title">Configurar Turnos</h1>
+      <p class="header-sub">Define tus horas de entrenamiento</p>
     </div>
   </div>
 
-  <!-- ===============================
-       DÍAS
-  ================================ -->
-  <ion-segment
-    scrollable
-    [(ngModel)]="diaSeleccionado"
-    class="dias-segment">
+  <!-- Day Selector (Premium) -->
+  <div class="segment-wrapper animate-up">
+    <ion-segment scrollable [(ngModel)]="diaSeleccionado" class="nike-segment-days-light">
+      <ion-segment-button *ngFor="let d of dias" [value]="d.fecha">
+        <ion-label>
+          <span class="day-label">{{ d.nombre | slice:0:3 | uppercase }}</span>
+          <span class="date-label">{{ d.fecha | date:'dd' }}</span>
+        </ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
 
-    <ion-segment-button
-      *ngFor="let d of dias"
-      [value]="d.fecha">
-
-      <ion-label>
-        {{ d.nombre }}<br />
-        <small>{{ d.fecha | date:'dd/MM' }}</small>
-      </ion-label>
-
-    </ion-segment-button>
-
-  </ion-segment>
-
-  <!-- ===============================
-       ACCIONES
-  ================================ -->
-  <div
-    class="acciones-bloques"
-    *ngIf="bloquesPorDia[diaSeleccionado]">
-
-    <div class="acciones-card">
-
-      <button
-        *ngIf="!todosSeleccionados"
-        class="accion-btn"
-        (click)="seleccionarTodos()">
-
-        <ion-icon name="checkmark-done-outline"></ion-icon>
-        <span>Seleccionar todo</span>
-
-      </button>
-
-      <button
-        *ngIf="todosSeleccionados"
-        class="accion-btn limpiar"
-        (click)="deseleccionarTodos()">
-
-        <ion-icon name="close-circle-outline"></ion-icon>
-        <span>Limpiar</span>
-
-      </button>
-
+  <!-- Quick Actions (Premium) -->
+  <div class="actions-section animate-up" *ngIf="bloquesPorDia[diaSeleccionado]" style="animation-delay: 0.05s;">
+    <div class="nike-card-actions">
+      <ion-button fill="clear" (click)="seleccionarTodos()" *ngIf="!todosSeleccionados">
+        <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+        Seleccionar Todo
+      </ion-button>
+      <ion-button fill="clear" class="btn-clear" (click)="deseleccionarTodos()" *ngIf="todosSeleccionados">
+        <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+        Deseleccionar Todo
+      </ion-button>
     </div>
   </div>
 
-  <!-- ===============================
-       BLOQUES
-  ================================ -->
-  <div
-    class="bloques-container"
-    *ngIf="bloquesPorDia[diaSeleccionado]">
+  <!-- Blocks Container -->
+  <div class="dashboard-container">
 
-    <div
-      class="bloque"
-      *ngFor="let b of bloquesPorDia[diaSeleccionado]"
-      [class.seleccionado]="b.seleccionado"
-      [class.ocupado]="b.ocupado"
-      (click)="toggleBloque(b)">
+    <div class="blocks-grid animate-up" *ngIf="bloquesPorDia[diaSeleccionado]" style="animation-delay: 0.1s;">
 
-      {{ b.hora_inicio }} - {{ b.hora_fin }}
+      <div class="nike-card block-card" *ngFor="let b of bloquesPorDia[diaSeleccionado]"
+        [class.selected]="b.seleccionado" [class.occupied]="b.ocupado" (click)="!b.ocupado && toggleBloque(b)">
+
+        <span class="block-time">{{ b.hora_inicio }}</span>
+        <div class="selection-check" *ngIf="b.seleccionado">
+          <ion-icon name="checkmark-outline"></ion-icon>
+        </div>
+      </div>
 
     </div>
 
   </div>
 
-  <!-- ===============================
-       GUARDAR
-  ================================ -->
-  <ion-fab vertical="bottom" horizontal="end">
-    <ion-fab-button color="dark" (click)="guardarDisponibilidad()">
-      <ion-icon name="save-outline"></ion-icon>
+  <!-- Save & Back FAB Actions -->
+  <div class="fab-actions">
+    <ion-fab-button class="nike-fab back-fab" (click)="goBack()">
+      <ion-icon name="chevron-back-outline"></ion-icon>
     </ion-fab-button>
-  </ion-fab>
+
+    <ion-fab-button class="nike-fab save-fab" (click)="guardarDisponibilidad()">
+      <ion-icon name="checkmark-outline"></ion-icon>
+    </ion-fab-button>
+  </div>
 
 </ion-content>

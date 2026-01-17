@@ -1,18 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import {
   IonContent,
-  IonFab,
   IonFabButton,
   IonIcon,
-  IonButton,
   IonSegment,
   IonSegmentButton,
   IonLabel,
+  IonButton,
   ToastController
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EntrenamientoService } from '../../services/entrenamiento.service';
+import { Router } from '@angular/router';
+import { addIcons } from 'ionicons';
+import { saveOutline, checkmarkDoneOutline, closeCircleOutline, chevronBackOutline } from 'ionicons/icons';
 
 /* =============================
    INTERFACES
@@ -42,13 +44,12 @@ interface DiaSemana {
     CommonModule,
     FormsModule,
     IonContent,
-    IonFab,
     IonFabButton,
     IonIcon,
-    IonButton,
     IonSegment,
     IonSegmentButton,
-    IonLabel
+    IonLabel,
+    IonButton
   ]
 })
 export class DisponibilidadEntrenadorPage implements OnInit {
@@ -64,7 +65,13 @@ export class DisponibilidadEntrenadorPage implements OnInit {
   /** Guarda lo que YA EXISTE en BD */
   disponibilidadExistente: Set<string> = new Set();
 
-  constructor(private entrenamientoService: EntrenamientoService, private toastCtrl: ToastController) {}
+  constructor(
+    private entrenamientoService: EntrenamientoService,
+    private toastCtrl: ToastController,
+    private router: Router
+  ) {
+    addIcons({ saveOutline, checkmarkDoneOutline, closeCircleOutline, chevronBackOutline });
+  }
 
   /* =============================
      INIT
@@ -242,8 +249,24 @@ export class DisponibilidadEntrenadorPage implements OnInit {
         crear.forEach(c =>
           this.disponibilidadExistente.add(`${c.fecha_inicio}-${c.fecha_fin}`)
         );
+        this.mostrarToast('✅ Horario actualizado correctamente');
       });
   }
 
-  
+  async mostrarToast(mensaje: string) {
+    const toast = await this.toastCtrl.create({
+      message: mensaje,
+      duration: 2500,
+      position: 'bottom',
+      color: 'dark',
+      cssClass: 'nike-toast'
+    });
+    toast.present();
+  }
+
+  goBack() {
+    this.router.navigate(['/entrenador-home']);
+  }
+
+
 }

@@ -1,221 +1,199 @@
-/* =======================
-   HEADER ESTILO NIKE
-======================= */
+/* --- HEADER ESTILO NIKE --- */
 .header-nike {
+  height: 200px;
   position: relative;
-  height: 180px;
-  background: url('/assets/mod-packs.jpg') no-repeat center center;
-  background-size: cover;
+  background: url('/assets/mod-packs.jpg') center/cover no-repeat;
   display: flex;
   align-items: flex-end;
-  padding: 20px;
-  color: #fff;
+  padding: 30px 25px;
+  border-radius: 0 0 30px 30px;
+  overflow: hidden;
+}
 
-  .header-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-  }
+.header-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.7));
+  z-index: 1;
+}
 
-  .header-content {
-    position: relative;
-    z-index: 2;
-  }
+.header-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  color: white;
 
   .header-title {
-    font-size: 26px;
+    font-size: 32px;
     font-weight: 800;
-    letter-spacing: -0.5px;
+    margin: 0;
+    letter-spacing: -1px;
   }
 
   .header-sub {
-    font-size: 14px;
-    opacity: 0.85;
+    margin: 4px 0 0;
+    opacity: 0.9;
+    font-size: 15px;
+    font-weight: 500;
   }
 }
 
-/* =======================
-   FILTRO
-======================= */
-.filter-container {
-  padding: 12px 20px;
+/* CONTAINER */
+.dashboard-container {
+  padding: 20px 25px 120px;
 }
 
-/* =======================
-   LISTADO DE PACKS
-======================= */
-.packs-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 0 16px 90px; // espacio para el bottom-menu
+/* SEARCH BOX */
+.search-section {
+  margin-bottom: 25px;
 }
 
-/* =======================
-   PACK CARD (HORIZONTAL)
-======================= */
-.pack-card {
+.nike-search-box {
+  background: #f2f2f7;
+  border-radius: 14px;
+  padding: 2px 15px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: #fff;
-  border-radius: 16px;
-  padding: 14px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  gap: 10px;
+
+  ion-icon {
+    font-size: 18px;
+    color: #8e8e93;
+  }
+
+  ion-input {
+    --padding-start: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ion-color-primary);
+  }
 }
 
-/* Imagen izquierda */
-.pack-img {
-  width: 80px;
-  height: 80px;
-  border-radius: 12px;
-  object-fit: cover;
-  margin-right: 12px;
+/* STUDENTS LIST */
+.students-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-/* Info central */
+.horizontal-student-card {
+  padding: 0;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  height: 140px;
 
-.pack-info {
-  flex: 1;
-  padding-right: 10px;
+  .card-media {
+    width: 90px;
+    height: 100%;
+    flex-shrink: 0;
 
-  h3 {
-    font-size: 16px;
-    font-weight: 700;
-    margin: 0 0 4px;
-    color: #111;
+    .student-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .card-content-main {
+    flex: 1;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    .student-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--ion-color-primary);
+      }
+
+      .status-badge {
+        font-size: 9px;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: 4px 8px;
+        border-radius: 6px;
+      }
+    }
+
+    .student-details {
+      margin-top: 5px;
+      font-size: 12px;
+      color: #48484a;
+
+      p {
+        margin: 2px 0;
+      }
+
+      strong {
+        color: var(--ion-color-primary);
+      }
+    }
+
+    .student-footer {
+      margin-top: auto;
+      display: flex;
+      justify-content: flex-end;
+
+      .action-button {
+        --background: #f2f2f7;
+        --color: var(--ion-color-primary);
+        --border-radius: 8px;
+        font-size: 10px;
+        font-weight: 800;
+        height: 28px;
+        margin: 0;
+
+        ion-icon {
+          font-size: 14px;
+          margin-right: 4px;
+        }
+      }
+    }
+  }
+}
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #8e8e93;
+
+  ion-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+    opacity: 0.3;
   }
 
   p {
-    margin: 2px 0;
-    font-size: 13px;
-    color: #555;
-  }
-
-  .precio {
+    font-size: 15px;
     font-weight: 600;
-    color: #000;
   }
 }
 
-/* Botón derecha */
-.pack-action {
-  display: flex;
-  align-items: center;
+/* FABs */
+.nike-fab {
+  --background: var(--ion-color-primary);
+  --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 
-  ion-button {
-    --border-radius: 20px;
-    font-size: 12px;
-    height: 32px;
+  ion-icon {
+    font-size: 24px;
+    color: white;
+  }
+
+  &.back-fab {
+    --background: white;
+
+    ion-icon {
+      color: var(--ion-color-primary);
+    }
   }
 }
-
-/* =======================
-   PAGINACIÓN.pack-info 
-======================= */
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin: 16px 0 90px;
-}
-
-.pagination ion-button {
-  margin: 0 4px;
-}
-
-/* =======================
-   MENÚ INFERIOR
-======================= */
-.bottom-menu {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #fff;
-  border-top: 1px solid #e5e5e5;
-  display: flex;
-  justify-content: space-around;
-  padding: 6px 0;
-  z-index: 10;
-}
-
-.bottom-menu .menu-item {
-  text-align: center;
-  font-size: 12px;
-  color: #222;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.bottom-menu ion-icon {
-  font-size: 22px;
-  margin-bottom: 2px;
-}
-
-/* IMAGEN DERECHA */
-.pack-img {
-  width: 70px;
-  height: 70px;
-  border-radius: 12px;
-  object-fit: cover;
-  margin: 0 10px;
-}
-
-/* BOTÓN */
-.pack-action {
-  display: flex;
-  align-items: center;
-
-  ion-button {
-    --border-radius: 20px;
-    font-size: 12px;
-    height: 32px;
-    padding: 0 12px;
-  }
-}
-
-.back-container {
-  padding: 10px 20px;
-
-  ion-button {
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-}
-
-.btn-volver {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-
-  width: 55px;
-  height: 55px;
-
-  border-radius: 50%;
-  --border-radius: 50%;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  z-index: 999;
-  
-  --background: #3880ff; /* azul Ionic */
-  --color: white;
-  box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
-}
-
-/* Estado alumno */
-.estado {
-  font-size: 12px;
-  margin-top: 4px;
-  font-weight: 600;
-  color: #2e7d32;
-
-  &.inactivo {
-    color: #c62828;
-  }
-}
-
-

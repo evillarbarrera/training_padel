@@ -1,122 +1,213 @@
 <ion-content>
 
-  <!-- HEADER ESTILO NIKE -->
+  <!-- Hero Header -->
   <div class="header-nike">
     <div class="header-overlay"></div>
     <div class="header-content">
-      <h1 class="header-title">Agenda tu Clase</h1>
-      <p class="header-sub">Reserva la clase disponible</p>
+      <h1 class="header-title">{{vistaActual === 'mis-entrenamientos' ? 'Mis Entrenamientos' : 'Agendar Clase'}}</h1>
+      <p class="header-sub">{{vistaActual === 'mis-entrenamientos' ? 'Tus sesiones programadas' : 'Selecciona tu horario ideal'}}</p>
     </div>
   </div>
 
-  <!-- FILTRO POR ENTRENADOR -->
-  <div class="filter-container">
-    <ion-item>
-      <ion-label>Filtrar por Entrenador</ion-label>
-      <ion-select
-        placeholder="Selecciona entrenador"
-        (ionChange)="onEntrenadorChange()"
-        [(ngModel)]="selectedEntrenador">
-        <ion-select-option
-          *ngFor="let entrenador of entrenadores"
-          [value]="entrenador.id" >
-          {{ entrenador.nombre }}
-        </ion-select-option>
-      </ion-select>
-    </ion-item>
+  <!-- Vista Selector (Premium Tabs) -->
+  <div class="segment-wrapper animate-up">
+    <ion-segment [(ngModel)]="vistaActual" class="entrenamientos-segment">
+      <ion-segment-button value="mis-entrenamientos" (click)="cambiarVista('mis-entrenamientos')">
+        <ion-label>
+          <ion-icon name="calendar-outline"></ion-icon>
+          Mis Entrenamientos
+        </ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="agendar" (click)="cambiarVista('agendar')">
+        <ion-label>
+          <ion-icon name="add-circle-outline"></ion-icon>
+          Agendar Nueva
+        </ion-label>
+      </ion-segment-button>
+    </ion-segment>
   </div>
 
-<ion-segment
-  class="dias-segment"
-  [(ngModel)]="diaSeleccionado"
-  scrollable>
+  <!-- VISTA 1: MIS ENTRENAMIENTOS -->
+  <div *ngIf="vistaActual === 'mis-entrenamientos'" class="mis-entrenamientos-view">
 
-  <ion-segment-button
-    *ngFor="let d of dias"
-    [value]="d">
-
-    <ion-label>
-      {{ d | date:'EEE dd' }}
-    </ion-label>
-
-  </ion-segment-button>
-
-</ion-segment>
-
-
-<ion-segment
-  class="tramos-segment"
-  [(ngModel)]="tramoSeleccionado" scrollable>
-
-  <ion-segment-button value="manana">
-    <ion-label>☀️ MAÑANA</ion-label>
-  </ion-segment-button>
-
-  <ion-segment-button value="tarde">
-    <ion-label>🌤️ TARDE</ion-label>
-  </ion-segment-button>
-
-  <ion-segment-button value="noche">
-    <ion-label>🌙 NOCHE</ion-label>
-  </ion-segment-button>
-
-</ion-segment>
-
-<div
-  class="horarios-grid"
-  *ngIf="
-    diaSeleccionado &&
-    horariosPorDia[diaSeleccionado] &&
-    horariosPorDia[diaSeleccionado][tramoSeleccionado]
-  ">
-
-  <div
-    class="horario-card"
-    *ngFor="let h of horariosPorDia[diaSeleccionado][tramoSeleccionado]"
-    [class.ocupado]="h.ocupado">
-
-    <!-- HORA -->
-    <div class="hora">
-      {{ h.hora_inicio | date:'HH:mm' }} – {{ h.hora_fin | date:'HH:mm' }}
+    <!-- Loading -->
+    <div *ngIf="cargando" class="loading-state">
+      <ion-spinner name="crescent"></ion-spinner>
     </div>
 
-    <!-- ESTADO -->
-    <div class="estado" *ngIf="h.ocupado">
-      ⛔ No disponible
+    <!-- Empty State -->
+    <div *ngIf="!cargando && reservasIndividuales.length === 0 && entrenamientosGrupales.length === 0" class="empty-state">
+      <ion-icon name="calendar-outline"></ion-icon>
+      <h3>Sin Entrenamientos</h3>
+      <p>No tienes entrenamientos programados</p>
+      <ion-button (click)="cambiarVista('agendar')" color="primary">
+        Agendar Clase
+      </ion-button>
     </div>
 
-    <!-- BOTÓN -->
-    <ion-button
-      expand="block"
-      size="small"
-      [disabled]="h.ocupado"
-      [color]="h.ocupado ? 'medium' : 'dark'"
-      (click)="reservarHorario(h)">
+    <!-- Reservas Individuales -->
+    <div *ngIf="!cargando && reservasIndividuales.length > 0" class="entrenamientos-section">
+      <h3 class="section-title">
+        <ion-icon name="book-outline"></ion-icon>
+        Entrenamientos Individuales
+      </h3>
+      <div *ngFor="let reserva of reservasIndividuales" class="nike-card entrenamiento-card">
+        <div class="card-header">
+          <div class="fecha-badge">
+            {{ reserva.fecha | date:'dd MMM' }}
+          </div>
+          <span [ngClass]="'estado-badge ' + reserva.estado">
+            {{ reserva.estado | uppercase }}
+          </span>
+        </div>
+        <div class="tiempo-info">
+          <ion-icon name="time-outline"></ion-icon>
+          {{ reserva.hora_inicio | slice:0:5 }} - {{ reserva.hora_fin | slice:0:5 }}
+        </div>
+        <div class="pack-info">
+          <ion-icon name="book-outline"></ion-icon>
+          {{ reserva.pack_nombre }}
+        </div>
+        <div class="entrenador-info">
+          <ion-icon name="person-outline"></ion-icon>
+          {{ reserva.entrenador_nombre }}
+        </div>
+      </div>
+    </div>
 
-      {{ h.ocupado ? 'Ocupado' : 'Reservar clase' }}
+    <!-- Entrenamientos Grupales -->
+    <div *ngIf="!cargando && entrenamientosGrupales.length > 0" class="entrenamientos-section">
+      <h3 class="section-title">
+        <ion-icon name="people-outline"></ion-icon>
+        Entrenamientos Grupales
+      </h3>
+      <div *ngFor="let grupal of entrenamientosGrupales" class="nike-card entrenamiento-card grupal">
+        <div class="card-header">
+          <div class="fecha-badge">
+            {{ getDiasSemana(grupal.dia_semana) }}
+          </div>
+          <span [ngClass]="'estado-badge ' + grupal.estado_grupo">
+            {{ grupal.estado_grupo | uppercase }}
+          </span>
+        </div>
+        
+        <div class="tiempo-info">
+          <ion-icon name="time-outline"></ion-icon>
+          {{ grupal.hora_inicio | slice:0:5 }}
+          <ion-icon name="timer-outline"></ion-icon>
+          {{ grupal.duracion_calculada }}min
+        </div>
 
-    </ion-button>
+        <div class="pack-info">
+          <ion-icon name="book-outline"></ion-icon>
+          {{ grupal.pack_nombre }}
+        </div>
+
+        <div class="pack-info">
+          <span class="categoria-badge">{{ grupal.categoria }}</span>
+        </div>
+
+        <div class="cupos-badge" [ngClass]="grupal.estado_grupo">
+          👥 {{ grupal.cupos_ocupados }}/{{ grupal.capacidad_maxima }} cupos
+        </div>
+
+        <div *ngIf="grupal.otros_inscritos && grupal.otros_inscritos.length > 0" class="otros-inscritos">
+          <span class="inscritos-label">Compañeros:</span>
+          <div class="compañeros-list">
+            <div *ngFor="let comp of grupal.otros_inscritos" class="compañero">
+              <ion-icon name="person-circle-outline"></ion-icon>
+              {{ comp.nombre }}
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!grupal.otros_inscritos || grupal.otros_inscritos.length === 0" class="otros-inscritos">
+          <p class="no-inscritos">Eres el único inscrito hasta ahora</p>
+        </div>
+      </div>
+    </div>
 
   </div>
-</div>
 
+  <!-- VISTA 2: AGENDAR NUEVA CLASE (código original) -->
+  <div *ngIf="vistaActual === 'agendar'" class="agendar-nueva-view">
 
-<ion-text
-  color="medium"
-  *ngIf="
-    diaSeleccionado &&
-    horariosPorDia[diaSeleccionado] &&
-    horariosPorDia[diaSeleccionado][tramoSeleccionado] &&
-    !horariosPorDia[diaSeleccionado][tramoSeleccionado].length
-  ">
-  <p class="ion-text-center ion-padding">
-    No hay horarios disponibles en este tramo
-  </p>
-</ion-text>
+    <!-- Coach Filter (Premium) -->
+    <div class="filter-section animate-up">
+      <div class="nike-card-filter">
+        <ion-icon name="person-circle-outline" slot="start"></ion-icon>
+        <ion-select placeholder="Selecciona un coach" (ionChange)="onEntrenadorChange()" [(ngModel)]="selectedEntrenador"
+          interface="popover" toggleIcon="chevron-down-outline">
+          <ion-select-option *ngFor="let entrenador of entrenadores" [value]="entrenador.id">
+            {{ entrenador.nombre }}
+          </ion-select-option>
+        </ion-select>
+      </div>
+    </div>
 
-<ion-button fill="clear" class="btn-volver" (click)="goToHome()">
- <!-- <ion-icon src="/assets/icon/chevron-left-svgrepo-com.svg"></ion-icon> -->
-  <ion-icon name="chevron-back-outline"></ion-icon>
-</ion-button>
+    <!-- Day Selector (Premium) -->
+    <div class="segment-wrapper animate-up" style="animation-delay: 0.05s;">
+      <ion-segment [(ngModel)]="diaSeleccionado" scrollable class="nike-segment-days-light">
+        <ion-segment-button *ngFor="let d of dias" [value]="d">
+          <ion-label>
+            <span class="day-label">{{ d | date:'EEE' | uppercase }}</span>
+            <span class="date-label">{{ d | date:'dd' }}</span>
+          </ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- Time Period Selector -->
+    <div class="period-wrapper animate-up" style="animation-delay: 0.1s;">
+      <ion-segment [(ngModel)]="tramoSeleccionado" class="nike-segment-periods" mode="ios">
+        <ion-segment-button value="manana">
+          <ion-label>MAÑANA</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="tarde">
+          <ion-label>TARDE</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="noche">
+          <ion-label>NOCHE</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- Slots Grid -->
+    <div class="horarios-grid animate-up"
+      *ngIf="diaSeleccionado && horariosPorDia[diaSeleccionado]?.[tramoSeleccionado]" style="animation-delay: 0.15s;">
+
+      <div class="nike-card horario-card" *ngFor="let h of horariosPorDia[diaSeleccionado][tramoSeleccionado]"
+        [class.ocupado]="h.ocupado" (click)="!h.ocupado && reservarHorario(h)">
+
+        <div class="hora-info">
+          <span class="time">{{ h.hora_inicio | date:'HH:mm' }}</span>
+          <span class="duration">60 min</span>
+        </div>
+
+        <div class="status-indicator">
+          <ion-badge [color]="h.ocupado ? 'medium' : 'dark'" mode="ios">
+            {{ h.ocupado ? 'Ocupado' : 'Disponible' }}
+          </ion-badge>
+        </div>
+
+        <ion-icon name="chevron-forward-outline" class="arrow" *ngIf="!h.ocupado"></ion-icon>
+      </div>
+
+      <!-- No items in tramo -->
+      <div class="empty-tramo" *ngIf="horariosPorDia[diaSeleccionado][tramoSeleccionado].length === 0">
+        <ion-icon name="hourglass-outline"></ion-icon>
+        <p>No hay cupos disponibles en este tramo.</p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Back FAB -->
+  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+    <ion-fab-button class="nike-fab back-fab" (click)="goToHome()">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 
 </ion-content>

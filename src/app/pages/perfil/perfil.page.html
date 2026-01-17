@@ -1,0 +1,118 @@
+<ion-content class="perfil-content">
+
+  <!-- Hero Header -->
+  <div class="header-nike">
+    <div class="header-overlay"></div>
+    <div class="header-content">
+      <h1 class="header-title">Mi Perfil</h1>
+      <p class="header-sub">Gestiona tu identidad y datos</p>
+    </div>
+  </div>
+
+  <div class="profile-container">
+
+    <!-- Avatar & Role -->
+    <div class="avatar-section animate-up">
+      <div class="avatar-wrapper" (click)="fileInput.click()">
+        <img [src]="profile.foto_perfil || 'assets/avatar.png'" alt="Avatar" />
+        <div class="edit-overlay">
+          <ion-icon name="camera-outline"></ion-icon>
+        </div>
+      </div>
+      <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none">
+      <span class="role-badge">{{ profile.rol }}</span>
+    </div>
+
+    <!-- Datos Personales -->
+    <div class="section-card animate-up" style="animation-delay: 0.1s">
+      <h3 class="section-title">
+        <ion-icon name="person-outline"></ion-icon>
+        Datos Personales
+      </h3>
+      <div class="nike-input-group">
+        <ion-item lines="none" class="nike-item">
+          <ion-label position="stacked">Nombre Completo</ion-label>
+          <ion-input [(ngModel)]="profile.nombre" placeholder="Tu nombre"></ion-input>
+        </ion-item>
+        <ion-item lines="none" class="nike-item">
+          <ion-label position="stacked">Email (Usuario)</ion-label>
+          <ion-input [(ngModel)]="profile.usuario" [disabled]="true" style="opacity: 0.7"></ion-input>
+        </ion-item>
+        <ion-item lines="none" class="nike-item">
+          <ion-label position="stacked">Teléfono</ion-label>
+          <ion-input [(ngModel)]="profile.telefono" placeholder="+56 9 ..."></ion-input>
+        </ion-item>
+      </div>
+    </div>
+
+    <!-- Redes Sociales -->
+    <div class="section-card animate-up" style="animation-delay: 0.2s">
+      <h3 class="section-title">
+        <ion-icon name="share-social-outline"></ion-icon>
+        Redes Sociales
+      </h3>
+      <div class="nike-input-group">
+        <ion-item lines="none" class="nike-item">
+          <ion-label position="stacked">Instagram</ion-label>
+          <ion-input [(ngModel)]="profile.instagram" placeholder="@usuario"></ion-input>
+        </ion-item>
+        <ion-item lines="none" class="nike-item">
+          <ion-label position="stacked">Facebook</ion-label>
+          <ion-input [(ngModel)]="profile.facebook" placeholder="Perfil o página"></ion-input>
+        </ion-item>
+      </div>
+    </div>
+
+    <!-- Dirección -->
+    <div class="section-card animate-up" style="animation-delay: 0.3s">
+      <h3 class="section-title">
+        <ion-icon name="location-outline"></ion-icon>
+        Dirección
+      </h3>
+      <div class="nike-input-group">
+        <ion-item lines="none" class="nike-item">
+          <ion-label position="stacked">Región</ion-label>
+          <ion-select [(ngModel)]="direccion.region" placeholder="Selecciona región" (ionChange)="updateComunas()"
+            interface="action-sheet">
+            <ion-select-option *ngFor="let r of regions" [value]="r.name">{{ r.name }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item lines="none" class="nike-item">
+          <ion-label position="stacked">Comuna</ion-label>
+          <ion-select [(ngModel)]="direccion.comuna" placeholder="Selecciona comuna" interface="action-sheet"
+            [disabled]="!direccion.region">
+            <ion-select-option *ngFor="let c of filteredComunas" [value]="c">{{ c }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item lines="none" class="nike-item">
+          <ion-label position="stacked">Calle</ion-label>
+          <ion-input [(ngModel)]="direccion.calle" placeholder="Ejem: Av. Providencia"></ion-input>
+        </ion-item>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <ion-item lines="none" class="nike-item">
+            <ion-label position="stacked">N°</ion-label>
+            <ion-input [(ngModel)]="direccion.numero_casa" placeholder="123"></ion-input>
+          </ion-item>
+          <ion-item lines="none" class="nike-item">
+            <ion-label position="stacked">Referencia</ion-label>
+            <ion-input [(ngModel)]="direccion.referencia" placeholder="Depto, Block..."></ion-input>
+          </ion-item>
+        </div>
+      </div>
+    </div>
+
+    <ion-button expand="block" class="save-btn animate-up" (click)="saveProfile()" [disabled]="loading">
+      <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+      <span *ngIf="!loading">Guardar Cambios</span>
+    </ion-button>
+
+  </div>
+
+  <!-- Back FAB -->
+  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+    <ion-fab-button class="back-fab" (click)="goBack()">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

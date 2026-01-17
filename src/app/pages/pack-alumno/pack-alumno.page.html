@@ -1,84 +1,91 @@
 <ion-content>
 
-  <!-- HEADER ESTILO NIKE -->
+  <!-- Hero Header -->
   <div class="header-nike">
     <div class="header-overlay"></div>
     <div class="header-content">
-      <h1 class="header-title">Packs de Entrenamiento</h1>
-      <p class="header-sub">Elige el pack que más se ajuste a ti</p>
+      <h1 class="header-title">Adquirir Pack</h1>
+      <p class="header-sub">Entrena con los mejores coaches</p>
     </div>
   </div>
 
-  <!-- FILTRO POR ENTRENADOR -->
-  <div class="filter-container">
-    <ion-item>
-      <ion-label>Filtrar por Entrenador</ion-label>
-      <ion-select
-        placeholder="Selecciona entrenador"
-        [(ngModel)]="selectedEntrenador"
-        (ionChange)="filtrarPacks()"
-      >
-        <ion-select-option
-          *ngFor="let entrenador of entrenadores"
-          [value]="entrenador.id"
-        >
+  <!-- Coach Filter (Premium) -->
+  <div class="filter-section animate-up">
+    <div class="nike-card-filter">
+      <ion-icon name="funnel-outline" slot="start"></ion-icon>
+      <ion-select placeholder="Filtrar por Coach" [(ngModel)]="selectedEntrenador" (ionChange)="filtrarPacks()"
+        interface="popover" toggleIcon="chevron-down-outline">
+        <ion-select-option *ngFor="let entrenador of entrenadores" [value]="entrenador.id">
           {{ entrenador.nombre }}
         </ion-select-option>
       </ion-select>
-    </ion-item>
-  </div>
-
-  <!-- LISTADO DE PACKS -->
-  <div class="packs-container">
-    <div class="pack-card" *ngFor="let pack of packsPaginados">
-
-      <!-- INFO -->
-      <div class="pack-info">
-        <h3>{{ pack.nombre }}</h3>
-        <p>{{ pack.descripcion }}</p>
-        <p class="entrenador">Entrenador: {{ pack.entrenador_nombre }}</p>
-        <p class="precio">${{ pack.precio }}</p>
-      </div>
-
-      <!-- IMAGEN -->
-      <img
-        class="pack-img"
-        [src]="pack.imagen || '/assets/mod-packs.jpg'"
-        alt="Pack entrenamiento"
-      />
-
-      <!-- BOTÓN -->
-      <div class="pack-action">
-        <ion-button
-          color="primary"
-          size="small"
-          (click)="comprarPack(pack)"
-        >
-          Comprar
-        </ion-button>
-      </div>
-
     </div>
   </div>
 
-  <!-- PAGINACIÓN -->
-  <div class="pagination">
-    <ion-button
-      *ngFor="let p of totalPages"
-      size="small"
-      [fill]="page === p ? 'solid' : 'outline'"
-      (click)="setPage(p)"
-    >
-      {{ p }}
-    </ion-button>
+  <!-- Packs List -->
+  <div class="dashboard-container">
+    <div class="packs-list">
+
+      <div class="nike-card horizontal-pack-card animate-up" *ngFor="let pack of packsPaginados; let i = index"
+        [style.animation-delay]="(i * 0.05) + 's'" [class.pack-completo]="isPackCompleto(pack)">
+        <div class="card-media">
+          <img [src]="pack.imagen || '/assets/mod-packs.jpg'" class="pack-img" />
+          <!-- Badge estado grupal -->
+          <ng-container *ngIf="isPackGrupal(pack)">
+            <span class="estado-badge" [ngClass]="getEstadoGrupal(pack)">
+              {{ getEstadoBadge(pack) }} {{ getEstadoGrupal(pack) | uppercase }}
+            </span>
+          </ng-container>
+        </div>
+
+        <div class="card-content-main">
+          <div class="pack-header">
+            <h3>{{ pack.nombre }}</h3>
+            <span class="price-tag">${{ pack.precio }}</span>
+          </div>
+
+          <p class="pack-desc">{{ pack.descripcion }}</p>
+
+          <!-- Info grupal si aplica -->
+          <ng-container *ngIf="isPackGrupal(pack)">
+            <div class="grupo-info">
+              <span class="cupos-badge">👥 {{ getCuposDisplay(pack) }} cupos</span>
+              <span *ngIf="pack.categoria" class="categoria-badge">{{ pack.categoria }}</span>
+            </div>
+          </ng-container>
+
+          <div class="pack-footer">
+            <div class="coach-info">
+              <ion-icon name="person-circle-outline"></ion-icon>
+              <span>{{ pack.entrenador_nombre }}</span>
+            </div>
+
+            <ion-button class="buy-button" (click)="comprarPack(pack)" [disabled]="isPackCompleto(pack)">
+              {{ isPackCompleto(pack) ? 'Lleno' : 'Elegir' }}
+            </ion-button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Pagination (Nike Style) -->
+    <div class="pagination-container animate-fade" *ngIf="totalPages.length > 1">
+      <div class="pagination-row">
+        <button *ngFor="let p of totalPages" class="page-dot" [class.active]="page === p" (click)="setPage(p)">
+          {{ p }}
+        </button>
+      </div>
+    </div>
   </div>
 
-
-<ion-button fill="clear" class="btn-volver" (click)="goToHome()">
- <!-- <ion-icon src="/assets/icon/chevron-left-svgrepo-com.svg"></ion-icon> -->
-  <ion-icon name="chevron-back-outline"></ion-icon>
-</ion-button>
+  <!-- Back FAB -->
+  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+    <ion-fab-button class="nike-fab back-fab" (click)="goToHome()">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 
 </ion-content>
 
-  <!-- MODAL -->
+<!-- MODAL -->

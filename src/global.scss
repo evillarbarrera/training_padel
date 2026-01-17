@@ -38,18 +38,82 @@
 
 
 :root {
-  --ion-color-primary: #0070f3;
-  --ion-color-secondary: #22c55e;
-  --ion-color-tertiary: #9333ea;
+  --ion-color-primary: #000000;
+  --ion-color-secondary: #ffffff;
+  --ion-color-tertiary: #3880ff;
 
-  --ion-color-primary-shade: #0055b6;
-  --ion-color-primary-tint: #338df5;
+  --ion-color-primary-shade: #1a1a1a;
+  --ion-color-primary-tint: #333333;
 
-  --ion-font-family: 'Inter', sans-serif;
+  --ion-font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Roboto", sans-serif;
+
+  /* Global Design Tokens */
+  --nike-card-bg: #ffffff;
+  --nike-card-radius: 24px;
+  --nike-card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --nike-bg-color: #f7f7f7;
+  --nike-transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Global Styles */
+ion-content {
+  --background: var(--nike-bg-color);
+}
+
+.nike-bg {
+  background-color: var(--nike-bg-color);
+}
+
+.nike-card {
+  background: var(--nike-card-bg);
+  border-radius: var(--nike-card-radius);
+  box-shadow: var(--nike-card-shadow);
+  padding: 24px;
+  margin-bottom: 20px;
+  transition: var(--nike-transition);
+  border: 1px solid rgba(0, 0, 0, 0.02);
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
+  }
+}
+
+.nike-button {
+  --border-radius: 12px;
+  --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  --transition: var(--nike-transition);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* Typography Overrides */
+h1,
+h2,
+h3 {
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-up {
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 ion-header {
-  --background: #0070f3;
+  --background: var(--ion-color-primary);
   color: white;
   font-weight: 600;
 }

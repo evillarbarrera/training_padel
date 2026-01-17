@@ -1,6 +1,6 @@
 <ion-content>
 
-  <!-- HEADER ESTILO NIKE -->
+  <!-- Hero Header -->
   <div class="header-nike">
     <div class="header-overlay"></div>
     <div class="header-content">
@@ -9,47 +9,64 @@
     </div>
   </div>
 
-  <!-- FILTRO -->
-  <div class="filter-container">
-    <ion-item>
-      <ion-label position="floating">Buscar alumno</ion-label>
-      <ion-input [(ngModel)]="filtro"></ion-input>
-    </ion-item>
-  </div>
+  <!-- Main Content -->
+  <div class="dashboard-container">
 
-  <!-- LISTADO DE ALUMNOS -->
-  <div class="packs-container">
+    <!-- Search Box -->
+    <div class="search-section animate-up">
+      <div class="nike-search-box">
+        <ion-icon name="search-outline"></ion-icon>
+        <ion-input placeholder="Buscar alumno..." [(ngModel)]="filtro">
+        </ion-input>
+      </div>
+    </div>
 
-    <div class="pack-card" *ngFor="let alumno of alumnosFiltrados">
+    <!-- Students List -->
+    <div class="students-list">
 
-      <!-- INFO -->
-      <div class="pack-info">
-        <h3>{{ alumno.nombre }}</h3>
-        <p>Pack: {{ alumno.pack ?? 'Sin pack' }}</p>
-        <p>Clases pendientes: {{ alumno.pendientes }}</p>
+      <div class="nike-card horizontal-student-card animate-up" *ngFor="let alumno of alumnosFiltrados; let i = index"
+        [style.animation-delay]="(i * 0.05) + 's'">
+        <div class="card-media">
+          <img src="/assets/mod-packs.jpg" class="student-img" />
+        </div>
 
-        <p class="estado" [class.inactivo]="!alumno.activo">
-          {{ alumno.activo ? 'Activo' : 'Inactivo' }}
-        </p>
+        <div class="card-content-main">
+          <div class="student-header">
+            <h3>{{ alumno.nombre }}</h3>
+            <ion-badge [color]="alumno.activo ? 'success' : 'medium'" mode="ios" class="status-badge">
+              {{ alumno.activo ? 'Activo' : 'Inactivo' }}
+            </ion-badge>
+          </div>
+
+          <div class="student-details">
+            <p><strong>Pack:</strong> {{ alumno.pack ?? 'Sin pack active' }}</p>
+            <p><strong>Clases:</strong> {{ alumno.pendientes }} pendientes</p>
+          </div>
+
+          <div class="student-footer">
+            <ion-button class="action-button" (click)="evaluar(alumno.id)">
+              <ion-icon name="analytics-outline" slot="start"></ion-icon>
+              Evaluar
+            </ion-button>
+          </div>
+        </div>
       </div>
 
-      <!-- IMAGEN -->
-      <img class="pack-img" src="/assets/mod-packs.jpg" alt="Alumno"/>
-
-      <!-- BOTÓN -->
-      <div class="pack-action">
-        <ion-button size="small" color="primary" (click)="evaluar(alumno.id)">
-          Evaluar
-        </ion-button>
+      <!-- No Results -->
+      <div class="empty-state animate-fade" *ngIf="alumnosFiltrados.length === 0">
+        <ion-icon name="people-outline"></ion-icon>
+        <p>No se encontraron alumnos</p>
       </div>
 
     </div>
 
   </div>
 
-  <!-- BOTÓN VOLVER -->
-  <ion-button fill="clear" class="btn-volver" (click)="goToHome()">
-    <ion-icon name="chevron-back-outline"></ion-icon>
-  </ion-button>
+  <!-- Back FAB -->
+  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+    <ion-fab-button class="nike-fab back-fab" (click)="goToHome()">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 
 </ion-content>

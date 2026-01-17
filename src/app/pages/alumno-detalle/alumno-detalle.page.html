@@ -1,45 +1,71 @@
-<ion-header>
-  <ion-toolbar class="nike-header">
-    <ion-title>Detalle Alumno</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content>
 
-<ion-content color="light">
-
-  <!-- AVATAR -->
-  <div class="avatar-container">
-    <img src="https://i.pravatar.cc/200?img=12" class="avatar-img" />
-    <h2 class="alumno-nombre">Jugador #{{ alumnoId }}</h2>
+  <!-- Hero Header (Profile) -->
+  <div class="header-nike profile-hero">
+    <div class="header-overlay"></div>
+    <div class="header-content animate-fade">
+      <div class="avatar-wrapper">
+        <img src="https://i.pravatar.cc/200?img=12" class="avatar-img" />
+        <div class="status-dot online"></div>
+      </div>
+      <h1 class="header-title">Jugador #{{ alumnoId }}</h1>
+      <p class="header-sub">Alumno de Academia</p>
+    </div>
   </div>
 
-  <!-- GRÁFICO RADAR -->
-  <div class="chart-container">
-    <canvas id="radarChart"></canvas>
+  <!-- Main Content -->
+  <div class="dashboard-container">
+
+    <!-- Radar Chart (Performance) -->
+    <div class="nike-card chart-card animate-up">
+      <div class="card-header-simple">
+        <h3>Rendimiento</h3>
+        <span class="view-all">Estadísticas</span>
+      </div>
+      <div class="chart-container">
+        <canvas id="radarChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="stats-grid animate-up" style="animation-delay: 0.1s;">
+
+      <div class="nike-card stat-item-small">
+        <span class="label">Packs</span>
+        <span class="value">3</span>
+      </div>
+
+      <div class="nike-card stat-item-small">
+        <span class="label">Realizadas</span>
+        <span class="value">12</span>
+      </div>
+
+      <div class="nike-card stat-item-small">
+        <span class="label">Pendientes</span>
+        <span class="value">4</span>
+      </div>
+
+    </div>
+
+    <!-- Actions List -->
+    <div class="actions-list animate-up" style="animation-delay: 0.15s;">
+      <ion-button expand="block" class="nike-button main-btn">
+        <ion-icon name="chatbubble-outline" slot="start"></ion-icon>
+        Enviar Mensaje
+      </ion-button>
+
+      <ion-button expand="block" fill="outline" class="nike-button outline-btn">
+        <ion-icon name="document-text-outline" slot="start"></ion-icon>
+        Ver Historial
+      </ion-button>
+    </div>
+
   </div>
 
-  <ion-list>
-    <ion-item>
-      <ion-label>Packs Comprados</ion-label>
-      <ion-label slot="end">3</ion-label>
-    </ion-item>
-
-    <ion-item>
-      <ion-label>Clases Realizadas</ion-label>
-      <ion-label slot="end">12</ion-label>
-    </ion-item>
-
-    <ion-item>
-      <ion-label>Clases Pendientes</ion-label>
-      <ion-label slot="end">4</ion-label>
-    </ion-item>
-
-
-  </ion-list>
-
-  <!-- BOTÓN FLOTANTE -->
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button class="btn-nike" (click)="goBack()">
-      <ion-icon name="arrow-back-outline"></ion-icon>
+  <!-- Back FAB -->
+  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+    <ion-fab-button class="nike-fab back-fab" (click)="goBack()">
+      <ion-icon name="chevron-back-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>
 

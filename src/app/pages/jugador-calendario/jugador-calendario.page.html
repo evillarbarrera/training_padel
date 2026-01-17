@@ -1,0 +1,90 @@
+<ion-content>
+
+  <!-- Hero Header -->
+  <div class="header-nike">
+    <div class="header-overlay"></div>
+    <div class="header-content">
+      <h1 class="header-title">Mis Clases</h1>
+      <p class="header-sub">Agenda de entrenamientos</p>
+    </div>
+  </div>
+
+  <!-- Segment Control (Premium) -->
+  <div class="segment-wrapper animate-up">
+    <ion-segment [(ngModel)]="tipoVista" class="nike-segment" mode="ios">
+      <ion-segment-button value="proximas">
+        <ion-label>PRÓXIMAS</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="historial">
+        <ion-label>HISTORIAL</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <!-- Main Container -->
+  <div class="dashboard-container">
+
+    <!-- Loading State -->
+    <div *ngIf="cargando" class="state-container animate-fade">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando sesiones...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!cargando && reservasFiltradas.length === 0" class="state-container animate-up">
+      <div class="empty-icon-box">
+        <ion-icon name="calendar-clear-outline"></ion-icon>
+      </div>
+      <h2>{{ tipoVista === 'proximas' ? 'Sin clases agendadas' : 'Cero registros' }}</h2>
+      <p>{{ tipoVista === 'proximas' ? 'Tu agenda está libre por ahora. Puedes ver tus entrenamientos grupales en la sección "Mis Entrenamientos".' : 'Aún no tienes historial de clases.' }}</p>
+      <ion-button *ngIf="tipoVista === 'proximas'" class="nike-button-small" (click)="goBack()">
+        Agendar Mi Primera Clase
+      </ion-button>
+    </div>
+
+    <!-- Sessions List -->
+    <div class="sessions-list" *ngIf="!cargando && reservasFiltradas.length > 0">
+
+      <div class="nike-card session-card animate-up" *ngFor="let reserva of reservasFiltradas; let i = index"
+        [style.animation-delay]="(i * 0.05) + 's'">
+
+        <div class="card-header">
+          <div class="date-badge" *ngIf="reserva.fecha">
+            <span class="day">{{ reserva.fecha | date:'dd' }}</span>
+            <span class="month">{{ reserva.fecha | date:'MMM' | uppercase }}</span>
+          </div>
+          <div class="status-tag" [ngClass]="reserva.estado ? reserva.estado.toLowerCase() : reserva.estado_grupo?.toLowerCase()">
+            {{ reserva.estado || reserva.estado_grupo }}
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="time-row" *ngIf="reserva.hora_inicio && reserva.hora_fin">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>{{ reserva.hora_inicio | slice:0:5 }} - {{ reserva.hora_fin | slice:0:5 }}</span>
+          </div>
+
+          <div class="coach-row" *ngIf="reserva.entrenador_nombre">
+            <ion-icon name="person-outline"></ion-icon>
+            <span>Coach: <strong>{{ reserva.entrenador_nombre }}</strong></span>
+          </div>
+
+          <div class="pack-row">
+            <span class="pack-label">{{ reserva.pack_nombre }}</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Back FAB -->
+  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+    <ion-fab-button class="nike-fab back-fab" (click)="goBack()">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

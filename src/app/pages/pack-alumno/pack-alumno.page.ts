@@ -112,16 +112,50 @@ export class PackAlumnoPage implements OnInit {
 
 
   filtrarPacks() {
-    if (this.selectedEntrenador) {
-        this.packsFiltrados = this.packs.filter(
-          p => p.entrenador_id === this.selectedEntrenador
-        );
-      } else {
-        this.packsFiltrados = [...this.packs];
-      }
+    let filtrados = [...this.packs];
 
-      this.page = 1;
-      this.actualizarPaginacion();
+    // Filtrar por entrenador
+    if (this.selectedEntrenador) {
+      filtrados = filtrados.filter(
+        p => p.entrenador_id === this.selectedEntrenador
+      );
+    }
+
+    this.packsFiltrados = filtrados;
+    this.page = 1;
+    this.actualizarPaginacion();
+  }
+
+  getEstadoGrupal(pack: any): string {
+    if (pack.tipo !== 'grupal') return '';
+    return pack.estado_grupo || 'pendiente';
+  }
+
+  getCuposDisplay(pack: any): string {
+    if (pack.tipo !== 'grupal') return '';
+    if (pack.estado_grupo === 'activo') {
+      return `${pack.cupos_ocupados}/${pack.capacidad_maxima}`;
+    }
+    return `${pack.cupos_ocupados}/${pack.capacidad_minima}`;
+  }
+
+  getEstadoBadge(pack: any): string {
+    if (pack.tipo !== 'grupal') return '';
+    if (pack.cupos_ocupados >= pack.capacidad_maxima) {
+      return '🔴'; // Completo
+    }
+    if (pack.estado_grupo === 'activo') {
+      return '🟢'; // Activo
+    }
+    return '🟡'; // Pendiente
+  }
+
+  isPackCompleto(pack: any): boolean {
+    return pack.tipo === 'grupal' && pack.cupos_ocupados >= pack.capacidad_maxima;
+  }
+
+  isPackGrupal(pack: any): boolean {
+    return pack.tipo === 'grupal';
   }
 
   actualizarPaginacion() {
@@ -153,6 +187,12 @@ export class PackAlumnoPage implements OnInit {
 
 
   async comprarPack(pack: any) {
+    // Si es pack grupal, usar inscripción grupal
+    if (pack.tipo === 'grupal') {
+      return this.inscribirseGrupal(pack);
+    }
+
+    // Si es individual, usar proceso normal
     const modal = await this.modalCtrl.create({
       component: ConfirmarPackModal,
       componentProps: { pack }
@@ -160,11 +200,44 @@ export class PackAlumnoPage implements OnInit {
 
     await modal.present();
 
-
     const { data } = await modal.onDidDismiss();
 
     if (data?.confirmar) {
       this.confirmarCompra(pack);
+    }
+  }
+
+  async inscribirseGrupal(pack: any) {
+    const jugadorId = Number(localStorage.getItem('userId'));
+
+    try {
+      const result = await this.packsAlumno.inscribirseGrupal(pack.id, jugadorId).toPromise();
+      
+      let mensaje = 'Te has inscrito correctamente al entrenamiento grupal.';
+      
+      if (result.estado_grupo === 'activo') {
+        const duracion = result.cupos_ocupados >= 5 ? '120 minutos' : '90 minutos';
+        mensaje += `\n\nEl entrenamiento se ha ACTIVADO con ${result.cupos_ocupados} jugadores.\nDuración: ${duracion}`;
+      } else {
+        mensaje += `\n\nFaltan ${pack.capacidad_minima - result.cupos_ocupados} jugadores para activarse.`;
+      }
+
+      const alert = await this.alertCtrl.create({
+        header: 'Inscripción realizada',
+        message: mensaje,
+        buttons: ['OK']
+      });
+
+      await alert.present();
+      this.cargarPacks(); // Recargar para actualizar cupos
+    } catch (err: any) {
+      const alert = await this.alertCtrl.create({
+        header: 'Error',
+        message: err.error?.error || 'No se pudo completar la inscripción',
+        buttons: ['OK']
+      });
+
+      await alert.present();
     }
   }
 

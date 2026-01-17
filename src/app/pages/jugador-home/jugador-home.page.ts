@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar ,
+import {
+  IonContent,
   IonFab,
   IonFabButton,
   IonIcon,
@@ -9,18 +10,22 @@ import { IonContent, IonHeader, IonTitle, IonToolbar ,
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline } from 'ionicons/icons';
-import { ActionSheetController } from '@ionic/angular';
-
-
-
+import {
+  settingsOutline, homeOutline, calendarOutline, logOutOutline,
+  albumsOutline, barbellOutline, personOutline, close,
+  calendarNumberOutline, trophyOutline, barChartOutline
+} from 'ionicons/icons';
+import { ActionSheetController } from '@ionic/angular/standalone';
+import { MysqlService } from '../../services/mysql.service';
 
 @Component({
   selector: 'app-jugador-home',
   templateUrl: './jugador-home.page.html',
   styleUrls: ['./jugador-home.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonContent,
+  imports: [
+    CommonModule,
+    IonContent,
     IonFab,
     IonFabButton,
     IonIcon,
@@ -29,58 +34,84 @@ import { ActionSheetController } from '@ionic/angular';
 })
 export class JugadorHomePage implements OnInit {
 
-  constructor(private router: Router,    private actionSheetCtrl: ActionSheetController,) {     
-        addIcons({
-          settingsOutline,
-          homeOutline,
-          calendarOutline,
-          logOutOutline});
-        }
+  jugadorNombre = "...";
+  entrenamientosRealizados = 0;
+  entrenamientosPendientes = 0;
+  totalMes = 0;
 
-  ngOnInit() {
+  constructor(
+    private router: Router,
+    private actionSheetCtrl: ActionSheetController,
+    private mysqlService: MysqlService
+  ) {
+    addIcons({
+      settingsOutline,
+      homeOutline,
+      calendarOutline,
+      logOutOutline,
+      albumsOutline,
+      barbellOutline,
+      personOutline,
+      close,
+      calendarNumberOutline,
+      trophyOutline,
+      barChartOutline
+    });
   }
 
-  jugadorNombre = "Emmanuel";
+  ngOnInit() {
+    this.cargarStats();
+  }
 
-  entrenamientosRealizados = 12;
-  entrenamientosPendientes = 3;
-  totalMes = 15;
+  cargarStats() {
+    const userId = Number(localStorage.getItem('userId'));
+    if (!userId) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    this.mysqlService.getHomeStats(userId).subscribe({
+      next: (res) => {
+        this.jugadorNombre = res.nombre;
+        this.entrenamientosRealizados = res.estadisticas.realizados;
+        this.entrenamientosPendientes = res.estadisticas.pendientes;
+        this.totalMes = res.estadisticas.totalMes;
+      },
+      error: (err) => {
+        console.error('Error al cargar estadísticas:', err);
+      }
+    });
+  }
 
   agendar() {
-    // Navegar a la pantalla de agenda
+    this.router.navigate(['/jugador-reservas']);
   }
 
   comprarPack() {
-    // Navegar a packs
+    this.router.navigate(['/pack-alumno']);
   }
 
   misHabilidades() {
-    // Navegar habilidades
+    // Proximamente
   }
 
-  // Navegar a la página principal del jugador
   goToHome() {
-    this.router.navigate(['/jugador-home']); // o la ruta que tengas de inicio
+    this.router.navigate(['/jugador-home']);
   }
 
-  // Navegar a la agenda
   goToAgenda() {
-    this.router.navigate(['/jugador-reservas']); // o la ruta que tengas de inicio
+    this.router.navigate(['/jugador-reservas']);
   }
 
-  // Cerrar sesión
   logout() {
-    // Limpiar localStorage
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
-
-    // Redirigir al login
     this.router.navigate(['/login']);
   }
 
   goToPackAlumno() {
-  this.router.navigate(['/pack-alumno']);
-}
+    this.router.navigate(['/pack-alumno']);
+  }
 
   async openSettings() {
     const actionSheet = await this.actionSheetCtrl.create({
@@ -90,7 +121,14 @@ export class JugadorHomePage implements OnInit {
           text: 'Mi Perfil',
           icon: 'person-outline',
           handler: () => {
-            this.router.navigate(['/perfil-jugador']);
+            this.router.navigate(['/perfil']);
+          }
+        },
+        {
+          text: 'Mis Reservas',
+          icon: 'calendar-number-outline',
+          handler: () => {
+            this.router.navigate(['/jugador-calendario']);
           }
         },
         {
@@ -111,6 +149,4 @@ export class JugadorHomePage implements OnInit {
 
     await actionSheet.present();
   }
-
-
 }

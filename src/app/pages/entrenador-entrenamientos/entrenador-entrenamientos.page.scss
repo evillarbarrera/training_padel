@@ -1,0 +1,382 @@
+/* --- HEADER ESTILO NIKE --- */
+.header-nike {
+    height: 200px;
+    position: relative;
+    background: url('/assets/fondo-padel.png') center/cover no-repeat;
+    display: flex;
+    align-items: flex-end;
+    padding: 30px 25px;
+    border-radius: 0 0 30px 30px;
+    overflow: hidden;
+}
+
+.header-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7));
+    z-index: 1;
+}
+
+.header-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    color: white;
+
+    .header-title {
+        font-size: 32px;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: -1px;
+    }
+
+    .header-sub {
+        margin: 4px 0 0;
+        opacity: 0.9;
+        font-size: 15px;
+        font-weight: 500;
+    }
+}
+
+/* DAY SELECTOR (Premium Tabs) */
+.segment-wrapper {
+    padding: 15px 20px 0;
+    margin-top: -30px;
+    position: relative;
+    z-index: 100;
+}
+
+.nike-segment-days {
+    --background: #ffffff;
+    border-radius: 20px;
+    padding: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    height: 90px;
+
+    ion-segment-button {
+        --indicator-color: transparent;
+        --color: #8e8e93;
+        --color-checked: var(--ion-color-primary);
+        min-width: 65px;
+
+        ion-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .day-name {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .day-date {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        &.segment-button-checked {
+            background: #f2f2f7;
+            border-radius: 14px;
+        }
+    }
+
+    .dot-indicator {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 6px;
+        height: 6px;
+        background: #ff3b30;
+        border-radius: 50%;
+    }
+}
+
+/* CONTAINER */
+.dashboard-container {
+    padding: 20px 20px 100px;
+}
+
+/* STATES */
+.state-container {
+    text-align: center;
+    padding: 60px 40px;
+
+    ion-spinner {
+        --color: var(--ion-color-primary);
+        margin-bottom: 15px;
+    }
+
+    .empty-icon-box {
+        font-size: 48px;
+        color: #e5e5ea;
+        margin-bottom: 15px;
+    }
+
+    h2 {
+        font-size: 20px;
+        font-weight: 800;
+    }
+
+    p {
+        color: #8e8e93;
+        font-size: 15px;
+        margin-top: 8px;
+    }
+}
+
+/* TRAINING CARDS */
+.agenda-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.training-card {
+    padding: 0;
+    margin-bottom: 0;
+
+    .card-header {
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f2f2f7;
+
+        .time-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--ion-color-primary);
+
+            ion-icon {
+                font-size: 18px;
+                color: #3880ff;
+            }
+        }
+
+        .status-tag {
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+
+            &.pendiente {
+                background: #fff9c4;
+                color: #fbc02d;
+            }
+
+            &.confirmada {
+                background: #e8f5e9;
+                color: #4caf50;
+            }
+
+            &.cancelado {
+                background: #ffebee;
+                color: #ef5350;
+            }
+        }
+    }
+
+    .card-body {
+        padding: 20px;
+
+        .player-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+
+            .avatar-circle {
+                width: 48px;
+                height: 48px;
+                background: #f2f2f7;
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #8e8e93;
+                font-size: 20px;
+            }
+
+            .player-details {
+                h3 {
+                    margin: 0;
+                    font-size: 18px;
+                    font-weight: 800;
+                }
+
+                p {
+                    margin: 2px 0 0;
+                    font-size: 13px;
+                    color: #8e8e93;
+                }
+            }
+        }
+
+        .pack-row {
+            .pack-label {
+                font-size: 11px;
+                font-weight: 700;
+                color: #8e8e93;
+                background: #f2f2f7;
+                padding: 4px 10px;
+                border-radius: 6px;
+            }
+        }
+    }
+
+    .card-footer {
+        padding: 5px 20px 15px;
+        display: flex;
+        justify-content: flex-end;
+
+        .btn-cancel {
+            --padding-start: 0;
+            --padding-end: 0;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: none;
+            height: 36px;
+        }
+    }
+}
+/* FABs */
+.nike-fab {
+    --background: var(--ion-color-primary);
+    --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+
+    ion-icon {
+        font-size: 24px;
+        color: white;
+    }
+
+    &.back-fab {
+        --background: white;
+
+        ion-icon {
+            color: var(--ion-color-primary);
+        }
+    }
+}
+
+/* Estilos para Packs Grupales */
+.training-card.pack-grupal {
+    border-left: 5px solid #2196f3;
+    background: linear-gradient(135deg, #f5f9ff 0%, #fff 100%);
+
+    .card-header {
+        border-bottom: 2px solid rgba(33, 150, 243, 0.2);
+    }
+}
+
+.grupal-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .grupal-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .tipo-badge {
+            background: rgba(33, 150, 243, 0.2);
+            color: #2196f3;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .categoria {
+            background: rgba(156, 39, 176, 0.1);
+            color: #9c27b0;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+    }
+
+    .cupos-info {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+
+        .badge-cupos {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+
+            &.pendiente {
+                background: rgba(255, 193, 7, 0.1);
+                color: #ffc107;
+            }
+
+            &.activo {
+                background: rgba(76, 175, 80, 0.1);
+                color: #4caf50;
+            }
+        }
+
+        .duracion {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+    }
+
+    .inscritos-list {
+        padding: 8px 0;
+
+        .inscritos-title {
+            margin: 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .inscritos-avatars {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+
+            .inscrito-avatar {
+                position: relative;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                background: rgba(33, 150, 243, 0.1);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+                font-weight: 700;
+                color: #2196f3;
+                border: 2px solid #2196f3;
+                cursor: help;
+
+                ion-icon {
+                    font-size: 16px;
+                    color: #2196f3;
+                }
+
+                .nombre-corto {
+                    position: absolute;
+                }
+            }
+        }
+    }
+}

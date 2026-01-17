@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { EntrenamientoService } from '../../services/entrenamiento.service';
+import { MysqlService } from '../../services/mysql.service';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -21,34 +22,60 @@ import { chevronBackOutline } from 'ionicons/icons';
 })
 export class JugadorReservasPage implements OnInit {
 
+  // Vista actual
+  vistaActual: 'agendar' | 'mis-entrenamientos' = 'mis-entrenamientos';
+
+  // Para agendar
   profesores: any[] = [];
   horarios: any[] = [];
   horariosPorDia: any = {};
   dias: string[] = [];
   diaSeleccionado!: string;
-
   tramoSeleccionado: 'manana' | 'tarde' | 'noche' = 'manana';
-
   packs: any[] = [];
   entrenadores: any[] = [];
   selectedEntrenador: number | null = null;
   jugadorId = Number(localStorage.getItem('userId'));
 
+  // Para mis entrenamientos
+  reservasIndividuales: any[] = [];
+  entrenamientosGrupales: any[] = [];
+  cargando: boolean = false;
+
   constructor(
     private entrenamientoService: EntrenamientoService,
+    private mysqlService: MysqlService,
     private toastCtrl: ToastController,
-     private router: Router,
-  ){
+    private router: Router,
+  ) {
     addIcons({
-        settingsOutline,
-        homeOutline,
-        calendarOutline,
-         chevronBackOutline,
-        logOutOutline});
-    }
+      settingsOutline,
+      homeOutline,
+      calendarOutline,
+      chevronBackOutline,
+      logOutOutline
+    });
+  }
 
   ngOnInit() {
+    this.cargarMisEntrenamientos();
     this.cargarEntrenadores();
+  }
+
+  cargarMisEntrenamientos() {
+    this.cargando = true;
+    this.mysqlService.getReservasJugador(this.jugadorId).subscribe({
+      next: (res: any) => {
+        // res tiene estructura: {reservas_individuales: [], entrenamientos_grupales: []}
+        this.reservasIndividuales = res.reservas_individuales || [];
+        this.entrenamientosGrupales = res.entrenamientos_grupales || [];
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar entrenamientos:', err);
+        this.cargando = false;
+      }
+    });
   }
 
   cargarEntrenadores() {
@@ -97,72 +124,72 @@ export class JugadorReservasPage implements OnInit {
       });
   }
 
-generarBloquesHorarios(disponibilidades: any[]) {
+  generarBloquesHorarios(disponibilidades: any[]) {
 
-  this.horariosPorDia = {};
-  this.dias = [];
+    this.horariosPorDia = {};
+    this.dias = [];
 
-  const bloquesUnicos = new Set<string>(); // 👈 CLAVE
+    const bloquesUnicos = new Set<string>(); // 👈 CLAVE
 
-  disponibilidades.forEach(d => {
+    disponibilidades.forEach(d => {
 
-    let inicio = new Date(d.fecha_inicio);
-    const fin = new Date(d.fecha_fin);
-    const ocupado = Boolean(d.ocupado);
+      let inicio = new Date(d.fecha_inicio);
+      const fin = new Date(d.fecha_fin);
+      const ocupado = Boolean(d.ocupado);
 
-    while (inicio < fin) {
+      while (inicio < fin) {
 
-      const bloqueInicio = new Date(inicio);
-      const bloqueFin = new Date(inicio);
-      bloqueFin.setHours(bloqueFin.getHours() + 1);
+        const bloqueInicio = new Date(inicio);
+        const bloqueFin = new Date(inicio);
+        bloqueFin.setHours(bloqueFin.getHours() + 1);
 
-      if (bloqueFin <= fin) {
+        if (bloqueFin <= fin) {
 
-        const fecha = bloqueInicio.toISOString().split('T')[0];
-        const horaInicio = bloqueInicio.toTimeString().slice(0, 5);
-        const horaFin = bloqueFin.toTimeString().slice(0, 5);
+          const fecha = bloqueInicio.toISOString().split('T')[0];
+          const horaInicio = bloqueInicio.toTimeString().slice(0, 5);
+          const horaFin = bloqueFin.toTimeString().slice(0, 5);
 
-        const key = `${fecha} ${horaInicio}-${horaFin}`;
+          const key = `${fecha} ${horaInicio}-${horaFin}`;
 
-        // 🚫 SI YA EXISTE, NO SE AGREGA
-        if (bloquesUnicos.has(key)) {
-          inicio.setHours(inicio.getHours() + 1);
-          continue;
+          // 🚫 SI YA EXISTE, NO SE AGREGA
+          if (bloquesUnicos.has(key)) {
+            inicio.setHours(inicio.getHours() + 1);
+            continue;
+          }
+
+          bloquesUnicos.add(key);
+
+          const hora = bloqueInicio.getHours();
+          let tramo: 'manana' | 'tarde' | 'noche' = 'noche';
+
+          if (hora >= 6 && hora < 12) tramo = 'manana';
+          else if (hora >= 12 && hora < 18) tramo = 'tarde';
+
+          if (!this.horariosPorDia[fecha]) {
+            this.horariosPorDia[fecha] = {
+              manana: [],
+              tarde: [],
+              noche: []
+            };
+            this.dias.push(fecha);
+          }
+
+          this.horariosPorDia[fecha][tramo].push({
+            fecha,
+            hora_inicio: bloqueInicio,
+            hora_fin: bloqueFin,
+            ocupado
+          });
         }
 
-        bloquesUnicos.add(key);
-
-        const hora = bloqueInicio.getHours();
-        let tramo: 'manana' | 'tarde' | 'noche' = 'noche';
-
-        if (hora >= 6 && hora < 12) tramo = 'manana';
-        else if (hora >= 12 && hora < 18) tramo = 'tarde';
-
-        if (!this.horariosPorDia[fecha]) {
-          this.horariosPorDia[fecha] = {
-            manana: [],
-            tarde: [],
-            noche: []
-          };
-          this.dias.push(fecha);
-        }
-
-        this.horariosPorDia[fecha][tramo].push({
-          fecha,
-          hora_inicio: bloqueInicio,
-          hora_fin: bloqueFin,
-          ocupado
-        });
+        inicio.setHours(inicio.getHours() + 1);
       }
+    });
 
-      inicio.setHours(inicio.getHours() + 1);
-    }
-  });
-
-  this.dias.sort();
-  this.diaSeleccionado = this.dias[0];
-  this.tramoSeleccionado = 'manana';
-}
+    this.dias.sort();
+    this.diaSeleccionado = this.dias[0];
+    this.tramoSeleccionado = 'manana';
+  }
 
 
   reservarHorario(horario: any) {
@@ -205,6 +232,26 @@ generarBloquesHorarios(disponibilidades: any[]) {
       color: 'success'
     });
     toast.present();
+  }
+
+  cambiarVista(vista: 'agendar' | 'mis-entrenamientos') {
+    this.vistaActual = vista;
+    if (vista === 'mis-entrenamientos') {
+      this.cargarMisEntrenamientos();
+    }
+  }
+
+  getEstadoBadgeColor(estado: string): string {
+    if (estado === 'activo' || estado === 'confirmado') return 'success';
+    if (estado === 'pendiente') return 'warning';
+    if (estado === 'cancelado') return 'danger';
+    return 'medium';
+  }
+
+  getDiasSemana(dia_semana: number): string {
+    // BD usa formato 0-6: 0=Domingo, 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    return dias[dia_semana] || `Día ${dia_semana} no válido`;
   }
 
   goToHome() {

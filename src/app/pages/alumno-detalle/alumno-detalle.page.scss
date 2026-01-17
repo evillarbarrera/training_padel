@@ -1,40 +1,183 @@
-.nike-header {
-  --background: #1e90ff;
-  --color: #fff;
-  font-weight: bold;
-}
-
-.avatar-container {
+/* --- HEADER ESTILO NIKE --- */
+.header-nike {
+  height: 250px;
+  position: relative;
+  background: url('/assets/mod-packs.jpg') center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 25px;
+  border-radius: 0 0 40px 40px;
+  overflow: hidden;
   text-align: center;
-  padding: 20px 0;
 }
 
-.avatar-img {
-  width: 130px;
-  height: 130px;
-  border-radius: 50%;
-  border: 4px solid #1e90ff;
-  object-fit: cover;
-  box-shadow: 0 4px 12px #1e90ff;
+.header-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.8));
+  z-index: 1;
 }
 
-.alumno-nombre {
-  margin-top: 12px;
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.chart-container {
+.header-content {
+  position: relative;
+  z-index: 2;
   width: 100%;
-  max-width: 350px;
-  margin: auto;
-  padding: 10px 0 30px 0;
+  color: white;
+
+  .avatar-wrapper {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 15px;
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 28px;
+      object-fit: cover;
+      transform: rotate(-3deg);
+      border: 3px solid white;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .status-dot {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 3px solid white;
+
+      &.online {
+        background: #34c759;
+      }
+    }
+  }
+
+  .header-title {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -1px;
+  }
+
+  .header-sub {
+    margin: 4px 0 0;
+    opacity: 0.9;
+    font-size: 14px;
+    font-weight: 600;
+  }
 }
 
-.btn-nike {
-  --background: #1e90ff;
-  --color: #fff;
-  --border-radius: 50%;
-  width: 60px;
-  height: 60px;
+/* CONTAINER */
+.dashboard-container {
+  padding: 25px 25px 100px;
+}
+
+/* CHART CARD */
+.chart-card {
+  padding: 20px;
+  margin-bottom: 25px;
+
+  .card-header-simple {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--ion-color-primary);
+    }
+
+    .view-all {
+      font-size: 12px;
+      font-weight: 700;
+      color: #8e8e93;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .chart-container {
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  }
+}
+
+/* QUICK STATS */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.stat-item-small {
+  text-align: center;
+  padding: 15px 10px;
+  border: 1px solid #f2f2f7;
+
+  .label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    color: #8e8e93;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .value {
+    display: block;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--ion-color-primary);
+  }
+}
+
+/* ACTIONS LIST */
+.actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .nike-button {
+    height: 56px;
+    margin: 0;
+
+    &.outline-btn {
+      --border-color: var(--ion-color-primary);
+      --color: var(--ion-color-primary);
+    }
+  }
+}
+
+/* FABs */
+.nike-fab {
+  --background: var(--ion-color-primary);
+  --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+
+  ion-icon {
+    font-size: 24px;
+    color: white;
+  }
+
+  &.back-fab {
+    --background: white;
+
+    ion-icon {
+      color: var(--ion-color-primary);
+    }
+  }
 }

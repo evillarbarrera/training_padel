@@ -3,16 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonContent,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonButton,
   IonInput,
-  IonList,
   IonItem,
   IonLabel,
-  IonToggle,
-  IonIcon
+  IonIcon,
+  IonBadge,
+  IonFab,
+  IonFabButton
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -34,16 +32,14 @@ interface AlumnoApi {
     CommonModule,
     FormsModule,
     IonContent,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonButton,
     IonInput,
-    IonList,
     IonItem,
     IonLabel,
-    IonToggle,
-    IonIcon
+    IonIcon,
+    IonBadge,
+    IonFab,
+    IonFabButton
   ],
 })
 export class AlumnosPage implements OnInit {
@@ -62,7 +58,7 @@ export class AlumnosPage implements OnInit {
   constructor(
     private router: Router,
     private http: HttpClient
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.cargarAlumnos();
@@ -72,7 +68,7 @@ export class AlumnosPage implements OnInit {
     const profesorId = localStorage.getItem('userId');
 
     this.http.get<AlumnoApi[]>(
-      `http://api.rojasrefrigeracion.cl/alumno/get_alumno.php?entrenador_id=${profesorId}`,
+      `http://api.lamatek.cl/alumno/get_alumno.php?entrenador_id=${profesorId}`,
       {
         headers: {
           Authorization: 'Bearer ' + btoa('1|padel_academy')

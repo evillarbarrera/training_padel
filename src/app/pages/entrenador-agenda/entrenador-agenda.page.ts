@@ -3,9 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonCard, IonCardHeader, IonCardContent, IonCardTitle, IonCardSubtitle, IonFab, IonFabButton, IonIcon, IonSegment, IonSegmentButton, IonInput } from '@ionic/angular/standalone';
-
-import { AgendaFiltroPipe } from 'src/app/pipes/agendaFiltro.pipe';
+import { IonHeader, IonButton, IonIcon, IonInput, IonContent, IonFab, IonFabButton } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-entrenador-agenda',
@@ -15,16 +13,14 @@ import { AgendaFiltroPipe } from 'src/app/pipes/agendaFiltro.pipe';
   imports: [
     CommonModule,
     FormsModule,
-
     // Ionic
-    IonContent, IonHeader, IonToolbar, IonTitle,
-    IonButton, IonCard, IonCardHeader, IonCardContent,
-    IonCardTitle, IonCardSubtitle,
-    IonFab, IonFabButton, IonIcon,
-    IonSegment, IonSegmentButton, IonInput,
-
-    // PIPE
-    AgendaFiltroPipe
+    IonHeader,
+    IonButton,
+    IonIcon,
+    IonInput,
+    IonContent,
+    IonFab,
+    IonFabButton
   ]
 })
 export class EntrenadorAgendaPage {
@@ -46,11 +42,11 @@ export class EntrenadorAgendaPage {
 
   entrenamientosPorDia: any = {};
 
-  constructor(private router: Router) {}
+  constructor(private router: Router) { }
 
   ngOnInit() {
     this.organizarPorDia();
-     this.generarSemana();
+    this.generarSemana();
   }
 
   organizarPorDia() {
@@ -78,35 +74,35 @@ export class EntrenadorAgendaPage {
   }
 
   reagendarClase(e: any) {
-  console.log("Reagendando clase:", e);
-  // Lógica para reprogramar
-}
+    console.log("Reagendando clase:", e);
+    // Lógica para reprogramar
+  }
 
-cancelarClase(e: any) {
-  console.log("Cancelando clase:", e);
-  // Lógica para cancelar
-}
+  cancelarClase(e: any) {
+    console.log("Cancelando clase:", e);
+    // Lógica para cancelar
+  }
 
-semana: { nombre: string; numero: number; fecha: Date }[] = [];
+  semana: { nombre: string; numero: number; fecha: Date }[] = [];
 
-generarSemana() {
-  const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+  generarSemana() {
+    const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
-  const hoy = new Date();
-  const inicioSemana = new Date(hoy);
-  inicioSemana.setDate(hoy.getDate() - hoy.getDay() + 1); // lunes
+    const hoy = new Date();
+    const inicioSemana = new Date(hoy);
+    inicioSemana.setDate(hoy.getDate() - hoy.getDay() + 1); // lunes
 
-  this.semana = diasSemana.map((nombre, i) => {
-    const fecha = new Date(inicioSemana);
-    fecha.setDate(inicioSemana.getDate() + i);
+    this.semana = diasSemana.map((nombre, i) => {
+      const fecha = new Date(inicioSemana);
+      fecha.setDate(inicioSemana.getDate() + i);
 
-    return {
-      nombre,
-      numero: fecha.getDate(),
-      fecha
-    };
-  });
-}
+      return {
+        nombre,
+        numero: fecha.getDate(),
+        fecha
+      };
+    });
+  }
 
 
 }

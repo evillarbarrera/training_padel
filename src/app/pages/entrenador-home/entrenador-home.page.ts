@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from 'src/app/services/auth.service';
 import { CommonModule } from '@angular/common';
 import { ActionSheetController } from '@ionic/angular';
+import { MysqlService } from 'src/app/services/mysql.service';
+import { AuthService } from 'src/app/services/auth.service';
 import {
   IonContent,
   IonFab,
@@ -27,26 +28,48 @@ import { settingsOutline, homeOutline, calendarOutline, logOutOutline } from 'io
 })
 export class EntrenadorHomePage {
 
+  coachNombre: string = 'Coach';
+
   constructor(
-    
+
     private router: Router,
+    private mysqlService: MysqlService,
     private authService: AuthService,
     private actionSheetCtrl: ActionSheetController,
-    
+
   ) {
     addIcons({
-        settingsOutline,
-        homeOutline,
-        calendarOutline,
-        logOutOutline});
-    }
+      settingsOutline,
+      homeOutline,
+      calendarOutline,
+      logOutOutline
+    });
+  }
+
+  ngOnInit() {
+    this.loadName();
+  }
+
+  loadName() {
+    const userId = Number(localStorage.getItem('userId'));
+    if (!userId) return;
+
+    this.mysqlService.getPerfil(userId).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.coachNombre = res.user.nombre || 'Coach';
+        }
+      },
+      error: (err) => console.error('Error loading coach name:', err)
+    });
+  }
 
   goToPacks() {
     this.router.navigate(['/entrenador-packs']);
   }
 
   goToAgenda() {
-    this.router.navigate(['/entrenador-agenda']);
+    this.router.navigate(['/entrenador-entrenamientos']);
   }
 
   goToAlumnos() {
@@ -66,8 +89,8 @@ export class EntrenadorHomePage {
   }
 
   goToHome() {
-  this.router.navigate(['/entrenador-home']);
-}
+    this.router.navigate(['/entrenador-home']);
+  }
 
   async openSettings() {
     const actionSheet = await this.actionSheetCtrl.create({
@@ -77,7 +100,7 @@ export class EntrenadorHomePage {
           text: 'Mi Perfil',
           icon: 'person-outline',
           handler: () => {
-            this.router.navigate(['/perfil-profesor']);
+            this.router.navigate(['/perfil']);
           }
         },
         {
@@ -108,5 +131,5 @@ export class EntrenadorHomePage {
 
 
 
-  
+
 }

@@ -1,356 +1,235 @@
-/* =============================== */
-/* HEADER ESTILO NIKE             */
-/* =============================== */
-
-.nike-header {
-  --background: #000; /* Fondo negro estilo Nike */
-}
-
-/* HERO MODERNO */
-.hero-header-modern {
+/* --- HEADER ESTILO NIKE --- */
+.header-nike {
+  height: 200px;
   position: relative;
-  height: 170px;
-  border-bottom-left-radius: 32px;
-  border-bottom-right-radius: 32px;
+  background: url('https://png.pngtree.com/thumb_back/fh260/background/20250423/pngtree-close-up-of-a-tennis-ball-on-padel-court-with-net-image_17217089.jpg') center/cover no-repeat;
+  display: flex;
+  align-items: flex-end;
+  padding: 30px 25px;
+  border-radius: 0 0 30px 30px;
   overflow: hidden;
 }
 
-.hero-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scale(1.1);
-  filter: brightness(0.6);
-}
-
-.hero-overlay {
+.header-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.9));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.8));
+  z-index: 1;
 }
 
-.hero-text {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  color: #fff;
+.header-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  color: white;
+
+  .header-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -1px;
+  }
+
+  .header-sub {
+    margin: 4px 0 0;
+    opacity: 0.9;
+    font-size: 15px;
+    font-weight: 500;
+  }
 }
 
-.hero-title {
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  margin-bottom: 4px;
+/* CONTAINER */
+.dashboard-container {
+  padding: 20px 25px 100px;
 }
 
-.hero-subtitle {
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-/* =============================== */
-/* AVATAR ESTILO NIKE             */
-/* =============================== */
-.player-header-modern {
+/* COACH PROFILE */
+.coach-profile-card {
+  background: white;
+  border-radius: 20px;
+  padding: 15px;
   display: flex;
   align-items: center;
   gap: 15px;
-  padding: 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  margin-bottom: 25px;
+  border: 1px solid #f2f2f7;
+
+  .coach-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    object-fit: cover;
+  }
+
+  .coach-meta {
+    h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--ion-color-primary);
+    }
+
+    p {
+      margin: 2px 0 0;
+      font-size: 12px;
+      color: #8e8e93;
+      font-weight: 600;
+    }
+  }
 }
 
-.player-avatar-modern {
-  width: 75px;
-  height: 75px;
-  border-radius: 18px;
-  object-fit: cover;
-  border: 3px solid #ffffff20;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+/* SEARCH BOX */
+.search-section {
+  margin-bottom: 30px;
 }
 
-.player-name-modern {
-  font-size: 22px;
-  font-weight: 800;
-  color: #111;
-}
-
-.player-role-modern {
-  color: #666;
-  font-size: 14px;
-  margin-top: 3px;
-}
-
-/* =============================== */
-/* BUSCADOR ESTILO NIKE            */
-/* =============================== */
-.search-container-modern {
-  padding: 0 16px 15px;
-}
-
-.search-input-modern {
-  background: #f5f5f5;
+.nike-search-box {
+  background: #f2f2f7;
   border-radius: 14px;
-  padding: 12px;
-  font-size: 14px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-/* =============================== */
-/* CONTENIDO GENERAL               */
-/* =============================== */
-
-ion-content {
-  --background: #fafafa !important;
-}
-
-/* Segmento (Días) */
-.day-filter ion-segment {
-  --background: transparent;
-  margin-top: 8px;
-}
-
-ion-segment-button {
-  --background: #eee;
-  --color: #333;
-  --indicator-color: #111;
-  border-radius: 10px;
-  margin-right: 6px;
-  padding: 8px;
-  font-weight: 600;
-}
-
-/* =============================== */
-/* TARJETAS DE ENTRENAMIENTOS     */
-/* =============================== */
-
-.training-card-small {
+  padding: 2px 15px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: #fff;
-  border-radius: 18px;
-  padding: 12px 16px;
-  margin: 12px 16px;
-  box-shadow: 0 3px 20px rgba(0,0,0,0.06);
-  border: none;
-  transition: transform 0.2s ease;
+  gap: 10px;
+
+  ion-icon {
+    font-size: 18px;
+    color: #8e8e93;
+  }
+
+  ion-input {
+    --padding-start: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ion-color-primary);
+  }
 }
 
-.training-card-small:hover {
-  transform: translateY(-2px);
-}
-
-/* Avatar pequeño */
-.avatar-mini {
-  width: 50px;
-  height: 50px;
-  border-radius: 14px;
-  object-fit: cover;
-  border: none;
-}
-
-/* Intensidades tipo Nike */
-.intensidad-label.baja { color: #1e90ff; }
-.intensidad-label.media { color: #ff9500; }
-.intensidad-label.alta { color: #ff3b30; }
-
-/* Botones derecha */
-.training-actions ion-button {
-  --border-radius: 12px;
-  font-size: 14px;
-}
-
-
-/* =============================== */
-/* FLOTANTE VOLVER                 */
-/* =============================== */
-
-ion-fab-button {
-  --background: #111;
-  --border-radius: 50%;
-}
-
-ion-fab-button ion-icon {
-  color: #fff;
-}
-
-/* =============================== */
-/* calendario              */
-/* =============================== *//* =========================================
-   RESET DEL CONTENEDOR
-========================================= */
-ion-content {
-  --background: #f5f6f7;
-  --padding-top: 0;
-  --padding-bottom: 20px;
-}
-
-/* Contenedor scroll del calendario */
-.agenda-scroll {
-  padding: 15px 12px 40px;
-  overflow-y: auto;
-  height: calc(100vh - 120px);
+/* AGENDA LIST */
+.agenda-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 30px;
 }
 
-/* =========================================
-   TARJETA DEL DÍA
-========================================= */
-.dia {
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 12px 16px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
-  border: 1px solid #e3e3e3;
+.day-group {
+  .day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f2f2f7;
+    margin-bottom: 15px;
+
+    .day-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--ion-color-primary);
+      text-transform: capitalize;
+    }
+
+    .day-number {
+      font-size: 12px;
+      font-weight: 800;
+      color: white;
+      background: var(--ion-color-primary);
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+  }
 }
 
-/* Header del día */
-.dia-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  border-bottom: 1px solid #e5e5e5;
-  padding-bottom: 8px;
-}
-
-.dia-nombre {
-  font-size: 18px;
-  font-weight: 700;
-  color: #111;
-}
-
-.dia-numero {
-  background: #4285F4;
-  color: white;
-  font-size: 14px;
-  font-weight: bold;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* =========================================
-   LISTA DE ENTRENAMIENTOS
-========================================= */
-.entrenamientos-lista {
+.sessions-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
-/* Tarjeta compacta del entrenamiento */
-.entrenamiento-cuadro {
-  background: #f1f3f4;
-  border-left: 4px solid #4285f4;
-  padding: 8px 12px;
-  border-radius: 8px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 14px;
+.session-small-card {
+  margin: 0;
+  padding: 12px 15px;
   display: flex;
   align-items: center;
+  gap: 15px;
+  border: 1px solid #f2f2f7;
+
+  .session-time {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--ion-color-primary);
+    width: 50px;
+    flex-shrink: 0;
+  }
+
+  .session-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .student-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ion-color-primary);
+    }
+
+    .session-type {
+      font-size: 11px;
+      font-weight: 600;
+      color: #8e8e93;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .session-actions {
+    display: flex;
+    gap: 5px;
+
+    ion-button {
+      --padding-start: 8px;
+      --padding-end: 8px;
+      height: 36px;
+      margin: 0;
+      font-size: 18px;
+      --color: #8e8e93;
+
+      &.btn-cancel {
+        --color: #ff3b30;
+      }
+    }
+  }
 }
 
-/* Texto del entrenamiento */
-.entrenamiento-texto {
-  color: #222;
-  font-weight: 500;
+.empty-day {
+  padding: 10px 0;
+
+  p {
+    font-size: 12px;
+    color: #c7c7cc;
+    font-style: italic;
+    margin: 0;
+  }
 }
 
-/* =========================================
-   COLORES SEGÚN INTENSIDAD
-========================================= */
+/* FABs */
+.nike-fab {
+  --background: var(--ion-color-primary);
+  --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 
-.entrenamiento-cuadro.alta {
-  border-left-color: #ff3b30;
-  background: #ffeaea;
-  color: #c40000;
-}
+  ion-icon {
+    font-size: 24px;
+    color: white;
+  }
 
-.entrenamiento-cuadro.media {
-  border-left-color: #ff9f0a;
-  background: #fff4e5;
-  color: #a45a00;
-}
+  &.back-fab {
+    --background: white;
 
-.entrenamiento-cuadro.baja {
-  border-left-color: #34c759;
-  background: #e9fbe9;
-  color: #0f7a2b;
-}
-.entrenamiento-cuadro {
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 8px 10px;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.fila-entrenamiento {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-}
-
-.entrenamiento-texto {
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.entrenamiento-botones {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* Botones pequeños, solo iconos */
-.btn-mini {
-  --padding-start: 0;
-  --padding-end: 0;
-  --padding-top: 0;
-  --padding-bottom: 0;
-  width: 26px;
-  height: 26px;
-  min-height: 26px;
-  border-radius: 50%;
-}
-
-.btn-mini ion-icon {
-  font-size: 18px;
-}
-
-.btn-mini.cancelar {
-  color: #e63b3b !important;
-}
-
-.btn-volver {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-
-  width: 55px;
-  height: 55px;
-
-  border-radius: 50%;
-  --border-radius: 50%;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  z-index: 999;
-  
-  --background: #3880ff; /* azul Ionic */
-  --color: white;
-  box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
+    ion-icon {
+      color: var(--ion-color-primary);
+    }
+  }
 }

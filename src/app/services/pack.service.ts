@@ -7,28 +7,28 @@ import { Observable } from 'rxjs';
 })
 export class PacksService {
 
-  private apiUrl = 'http://api.rojasrefrigeracion.cl/packs';
+  private apiUrl = 'http://api.lamatek.cl/packs';
   // Token en Base64
   private token = btoa('1|padel_academy');
-  
+
   private headers = new HttpHeaders({
     'Authorization': `Bearer ${this.token}`,
     'Content-Type': 'application/json'
   });
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
 
   getMisPacks(): Observable<any> {
     const userId = Number(localStorage.getItem('userId')); // recupera ID guardado
     console.log("Recuperado userId en PacksService:", userId);
     return this.http.get(`${this.apiUrl}/get_mis_packs.php?entrenador_id=${userId}`, { headers: this.headers });
-}
+  }
 
   getAllPacks(): Observable<any> {
     return this.http.get(`${this.apiUrl}/get_all_packs.php`, { headers: this.headers });
-}
-  
-  
+  }
+
+
   crearPack(pack: any): Observable<any> {
     const userId = Number(localStorage.getItem('userId')); // recupera ID guardado
     console.log("Recuperado userId en PacksService:", userId);
@@ -36,7 +36,7 @@ export class PacksService {
     return this.http.post<any>(`${this.apiUrl}/create_pack.php`, packConId, { headers: this.headers });
   }
 
-    // Editar pack
+  // Editar pack
   editarPack(pack: any): Observable<any> {
     const userId = Number(localStorage.getItem('userId')); // recupera ID guardado
     console.log("Recuperado userId en PacksService:", userId);

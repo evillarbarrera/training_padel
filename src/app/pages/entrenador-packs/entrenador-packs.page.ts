@@ -34,7 +34,12 @@ export class EntrenadorPacksPage implements OnInit {
     sesiones_totales: 0,
     duracion_sesion_min: 60,
     precio: 0,
-    descripcion: ''
+    descripcion: '',
+    capacidad_minima: 4,
+    capacidad_maxima: 6,
+    dia_semana: null,
+    hora_inicio: null,
+    categoria: ''
   };
 
   modalOpen = false;
@@ -124,7 +129,12 @@ export class EntrenadorPacksPage implements OnInit {
       sesiones_totales: null,
       duracion_sesion_min: 60,
       precio: null,
-      descripcion: ''
+      descripcion: '',
+      capacidad_minima: 4,
+      capacidad_maxima: 6,
+      dia_semana: null,
+      hora_inicio: null,
+      categoria: ''
     };
   }
 
