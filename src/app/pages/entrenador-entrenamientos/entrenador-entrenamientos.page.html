@@ -44,8 +44,7 @@
     <div class="agenda-list" *ngIf="!cargando && agendaActual.length > 0">
 
       <!-- Reserva Individual -->
-      <div class="nike-card training-card animate-up" 
-        *ngFor="let item of agendaActual; let i = index"
+      <div class="nike-card training-card animate-up" *ngFor="let item of agendaActual; let i = index"
         [style.animation-delay]="(i * 0.05) + 's'"
         [ngClass]="item.tipo === 'grupal' ? 'pack-grupal' : 'reserva-individual'">
 
@@ -120,7 +119,7 @@
   </div>
 
   <!-- Back FAB -->
-  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button class="nike-fab back-fab" (click)="goBack()">
       <ion-icon name="chevron-back-outline"></ion-icon>
     </ion-fab-button>

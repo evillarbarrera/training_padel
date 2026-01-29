@@ -1,0 +1,76 @@
+<ion-content>
+    <!-- Hero Header -->
+    <div class="header-nike">
+        <div class="header-overlay"></div>
+        <div class="header-content">
+            <div class="profile-row">
+                <div class="avatar-container" *ngIf="jugadorFoto">
+                    <img [src]="jugadorFoto" />
+                </div>
+                <div class="avatar-placeholder" *ngIf="!jugadorFoto">
+                    {{ jugadorNombre?.charAt(0) || 'J' }}
+                </div>
+                <div>
+                    <h1 class="header-title">Mis Habilidades</h1>
+                    <p class="header-sub">Análisis Técnico • {{ jugadorNombre }}</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+
+        <!-- Tabs -->
+        <div class="segment-container">
+            <ion-segment [value]="selectedTab" (ionChange)="segmentChanged($event)" mode="ios">
+                <ion-segment-button value="radar">
+                    <ion-label>Habilidades</ion-label>
+                </ion-segment-button>
+                <ion-segment-button value="evolution">
+                    <ion-label>Evolución</ion-label>
+                </ion-segment-button>
+            </ion-segment>
+        </div>
+
+        <!-- Radar Chart Card (Skills) -->
+        <div class="nike-card chart-card animate-up" *ngIf="hasData && selectedTab === 'radar'">
+            <h3 class="card-title">Radar de Rendimiento</h3>
+            <p class="card-subtitle">Basado en tu última evaluación</p>
+
+            <div class="canvas-wrapper">
+                <canvas id="skillRadarChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Line Chart Card (Evolution) -->
+        <div class="nike-card chart-card animate-up" *ngIf="hasData && selectedTab === 'evolution'">
+            <h3 class="card-title">Evolución General</h3>
+            <p class="card-subtitle">Tu progreso clase a clase</p>
+
+            <div class="canvas-wrapper">
+                <canvas id="progressLineChart"></canvas>
+            </div>
+        </div>
+
+        <!-- No Data State -->
+        <div class="no-data animate-up" *ngIf="!hasData && !isLoading">
+            <div class="icon-circle">
+                <ion-icon name="analytics-outline"></ion-icon>
+            </div>
+            <h3>Sin Datos Aún</h3>
+            <p>Realiza tu primera evaluación para ver tu mapa de habilidades.</p>
+        </div>
+
+    </div>
+
+
+    <!-- Back FAB -->
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button class="nike-fab back-fab" (click)="goBack()">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+
+</ion-content>

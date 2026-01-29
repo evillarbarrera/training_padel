@@ -5,28 +5,31 @@
     <div class="header-overlay"></div>
     <div class="header-content">
       <h1 class="header-title">Hola, {{ jugadorNombre }}</h1>
-      <p class="header-sub">Padel Player • {{ entrenamientosRealizados }} clases</p>
+      <p class="header-sub">Padel Player • {{ clasesPagadas }} clases</p>
     </div>
   </div>
 
   <!-- Main Content -->
   <div class="dashboard-container">
 
-    <!-- Stats Section -->
-    <div class="stats-row animate-up">
-      <div class="nike-card stat-card">
-        <span class="stat-value">{{ entrenamientosRealizados }}</span>
-        <span class="stat-label">Realizados</span>
-      </div>
+    <!-- Packs Stats Section -->
+    <div class="packs-stats animate-up" *ngIf="clasesPagadas > 0">
+      <h3 class="stats-title">Mis Clases</h3>
+      <div class="stats-row">
+        <div class="nike-card stat-card stats-card-small">
+          <span class="stat-value stat-primary">{{ clasesPagadas }}</span>
+          <span class="stat-label">Pagadas</span>
+        </div>
 
-      <div class="nike-card stat-card">
-        <span class="stat-value">{{ entrenamientosPendientes }}</span>
-        <span class="stat-label">Pendientes</span>
-      </div>
+        <div class="nike-card stat-card stats-card-small">
+          <span class="stat-value stat-warning">{{ clasesReservadas }}</span>
+          <span class="stat-label">Reservadas</span>
+        </div>
 
-      <div class="nike-card stat-card">
-        <span class="stat-value">{{ totalMes }}</span>
-        <span class="stat-label">Mes</span>
+        <div class="nike-card stat-card stats-card-small">
+          <span class="stat-value stat-success">{{ clasesDisponibles }}</span>
+          <span class="stat-label">Disponibles</span>
+        </div>
       </div>
     </div>
 

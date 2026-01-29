@@ -40,10 +40,31 @@
 
           <div class="student-details">
             <p><strong>Pack:</strong> {{ alumno.pack ?? 'Sin pack active' }}</p>
-            <p><strong>Clases:</strong> {{ alumno.pendientes }} pendientes</p>
+          </div>
+
+          <!-- Classes Stats -->
+          <!-- Stats Row -->
+          <!-- Stats Row -->
+          <div class="stats-row">
+            <div class="stat-item">
+              <span class="stat-value">{{ alumno.pagadas || 0 }}</span>
+              <span class="stat-label">Pagadas</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">{{ alumno.reservadas }}</span>
+              <span class="stat-label">Reservadas</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">{{ alumno.pendientes }}</span>
+              <span class="stat-label">Restantes</span>
+            </div>
           </div>
 
           <div class="student-footer">
+            <ion-button class="action-button secondary" (click)="verProgreso(alumno.id)">
+              <ion-icon name="stats-chart-outline" slot="start"></ion-icon>
+              Progreso
+            </ion-button>
             <ion-button class="action-button" (click)="evaluar(alumno.id)">
               <ion-icon name="analytics-outline" slot="start"></ion-icon>
               Evaluar
@@ -63,7 +84,7 @@
   </div>
 
   <!-- Back FAB -->
-  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button class="nike-fab back-fab" (click)="goToHome()">
       <ion-icon name="chevron-back-outline"></ion-icon>
     </ion-fab-button>

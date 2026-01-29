@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {
   IonContent,
+  IonFab,
   IonFabButton,
   IonIcon,
   IonSegment,
@@ -44,6 +45,7 @@ interface DiaSemana {
     CommonModule,
     FormsModule,
     IonContent,
+    IonFab,
     IonFabButton,
     IonIcon,
     IonSegment,
@@ -80,6 +82,7 @@ export class DisponibilidadEntrenadorPage implements OnInit {
     this.crearSemanaDesdeHoy();
     this.generarBloquesSemana();
     this.cargarDisponibilidadExistente();
+    // cargarReservasExistentes is now called from cargarDisponibilidadExistente after blocks are ready
   }
 
   /* =============================
@@ -180,6 +183,60 @@ export class DisponibilidadEntrenadorPage implements OnInit {
 
         // Re-generar bloques con selección aplicada
         this.generarBloquesSemana();
+
+        // Cargar reservas DESPUÉS de generar bloques
+        this.cargarReservasExistentes();
+      });
+  }
+
+  /* =============================
+     CARGAR RESERVAS BD
+  ============================== */
+  cargarReservasExistentes() {
+    this.entrenamientoService
+      .getReservasEntrenador(this.entrenador_id)
+      .subscribe((data: any) => {
+
+
+        // Combinar reservas tradicionales y packs grupales en una sola array
+        const reservas = [
+          ...(data.reservas_tradicionales || []),
+          ...(data.packs_grupales || [])
+        ];
+
+
+
+        // Marcar bloques como ocupados si tienen reservas
+        Object.keys(this.bloquesPorDia).forEach(fecha => {
+          this.bloquesPorDia[fecha].forEach(bloque => {
+            // Buscar si hay una reserva para esta fecha y hora
+            const tieneReserva = reservas.some(reserva => {
+              if (!reserva.fecha || !reserva.hora_inicio) return false;
+
+              const fechaReserva = reserva.fecha;
+              // Extraer solo HH:MM (primeros 5 caracteres) del hora_inicio
+              const horaReservaCompleta = String(reserva.hora_inicio);
+              const horaReserva = horaReservaCompleta.slice(0, 5); // "19:00" de "19:00:00"
+
+              const match = fechaReserva === fecha && horaReserva === bloque.hora_inicio;
+
+              if (match) {
+
+              }
+
+              return match;
+            });
+
+            if (tieneReserva) {
+
+              bloque.ocupado = true;
+            }
+          });
+        });
+
+
+      }, error => {
+        console.error('Error al cargar reservas:', error);
       });
   }
 

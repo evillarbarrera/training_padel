@@ -1,0 +1,91 @@
+<ion-content>
+
+    <!-- Hero Header -->
+    <div class="header-nike">
+        <div class="header-overlay"></div>
+        <div class="header-content">
+            <div class="profile-row">
+                <div class="avatar-container" *ngIf="alumnoFoto">
+                    <img [src]="alumnoFoto" />
+                </div>
+                <div class="avatar-placeholder" *ngIf="!alumnoFoto">
+                    {{ alumnoNombre?.charAt(0) || 'A' }}
+                </div>
+                <div>
+                    <h1 class="header-title">Evaluar</h1>
+                    <p class="header-sub">Nueva evaluación para {{ alumnoNombre }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+
+        <p class="subtitle animate-up">Desliza para puntuar del 1 al 10</p>
+
+        <ion-accordion-group class="animate-up" style="animation-delay: 0.1s;">
+            <ion-accordion *ngFor="let golpe of golpes" [value]="golpe" toggleIcon="caret-down-circle"
+                class="nike-accordion">
+                <ion-item slot="header" lines="none">
+                    <ion-label>
+                        {{ golpe }}
+                        <span class="avg-score">Promedio: {{ (evaluationData[golpe].tecnica +
+                            evaluationData[golpe].control
+                            + evaluationData[golpe].direccion + evaluationData[golpe].decision) / 4 }}</span>
+                    </ion-label>
+                </ion-item>
+
+                <div class="ion-padding" slot="content" style="background: white;">
+
+                    <!-- Loops for metrics -->
+                    <div class="metric-container"
+                        *ngFor="let metric of ['tecnica', 'control', 'direccion', 'decision']">
+                        <div class="metric-label">{{ metric | titlecase }}</div>
+
+                        <div class="stepper-row">
+                            <ion-button fill="outline" class="step-btn" (click)="decrement(golpe, metric)">
+                                <ion-icon name="remove" slot="icon-only"></ion-icon>
+                            </ion-button>
+
+                            <ion-input type="number" class="score-input" [(ngModel)]="evaluationData[golpe][metric]"
+                                min="1" max="10"></ion-input>
+
+                            <ion-button fill="solid" class="step-btn" (click)="increment(golpe, metric)">
+                                <ion-icon name="add" slot="icon-only"></ion-icon>
+                            </ion-button>
+                        </div>
+
+                        <ion-range min="1" max="10" step="1" snaps="true" [(ngModel)]="evaluationData[golpe][metric]"
+                            [color]="metric === 'tecnica' ? 'success' : metric === 'control' ? 'primary' : metric === 'direccion' ? 'warning' : 'danger'"
+                            class="visual-range">
+                        </ion-range>
+                    </div>
+
+                </div>
+            </ion-accordion>
+        </ion-accordion-group>
+
+        <!-- Comments -->
+        <div class="nike-card comments-card animate-up" style="animation-delay: 0.2s;">
+            <h3 class="card-title">Comentarios</h3>
+            <ion-textarea [(ngModel)]="comentarios" rows="4"
+                placeholder="Observaciones del entrenador..."></ion-textarea>
+        </div>
+
+    </div>
+
+    <!-- FABs -->
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="fab-secondary-position">
+        <ion-fab-button class="nike-fab back-fab" (click)="goBack()">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button class="nike-fab save-fab" (click)="guardarEvaluacion()">
+            <ion-icon name="checkmark-outline"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+
+</ion-content>

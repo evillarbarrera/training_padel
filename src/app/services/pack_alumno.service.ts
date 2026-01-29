@@ -24,7 +24,13 @@ export class PackAlumnoService {
       data,
       { headers: this.headers }
     );
+  }
 
+  initTransaction(data: any): Observable<any> {
+    const paymentUrl = this.apiUrl.replace('/alumno', '/pagos');
+    return this.http.post(`${paymentUrl}/init_transaction.php`, data, {
+      headers: this.headers
+    });
   }
 
   getAlumnosProfesor(entrenador_id: number): Observable<any[]> {

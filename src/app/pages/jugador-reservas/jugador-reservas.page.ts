@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { EntrenamientoService } from '../../services/entrenamiento.service';
 import { MysqlService } from '../../services/mysql.service';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, peopleOutline } from 'ionicons/icons';
 import { chevronBackOutline } from 'ionicons/icons';
 
 @Component({
@@ -35,6 +35,8 @@ export class JugadorReservasPage implements OnInit {
   packs: any[] = [];
   entrenadores: any[] = [];
   selectedEntrenador: number | null = null;
+  selectedPack: any = null; // New
+  packsDelEntrenador: any[] = []; // New
   jugadorId = Number(localStorage.getItem('userId'));
 
   // Para mis entrenamientos
@@ -46,6 +48,7 @@ export class JugadorReservasPage implements OnInit {
     private entrenamientoService: EntrenamientoService,
     private mysqlService: MysqlService,
     private toastCtrl: ToastController,
+    private alertCtrl: AlertController,
     private router: Router,
   ) {
     addIcons({
@@ -53,11 +56,21 @@ export class JugadorReservasPage implements OnInit {
       homeOutline,
       calendarOutline,
       chevronBackOutline,
-      logOutOutline
+      logOutOutline,
+      peopleOutline
     });
   }
 
   ngOnInit() {
+    // Obtener userId del localStorage
+    const userIdStr = localStorage.getItem('userId');
+    this.jugadorId = userIdStr ? Number(userIdStr) : 0;
+
+    if (this.jugadorId <= 0) {
+      console.error('Error: No se encontró userId en localStorage');
+      return;
+    }
+
     this.cargarMisEntrenamientos();
     this.cargarEntrenadores();
   }
@@ -66,9 +79,19 @@ export class JugadorReservasPage implements OnInit {
     this.cargando = true;
     this.mysqlService.getReservasJugador(this.jugadorId).subscribe({
       next: (res: any) => {
-        // res tiene estructura: {reservas_individuales: [], entrenamientos_grupales: []}
-        this.reservasIndividuales = res.reservas_individuales || [];
-        this.entrenamientosGrupales = res.entrenamientos_grupales || [];
+        const ahora = new Date();
+
+        // Filtrar reservas que aún no han pasado
+        this.reservasIndividuales = (res.reservas_individuales || []).filter((r: any) => {
+          const fecha_hora = new Date(r.fecha + 'T' + r.hora_inicio);
+          return fecha_hora > ahora;
+        });
+
+        this.entrenamientosGrupales = (res.entrenamientos_grupales || []).filter((g: any) => {
+          const fecha_hora = new Date(g.fecha + 'T' + g.hora_inicio);
+          return fecha_hora > ahora;
+        });
+
         this.cargando = false;
       },
       error: (err) => {
@@ -113,6 +136,27 @@ export class JugadorReservasPage implements OnInit {
   onEntrenadorChange() {
     if (!this.selectedEntrenador) return;
 
+    // Filter packs for this trainer that have remaining sessions
+    this.packsDelEntrenador = this.packs.filter(p => {
+      const isTrainer = Number(p.entrenador_id) === Number(this.selectedEntrenador);
+      const hasSessions = Number(p.sesiones_restantes) > 0;
+      return isTrainer && hasSessions;
+    });
+
+    // Sort by fecha_compra_pack ASC (oldest first)
+    this.packsDelEntrenador.sort((a, b) => {
+      const dateA = new Date(a.fecha_compra_pack).getTime();
+      const dateB = new Date(b.fecha_compra_pack).getTime();
+      return dateA - dateB;
+    });
+
+    // Auto select first pack
+    if (this.packsDelEntrenador.length > 0) {
+      this.selectedPack = this.packsDelEntrenador[0];
+    } else {
+      this.selectedPack = null;
+    }
+
     this.entrenamientoService
       .getDisponibilidadEntrenador(this.selectedEntrenador)
       .subscribe({
@@ -130,6 +174,7 @@ export class JugadorReservasPage implements OnInit {
     this.dias = [];
 
     const bloquesUnicos = new Set<string>(); // 👈 CLAVE
+    const ahora = new Date();
 
     disponibilidades.forEach(d => {
 
@@ -143,7 +188,8 @@ export class JugadorReservasPage implements OnInit {
         const bloqueFin = new Date(inicio);
         bloqueFin.setHours(bloqueFin.getHours() + 1);
 
-        if (bloqueFin <= fin) {
+        // 🚫 FILTRAR: No mostrar horarios que ya pasaron
+        if (bloqueInicio > ahora && bloqueFin <= fin) {
 
           const fecha = bloqueInicio.toISOString().split('T')[0];
           const horaInicio = bloqueInicio.toTimeString().slice(0, 5);
@@ -198,9 +244,21 @@ export class JugadorReservasPage implements OnInit {
       return;
     }
 
+    if (!this.selectedPack) {
+      this.alertCtrl.create({
+        header: 'Sin cupos disponibles',
+        message: 'No tienes un pack activo con sesiones disponibles para este entrenador.',
+        buttons: ['OK']
+      }).then(alert => alert.present());
+      return;
+    }
+
+    const pack_id = this.selectedPack.pack_id;
+
     const payload = {
       entrenador_id: this.selectedEntrenador,
-      pack_id: 1,
+      pack_id: pack_id,
+      pack_jugador_id: this.selectedPack ? this.selectedPack.pack_jugador_id : null,
       fecha: horario.fecha,
       hora_inicio: horario.hora_inicio.toTimeString().slice(0, 5),
       hora_fin: horario.hora_fin.toTimeString().slice(0, 5),
@@ -256,6 +314,90 @@ export class JugadorReservasPage implements OnInit {
 
   goToHome() {
     this.router.navigate(['/jugador-home']);
+  }
+
+  mostrarConfirmacionCancelar(reserva: any) {
+    // Obtener el ID correctamente (puede ser 'id' o 'reserva_id' dependiendo del origen)
+    const reserva_id = reserva.reserva_id || reserva.id;
+
+    if (!reserva_id) {
+      console.error('Error: No se encontró ID de reserva en', reserva);
+      return;
+    }
+
+    const fecha = new Date(reserva.fecha + 'T' + reserva.hora_inicio);
+    const ahora = new Date();
+    const horas_restantes = (fecha.getTime() - ahora.getTime()) / (1000 * 60 * 60);
+
+    const puedeCancelar = horas_restantes >= 12;
+
+    const titulo = puedeCancelar ? '¿Cancelar reserva?' : 'No se puede cancelar';
+    const mensaje = puedeCancelar
+      ? `¿Estás seguro que deseas cancelar el entrenamiento del ${fecha.toLocaleDateString('es-ES')} a las ${reserva.hora_inicio.slice(0, 5)}?`
+      : `Debes cancelar con mínimo 12 horas de anticipación. Horas restantes: ${Math.round(horas_restantes)}`;
+
+    this.alertCtrl.create({
+      header: titulo,
+      message: mensaje,
+      buttons: puedeCancelar
+        ? [
+          {
+            text: 'No',
+            role: 'cancel'
+          },
+          {
+            text: 'Sí, cancelar',
+            role: 'destructive',
+            handler: () => {
+              this.cancelarReserva(reserva_id);
+            }
+          }
+        ]
+        : [
+          {
+            text: 'Entendido',
+            role: 'cancel'
+          }
+        ]
+    }).then(alert => alert.present());
+  }
+
+  cancelarReserva(reserva_id: number) {
+    // Validar datos
+    if (!reserva_id || reserva_id <= 0) {
+      console.error('Error: reserva_id inválido', reserva_id);
+      return;
+    }
+
+    if (!this.jugadorId || this.jugadorId <= 0) {
+      console.error('Error: jugadorId inválido', this.jugadorId);
+      return;
+    }
+
+    this.mysqlService.cancelarReservaJugador(reserva_id, this.jugadorId).subscribe({
+      next: async (res: any) => {
+        const toast = await this.toastCtrl.create({
+          message: '✓ Reserva cancelada correctamente',
+          duration: 2000,
+          color: 'success',
+          position: 'top'
+        });
+        await toast.present();
+
+        // Recargar entrenamientos
+        this.cargarMisEntrenamientos();
+      },
+      error: async (err: any) => {
+        const errorMsg = err.error?.error || 'Error al cancelar la reserva';
+        const toast = await this.toastCtrl.create({
+          message: `✗ ${errorMsg}`,
+          duration: 2500,
+          color: 'danger',
+          position: 'top'
+        });
+        await toast.present();
+      }
+    });
   }
 
 }

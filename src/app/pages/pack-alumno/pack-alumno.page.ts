@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { PackAlumnoService } from '../../services/pack_alumno.service';
 import { PacksService } from '../../services/pack.service';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AlertController, ModalController } from '@ionic/angular';
@@ -14,11 +14,14 @@ import {
   IonSelect,
   IonSelectOption,
   IonButton,
-  IonIcon
+  IonIcon,
+  IonToggle,
+  IonRange,
+  IonSpinner
 } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, locationOutline, mapOutline, globeOutline, funnelOutline, personCircleOutline } from 'ionicons/icons';
 import { chevronBackOutline } from 'ionicons/icons';
 
 @Component({
@@ -41,61 +44,186 @@ export class PackAlumnoPage implements OnInit {
   selectedEntrenador: number | null = null;
   displayedPacks: any[] = [];
   page = 1;
-  pageSize = 6;
+  pageSize = 10;
 
   packsPaginados: any[] = [];
   totalPages: number[] = [];
-  
+
+  // Geolocation
+  useLocation = true;
+  userLat: number | null = null;
+  userLng: number | null = null;
+  searchRadius = 50; // Default 50km
+  isLoadingLocation = false;
+
 
 
   constructor(private modalCtrl: ModalController,
-              private packsAlumno: PackAlumnoService, 
-              private packsService: PacksService,
-              private router: Router,
-              private alertCtrl: AlertController
-            ) {
+    private packsAlumno: PackAlumnoService,
+    private packsService: PacksService,
+    private router: Router,
+    private alertCtrl: AlertController,
+    private route: ActivatedRoute
+  ) {
     addIcons({
-        settingsOutline,
-        homeOutline,
-        calendarOutline,
-         chevronBackOutline,
-        logOutOutline});
-    }
+      settingsOutline,
+      homeOutline,
+      calendarOutline,
+      chevronBackOutline,
+      logOutOutline,
+      locationOutline,
+      mapOutline,
+      globeOutline,
+      funnelOutline,
+      personCircleOutline
+    });
+  }
 
   ngOnInit() {
-    this.cargarPacks();
+    this.getCurrentLocation();
+    this.checkPaymentStatus();
+  }
 
+  checkPaymentStatus() {
+    this.route.queryParams.subscribe(params => {
+      const status = params['status'];
+      if (status === 'success') {
+        this.mostrarCompraExitosa();
+        // Clean URL
+        this.router.navigate([], {
+          queryParams: { 'status': null },
+          queryParamsHandling: 'merge'
+        });
+      } else if (status === 'error_db' || status === 'error_token') {
+        this.mostrarError();
+      } else if (status === 'cancelled') {
+        // Optional: Show cancelled message
+      }
+    });
+
+  }
+
+  // ... existing code ...
+
+  async confirmarCompra(pack: any) {
+    const jugadorId = Number(localStorage.getItem('userId'));
+
+    const payload = {
+      pack_id: Number(pack.id),
+      jugador_id: jugadorId,
+      amount: pack.precio,
+      origin: 'http://localhost:8100/pack-alumno' // Android Emulator might need IP, but localhost:8100 works for Browser serve
+    };
+
+    const loading = await this.alertCtrl.create({
+      header: 'Procesando...',
+      message: 'Redirigiendo a Webpay (Simulado)',
+      backdropDismiss: false
+    });
+    await loading.present();
+
+    this.packsAlumno.initTransaction(payload).subscribe({
+      next: (res: any) => {
+        loading.dismiss();
+        if (res.token && res.url) {
+          // For Mobile Mock, we can use GET for simplicity or Form.
+          // Form is better but GET works with our Mock Bank.
+          window.location.href = `${res.url}?token_ws=${res.token}`;
+        } else {
+          this.mostrarError();
+        }
+      },
+      error: err => {
+        loading.dismiss();
+        console.error(err);
+        this.mostrarError();
+      }
+    });
   }
 
   cargarEntrenadores() {
     const map = new Map();
 
-      this.packs.forEach(p => {
-        if (!map.has(p.entrenador_id)) {
-          map.set(p.entrenador_id, {
-            id: p.entrenador_id,
-            nombre: p.entrenador_nombre
-          });
-        }
-      });
+    this.packs.forEach(p => {
+      if (!map.has(p.entrenador_id)) {
+        map.set(p.entrenador_id, {
+          id: p.entrenador_id,
+          nombre: p.entrenador_nombre
+        });
+      }
+    });
 
-      this.entrenadores = Array.from(map.values());
+    this.entrenadores = Array.from(map.values());
+  }
+
+  toggleLocation() {
+    this.useLocation = !this.useLocation;
+    if (this.useLocation) {
+      this.getCurrentLocation();
+    } else {
+      this.userLat = null;
+      this.userLng = null;
+      this.cargarPacks(); // Reload all
+    }
+  }
+
+  getCurrentLocation() {
+    if (!navigator.geolocation) {
+      this.alertCtrl.create({
+        header: 'Error',
+        message: 'Geolocalización no soportada.',
+        buttons: ['OK']
+      }).then(a => a.present());
+      this.useLocation = false;
+      return;
+    }
+
+    this.isLoadingLocation = true;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        this.userLat = pos.coords.latitude;
+        this.userLng = pos.coords.longitude;
+        this.isLoadingLocation = false;
+        this.cargarPacks();
+      },
+      (err) => {
+        console.error('Location error:', err);
+        this.alertCtrl.create({
+          header: 'Error',
+          message: 'No se pudo obtener ubicación. Verifica permisos.',
+          buttons: ['OK']
+        }).then(a => a.present());
+        this.isLoadingLocation = false;
+        this.useLocation = false;
+      }
+    );
+  }
+
+  onRadiusChange(event: any) {
+    this.searchRadius = Number(event.detail.value);
+    if (this.useLocation && this.userLat && this.userLng) {
+      this.cargarPacks();
+    }
   }
 
   cargarPacks() {
-     this.packsService.getAllPacks().subscribe({
-        next: (res: any) => {
-        
-          this.packs = res,
+    const lat = (this.useLocation && this.userLat) ? this.userLat : undefined;
+    const lng = (this.useLocation && this.userLng) ? this.userLng : undefined;
+    const rad = (this.useLocation) ? this.searchRadius : undefined;
+
+    this.packsService.getAllPacks(lat, lng, rad).subscribe({
+      next: (res: any) => {
+
+        this.packs = res,
           this.cargarEntrenadores();
-          this.packsFiltrados = [...this.packs];
-          this.buildPagination();
-          this.setPage(this.page)
-        },
-        error: err => console.error(err) 
-      });
-    }
-  
+        this.packsFiltrados = [...this.packs];
+        this.buildPagination();
+        this.setPage(this.page)
+      },
+      error: err => console.error(err)
+    });
+  }
+
   buildPagination() {
     const pagesCount = Math.ceil(this.packs.length / this.pageSize);
     this.totalPages = Array.from({ length: pagesCount }, (_, i) => i + 1);
@@ -159,10 +287,10 @@ export class PackAlumnoPage implements OnInit {
   }
 
   actualizarPaginacion() {
-      const start = (this.page - 1) * this.pageSize;
-      const end = start + this.pageSize;
-      this.packsPaginados = this.packsFiltrados.slice(start, end);
-    }
+    const start = (this.page - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    this.packsPaginados = this.packsFiltrados.slice(start, end);
+  }
 
 
 
@@ -181,7 +309,7 @@ export class PackAlumnoPage implements OnInit {
   }
 
   volver() {
-  this.router.navigate(['/jugador-home']); // o la ruta correcta
+    this.router.navigate(['/jugador-home']); // o la ruta correcta
   }
 
 
@@ -212,9 +340,9 @@ export class PackAlumnoPage implements OnInit {
 
     try {
       const result = await this.packsAlumno.inscribirseGrupal(pack.id, jugadorId).toPromise();
-      
+
       let mensaje = 'Te has inscrito correctamente al entrenamiento grupal.';
-      
+
       if (result.estado_grupo === 'activo') {
         const duracion = result.cupos_ocupados >= 5 ? '120 minutos' : '90 minutos';
         mensaje += `\n\nEl entrenamiento se ha ACTIVADO con ${result.cupos_ocupados} jugadores.\nDuración: ${duracion}`;
@@ -242,49 +370,27 @@ export class PackAlumnoPage implements OnInit {
   }
 
 
-  confirmarCompra(pack: any) {
-      const jugadorId = Number(localStorage.getItem('userId'));
 
-      const payload = {
-        pack_id: Number(pack.id),
-        jugador_id: jugadorId,
-        sesiones_usadas: 0,
-        fecha_inicio: new Date().toISOString().split('T')[0],
-        fecha_fin: null
-      };
 
-      console.log('PAYLOAD ENVIADO:', payload);
+  async mostrarCompraExitosa() {
+    const alert = await this.alertCtrl.create({
+      header: 'Compra registrada',
+      message: 'El pack fue asignado correctamente. Coordina el pago directamente con el profesor.',
+      buttons: ['OK']
+    });
 
-      this.packsAlumno.insertPackAlumno(payload).subscribe({
-        next: () => {
-          this.mostrarCompraExitosa();
-        },
-        error: err => {
-          console.error(err);
-          this.mostrarError();
-        }
-      });
-    }
+    await alert.present();
+  }
 
-    async mostrarCompraExitosa() {
-      const alert = await this.alertCtrl.create({
-        header: 'Compra registrada',
-        message: 'El pack fue asignado correctamente. Coordina el pago directamente con el profesor.',
-        buttons: ['OK']
-      });
+  async mostrarError() {
+    const alert = await this.alertCtrl.create({
+      header: 'Error',
+      message: 'No se pudo registrar la compra. Intenta nuevamente.',
+      buttons: ['OK']
+    });
 
-      await alert.present();
-    }
-    
-    async mostrarError() {
-      const alert = await this.alertCtrl.create({
-        header: 'Error',
-        message: 'No se pudo registrar la compra. Intenta nuevamente.',
-        buttons: ['OK']
-      });
-
-      await alert.present();
-    }
+    await alert.present();
+  }
 
 
 }

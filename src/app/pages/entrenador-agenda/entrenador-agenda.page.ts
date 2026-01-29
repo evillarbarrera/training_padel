@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { IonHeader, IonButton, IonIcon, IonInput, IonContent, IonFab, IonFabButton } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { searchOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-entrenador-agenda',
@@ -42,7 +44,9 @@ export class EntrenadorAgendaPage {
 
   entrenamientosPorDia: any = {};
 
-  constructor(private router: Router) { }
+  constructor(private router: Router) {
+    addIcons({ searchOutline });
+  }
 
   ngOnInit() {
     this.organizarPorDia();
@@ -66,20 +70,20 @@ export class EntrenadorAgendaPage {
   }
 
   anular(ent: any) {
-    console.log("Anular:", ent);
+
   }
 
   reagendar(ent: any) {
-    console.log("Reagendar:", ent);
+
   }
 
   reagendarClase(e: any) {
-    console.log("Reagendando clase:", e);
+
     // Lógica para reprogramar
   }
 
   cancelarClase(e: any) {
-    console.log("Cancelando clase:", e);
+
     // Lógica para cancelar
   }
 

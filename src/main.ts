@@ -14,7 +14,7 @@ import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { firebaseConfig } from './firebase.config';
 
 import { addIcons } from 'ionicons';
-import { alertCircleOutline, saveOutline, timeOutline, calendarOutline  } from 'ionicons/icons';
+import { alertCircleOutline, saveOutline, timeOutline, calendarOutline, checkmarkOutline, chevronBackOutline, chevronForwardOutline, personOutline, closeOutline, person } from 'ionicons/icons';
 
 import { LOCALE_ID } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
@@ -23,9 +23,15 @@ registerLocaleData(localeEs);
 
 addIcons({
   'alert-circle-outline': alertCircleOutline,
-    'save-outline': saveOutline,
+  'save-outline': saveOutline,
   'time-outline': timeOutline,
-  'calendar-outline': calendarOutline
+  'calendar-outline': calendarOutline,
+  'checkmark-outline': checkmarkOutline,
+  'chevron-back-outline': chevronBackOutline,
+  'chevron-forward-outline': chevronForwardOutline,
+  'person-outline': personOutline,
+  'person': person,
+  'close': closeOutline
 });
 
 bootstrapApplication(AppComponent, {

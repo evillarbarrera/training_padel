@@ -126,12 +126,13 @@
   justify-content: center;
   position: relative;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid #f2f2f7;
+  background: white;
+  border: 2px solid #f2f2f7;
 
   .block-time {
     font-size: 14px;
     font-weight: 800;
-    color: var(--ion-color-primary);
+    color: #8e8e93;
   }
 
   .selection-check {
@@ -140,56 +141,61 @@
     right: 6px;
     width: 16px;
     height: 16px;
-    background: white;
+    background: #4CAF50;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
 
     ion-icon {
       font-size: 10px;
-      color: var(--ion-color-primary);
+      color: white;
       font-weight: 800;
     }
   }
 
   &.selected {
-    background: var(--ion-color-primary);
-    border-color: var(--ion-color-primary);
+    background: #4CAF50;
+    border-color: #4CAF50;
     transform: scale(1.05);
     z-index: 2;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
 
     .block-time {
       color: white;
+      font-weight: 900;
+    }
+
+    .selection-check {
+      opacity: 1;
     }
   }
 
   &.occupied {
-    background: #f2f2f7;
-    border-color: #f2f2f7;
-    opacity: 0.5;
+    background: #f44336;
+    border-color: #d32f2f;
+    opacity: 0.85;
     pointer-events: none;
+    cursor: not-allowed;
 
     .block-time {
-      color: #8e8e93;
+      color: white;
       text-decoration: line-through;
+      font-weight: 900;
     }
   }
 
-  &:active {
+  &:active:not(.occupied) {
     transform: scale(0.95);
   }
 }
 
 /* FAB ACTIONS */
-.fab-actions {
-  position: fixed;
-  bottom: 30px;
-  right: 25px;
-  display: flex;
-  gap: 15px;
-  z-index: 1000;
+.fab-secondary-position {
+  margin-bottom: 70px;
+  /* Positions it above the Save FAB */
 }
 
 .nike-fab {

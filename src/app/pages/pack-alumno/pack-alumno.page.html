@@ -1,4 +1,4 @@
-<ion-content>
+<ion-content [fullscreen]="true">
 
   <!-- Hero Header -->
   <div class="header-nike">
@@ -19,6 +19,34 @@
           {{ entrenador.nombre }}
         </ion-select-option>
       </ion-select>
+    </div>
+
+    <!-- Location Filter -->
+    <div class="nike-card-filter animate-up"
+      style="margin-top: 10px; flex-direction: column; align-items: stretch; gap: 0;">
+      <ion-item lines="none" class="location-toggle" style="--background: transparent; --padding-start: 0;">
+        <ion-icon name="location-outline" slot="start" style="margin-right: 10px;"></ion-icon>
+        <ion-label style="font-weight: 600;">Ubicar más cercanos</ion-label>
+        <ion-toggle slot="end" [(ngModel)]="useLocation" (ionChange)="toggleLocation()"></ion-toggle>
+      </ion-item>
+
+      <div class="radius-control" *ngIf="useLocation"
+        style="padding-top: 10px; border-top: 1px solid #f2f2f7; margin-top: 5px;">
+        <div class="radius-header" style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <span style="font-size: 12px; color: #8e8e93;">Radio de búsqueda</span>
+          <span class="radius-val" style="font-size: 12px; font-weight: 800; color: var(--ion-color-primary);">{{
+            searchRadius }} km</span>
+        </div>
+        <ion-range min="5" max="100" step="5" [value]="searchRadius" (ionChange)="onRadiusChange($event)"
+          style="padding: 0;">
+        </ion-range>
+      </div>
+
+      <div class="loading-location" *ngIf="isLoadingLocation"
+        style="display: flex; justify-content: center; gap: 10px; padding: 10px; color: #666; font-size: 12px;">
+        <ion-spinner name="crescent" style="width: 16px; height: 16px;"></ion-spinner>
+        <span>Localizando...</span>
+      </div>
     </div>
   </div>
 
@@ -42,6 +70,13 @@
           <div class="pack-header">
             <h3>{{ pack.nombre }}</h3>
             <span class="price-tag">${{ pack.precio }}</span>
+          </div>
+
+          <div class="distance-badge" *ngIf="pack.distancia" style="margin-bottom: 10px; display: inline-block;">
+            <span
+              style="background: rgba(var(--ion-color-primary-rgb), 0.1); color: var(--ion-color-primary); font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px;">
+              📍 A {{ pack.distancia }} km
+            </span>
           </div>
 
           <p class="pack-desc">{{ pack.descripcion }}</p>
@@ -80,7 +115,7 @@
   </div>
 
   <!-- Back FAB -->
-  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button class="nike-fab back-fab" (click)="goToHome()">
       <ion-icon name="chevron-back-outline"></ion-icon>
     </ion-fab-button>

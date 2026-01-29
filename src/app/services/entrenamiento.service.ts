@@ -33,7 +33,7 @@ export class EntrenamientoService {
 
   getEntrenadorPorJugador(jugadorId: number) {
     return this.http.get<any>(
-      `${this.api}/alumno/get_pack.php?jugador_id=${jugadorId}`, { headers: this.headers }
+      `${this.api}/alumno/get_pack.php?jugador_id=${jugadorId}&t=${new Date().getTime()}`, { headers: this.headers }
     );
   }
 
@@ -53,6 +53,13 @@ export class EntrenamientoService {
   getDisponibilidad(entrenadorId: number, clubId: number): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.api}/disponibilidad/get.php?entrenador_id=${entrenadorId}&club_id=${clubId}`,
+      { headers: this.headers }
+    );
+  }
+
+  getReservasEntrenador(entrenadorId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.api}/entrenador/get_agenda.php?entrenador_id=${entrenadorId}`,
       { headers: this.headers }
     );
   }

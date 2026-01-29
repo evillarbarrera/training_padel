@@ -11,7 +11,7 @@
 
   <!-- Segment Control (Premium) -->
   <div class="segment-wrapper animate-up">
-    <ion-segment [(ngModel)]="tipoVista" class="nike-segment" mode="ios">
+    <ion-segment [(ngModel)]="tipoVista" (ionChange)="cambiarVista(tipoVista)" class="nike-segment" mode="ios">
       <ion-segment-button value="proximas">
         <ion-label>PRÓXIMAS</ion-label>
       </ion-segment-button>
@@ -81,7 +81,7 @@
   </div>
 
   <!-- Back FAB -->
-  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button class="nike-fab back-fab" (click)="goBack()">
       <ion-icon name="chevron-back-outline"></ion-icon>
     </ion-fab-button>

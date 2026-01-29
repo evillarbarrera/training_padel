@@ -14,12 +14,15 @@ import {
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { addIcons } from 'ionicons';
+import { searchOutline, peopleOutline, statsChartOutline, analyticsOutline, chevronBackOutline } from 'ionicons/icons';
 
 interface AlumnoApi {
   jugador_id: number;
   jugador_nombre: string;
   pack_nombre: string | null;
   sesiones_pendientes: number;
+  sesiones_reservadas: number;
   activo: number;
 }
 
@@ -51,14 +54,18 @@ export class AlumnosPage implements OnInit {
     id: number;
     nombre: string;
     pack: string | null;
+    pagadas: number;
     pendientes: number;
+    reservadas: number;
     activo: number;
   }[] = [];
 
   constructor(
     private router: Router,
     private http: HttpClient
-  ) { }
+  ) {
+    addIcons({ searchOutline, peopleOutline, statsChartOutline, analyticsOutline, chevronBackOutline });
+  }
 
   ngOnInit() {
     this.cargarAlumnos();
@@ -75,13 +82,15 @@ export class AlumnosPage implements OnInit {
         }
       }
     ).subscribe({
-      next: (res: AlumnoApi[]) => {
-        this.alumnos = res.map((a: AlumnoApi) => ({
+      next: (res: any[]) => { // Using any[] to bypass strict check during transition if needed
+        this.alumnos = res.map((a: any) => ({
           id: a.jugador_id,
           nombre: a.jugador_nombre,
-          pack: a.pack_nombre,
+          pack: a.pack_nombres, // Aggregated string
+          pagadas: Number(a.sesiones_pagadas),
           pendientes: a.sesiones_pendientes,
-          activo: a.activo
+          reservadas: a.sesiones_reservadas || 0,
+          activo: 1 // Assume active if returned by list, or use logic if needed
         }));
       },
       error: (err: any) => {
@@ -105,15 +114,15 @@ export class AlumnosPage implements OnInit {
     });
   }
 
-  irAEvaluacion(alumno: any) {
-    this.router.navigate(['/evaluar-alumno', alumno.id]);
+  evaluar(alumnoId: number) {
+    this.router.navigate(['/evaluar', alumnoId]);
+  }
+
+  verProgreso(alumnoId: number) {
+    this.router.navigate(['/mis-habilidades', alumnoId]);
   }
 
   goToHome() {
     this.router.navigate(['/entrenador-home']);
-  }
-
-  evaluar(alumnoId: number) {
-    this.router.navigate(['/evaluar-alumno', alumnoId]);
   }
 }

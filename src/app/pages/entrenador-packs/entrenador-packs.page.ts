@@ -4,11 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { Location } from '@angular/common';
 import { PacksService } from '../../services/pack.service';
 import { Router } from '@angular/router';
-import { AlertController } from '@ionic/angular';
+import { AlertController, LoadingController } from '@ionic/angular';
 import { IonicModule } from '@ionic/angular';
 
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, searchOutline } from 'ionicons/icons';
 import { chevronBackOutline, createOutline, trashOutline } from 'ionicons/icons';
 
 @Component({
@@ -49,16 +49,19 @@ export class EntrenadorPacksPage implements OnInit {
     private packsService: PacksService,
     private router: Router,
     private alertController: AlertController,
+    private loadingCtrl: LoadingController
   ) {
     addIcons({
-        settingsOutline,
-        homeOutline,
-        calendarOutline,
-         chevronBackOutline,
-         createOutline,
-        trashOutline,
-        logOutOutline});
-    }
+      settingsOutline,
+      homeOutline,
+      calendarOutline,
+      chevronBackOutline,
+      createOutline,
+      trashOutline,
+      logOutOutline,
+      searchOutline
+    });
+  }
 
   ngOnInit() {
     this.cargarPacks();
@@ -81,30 +84,70 @@ export class EntrenadorPacksPage implements OnInit {
     this.mostrarFormulario = !this.mostrarFormulario;
   }
 
-  crearPack() {
- if (this.nuevoPack.id) {
-    // EDITAR
-    this.packsService.editarPack(this.nuevoPack).subscribe({
-      next: (resp) => {
-        console.log('Pack editado:', resp);
-        this.cerrarModal();
-        this.resetFormulario();
-        this.cargarPacks();
-      },
-      error: (err) => console.error('Error al editar pack', err)
+  async crearPack() {
+    // Validations
+    if (!this.nuevoPack.nombre) {
+      this.presentAlert('Error', 'El nombre es obligatorio');
+      return;
+    }
+
+    if (this.nuevoPack.tipo === 'individual' && (!this.nuevoPack.sesiones_totales || this.nuevoPack.sesiones_totales <= 0)) {
+      this.presentAlert('Error', 'Las sesiones totales deben ser mayor a 0');
+      return;
+    }
+
+    if (this.nuevoPack.tipo === 'grupal') {
+      if (this.nuevoPack.capacidad_minima > this.nuevoPack.capacidad_maxima) {
+        this.presentAlert('Error', 'La capacidad mínima no puede ser mayor que la máxima');
+        return;
+      }
+    }
+
+    // Prepare Loading
+    const loading = await this.loadingCtrl.create({
+      message: this.nuevoPack.id ? 'Guardando cambios...' : 'Creando pack...',
+      spinner: 'crescent'
     });
-  } else {
-    // CREAR
-    this.packsService.crearPack(this.nuevoPack).subscribe({
-      next: (resp) => {
-        console.log('Pack creado:', resp);
-        this.cerrarModal();
-        this.resetFormulario();
-        this.cargarPacks();
-      },
-      error: (err) => console.error('Error al crear pack', err)
-    });
+    await loading.present();
+
+    if (this.nuevoPack.id) {
+      // EDITAR
+      this.packsService.editarPack(this.nuevoPack).subscribe({
+        next: (resp) => {
+          loading.dismiss();
+          this.cerrarModal();
+          this.resetFormulario();
+          this.cargarPacks();
+        },
+        error: (err) => {
+          loading.dismiss();
+          console.error('Error al editar pack', err);
+        }
+      });
+    } else {
+      // CREAR
+      this.packsService.crearPack(this.nuevoPack).subscribe({
+        next: (resp) => {
+          loading.dismiss();
+          this.cerrarModal();
+          this.resetFormulario();
+          this.cargarPacks();
+        },
+        error: (err) => {
+          loading.dismiss();
+          console.error('Error al crear pack', err);
+        }
+      });
+    }
   }
+
+  async presentAlert(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: ['OK']
+    });
+    await alert.present();
   }
 
 
@@ -139,12 +182,12 @@ export class EntrenadorPacksPage implements OnInit {
   }
 
   editarPack(pack: any) {
-  // Abrir modal con formulario y precargar los datos del pack
-  this.nuevoPack = { ...pack };
-  this.abrirModal();
-}
+    // Abrir modal con formulario y precargar los datos del pack
+    this.nuevoPack = { ...pack };
+    this.abrirModal();
+  }
 
- async eliminarPack(packId: number) {
+  async eliminarPack(packId: number) {
     const alert = await this.alertController.create({
       header: 'Confirmar',
       message: '¿Seguro quieres eliminar este pack?',
@@ -161,7 +204,7 @@ export class EntrenadorPacksPage implements OnInit {
             this.packsService.eliminarPack(packId).subscribe({
               next: () => {
                 // Actualizar la lista local
-                this.packs = this.packs.map(p => 
+                this.packs = this.packs.map(p =>
                   p.id === packId ? { ...p, activo: 0 } : p
                 );
                 this.filtrarPacks();
@@ -175,16 +218,16 @@ export class EntrenadorPacksPage implements OnInit {
 
     await alert.present();
   }
-  
-guardarEdicion() {
-  this.packsService.editarPack(this.nuevoPack).subscribe({
-    next: (resp) => {
-      this.cerrarModal();
-      this.resetFormulario();
-      this.cargarPacks();
-    },
-    error: (err) => console.error("Error editando pack:", err)
-  });
-}
+
+  guardarEdicion() {
+    this.packsService.editarPack(this.nuevoPack).subscribe({
+      next: (resp) => {
+        this.cerrarModal();
+        this.resetFormulario();
+        this.cargarPacks();
+      },
+      error: (err) => console.error("Error editando pack:", err)
+    });
+  }
 
 }

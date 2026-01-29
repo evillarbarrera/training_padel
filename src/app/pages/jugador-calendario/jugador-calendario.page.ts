@@ -31,6 +31,12 @@ export class JugadorCalendarioPage implements OnInit {
     this.cargarReservas();
   }
 
+  cambiarVista(vista: 'proximas' | 'historial') {
+    this.tipoVista = vista;
+    // Recargar datos cuando cambias de pestaña
+    this.cargarReservas();
+  }
+
   get reservasFiltradas() {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);

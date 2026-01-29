@@ -380,3 +380,63 @@
         }
     }
 }
+/* ===== RESPONSIVE IMAGES ===== */
+.nike-card {
+    img {
+        width: 100%;
+        height: auto;
+        max-height: 300px;
+        object-fit: cover;
+        border-radius: 12px;
+        display: block;
+    }
+}
+
+/* ===== FLOATING ACTION BUTTON FIX ===== */
+ion-fab {
+    &[horizontal="end"] {
+        right: 20px;
+    }
+
+    ion-fab-button {
+        --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+        &:hover {
+            --box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .nike-card img {
+        max-height: 250px;
+    }
+
+    ion-fab {
+        right: 16px;
+        bottom: 76px;
+    }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+    .nike-card img {
+        max-height: 280px;
+    }
+
+    ion-fab {
+        right: 20px;
+        bottom: 80px;
+    }
+}
+
+@media (min-width: 769px) {
+    .nike-card img {
+        max-height: 320px;
+    }
+
+    ion-fab {
+        right: 24px;
+        bottom: 88px;
+    }
+}

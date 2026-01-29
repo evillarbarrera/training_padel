@@ -6,6 +6,8 @@ import { MysqlService } from '../../services/mysql.service';
 
 
 import { IonContent, IonIcon, IonButton, IonInput, IonItem, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { mailOutline, lockClosedOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-register',
@@ -24,7 +26,9 @@ export class RegisterPage {
     private router: Router,
     private mysqlService: MysqlService,
     private alertCtrl: AlertController
-  ) { }
+  ) {
+    addIcons({ mailOutline, lockClosedOutline });
+  }
 
   goToLogin() {
     this.router.navigate(['/login']);

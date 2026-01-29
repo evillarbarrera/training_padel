@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'cl.padelacademy.app',
-  appName: 'Padel Academy',
+  appName: 'PadelManager',
   webDir: 'www',
   plugins: {
     GoogleAuth: {
@@ -11,6 +11,10 @@ const config: CapacitorConfig = {
       iosClientId: 'IOS_CLIENT_ID_GOES_HERE.apps.googleusercontent.com',
     },
   },
+  server: {
+    cleartext: true,
+    allowNavigation: ['api.lamatek.cl', 'localhost', '*']
+  }
 };
 
 export default config;

@@ -5,11 +5,11 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { MysqlService } from 'src/app/services/mysql.service';
-import { ToastController, AlertController, Platform } from '@ionic/angular';
+import { ToastController, AlertController, Platform, LoadingController } from '@ionic/angular';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { GoogleWebAuthService, GoogleWebUser } from 'src/app/services/google-web-auth.service';
 import { addIcons } from 'ionicons';
-import { logoGoogle } from 'ionicons/icons';
+import { logoGoogle, mailOutline, lockClosedOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-login',
@@ -28,20 +28,34 @@ export class LoginPage {
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
     private platform: Platform,
-    private googleWebAuth: GoogleWebAuthService
+    private googleWebAuth: GoogleWebAuthService,
+    private loadingCtrl: LoadingController
   ) {
-    addIcons({ logoGoogle });
+    addIcons({ logoGoogle, mailOutline, lockClosedOutline });
   }
 
   // Traditional email/password login
-  login() {
+  async login() {
+    if (!this.usuario || !this.password) {
+      this.showError('Por favor ingrese usuario y contraseña');
+      return;
+    }
+
+    const loading = await this.loadingCtrl.create({
+      message: 'Iniciando sesión...',
+      spinner: 'crescent'
+    });
+    await loading.present();
+
     this.mysql.login(this.usuario, this.password).subscribe({
       next: (res) => {
+        loading.dismiss();
         localStorage.setItem('token', res.token);
         localStorage.setItem('userId', res.id.toString());
         this.redirectBasedOnRole(res.rol);
       },
       error: () => {
+        loading.dismiss();
         this.showError('Credenciales incorrectas');
       }
     });
@@ -68,14 +82,14 @@ export class LoginPage {
   }
 
   async loginWithGoogle() {
-    console.log('Attempting Google Sign-In...');
+
     try {
       let googleUser: { email: string; givenName?: string; familyName?: string };
 
       if (this.platform.is('desktop') || this.platform.is('mobileweb')) {
         // Web: use modern GIS SDK
         const webUser: GoogleWebUser = await this.googleWebAuth.signIn().toPromise() as GoogleWebUser;
-        console.log('Google Web User:', webUser);
+
         googleUser = {
           email: webUser.email,
           givenName: webUser.givenName,
@@ -84,7 +98,7 @@ export class LoginPage {
       } else {
         // Native: use Capacitor plugin
         const nativeUser = await GoogleAuth.signIn();
-        console.log('Google Native User:', nativeUser);
+
         googleUser = {
           email: nativeUser.email,
           givenName: nativeUser.givenName,

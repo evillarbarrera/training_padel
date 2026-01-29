@@ -73,6 +73,18 @@ export class MysqlService {
     return this.http.post<any>(`${this.api}/entrenador/cancelar_reserva.php`, { reserva_id: reservaId }, { headers: this.headers });
   }
 
+  cancelarReservaJugador(reservaId: number, jugadorId: number): Observable<any> {
+    const payload = { 
+      reserva_id: reservaId, 
+      jugador_id: jugadorId 
+    };
+    return this.http.post<any>(
+      `${this.api}/alumno/cancelar_reserva.php`, 
+      JSON.stringify(payload), 
+      { headers: this.headers }
+    );
+  }
+
   getPerfil(userId: number) {
     return this.http.get<any>(`${this.api}/get_perfil.php?user_id=${userId}`, { headers: this.headers });
   }
@@ -116,6 +128,40 @@ export class MysqlService {
   getInscripcionesGrupales(packId: number): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.api}/packs/get_inscripciones_grupales.php?pack_id=${packId}`,
+      { headers: this.headers }
+    );
+  }
+
+  // ===== NOTIFICACIONES =====
+  
+  guardarTokenFCM(userId: number, token: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.api}/notificaciones.php?action=guardar_token`,
+      { user_id: userId, token },
+      { headers: this.headers }
+    );
+  }
+
+  enviarNotificacion(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.api}/notificaciones.php?action=enviar`,
+      data,
+      { headers: this.headers }
+    );
+  }
+
+  programarRecordatorio(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.api}/notificaciones.php?action=programar_recordatorio`,
+      data,
+      { headers: this.headers }
+    );
+  }
+
+  notificarHorariosDisponibles(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.api}/notificaciones.php?action=horarios_nuevos`,
+      data,
       { headers: this.headers }
     );
   }

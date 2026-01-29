@@ -16,6 +16,7 @@ import {
   IonAlert
 } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
+import { NotificationService } from '../../services/notification.service';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
 import {
@@ -63,6 +64,7 @@ export class EntrenadorEntrenamientosPage implements OnInit {
 
   constructor(
     private mysqlService: MysqlService,
+    private notificationService: NotificationService,
     private router: Router,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController
@@ -74,7 +76,7 @@ export class EntrenadorEntrenamientosPage implements OnInit {
       fitnessOutline,
       closeCircleOutline
     });
-    console.log('Entrenador ID cargado:', this.entrenadorId);
+
   }
 
   ngOnInit() {
@@ -108,12 +110,12 @@ export class EntrenadorEntrenamientosPage implements OnInit {
       next: (res: any) => {
         // res ahora tiene estructura: {reservas_tradicionales: [], packs_grupales: []}
         const todasReservas: any[] = [];
-        
+
         // Agregar reservas tradicionales
         if (res.reservas_tradicionales && Array.isArray(res.reservas_tradicionales)) {
           todasReservas.push(...res.reservas_tradicionales);
         }
-        
+
         // Agregar packs grupales
         if (res.packs_grupales && Array.isArray(res.packs_grupales)) {
           const packsGrupalesMapeados = res.packs_grupales.map((pack: any) => ({
@@ -125,22 +127,20 @@ export class EntrenadorEntrenamientosPage implements OnInit {
           }));
           todasReservas.push(...packsGrupalesMapeados);
         }
-        
-        console.log('Datos cargados:', { reservas_tradicionales: res.reservas_tradicionales, packs_grupales: res.packs_grupales, todos: todasReservas });
-        
+
+
+
         // Distribuir en días por fecha (solo reservas tradicionales tienen fecha)
         this.dias.forEach(dia => {
           // Usar el diaNumero guardado en zona LOCAL, no recalcularlo
           const diaBDFormato = dia.diaNumero; // 0-6 en formato correcto
-          
+
           dia.data = todasReservas.filter(r => {
             if (r.tipo === 'grupal') {
               // Los packs grupales usan formato BD 0-6
               const match = diaBDFormato === r.dia_semana;
               if (!match) {
-                console.log(`Pack "${r.pack_nombre}" (dia_semana=${r.dia_semana}) NO MATCH con ${dia.nombre}`);
-              } else {
-                console.log(`Pack "${r.pack_nombre}" (dia_semana=${r.dia_semana}) ✓ MATCH con ${dia.nombre}`);
+
               }
               return match;
             } else {
@@ -149,8 +149,8 @@ export class EntrenadorEntrenamientosPage implements OnInit {
             }
           });
         });
-        
-        console.log('Días con datos:', this.dias);
+
+
         this.cargando = false;
       },
       error: (err) => {
@@ -194,6 +194,12 @@ export class EntrenadorEntrenamientosPage implements OnInit {
   ejecutarCancelacion(item: any) {
     this.mysqlService.cancelarReserva(item.reserva_id).subscribe({
       next: async () => {
+        // TODO: Enviar notificación al alumno (cuando el backend esté configurado)
+        // const alumnoId = item.alumno_id;
+        // const packNombre = item.pack_nombre || item.nombre_pack || 'Entrenamiento';
+        // const fecha = item.fecha || new Date().toISOString().split('T')[0];
+        // this.notificationService.sendCancelationNotification(alumnoId, packNombre, fecha);
+
         const toast = await this.toastCtrl.create({
           message: '✅ Entrenamiento cancelado y horario liberado',
           duration: 2000,

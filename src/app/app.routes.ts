@@ -51,6 +51,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/entrenador-agenda/entrenador-agenda.page').then(m => m.EntrenadorAgendaPage)
   },
   {
+    path: 'evaluar/:id',
+    loadComponent: () => import('./pages/nueva-evaluacion/nueva-evaluacion.page').then(m => m.NuevaEvaluacionPage)
+  },
+  {
     path: 'pack-alumno',
     loadComponent: () => import('./pages/pack-alumno/pack-alumno.page').then(m => m.PackAlumnoPage)
   },
@@ -60,6 +64,14 @@ export const routes: Routes = [
   },
   {
     path: 'perfil',
-    loadComponent: () => import('./pages/perfil/perfil.page').then( m => m.PerfilPage)
+    loadComponent: () => import('./pages/perfil/perfil.page').then(m => m.PerfilPage)
+  },
+  {
+    path: 'mis-habilidades',
+    loadComponent: () => import('./pages/mis-habilidades/mis-habilidades.page').then(m => m.MisHabilidadesPage)
+  },
+  {
+    path: 'mis-habilidades/:id',
+    loadComponent: () => import('./pages/mis-habilidades/mis-habilidades.page').then(m => m.MisHabilidadesPage)
   },
 ];

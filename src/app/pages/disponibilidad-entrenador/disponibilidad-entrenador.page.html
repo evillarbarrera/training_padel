@@ -54,14 +54,17 @@
   </div>
 
   <!-- Save & Back FAB Actions -->
-  <div class="fab-actions">
+  <!-- Save & Back FAB Actions -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="fab-secondary-position">
     <ion-fab-button class="nike-fab back-fab" (click)="goBack()">
       <ion-icon name="chevron-back-outline"></ion-icon>
     </ion-fab-button>
+  </ion-fab>
 
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button class="nike-fab save-fab" (click)="guardarDisponibilidad()">
       <ion-icon name="checkmark-outline"></ion-icon>
     </ion-fab-button>
-  </div>
+  </ion-fab>
 
 </ion-content>

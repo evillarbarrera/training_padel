@@ -35,9 +35,12 @@ import { MysqlService } from '../../services/mysql.service';
 export class JugadorHomePage implements OnInit {
 
   jugadorNombre = "...";
-  entrenamientosRealizados = 0;
-  entrenamientosPendientes = 0;
-  totalMes = 0;
+
+  // Datos de Packs
+  clasesPagadas = 0;
+  clasesReservadas = 0;
+  clasesDisponibles = 0;
+  packsDetalle: any[] = [];
 
   constructor(
     private router: Router,
@@ -63,6 +66,11 @@ export class JugadorHomePage implements OnInit {
     this.cargarStats();
   }
 
+  ionViewWillEnter() {
+    // Se ejecuta cada vez que la vista va a entrar (al navegar desde otras páginas)
+    this.cargarStats();
+  }
+
   cargarStats() {
     const userId = Number(localStorage.getItem('userId'));
     if (!userId) {
@@ -73,9 +81,14 @@ export class JugadorHomePage implements OnInit {
     this.mysqlService.getHomeStats(userId).subscribe({
       next: (res) => {
         this.jugadorNombre = res.nombre;
-        this.entrenamientosRealizados = res.estadisticas.realizados;
-        this.entrenamientosPendientes = res.estadisticas.pendientes;
-        this.totalMes = res.estadisticas.totalMes;
+
+        // Datos de Packs
+        if (res.estadisticas.packs) {
+          this.clasesPagadas = res.estadisticas.packs.pagadas;
+          this.clasesReservadas = res.estadisticas.packs.reservadas;
+          this.clasesDisponibles = res.estadisticas.packs.disponibles;
+          this.packsDetalle = res.estadisticas.packs.detalle || [];
+        }
       },
       error: (err) => {
         console.error('Error al cargar estadísticas:', err);
@@ -92,7 +105,8 @@ export class JugadorHomePage implements OnInit {
   }
 
   misHabilidades() {
-    // Proximamente
+    console.log('Navigating to Mis Habilidades...');
+    this.router.navigate(['/mis-habilidades']);
   }
 
   goToHome() {

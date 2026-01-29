@@ -5,7 +5,8 @@
     <div class="header-overlay"></div>
     <div class="header-content">
       <h1 class="header-title">{{vistaActual === 'mis-entrenamientos' ? 'Mis Entrenamientos' : 'Agendar Clase'}}</h1>
-      <p class="header-sub">{{vistaActual === 'mis-entrenamientos' ? 'Tus sesiones programadas' : 'Selecciona tu horario ideal'}}</p>
+      <p class="header-sub">{{vistaActual === 'mis-entrenamientos' ? 'Tus sesiones programadas' : 'Selecciona tu horario
+        ideal'}}</p>
     </div>
   </div>
 
@@ -36,7 +37,8 @@
     </div>
 
     <!-- Empty State -->
-    <div *ngIf="!cargando && reservasIndividuales.length === 0 && entrenamientosGrupales.length === 0" class="empty-state">
+    <div *ngIf="!cargando && reservasIndividuales.length === 0 && entrenamientosGrupales.length === 0"
+      class="empty-state">
       <ion-icon name="calendar-outline"></ion-icon>
       <h3>Sin Entrenamientos</h3>
       <p>No tienes entrenamientos programados</p>
@@ -72,6 +74,16 @@
           <ion-icon name="person-outline"></ion-icon>
           {{ reserva.entrenador_nombre }}
         </div>
+        <div class="card-actions">
+          <ion-button *ngIf="reserva.estado === 'reservado'" fill="outline" size="small"
+            (click)="mostrarConfirmacionCancelar(reserva)" color="danger">
+            <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+            Cancelar
+          </ion-button>
+          <span *ngIf="reserva.estado !== 'reservado'" class="estado-final">
+            {{ reserva.estado | uppercase }}
+          </span>
+        </div>
       </div>
     </div>
 
@@ -90,7 +102,7 @@
             {{ grupal.estado_grupo | uppercase }}
           </span>
         </div>
-        
+
         <div class="tiempo-info">
           <ion-icon name="time-outline"></ion-icon>
           {{ grupal.hora_inicio | slice:0:5 }}
@@ -136,10 +148,22 @@
     <div class="filter-section animate-up">
       <div class="nike-card-filter">
         <ion-icon name="person-circle-outline" slot="start"></ion-icon>
-        <ion-select placeholder="Selecciona un coach" (ionChange)="onEntrenadorChange()" [(ngModel)]="selectedEntrenador"
-          interface="popover" toggleIcon="chevron-down-outline">
+        <ion-select placeholder="Selecciona un coach" (ionChange)="onEntrenadorChange()"
+          [(ngModel)]="selectedEntrenador" interface="popover" toggleIcon="chevron-down-outline">
           <ion-select-option *ngFor="let entrenador of entrenadores" [value]="entrenador.id">
             {{ entrenador.nombre }}
+          </ion-select-option>
+        </ion-select>
+      </div>
+
+      <!-- Pack Filter (New) -->
+      <div class="nike-card-filter" *ngIf="selectedEntrenador && packsDelEntrenador.length > 1"
+        style="margin-top: 10px;">
+        <ion-icon name="book-outline" slot="start"></ion-icon>
+        <ion-select placeholder="Selecciona un pack" [(ngModel)]="selectedPack" interface="popover"
+          toggleIcon="chevron-down-outline">
+          <ion-select-option *ngFor="let pack of packsDelEntrenador" [value]="pack">
+            {{ pack.pack_nombre }} ({{ pack.sesiones_restantes }})
           </ion-select-option>
         </ion-select>
       </div>
@@ -185,7 +209,7 @@
         </div>
 
         <div class="status-indicator">
-          <ion-badge [color]="h.ocupado ? 'medium' : 'dark'" mode="ios">
+          <ion-badge [color]="h.ocupado ? 'medium' : 'success'" mode="ios">
             {{ h.ocupado ? 'Ocupado' : 'Disponible' }}
           </ion-badge>
         </div>
@@ -204,7 +228,7 @@
   </div>
 
   <!-- Back FAB -->
-  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button class="nike-fab back-fab" (click)="goToHome()">
       <ion-icon name="chevron-back-outline"></ion-icon>
     </ion-fab-button>
