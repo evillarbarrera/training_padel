@@ -8,5 +8,6 @@ export const environment = {
     messagingSenderId: "786145270372",
     appId: "1:786145270372:web:4e28cab679ac103d199d71",
     measurementId: "G-PRGDB87ZNM"
-  }
+  },
+  apiUrl: 'https://api.padelmanager.cl'
 };

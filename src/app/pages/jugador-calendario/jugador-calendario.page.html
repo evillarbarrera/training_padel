@@ -36,7 +36,8 @@
         <ion-icon name="calendar-clear-outline"></ion-icon>
       </div>
       <h2>{{ tipoVista === 'proximas' ? 'Sin clases agendadas' : 'Cero registros' }}</h2>
-      <p>{{ tipoVista === 'proximas' ? 'Tu agenda está libre por ahora. Puedes ver tus entrenamientos grupales en la sección "Mis Entrenamientos".' : 'Aún no tienes historial de clases.' }}</p>
+      <p>{{ tipoVista === 'proximas' ? 'Tu agenda está libre por ahora. Puedes ver tus entrenamientos grupales en la
+        sección "Mis Entrenamientos".' : 'Aún no tienes historial de clases.' }}</p>
       <ion-button *ngIf="tipoVista === 'proximas'" class="nike-button-small" (click)="goBack()">
         Agendar Mi Primera Clase
       </ion-button>
@@ -49,19 +50,31 @@
         [style.animation-delay]="(i * 0.05) + 's'">
 
         <div class="card-header">
-          <div class="date-badge" *ngIf="reserva.fecha">
-            <span class="day">{{ reserva.fecha | date:'dd' }}</span>
-            <span class="month">{{ reserva.fecha | date:'MMM' | uppercase }}</span>
-          </div>
-          <div class="status-tag" [ngClass]="reserva.estado ? reserva.estado.toLowerCase() : reserva.estado_grupo?.toLowerCase()">
-            {{ reserva.estado || reserva.estado_grupo }}
+          <div class="row-top">
+            <div class="date-badge" *ngIf="reserva.fecha">
+              <span class="day">{{ reserva.fecha | date:'dd' }}</span>
+              <span class="month">{{ reserva.fecha | date:'MMM' | uppercase }}</span>
+            </div>
+
+            <div class="badges-right">
+              <div class="modalidad-tag" [class.grupal]="reserva.tipo === 'grupal'"
+                [class.individual]="reserva.tipo !== 'grupal'">
+                {{ reserva.tipo === 'grupal' ? 'GRUPAL' : 'INDIV.' }}
+              </div>
+              <!-- Status tag removed from here to group right, or kept? Let's keep it -->
+              <div class="status-tag"
+                [ngClass]="reserva.estado ? reserva.estado.toLowerCase() : reserva.estado_grupo?.toLowerCase()">
+                {{ reserva.estado || reserva.estado_grupo }}
+              </div>
+            </div>
           </div>
         </div>
 
         <div class="card-body">
           <div class="time-row" *ngIf="reserva.hora_inicio && reserva.hora_fin">
             <ion-icon name="time-outline"></ion-icon>
-            <span>{{ reserva.hora_inicio | slice:0:5 }} - {{ reserva.hora_fin | slice:0:5 }}</span>
+            <span>{{ (reserva.hora_inicio || reserva.hora || '') | slice:0:5 }} - {{ (reserva.hora_fin || '') |
+              slice:0:5 }}</span>
           </div>
 
           <div class="coach-row" *ngIf="reserva.entrenador_nombre">
@@ -71,6 +84,13 @@
 
           <div class="pack-row">
             <span class="pack-label">{{ reserva.pack_nombre }}</span>
+          </div>
+
+          <!-- Cancel Button -->
+          <div class="actions-row" *ngIf="tipoVista === 'proximas'">
+            <ion-button fill="outline" color="danger" size="small" expand="block" (click)="cancelarReserva(reserva)">
+              Cancelar Clase
+            </ion-button>
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { MysqlService } from '../../services/mysql.service';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
@@ -22,7 +22,9 @@ export class JugadorCalendarioPage implements OnInit {
 
   constructor(
     private mysqlService: MysqlService,
-    private router: Router
+    private router: Router,
+    private alertController: AlertController,
+    private toastController: ToastController
   ) {
     addIcons({ chevronBackOutline, calendarOutline, personOutline, timeOutline });
   }
@@ -33,7 +35,6 @@ export class JugadorCalendarioPage implements OnInit {
 
   cambiarVista(vista: 'proximas' | 'historial') {
     this.tipoVista = vista;
-    // Recargar datos cuando cambias de pestaña
     this.cargarReservas();
   }
 
@@ -41,21 +42,22 @@ export class JugadorCalendarioPage implements OnInit {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
 
-    // Combinar ambas arrays
     const todasReservas = [...this.reservasIndividuales, ...this.entrenamientosGrupales];
 
     return todasReservas.filter(reserva => {
-      // Para entrenamientos individuales (tienen 'fecha')
-      if (reserva.fecha) {
-        const fechaReserva = new Date(reserva.fecha + 'T00:00:00');
-        if (this.tipoVista === 'proximas') {
-          return fechaReserva >= hoy;
-        } else {
-          return fechaReserva < hoy;
-        }
+      // Backend now sends 'fecha' for both types
+      if (!reserva.fecha) return false;
+
+      const fechaReserva = new Date(reserva.fecha + 'T00:00:00');
+      if (this.tipoVista === 'proximas') {
+        return fechaReserva >= hoy;
+      } else {
+        return fechaReserva < hoy;
       }
-      // Para entrenamientos grupales (solo tienen dia_semana, considerar siempre como proximas)
-      return this.tipoVista === 'proximas';
+    }).sort((a, b) => {
+      const dateA = new Date(a.fecha + 'T' + (a.hora_inicio || '00:00')).getTime();
+      const dateB = new Date(b.fecha + 'T' + (b.hora_inicio || '00:00')).getTime();
+      return this.tipoVista === 'proximas' ? dateA - dateB : dateB - dateA;
     });
   }
 
@@ -66,6 +68,7 @@ export class JugadorCalendarioPage implements OnInit {
       return;
     }
 
+    this.cargando = true;
     this.mysqlService.getReservasJugador(userId).subscribe({
       next: (res: any) => {
         this.reservasIndividuales = res.reservas_individuales || [];
@@ -77,6 +80,69 @@ export class JugadorCalendarioPage implements OnInit {
         this.cargando = false;
       }
     });
+  }
+
+  async cancelarReserva(reserva: any) {
+    const alert = await this.alertController.create({
+      header: 'Cancelar Reserva',
+      message: '¿Estás seguro de que deseas cancelar esta reserva? Se liberará el cupo.',
+      buttons: [
+        {
+          text: 'No',
+          role: 'cancel',
+          cssClass: 'secondary'
+        }, {
+          text: 'Sí, cancelar',
+          handler: () => {
+            this.procesarCancelacion(reserva);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async procesarCancelacion(reserva: any) {
+    const userId = Number(localStorage.getItem('userId'));
+    if (!userId) return;
+
+    // Detect if Group or Individual
+    // Backend assigns 'tipo' = 'grupal' or 'individual'
+    const isGrupal = (reserva.tipo === 'grupal' || !!reserva.inscripcion_id);
+    const id = reserva.inscripcion_id || reserva.reserva_id || reserva.id;
+
+    if (isGrupal) {
+      this.mysqlService.cancelarInscripcionGrupal(id, userId).subscribe({
+        next: async (res) => {
+          this.mostrarToast(res.message || 'Inscripción cancelada', 'success');
+          this.cargarReservas();
+        },
+        error: async (err) => {
+          this.mostrarToast(err.error?.error || 'Error al cancelar', 'danger');
+        }
+      });
+    } else {
+      this.mysqlService.cancelarReservaJugador(id, userId).subscribe({
+        next: async (res) => {
+          this.mostrarToast('Reserva cancelada exitosamente', 'success');
+          this.cargarReservas();
+        },
+        error: async (err) => {
+          this.mostrarToast(err.error?.error || 'Error al cancelar', 'danger');
+        }
+      });
+    }
+  }
+
+  async mostrarToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      color,
+      position: 'bottom'
+    });
+    toast.present();
   }
 
   goBack() {

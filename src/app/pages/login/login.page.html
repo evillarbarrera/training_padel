@@ -32,8 +32,9 @@
           </ion-item>
         </div>
 
-        <ion-button expand="block" class="nike-button main-btn" (click)="login()">
-          Entrar
+        <ion-button expand="block" class="nike-button main-btn" (click)="login()" [disabled]="isLoading">
+          <ion-spinner name="crescent" *ngIf="isLoading"></ion-spinner>
+          <span *ngIf="!isLoading">Entrar</span>
         </ion-button>
 
         <div class="divider">

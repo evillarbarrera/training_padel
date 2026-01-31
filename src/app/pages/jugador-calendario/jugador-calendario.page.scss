@@ -130,10 +130,14 @@
 
   .card-header {
     padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     border-bottom: 1px solid #f2f2f7;
+
+    .row-top {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      align-items: center;
+    }
 
     .date-badge {
       display: flex;
@@ -155,6 +159,31 @@
       }
     }
 
+    .badges-right {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-end;
+    }
+
+    .modalidad-tag {
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+
+      &.grupal {
+        background: rgba(139, 92, 246, 0.1);
+        color: #7c3aed;
+      }
+
+      &.individual {
+        background: rgba(59, 130, 246, 0.1);
+        color: #2563eb;
+      }
+    }
+
     .status-tag {
       padding: 6px 12px;
       border-radius: 8px;
@@ -162,11 +191,13 @@
       font-weight: 800;
       text-transform: uppercase;
 
-      &.pendiente {
+      &.pendiente,
+      &.reservado {
         background: #fff9c4;
         color: #fbc02d;
       }
 
+      &.activo,
       &.confirmada {
         background: #e8f5e9;
         color: #4caf50;

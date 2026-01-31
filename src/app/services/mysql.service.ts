@@ -117,10 +117,10 @@ export class MysqlService {
     );
   }
 
-  cancelarInscripcionGrupal(inscripcionId: number): Observable<any> {
+  cancelarInscripcionGrupal(inscripcionId: number, jugadorId: number): Observable<any> {
     return this.http.post<any>(
-      `${this.api}/packs/cancelar_inscripcion_grupal.php`,
-      { inscripcion_id: inscripcionId },
+      `${this.api}/alumno/cancelar_inscripcion_grupal.php`,
+      { inscripcion_id: inscripcionId, jugador_id: jugadorId },
       { headers: this.headers }
     );
   }

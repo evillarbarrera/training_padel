@@ -21,6 +21,7 @@ import { logoGoogle, mailOutline, lockClosedOutline } from 'ionicons/icons';
 export class LoginPage {
   usuario: string = '';
   password: string = '';
+  isLoading: boolean = false;
 
   constructor(
     private mysql: MysqlService,
@@ -36,41 +37,36 @@ export class LoginPage {
 
   // Traditional email/password login
   async login() {
-    // DEBUG: Alert startup
-    await this.presentAlert('Debug', 'Login clicked');
+
 
     if (!this.usuario || !this.password) {
       this.showError('Por favor ingrese usuario y contraseña');
       return;
     }
 
-    const loading = await this.loadingCtrl.create({
-      message: 'Iniciando sesión...',
-      spinner: 'crescent'
-    });
-    await loading.present();
+    if (this.isLoading) return;
 
-    // DEBUG: Alert before request
-    console.log('Attempting login with:', this.usuario);
+    this.isLoading = true;
 
-    this.mysql.login(this.usuario, this.password).subscribe({
-      next: (res) => {
-        loading.dismiss();
-        // DEBUG: Alert success
-        // this.presentAlert('Debug', 'Login success: ' + JSON.stringify(res));
-
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('userId', res.id.toString());
-        this.redirectBasedOnRole(res.rol);
-      },
-      error: (err) => {
-        loading.dismiss();
-        // DEBUG: Alert error
-        this.presentAlert('Debug Error', 'Login failed: ' + JSON.stringify(err));
-        console.error('Login error:', err);
-        this.showError('Credenciales incorrectas o error de conexión');
-      }
-    });
+    try {
+      this.mysql.login(this.usuario, this.password).subscribe({
+        next: (res) => {
+          this.isLoading = false;
+          localStorage.setItem('token', res.token);
+          localStorage.setItem('userId', res.id.toString());
+          this.redirectBasedOnRole(res.rol);
+        },
+        error: (err) => {
+          this.isLoading = false;
+          console.error('Login error:', err);
+          this.showError('Credenciales incorrectas o error de conexión');
+        }
+      });
+    } catch (e: any) {
+      this.isLoading = false;
+      console.error('Critical Error in login flow:', e);
+      this.showError('Error inesperado al iniciar sesión');
+    }
   }
 
   async presentAlert(title: string, message: string) {

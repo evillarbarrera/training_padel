@@ -7,8 +7,8 @@ const config: CapacitorConfig = {
   plugins: {
     GoogleAuth: {
       scopes: ['profile', 'email'],
-      serverClientId: 'WEB_CLIENT_ID_GOES_HERE.apps.googleusercontent.com',
-      iosClientId: 'IOS_CLIENT_ID_GOES_HERE.apps.googleusercontent.com',
+      serverClientId: '786145270372-liov6hu5v7lcmf2028s9ihi600rp3353.apps.googleusercontent.com',
+      iosClientId: '786145270372-liov6hu5v7lcmf2028s9ihi600rp3353.apps.googleusercontent.com',
     },
   },
   server: {
