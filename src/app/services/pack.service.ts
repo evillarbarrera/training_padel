@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class PacksService {
 
-  private apiUrl = 'http://api.lamatek.cl/packs';
+  private apiUrl = 'https://api.padelmanager.cl/packs';
   // Token en Base64
   private token = btoa('1|padel_academy');
 

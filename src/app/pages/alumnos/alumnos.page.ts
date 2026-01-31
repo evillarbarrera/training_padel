@@ -75,7 +75,7 @@ export class AlumnosPage implements OnInit {
     const profesorId = localStorage.getItem('userId');
 
     this.http.get<AlumnoApi[]>(
-      `http://api.lamatek.cl/alumno/get_alumno.php?entrenador_id=${profesorId}`,
+      `https://api.padelmanager.cl/alumno/get_alumno.php?entrenador_id=${profesorId}`,
       {
         headers: {
           Authorization: 'Bearer ' + btoa('1|padel_academy')

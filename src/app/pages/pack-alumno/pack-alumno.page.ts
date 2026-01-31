@@ -112,7 +112,7 @@ export class PackAlumnoPage implements OnInit {
       pack_id: Number(pack.id),
       jugador_id: jugadorId,
       amount: pack.precio,
-      origin: 'http://localhost:8100/pack-alumno' // Android Emulator might need IP, but localhost:8100 works for Browser serve
+      origin: 'https://padelmanager.cl/pack-alumno'
     };
 
     const loading = await this.alertCtrl.create({

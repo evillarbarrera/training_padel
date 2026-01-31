@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
     providedIn: 'root'
 })
 export class EvaluacionService {
-    private apiUrl = 'http://api.lamatek.cl/evaluaciones';
+    private apiUrl = 'https://api.padelmanager.cl/evaluaciones';
 
     private token = localStorage.getItem('token') || '';
 

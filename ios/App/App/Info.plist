@@ -51,7 +51,7 @@
 		<true/>
 		<key>NSExceptionDomains</key>
 		<dict>
-			<key>api.lamatek.cl</key>
+			<key>api.padelmanager.cl</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>

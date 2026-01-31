@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class MysqlService {
 
-  private api = 'http://api.lamatek.cl';
+  private api = 'https://api.padelmanager.cl';
   private token = btoa('1|padel_academy');
 
   private headers = new HttpHeaders({
@@ -22,14 +22,14 @@ export class MysqlService {
   }
 
   login(usuario: string, password: string) {
-    return this.http.post<any>(`${this.api}/login.php`, {
+    return this.http.post<any>(`${this.api}/auth/login.php`, {
       usuario,
       password
     });
   }
 
   register(nombre: string, email: string, password: string, rol: string) {
-    return this.http.post<any>(`${this.api}/register.php`, {
+    return this.http.post<any>(`${this.api}/auth/register.php`, {
       nombre,
       email,
       password,
@@ -38,11 +38,11 @@ export class MysqlService {
   }
 
   googleCheck(email: string) {
-    return this.http.post<any>(`${this.api}/google_auth.php`, { email }, { headers: this.headers });
+    return this.http.post<any>(`${this.api}/auth/google_auth.php`, { email }, { headers: this.headers });
   }
 
   googleRegister(nombre: string, email: string, rol: string) {
-    return this.http.post<any>(`${this.api}/google_register.php`, {
+    return this.http.post<any>(`${this.api}/auth/google_register.php`, {
       nombre,
       email,
       rol
@@ -74,23 +74,23 @@ export class MysqlService {
   }
 
   cancelarReservaJugador(reservaId: number, jugadorId: number): Observable<any> {
-    const payload = { 
-      reserva_id: reservaId, 
-      jugador_id: jugadorId 
+    const payload = {
+      reserva_id: reservaId,
+      jugador_id: jugadorId
     };
     return this.http.post<any>(
-      `${this.api}/alumno/cancelar_reserva.php`, 
-      JSON.stringify(payload), 
+      `${this.api}/alumno/cancelar_reserva.php`,
+      JSON.stringify(payload),
       { headers: this.headers }
     );
   }
 
   getPerfil(userId: number) {
-    return this.http.get<any>(`${this.api}/get_perfil.php?user_id=${userId}`, { headers: this.headers });
+    return this.http.get<any>(`${this.api}/user/get_perfil.php?user_id=${userId}`, { headers: this.headers });
   }
 
   updatePerfil(data: any): Observable<any> {
-    return this.http.post<any>(`${this.api}/update_perfil.php`, data, { headers: this.headers });
+    return this.http.post<any>(`${this.api}/user/update_perfil.php`, data, { headers: this.headers });
   }
 
   subirFoto(userId: number, file: File): Observable<any> {
@@ -103,7 +103,7 @@ export class MysqlService {
       'Authorization': `Bearer ${this.token}`
     });
 
-    return this.http.post<any>(`${this.api}/subir_foto.php`, formData, {
+    return this.http.post<any>(`${this.api}/user/subir_foto.php`, formData, {
       headers: uploadHeaders
     });
   }
@@ -133,10 +133,10 @@ export class MysqlService {
   }
 
   // ===== NOTIFICACIONES =====
-  
+
   guardarTokenFCM(userId: number, token: string): Observable<any> {
     return this.http.post<any>(
-      `${this.api}/notificaciones.php?action=guardar_token`,
+      `${this.api}/notifications/notificaciones.php?action=guardar_token`,
       { user_id: userId, token },
       { headers: this.headers }
     );
@@ -144,7 +144,7 @@ export class MysqlService {
 
   enviarNotificacion(data: any): Observable<any> {
     return this.http.post<any>(
-      `${this.api}/notificaciones.php?action=enviar`,
+      `${this.api}/notifications/notificaciones.php?action=enviar`,
       data,
       { headers: this.headers }
     );
@@ -152,7 +152,7 @@ export class MysqlService {
 
   programarRecordatorio(data: any): Observable<any> {
     return this.http.post<any>(
-      `${this.api}/notificaciones.php?action=programar_recordatorio`,
+      `${this.api}/notifications/notificaciones.php?action=programar_recordatorio`,
       data,
       { headers: this.headers }
     );
@@ -160,7 +160,7 @@ export class MysqlService {
 
   notificarHorariosDisponibles(data: any): Observable<any> {
     return this.http.post<any>(
-      `${this.api}/notificaciones.php?action=horarios_nuevos`,
+      `${this.api}/notifications/notificaciones.php?action=horarios_nuevos`,
       data,
       { headers: this.headers }
     );

@@ -13,7 +13,7 @@ const config: CapacitorConfig = {
   },
   server: {
     cleartext: true,
-    allowNavigation: ['api.lamatek.cl', 'localhost', '*']
+    allowNavigation: ['api.padelmanager.cl', 'localhost', '*']
   }
 };
 

@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class EntrenamientoService {
 
-  private api = 'http://api.lamatek.cl';
+  private api = 'https://api.padelmanager.cl';
   private token = btoa('1|padel_academy');
 
   private headers = new HttpHeaders({

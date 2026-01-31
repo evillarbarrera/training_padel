@@ -36,6 +36,9 @@ export class LoginPage {
 
   // Traditional email/password login
   async login() {
+    // DEBUG: Alert startup
+    await this.presentAlert('Debug', 'Login clicked');
+
     if (!this.usuario || !this.password) {
       this.showError('Por favor ingrese usuario y contraseña');
       return;
@@ -47,16 +50,25 @@ export class LoginPage {
     });
     await loading.present();
 
+    // DEBUG: Alert before request
+    console.log('Attempting login with:', this.usuario);
+
     this.mysql.login(this.usuario, this.password).subscribe({
       next: (res) => {
         loading.dismiss();
+        // DEBUG: Alert success
+        // this.presentAlert('Debug', 'Login success: ' + JSON.stringify(res));
+
         localStorage.setItem('token', res.token);
         localStorage.setItem('userId', res.id.toString());
         this.redirectBasedOnRole(res.rol);
       },
-      error: () => {
+      error: (err) => {
         loading.dismiss();
-        this.showError('Credenciales incorrectas');
+        // DEBUG: Alert error
+        this.presentAlert('Debug Error', 'Login failed: ' + JSON.stringify(err));
+        console.error('Login error:', err);
+        this.showError('Credenciales incorrectas o error de conexión');
       }
     });
   }
