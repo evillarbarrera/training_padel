@@ -82,9 +82,17 @@
           <p class="pack-desc">{{ pack.descripcion }}</p>
 
           <!-- Info grupal si aplica -->
-          <ng-container *ngIf="isPackGrupal(pack)">
-            <div class="grupo-info">
-              <span class="cupos-badge">👥 {{ getCuposDisplay(pack) }} cupos</span>
+          <ng-container *ngIf="isPackGrupal(pack) || pack.cantidad_personas > 1">
+            <div class="grupo-info" style="margin-bottom: 15px;">
+              <span class="cupos-badge" [style.background]="pack.cantidad_personas > 1 ? '#ffc107' : ''"
+                [style.color]="pack.cantidad_personas > 1 ? '#000' : ''">
+                {{ pack.cantidad_personas > 1 ? 'PACK ' + pack.cantidad_personas + ' JUGADORES' : '👥 ' +
+                getCuposDisplay(pack) + ' cupos' }}
+              </span>
+              <span *ngIf="pack.rango_horario_inicio" class="categoria-badge"
+                style="background: #e9ecef; color: #495057;">
+                🕒 {{ pack.rango_horario_inicio | slice:0:5 }} - {{ pack.rango_horario_fin | slice:0:5 }}
+              </span>
               <span *ngIf="pack.categoria" class="categoria-badge">{{ pack.categoria }}</span>
             </div>
           </ng-container>

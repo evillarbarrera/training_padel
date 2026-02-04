@@ -227,6 +227,12 @@
       font-weight: 600;
       font-size: 15px;
 
+      &.compact {
+        --min-height: 48px;
+        font-size: 13px;
+        --padding-start: 10px;
+      }
+
       &.textarea {
         height: 100px;
       }
@@ -234,6 +240,13 @@
       ion-textarea {
         margin-top: 8px;
       }
+    }
+
+    .helper-text-mobile {
+      font-size: 10px;
+      color: #888;
+      margin: -4px 0 10px 4px;
+      font-style: italic;
     }
 
     .save-btn {

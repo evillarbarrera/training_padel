@@ -1,0 +1,142 @@
+<ion-content>
+
+    <!-- Nike Hero Header (Matching Mob Theme) -->
+    <div class="header-nike">
+        <div class="header-overlay"></div>
+        <div class="header-content">
+            <h1 class="header-title">Mis Packs</h1>
+            <p class="header-sub">Créditos y Gestión de Equipo</p>
+        </div>
+    </div>
+
+    <div class="main-container animate-up">
+
+        <!-- Action Bar -->
+        <div class="action-bar" *ngIf="!isLoading">
+            <h2 class="section-title">Activos</h2>
+            <ion-button fill="clear" color="primary" (click)="irAComprar()">
+                <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+                Comprar
+            </ion-button>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="isLoading" class="loading-state">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>Consultando créditos...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!isLoading && packs.length === 0" class="empty-state">
+            <ion-icon name="ticket-outline"></ion-icon>
+            <h3>Sin Packs Activos</h3>
+            <p>No tienes sesiones disponibles en este momento.</p>
+            <ion-button expand="block" color="primary" class="nike-btn" (click)="irAComprar()">
+                Explorar Planes
+            </ion-button>
+        </div>
+
+        <!-- Packs Grid -->
+        <div class="packs-grid" *ngIf="!isLoading && packs.length > 0">
+            <div class="nike-card pack-card animate-pop" *ngFor="let pack of packs"
+                [class.grupal]="pack.cantidad_personas > 1">
+
+                <div class="card-header">
+                    <div class="pack-name-section">
+                        <h3 class="pack-name">{{ pack.pack_nombre }}</h3>
+                        <ion-badge [color]="pack.cantidad_personas > 1 ? 'warning' : 'success'" mode="ios">
+                            {{ pack.cantidad_personas > 1 ? 'PACK ' + pack.cantidad_personas + ' JUGADORES' :
+                            'INDIVIDUAL' }}
+                        </ion-badge>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="info-row">
+                        <span class="label">Balance de Clases</span>
+                        <span class="val">{{ pack.sesiones_usadas }} / {{ pack.sesiones_totales }}</span>
+                    </div>
+
+                    <div class="info-row" style="margin-bottom: 15px;">
+                        <span class="label">Horario Validez</span>
+                        <span class="val">{{ pack.rango_horario_inicio ? (pack.rango_horario_inicio | slice:0:5) + ' - '
+                            + (pack.rango_horario_fin | slice:0:5) : 'Sin restricción' }}</span>
+                    </div>
+
+                    <div class="progress-container">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill"
+                                [style.width.%]="(pack.sesiones_usadas / pack.sesiones_totales) * 100"></div>
+                        </div>
+                    </div>
+
+                    <!-- Team Management for Multi-player Packs -->
+                    <div class="team-management" *ngIf="pack.cantidad_personas > 1">
+                        <div class="team-title">
+                            <ion-icon name="people-outline"></ion-icon>
+                            <span>Mi Equipo ({{ (pack.invitados?.length || 0) + 1 }}/{{ pack.cantidad_personas
+                                }})</span>
+                        </div>
+
+                        <div class="members-chips">
+                            <div class="member-chip me">
+                                <span class="avatar">{{ jugadorNombre.charAt(0) }}</span>
+                                <span class="name">Yo</span>
+                            </div>
+
+                            <div class="member-chip guest" *ngFor="let invitado of pack.invitados">
+                                <span class="avatar">{{ invitado.nombre.charAt(0) }}</span>
+                                <span class="name">{{ invitado.nombre }}</span>
+                            </div>
+
+                            <button class="add-member-chip"
+                                *ngIf="(pack.invitados?.length || 0) + 1 < pack.cantidad_personas"
+                                (click)="abrirModalInvitacion(pack)">
+                                <ion-icon name="person-add-outline"></ion-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal Invitación (Ionic Modal style) -->
+    <ion-modal [isOpen]="showModalInvitacion" (didDismiss)="cerrarModal()" class="invitation-modal">
+        <ng-template>
+            <ion-header>
+                <ion-toolbar>
+                    <ion-title>Agregar Compañero</ion-title>
+                    <ion-buttons slot="end">
+                        <ion-button (click)="cerrarModal()">Cerrar</ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content class="ion-padding">
+                <div class="modal-intro">
+                    <ion-icon name="mail-outline"></ion-icon>
+                    <p>Envía una invitación a tu compañero. Debe estar registrado en la App.</p>
+                </div>
+
+                <ion-item lines="none" class="nike-input-item">
+                    <ion-label position="stacked">Email del Jugador</ion-label>
+                    <ion-input [(ngModel)]="emailInvitado" type="email" placeholder="ejemplo@correo.com"></ion-input>
+                </ion-item>
+
+                <ion-button expand="block" (click)="enviarInvitacion()" class="nike-btn-large ion-margin-top">
+                    Enviar Invitación
+                </ion-button>
+            </ion-content>
+        </ng-template>
+    </ion-modal>
+
+    <!-- Back FAB -->
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button class="nike-fab back-fab" (click)="goBack()">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+
+</ion-content>

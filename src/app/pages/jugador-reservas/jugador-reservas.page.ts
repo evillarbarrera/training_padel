@@ -44,6 +44,9 @@ export class JugadorReservasPage implements OnInit {
   entrenamientosGrupales: any[] = [];
   cargando: boolean = false;
 
+  // Picker State
+  showCoachPicker: boolean = false;
+
   constructor(
     private entrenamientoService: EntrenamientoService,
     private mysqlService: MysqlService,
@@ -115,7 +118,6 @@ export class JugadorReservasPage implements OnInit {
 
   extraerEntrenadores() {
     const map = new Map();
-
     this.packs.forEach(p => {
       if (!map.has(p.entrenador_id)) {
         map.set(p.entrenador_id, {
@@ -124,8 +126,16 @@ export class JugadorReservasPage implements OnInit {
         });
       }
     });
-
     this.entrenadores = Array.from(map.values());
+  }
+
+  get selectedCoachName(): string {
+    const coach = this.entrenadores.find(c => c.id === this.selectedEntrenador);
+    return coach ? coach.nombre : 'Selecciona un coach';
+  }
+
+  toggleCoachPicker() {
+    this.showCoachPicker = !this.showCoachPicker;
   }
 
   seleccionarProfesor(entrenadorId: number) {
@@ -134,20 +144,24 @@ export class JugadorReservasPage implements OnInit {
   }
 
   onEntrenadorChange() {
+    this.showCoachPicker = false;
     if (!this.selectedEntrenador) return;
 
     // Filter packs for this trainer that have remaining sessions
     this.packsDelEntrenador = this.packs.filter(p => {
       const isTrainer = Number(p.entrenador_id) === Number(this.selectedEntrenador);
       const hasSessions = Number(p.sesiones_restantes) > 0;
-      return isTrainer && hasSessions;
+      // Filter out group packs (keep only individual or those with capacity <= 1)
+      const isIndividual = p.tipo === 'individual' || Number(p.cantidad_personas || 1) <= 1;
+
+      return isTrainer && hasSessions && isIndividual;
     });
 
-    // Sort by fecha_compra_pack ASC (oldest first)
+    // Sort by fecha_compra_pack DESC (newest first)
     this.packsDelEntrenador.sort((a, b) => {
       const dateA = new Date(a.fecha_compra_pack).getTime();
       const dateB = new Date(b.fecha_compra_pack).getTime();
-      return dateA - dateB;
+      return dateB - dateA;
     });
 
     // Auto select first pack
@@ -157,14 +171,34 @@ export class JugadorReservasPage implements OnInit {
       this.selectedPack = null;
     }
 
+    const packId = this.selectedPack ? this.selectedPack.pack_id : undefined;
+    console.log("Pack Seleccionado Mobile ID:", packId);
+
     this.entrenamientoService
-      .getDisponibilidadEntrenador(this.selectedEntrenador)
+      .getDisponibilidadEntrenador(this.selectedEntrenador!, packId)
       .subscribe({
         next: res => {
           this.horarios = res;
           this.generarBloquesHorarios(res);
         },
         error: err => console.error(err)
+      });
+  }
+
+  onPackChange() {
+    if (!this.selectedPack || !this.selectedEntrenador) return;
+
+    const packId = this.selectedPack.pack_id;
+    console.log("Cambio de Pack Mobile - Nuevo ID:", packId);
+
+    this.entrenamientoService
+      .getDisponibilidadEntrenador(this.selectedEntrenador!, packId)
+      .subscribe({
+        next: res => {
+          this.horarios = res;
+          this.generarBloquesHorarios(res);
+        },
+        error: err => console.error('Error loading availability after pack change:', err)
       });
   }
 

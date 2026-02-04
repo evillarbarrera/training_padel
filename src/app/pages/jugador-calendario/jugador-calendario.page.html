@@ -59,12 +59,14 @@
             <div class="badges-right">
               <div class="modalidad-tag" [class.grupal]="reserva.tipo === 'grupal'"
                 [class.individual]="reserva.tipo !== 'grupal'">
-                {{ reserva.tipo === 'grupal' ? 'GRUPAL' : 'INDIV.' }}
+                {{ reserva.tipo === 'grupal' ? 'GRUPAL (' + reserva.cupos_ocupados + '/' + reserva.capacidad_maxima +
+                ')' :
+                'INDIVIDUAL' }}
               </div>
-              <!-- Status tag removed from here to group right, or kept? Let's keep it -->
               <div class="status-tag"
-                [ngClass]="reserva.estado ? reserva.estado.toLowerCase() : reserva.estado_grupo?.toLowerCase()">
-                {{ reserva.estado || reserva.estado_grupo }}
+                [ngClass]="reserva.tipo === 'grupal' ? reserva.estado_grupo?.toLowerCase() : reserva.estado?.toLowerCase()">
+                {{ reserva.tipo === 'grupal' ? (reserva.estado_grupo === 'activo' ? 'ACTIVADA' : 'PENDIENTE') :
+                (reserva.estado || 'RESERVADA') }}
               </div>
             </div>
           </div>
@@ -78,7 +80,10 @@
           </div>
 
           <div class="coach-row" *ngIf="reserva.entrenador_nombre">
-            <ion-icon name="person-outline"></ion-icon>
+            <ion-avatar class="avatar-mini">
+              <img [src]="reserva.entrenador_foto || 'assets/images/placeholder_avatar.png'"
+                style="object-fit: cover;" />
+            </ion-avatar>
             <span>Coach: <strong>{{ reserva.entrenador_nombre }}</strong></span>
           </div>
 
@@ -93,12 +98,10 @@
             </ion-button>
           </div>
         </div>
-
       </div>
-
     </div>
 
-  </div>
+  </div> <!-- Closing dashboard-container -->
 
   <!-- Back FAB -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">

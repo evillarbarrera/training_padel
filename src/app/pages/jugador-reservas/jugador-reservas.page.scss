@@ -261,7 +261,7 @@
     justify-content: center;
     align-items: center;
     padding: 60px 20px;
-    
+
     ion-spinner {
       color: var(--ion-color-primary);
     }
@@ -270,26 +270,26 @@
   .empty-state {
     text-align: center;
     padding: 60px 20px;
-    
+
     ion-icon {
       font-size: 48px;
       color: #c7c7cc;
       margin-bottom: 15px;
     }
-    
+
     h3 {
       font-size: 18px;
       font-weight: 700;
       color: #333;
       margin: 0 0 8px;
     }
-    
+
     p {
       font-size: 14px;
       color: #8e8e93;
       margin: 0 0 20px;
     }
-    
+
     ion-button {
       --padding-start: 25px;
       --padding-end: 25px;
@@ -325,13 +325,13 @@
     text-align: center;
     padding: 30px 20px;
     color: #8e8e93;
-    
+
     ion-icon {
       font-size: 32px;
       margin-bottom: 10px;
       opacity: 0.5;
     }
-    
+
     p {
       font-size: 13px;
       font-weight: 500;

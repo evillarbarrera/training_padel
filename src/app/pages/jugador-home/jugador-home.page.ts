@@ -124,7 +124,11 @@ export class JugadorHomePage implements OnInit {
   }
 
   goToPackAlumno() {
-    this.router.navigate(['/pack-alumno']);
+    this.goToMisPacks();
+  }
+
+  goToMisPacks() {
+    this.router.navigate(['/alumno-mis-packs']);
   }
 
   async openSettings() {
@@ -143,6 +147,13 @@ export class JugadorHomePage implements OnInit {
           icon: 'calendar-number-outline',
           handler: () => {
             this.router.navigate(['/jugador-calendario']);
+          }
+        },
+        {
+          text: 'Mis Packs y Créditos',
+          icon: 'albums-outline',
+          handler: () => {
+            this.goToMisPacks();
           }
         },
         {

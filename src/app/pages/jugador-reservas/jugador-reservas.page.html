@@ -141,33 +141,66 @@
 
   </div>
 
-  <!-- VISTA 2: AGENDAR NUEVA CLASE (código original) -->
   <div *ngIf="vistaActual === 'agendar'" class="agendar-nueva-view">
 
-    <!-- Coach Filter (Premium) -->
-    <div class="filter-section animate-up">
-      <div class="nike-card-filter">
-        <ion-icon name="person-circle-outline" slot="start"></ion-icon>
-        <ion-select placeholder="Selecciona un coach" (ionChange)="onEntrenadorChange()"
-          [(ngModel)]="selectedEntrenador" interface="popover" toggleIcon="chevron-down-outline">
-          <ion-select-option *ngFor="let entrenador of entrenadores" [value]="entrenador.id">
-            {{ entrenador.nombre }}
-          </ion-select-option>
-        </ion-select>
+    <!-- Selectores Custom (Nike Theme) -->
+    <div class="booking-selectors-nike animate-up">
+      <!-- Coach Selector -->
+      <div class="selector-nike coach-selector-container" [class.has-selection]="selectedEntrenador"
+        (click)="toggleCoachPicker()">
+        <div class="selector-header">
+          <div class="selector-icon">
+            <ion-icon name="person-circle-outline"></ion-icon>
+          </div>
+          <div class="selector-info">
+            <span class="label">Entrenador</span>
+            <span class="value">{{ selectedCoachName }}</span>
+          </div>
+          <ion-icon name="chevron-down-outline" class="chevron"></ion-icon>
+        </div>
       </div>
 
-      <!-- Pack Filter (New) -->
-      <div class="nike-card-filter" *ngIf="selectedEntrenador && packsDelEntrenador.length > 1"
-        style="margin-top: 10px;">
-        <ion-icon name="book-outline" slot="start"></ion-icon>
-        <ion-select placeholder="Selecciona un pack" [(ngModel)]="selectedPack" interface="popover"
-          toggleIcon="chevron-down-outline">
-          <ion-select-option *ngFor="let pack of packsDelEntrenador" [value]="pack">
-            {{ pack.pack_nombre }} ({{ pack.sesiones_restantes }})
-          </ion-select-option>
-        </ion-select>
+      <!-- Pack Selector -->
+      <div class="selector-nike pack-selector-container" *ngIf="selectedEntrenador && packsDelEntrenador.length > 0">
+        <div class="selector-header">
+          <div class="selector-icon">
+            <ion-icon name="book-outline"></ion-icon>
+          </div>
+          <div class="selector-info">
+            <span class="label">Pack Seleccionado</span>
+            <ion-select [(ngModel)]="selectedPack" (ionChange)="onPackChange()" interface="popover" toggleIcon=""
+              class="value-select">
+              <ion-select-option *ngFor="let pack of packsDelEntrenador" [value]="pack">
+                {{ pack.pack_nombre }} ({{ pack.sesiones_restantes }} cred.)
+              </ion-select-option>
+            </ion-select>
+          </div>
+          <ion-icon name="chevron-down-outline" class="chevron"></ion-icon>
+        </div>
       </div>
     </div>
+
+    <!-- Coach Picker Overlay -->
+    <div class="coach-picker-overlay" *ngIf="showCoachPicker" (click)="toggleCoachPicker()">
+      <div class="picker-panel animate-pop" (click)="$event.stopPropagation()">
+        <div class="picker-header">
+          <h3>Selecciona tu Coach</h3>
+          <p>Tus entrenadores disponibles</p>
+        </div>
+        <div class="picker-list">
+          <div class="coach-option" *ngFor="let coach of entrenadores"
+            (click)="selectedEntrenador = coach.id; onEntrenadorChange()">
+            <div class="coach-avatar">
+              <ion-icon name="person-circle-outline"></ion-icon>
+            </div>
+            <span class="coach-name">{{ coach.nombre }}</span>
+            <ion-icon name="checkmark-circle" class="check-icon" *ngIf="selectedEntrenador === coach.id"></ion-icon>
+          </div>
+        </div>
+        <button class="close-picker" (click)="toggleCoachPicker()">Cerrar</button>
+      </div>
+    </div>
+
 
     <!-- Day Selector (Premium) -->
     <div class="segment-wrapper animate-up" style="animation-delay: 0.05s;">

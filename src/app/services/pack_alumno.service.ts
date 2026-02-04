@@ -60,4 +60,19 @@ export class PackAlumnoService {
     );
   }
 
+  getMisPacks(jugadorId: number): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/get_mis_packs_alumno.php?jugador_id=${jugadorId}`,
+      { headers: this.headers }
+    );
+  }
+
+  invitarJugador(packJugadoresId: number, emailInvitado: string): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/invitar_jugador_pack.php`,
+      { pack_jugadores_id: packJugadoresId, email_invitado: emailInvitado },
+      { headers: this.headers }
+    );
+  }
+
 }

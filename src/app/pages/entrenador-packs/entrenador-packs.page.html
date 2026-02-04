@@ -51,8 +51,10 @@
             <ng-container *ngIf="pack.tipo === 'grupal'">
               <span class="dot">•</span>
               <span class="cupos-badge" [ngClass]="pack.estado_grupo">
-                <ng-container *ngIf="pack.estado_grupo === 'activo'">🟢 {{ pack.cupos_ocupados }}/{{ pack.capacidad_maxima }}</ng-container>
-                <ng-container *ngIf="pack.estado_grupo === 'pendiente'">🟡 {{ pack.cupos_ocupados }}/{{ pack.capacidad_minima }}</ng-container>
+                <ng-container *ngIf="pack.estado_grupo === 'activo'">🟢 {{ pack.cupos_ocupados }}/{{
+                  pack.capacidad_maxima }}</ng-container>
+                <ng-container *ngIf="pack.estado_grupo === 'pendiente'">🟡 {{ pack.cupos_ocupados }}/{{
+                  pack.capacidad_minima }}</ng-container>
               </span>
             </ng-container>
           </div>
@@ -139,13 +141,13 @@
                 <label>Día de la Semana</label>
                 <ion-item lines="none" class="nike-item">
                   <ion-select [(ngModel)]="nuevoPack.dia_semana" interface="popover">
-                    <ion-select-option value="0">Domingo</ion-select-option>
-                    <ion-select-option value="1">Lunes</ion-select-option>
-                    <ion-select-option value="2">Martes</ion-select-option>
-                    <ion-select-option value="3">Miércoles</ion-select-option>
-                    <ion-select-option value="4">Jueves</ion-select-option>
-                    <ion-select-option value="5">Viernes</ion-select-option>
-                    <ion-select-option value="6">Sábado</ion-select-option>
+                    <ion-select-option [value]="0">Domingo</ion-select-option>
+                    <ion-select-option [value]="1">Lunes</ion-select-option>
+                    <ion-select-option [value]="2">Martes</ion-select-option>
+                    <ion-select-option [value]="3">Miércoles</ion-select-option>
+                    <ion-select-option [value]="4">Jueves</ion-select-option>
+                    <ion-select-option [value]="5">Viernes</ion-select-option>
+                    <ion-select-option [value]="6">Sábado</ion-select-option>
                   </ion-select>
                 </ion-item>
               </div>
@@ -160,7 +162,8 @@
             <div class="nike-field">
               <label>Categoría</label>
               <ion-item lines="none" class="nike-item">
-                <ion-input [(ngModel)]="nuevoPack.categoria" placeholder="Ej: Principiantes, Intermedios, Avanzados"></ion-input>
+                <ion-input [(ngModel)]="nuevoPack.categoria"
+                  placeholder="Ej: Principiantes, Intermedios, Avanzados"></ion-input>
               </ion-item>
             </div>
           </ng-container>
@@ -176,6 +179,30 @@
               <label>Minutos</label>
               <ion-item lines="none" class="nike-item">
                 <ion-input type="number" [(ngModel)]="nuevoPack.duracion_sesion_min"></ion-input>
+              </ion-item>
+            </div>
+          </div>
+
+          <!-- Time Range (Opcional) -->
+          <div class="nike-field" *ngIf="nuevoPack.tipo === 'individual'">
+            <div class="nike-field" style="margin-bottom: 20px;">
+              <label>Cantidad Personas</label>
+              <p class="helper-text-mobile" style="margin-bottom: 5px;">Ej: 2 para Pack Dupla/Pareja.</p>
+              <ion-item lines="none" class="nike-item">
+                <ion-input type="number" [(ngModel)]="nuevoPack.cantidad_personas" min="1"></ion-input>
+              </ion-item>
+            </div>
+
+            <label>Rango Horario Permitido (Opc.)</label>
+            <p class="helper-text-mobile">Solo permite reservas en este horario.</p>
+            <div class="form-grid">
+              <ion-item lines="none" class="nike-item compact">
+                <ion-label position="stacked" style="margin-bottom:4px; font-size:10px;">Desde</ion-label>
+                <ion-input type="time" [(ngModel)]="nuevoPack.rango_horario_inicio"></ion-input>
+              </ion-item>
+              <ion-item lines="none" class="nike-item compact">
+                <ion-label position="stacked" style="margin-bottom:4px; font-size:10px;">Hasta</ion-label>
+                <ion-input type="time" [(ngModel)]="nuevoPack.rango_horario_fin"></ion-input>
               </ion-item>
             </div>
           </div>

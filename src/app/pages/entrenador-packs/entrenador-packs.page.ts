@@ -20,7 +20,8 @@ import { chevronBackOutline, createOutline, trashOutline } from 'ionicons/icons'
     CommonModule,
     FormsModule,
     IonicModule  // aquí está todo lo que necesitas
-  ]
+  ],
+  providers: [AlertController, LoadingController]
 })
 export class EntrenadorPacksPage implements OnInit {
   packs: any[] = [];
@@ -39,7 +40,9 @@ export class EntrenadorPacksPage implements OnInit {
     capacidad_maxima: 6,
     dia_semana: null,
     hora_inicio: null,
-    categoria: ''
+    categoria: '',
+    rango_horario_inicio: null,
+    rango_horario_fin: null
   };
 
   modalOpen = false;
@@ -177,7 +180,9 @@ export class EntrenadorPacksPage implements OnInit {
       capacidad_maxima: 6,
       dia_semana: null,
       hora_inicio: null,
-      categoria: ''
+      categoria: '',
+      rango_horario_inicio: null,
+      rango_horario_fin: null
     };
   }
 

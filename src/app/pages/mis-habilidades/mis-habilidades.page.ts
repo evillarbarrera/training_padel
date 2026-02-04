@@ -51,6 +51,8 @@ export class MisHabilidadesPage implements OnInit {
     storedRadarLabels: string[] = [];
     storedRadarData: number[] = [];
 
+    videos: any[] = [];
+
     constructor(
         private evaluacionService: EvaluacionService,
         private mysqlService: MysqlService,
@@ -84,6 +86,7 @@ export class MisHabilidadesPage implements OnInit {
         if (this.userId) {
             this.loadUserProfile();
             this.loadEvaluaciones();
+            this.loadVideos();
         } else {
             console.warn('No User ID found');
             this.isLoading = false;
@@ -280,6 +283,17 @@ export class MisHabilidadesPage implements OnInit {
                     legend: { display: false }
                 }
             }
+        });
+    }
+
+    loadVideos() {
+        if (!this.userId) return;
+        this.evaluacionService.getVideos(this.userId).subscribe({
+            next: (vids) => {
+                this.videos = vids || [];
+                this.cdr.detectChanges();
+            },
+            error: (err) => console.error('Error loading videos:', err)
         });
     }
 

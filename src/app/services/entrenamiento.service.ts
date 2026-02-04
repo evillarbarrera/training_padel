@@ -37,10 +37,12 @@ export class EntrenamientoService {
     );
   }
 
-  getDisponibilidadEntrenador(entrenadorId: number) {
-    return this.http.get<any[]>(
-      `${this.api}/entrenador/get_disponibilidad.php?entrenador_id=${entrenadorId}`, { headers: this.headers }
-    );
+  getDisponibilidadEntrenador(entrenadorId: number, packId?: number) {
+    let url = `${this.api}/entrenador/get_disponibilidad.php?entrenador_id=${entrenadorId}`;
+    if (packId) {
+      url += `&pack_id=${packId}`;
+    }
+    return this.http.get<any[]>(url, { headers: this.headers });
   }
 
   crearReserva(payload: any): Observable<any> {

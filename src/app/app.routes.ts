@@ -59,6 +59,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/pack-alumno/pack-alumno.page').then(m => m.PackAlumnoPage)
   },
   {
+    path: 'alumno-mis-packs',
+    loadComponent: () => import('./pages/alumno-mis-packs/alumno-mis-packs.page').then(m => m.AlumnoMisPacksPage)
+  },
+  {
     path: 'disponibilidad-entrenador',
     loadComponent: () => import('./pages/disponibilidad-entrenador/disponibilidad-entrenador.page').then(m => m.DisponibilidadEntrenadorPage)
   },

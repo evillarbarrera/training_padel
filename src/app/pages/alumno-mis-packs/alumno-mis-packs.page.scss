@@ -1,0 +1,376 @@
+/* Nike Hero Header */
+.header-nike {
+    position: relative;
+    height: 180px;
+    background: url('../../../assets/mod-packs.jpg') no-repeat center center/cover;
+    display: flex;
+    align-items: center;
+    padding: 0 25px;
+    color: #fff;
+
+    .header-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.4) 100%);
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 1;
+
+        .header-title {
+            font-size: 32px;
+            font-weight: 900;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: -1.5px;
+            font-style: italic;
+        }
+
+        .header-sub {
+            font-size: 14px;
+            opacity: 0.8;
+            margin: 5px 0 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    }
+}
+
+.main-container {
+    padding: 20px;
+    margin-top: -30px;
+    background: #f8f9fa;
+    border-radius: 30px 30px 0 0;
+    min-height: calc(100vh - 150px);
+    position: relative;
+    z-index: 2;
+}
+
+.action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #111;
+        margin: 0;
+    }
+}
+
+/* Pack Cards */
+.packs-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.nike-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+
+    &.grupal {
+        border-left: 5px solid #ffc107;
+    }
+
+    .card-header {
+        margin-bottom: 20px;
+
+        .pack-name-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+
+            .pack-name {
+                font-size: 20px;
+                font-weight: 900;
+                margin: 0;
+                color: #111;
+                letter-spacing: -0.5px;
+            }
+        }
+    }
+}
+
+/* Progress Bar */
+.sessions-info {
+    margin-bottom: 20px;
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+
+        .label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .val {
+            font-size: 14px;
+            font-weight: 800;
+            color: #111;
+        }
+    }
+
+    .progress-bar-bg {
+        height: 8px;
+        background: #eee;
+        border-radius: 10px;
+        overflow: hidden;
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #000, #444);
+            border-radius: 10px;
+            transition: width 1s ease-out;
+        }
+    }
+}
+
+/* Team Management */
+.team-management {
+    border-top: 1px dashed #eee;
+    padding-top: 15px;
+
+    .team-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #444;
+        margin-bottom: 12px;
+
+        ion-icon {
+            font-size: 16px;
+        }
+    }
+
+    .members-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+
+        .member-chip,
+        .add-member-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px 5px 5px;
+            background: #f0f0f0;
+            border-radius: 30px;
+
+            .avatar {
+                width: 24px;
+                height: 24px;
+                background: #000;
+                color: #fff;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 10px;
+                font-weight: 900;
+            }
+
+            .name {
+                font-size: 11px;
+                font-weight: 700;
+                color: #111;
+            }
+
+            &.me {
+                background: #000;
+                color: #fff;
+
+                .avatar {
+                    background: #fff;
+                    color: #000;
+                }
+
+                .name {
+                    color: #fff;
+                }
+            }
+        }
+
+        .add-member-chip {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            justify-content: center;
+            background: #fff;
+            border: 2px dashed #ccc;
+            color: #999;
+            transition: all 0.2s;
+
+            &:active {
+                border-color: #000;
+                color: #000;
+                transform: scale(0.95);
+            }
+        }
+    }
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 40px;
+
+    ion-icon {
+        font-size: 80px;
+        color: #ddd;
+        margin-bottom: 20px;
+    }
+
+    h3 {
+        font-size: 22px;
+        font-weight: 900;
+        color: #111;
+        margin-bottom: 10px;
+    }
+
+    p {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 30px;
+    }
+}
+
+/* Nike Button */
+.nike-btn {
+    --border-radius: 12px;
+    --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 14px;
+    height: 50px;
+}
+
+.nike-btn-large {
+    --background: #000;
+    --color: #fff;
+    --border-radius: 15px;
+    --padding-top: 15px;
+    --padding-bottom: 15px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Modal Styling */
+.invitation-modal {
+    --height: 400px;
+    --border-radius: 30px 30px 0 0;
+    --align-items: flex-end;
+
+    .modal-intro {
+        text-align: center;
+        padding-bottom: 20px;
+
+        ion-icon {
+            font-size: 48px;
+            color: #000;
+            margin-bottom: 15px;
+        }
+
+        p {
+            font-size: 15px;
+            color: #444;
+            line-height: 1.4;
+        }
+    }
+
+    .nike-input-item {
+        --background: #f5f5f5;
+        --border-radius: 15px;
+        --padding-start: 15px;
+        margin-bottom: 20px;
+
+        ion-label {
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            color: #666;
+            margin-bottom: 8px !important;
+        }
+
+        ion-input {
+            --padding-top: 10px;
+            --padding-bottom: 10px;
+            font-weight: 600;
+        }
+    }
+}
+
+/* Animations */
+.animate-up {
+    animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.animate-pop {
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.nike-fab {
+    --background: #000;
+    --background-activated: #333;
+    --color: #fff;
+    --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 100px 0;
+
+    p {
+        margin-top: 15px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+}

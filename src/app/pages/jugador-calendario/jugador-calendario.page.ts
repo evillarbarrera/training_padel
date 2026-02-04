@@ -12,7 +12,8 @@ import { chevronBackOutline, calendarOutline, personOutline, timeOutline } from 
   templateUrl: './jugador-calendario.page.html',
   styleUrls: ['./jugador-calendario.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule],
+  providers: [AlertController, ToastController]
 })
 export class JugadorCalendarioPage implements OnInit {
   reservasIndividuales: any[] = [];

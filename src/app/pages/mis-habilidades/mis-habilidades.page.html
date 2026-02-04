@@ -31,6 +31,9 @@
                 <ion-segment-button value="evolution">
                     <ion-label>Evolución</ion-label>
                 </ion-segment-button>
+                <ion-segment-button value="videos">
+                    <ion-label>Videos</ion-label>
+                </ion-segment-button>
             </ion-segment>
         </div>
 
@@ -51,6 +54,29 @@
 
             <div class="canvas-wrapper">
                 <canvas id="progressLineChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Videos View -->
+        <div class="videos-view animate-up" *ngIf="selectedTab === 'videos'">
+            <div class="no-videos" *ngIf="videos.length === 0">
+                <ion-icon name="videocam-off-outline"></ion-icon>
+                <h3>Sin videos</h3>
+                <p>Tu entrenador aún no ha subido clips de tus sesiones.</p>
+            </div>
+
+            <div class="video-card-nike" *ngFor="let vid of videos">
+                <div class="video-wrapper">
+                    <video [src]="vid.video_url" controls preload="metadata" playsinline></video>
+                </div>
+                <div class="video-footer">
+                    <div class="vid-meta">
+                        <span class="vid-date">{{ vid.fecha | date:'dd/MM/yyyy' }}</span>
+                        <span class="vid-coach">Coach {{ vid.entrenador_nombre }}</span>
+                    </div>
+                    <h4 class="vid-title">{{ vid.titulo || 'Clip de Entrenamiento' }}</h4>
+                    <p class="vid-comment" *ngIf="vid.comentario">{{ vid.comentario }}</p>
+                </div>
             </div>
         </div>
 
