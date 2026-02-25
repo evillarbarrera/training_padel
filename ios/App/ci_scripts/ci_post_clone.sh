@@ -3,45 +3,22 @@
 # Salir inmediatamente si un comando falla
 set -e
 
-echo "--- Debugging Environment ---"
-echo "Path: $PATH"
-echo "Directory: $(pwd)"
+echo "--- Starting CI Post-Clone Script ---"
 
-# Xcode Cloud doesn't always have Node in the PATH. 
-# We try to find it or install it if necessary.
-# However, usually it's better to expect it or use a fallback.
+# The script runs from ios/App/ci_scripts folder.
+# We just need to go to ios/App and run pod install.
+# Since we committed 'www' and synced locally, the native project is ready.
 
-if command -v npm >/dev/null 2>&1; then
-    echo "npm is available at $(command -v npm)"
-else
-    echo "npm NOT found. Trying to add common paths..."
-    export PATH=$PATH:/usr/local/bin:/opt/homebrew/bin
-fi
+cd ..
+echo "--- Current directory: $(pwd) ---"
 
-# Try again
-if ! command -v npm >/dev/null 2>&1; then
-    echo "Error: npm is still not found. Xcode Cloud might need Node.js enabled in the workflow."
-    exit 127
-fi
+# Install CocoaPods
+export HOMEBREW_NO_AUTO_UPDATE=1
+echo "--- Installing CocoaPods via Homebrew ---"
+brew install cocoapods
 
-echo "--- Repository Path: $CI_PRIMARY_REPOSITORY_PATH ---"
-cd "$CI_PRIMARY_REPOSITORY_PATH"
-
-# 1. Instalar dependencias
-echo "--- npm install ---"
-npm install
-
-# 2. Build
-echo "--- npm run build ---"
-npm run build
-
-# 3. Capacitor Sync
-echo "--- npx cap sync ios ---"
-npx cap sync ios
-
-# 4. Pods
-echo "--- Pod install ---"
-cd ios/App
+# Install dependencies.
+echo "--- Running pod install ---"
 pod install
 
-echo "--- CI Post-Clone Script Successful ---"
+echo "--- Post-clone script finished ---"
