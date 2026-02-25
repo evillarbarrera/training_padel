@@ -24,6 +24,9 @@ fi
 
 # 2. Instalar dependencias de Node
 # Esto es CRUCIAL para que el Podfile encuentre los scripts de Capacitor
+echo "--- Removing ngrok to prevent download issues ---"
+npm pkg delete devDependencies.ngrok || true
+
 echo "--- Running npm install ---"
 npm install --legacy-peer-deps --ignore-scripts
 
