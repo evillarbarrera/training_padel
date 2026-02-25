@@ -91,8 +91,14 @@ export class EntrenadorEntrenamientosPage implements OnInit {
     for (let i = 0; i < 6; i++) {
       const fecha = new Date();
       fecha.setDate(hoy.getDate() + i);
-      const fechaStr = fecha.toISOString().split('T')[0];
-      const diaNumero = fecha.getDay(); // Guardar aquí en zona LOCAL
+
+      // Formato local YYYY-MM-DD
+      const y = fecha.getFullYear();
+      const m = (fecha.getMonth() + 1).toString().padStart(2, '0');
+      const d = fecha.getDate().toString().padStart(2, '0');
+      const fechaStr = `${y}-${m}-${d}`;
+
+      const diaNumero = fecha.getDay(); // 0 (Sun) to 6 (Sat)
 
       this.dias.push({
         nombre: i === 0 ? 'Hoy' : nombresDias[diaNumero],
@@ -130,24 +136,67 @@ export class EntrenadorEntrenamientosPage implements OnInit {
 
 
 
-        // Distribuir en días por fecha (solo reservas tradicionales tienen fecha)
+        // Distribuir en días
         this.dias.forEach(dia => {
-          // Usar el diaNumero guardado en zona LOCAL, no recalcularlo
           const diaBDFormato = dia.diaNumero; // 0-6 en formato correcto
 
-          dia.data = todasReservas.filter(r => {
-            if (r.tipo === 'grupal') {
-              // Los packs grupales usan formato BD 0-6
-              const match = diaBDFormato === r.dia_semana;
-              if (!match) {
+          // 1. Obtener reservas específicas para este día (fecha exacta)
+          const reservasDia = todasReservas
+            .filter(r => r.tipo !== 'grupal' && r.fecha === dia.fecha)
+            .map(r => {
+              const inscritos = r.inscritos || [];
+              const jugadores = inscritos.map((ins: any) => {
+                let foto = ins.foto;
+                if (foto && foto.length > 5 && !foto.includes('imagen_defecto')) {
+                  if (!foto.startsWith('http')) {
+                    const cleanPath = foto.startsWith('/') ? foto.substring(1) : foto;
+                    foto = `https://api.padelmanager.cl/${cleanPath}`;
+                  }
+                } else {
+                  foto = `https://ui-avatars.com/api/?name=${encodeURIComponent(ins.nombre)}&background=ccff00&color=000`;
+                }
+                return {
+                  nombre: ins.nombre,
+                  foto: foto
+                };
+              });
 
+              return {
+                ...r,
+                jugadores: jugadores
+              };
+            });
+
+          // 2. Obtener templates grupales para este día de la semana
+          // (Filtrar aquellos que ya tengan una reserva específica creada a la misma hora)
+          const templatesDia = todasReservas.filter(r =>
+            r.tipo === 'grupal' &&
+            Number(r.dia_semana) === diaBDFormato &&
+            !reservasDia.some(res => res.hora_inicio === r.hora_inicio)
+          ).map(r => {
+            const inscritos = r.inscritos || [];
+            const jugadores = inscritos.map((ins: any) => {
+              let foto = ins.foto;
+              if (foto && foto.length > 5 && !foto.includes('imagen_defecto')) {
+                if (!foto.startsWith('http')) {
+                  const cleanPath = foto.startsWith('/') ? foto.substring(1) : foto;
+                  foto = `https://api.padelmanager.cl/${cleanPath}`;
+                }
+              } else {
+                foto = `https://ui-avatars.com/api/?name=${encodeURIComponent(ins.nombre)}&background=ccff00&color=000`;
               }
-              return match;
-            } else {
-              // Las reservas tradicionales por fecha exacta
-              return r.fecha === dia.fecha;
-            }
+              return {
+                nombre: ins.nombre,
+                foto: foto
+              };
+            });
+            return { ...r, jugadores };
           });
+
+          dia.data = [...reservasDia, ...templatesDia];
+
+          // Ordenar por hora
+          dia.data.sort((a, b) => (a.hora_inicio || '').localeCompare(b.hora_inicio || ''));
         });
 
 

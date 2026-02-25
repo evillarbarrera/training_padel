@@ -24,12 +24,14 @@ export class PacksService {
     return this.http.get(`${this.apiUrl}/get_mis_packs.php?entrenador_id=${userId}`, { headers: this.headers });
   }
 
-  getAllPacks(lat?: number, lng?: number, rad?: number): Observable<any> {
+  getAllPacks(lat?: number, lng?: number, rad?: number, region?: string, comuna?: string): Observable<any> {
     let url = `${this.apiUrl}/get_all_packs.php`;
     const params = [];
     if (lat) params.push(`lat=${lat}`);
     if (lng) params.push(`lng=${lng}`);
     if (rad) params.push(`rad=${rad}`);
+    if (region) params.push(`region=${region}`);
+    if (comuna) params.push(`comuna=${comuna}`);
 
     if (params.length > 0) {
       url += `?${params.join('&')}`;

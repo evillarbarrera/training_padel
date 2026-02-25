@@ -1,5 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import {
+  IonModal,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonButtons,
   IonContent,
   IonFab,
   IonFabButton,
@@ -8,14 +13,16 @@ import {
   IonSegmentButton,
   IonLabel,
   IonButton,
-  ToastController
+  ToastController,
+  AlertController,
+  LoadingController
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EntrenamientoService } from '../../services/entrenamiento.service';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { saveOutline, checkmarkDoneOutline, closeCircleOutline, chevronBackOutline } from 'ionicons/icons';
+import { saveOutline, checkmarkDoneOutline, closeCircleOutline, chevronBackOutline, settingsOutline, flashOutline } from 'ionicons/icons';
 
 /* =============================
    INTERFACES
@@ -51,7 +58,12 @@ interface DiaSemana {
     IonSegment,
     IonSegmentButton,
     IonLabel,
-    IonButton
+    IonButton,
+    IonModal,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonButtons
   ]
 })
 export class DisponibilidadEntrenadorPage implements OnInit {
@@ -59,21 +71,38 @@ export class DisponibilidadEntrenadorPage implements OnInit {
   entrenador_id = Number(localStorage.getItem('userId'));
   club_id = 1;
 
-  dias: DiaSemana[] = [];
-  diaSeleccionado!: string;
-
-  bloquesPorDia: { [fecha: string]: BloqueHorario[] } = {};
-
-  /** Guarda lo que YA EXISTE en BD */
-  disponibilidadExistente: Set<string> = new Set();
+  // Default Week Config
+  showDefaultModal = false;
+  diasSemana = [
+    { id: 1, name: 'Lunes' },
+    { id: 2, name: 'Martes' },
+    { id: 3, name: 'Miércoles' },
+    { id: 4, name: 'Jueves' },
+    { id: 5, name: 'Viernes' },
+    { id: 6, name: 'Sábado' },
+    { id: 0, name: 'Domingo' }
+  ];
+  templateBlocks: { [dayId: number]: { time: string, selected: boolean }[] } = {};
+  selectedDayTemplate: number = 1; // Default Lunes
 
   constructor(
     private entrenamientoService: EntrenamientoService,
     private toastCtrl: ToastController,
-    private router: Router
+    private router: Router,
+    private alertController: AlertController,
+    private loadingCtrl: LoadingController
   ) {
-    addIcons({ saveOutline, checkmarkDoneOutline, closeCircleOutline, chevronBackOutline });
+    addIcons({ saveOutline, checkmarkDoneOutline, closeCircleOutline, chevronBackOutline, settingsOutline, flashOutline });
   }
+
+  /* =============================
+     PROPERTIES
+  ============================== */
+  dias: DiaSemana[] = [];
+  diaSeleccionado: string = '';
+  bloquesPorDia: { [fecha: string]: BloqueHorario[] } = {};
+  disponibilidadExistente: Set<string> = new Set();
+  isLoading = false;
 
   /* =============================
      INIT
@@ -82,44 +111,44 @@ export class DisponibilidadEntrenadorPage implements OnInit {
     this.crearSemanaDesdeHoy();
     this.generarBloquesSemana();
     this.cargarDisponibilidadExistente();
-    // cargarReservasExistentes is now called from cargarDisponibilidadExistente after blocks are ready
   }
 
   /* =============================
-     SEMANA (10 DÍAS)
+     SEMANA (30 DÍAS)
   ============================== */
   crearSemanaDesdeHoy() {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
 
-    const TOTAL_DIAS = 10;
+    const TOTAL_DIAS = 30; // Changed from 10 to 30 to match web
 
-    const nombresDias = [
-      'Domingo',
-      'Lunes',
-      'Martes',
-      'Miércoles',
-      'Jueves',
-      'Viernes',
-      'Sábado'
-    ];
+    const nombresDias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
     this.dias = [];
 
-    for (let i = 0; i <= TOTAL_DIAS; i++) {
+    for (let i = 0; i < TOTAL_DIAS; i++) {
       const fecha = new Date(hoy);
       fecha.setDate(hoy.getDate() + i);
 
       this.dias.push({
         nombre: nombresDias[fecha.getDay()],
-        fecha: fecha.toISOString().split('T')[0],
+        fecha: this.getLocalISODate(fecha),
         hora_inicio: '07:00',
         hora_fin: '21:00',
         duracion: 60
       });
     }
 
-    this.diaSeleccionado = this.dias[0].fecha;
+    if (this.dias.length > 0) {
+      this.diaSeleccionado = this.dias[0].fecha;
+    }
+  }
+
+  getLocalISODate(date: Date): string {
+    const y = date.getFullYear();
+    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+    const d = date.getDate().toString().padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 
   /* =============================
@@ -127,7 +156,6 @@ export class DisponibilidadEntrenadorPage implements OnInit {
   ============================== */
   generarBloquesSemana() {
     this.bloquesPorDia = {};
-
     this.dias.forEach(dia => {
       this.bloquesPorDia[dia.fecha] = this.generarBloquesDia(
         dia.fecha,
@@ -138,14 +166,8 @@ export class DisponibilidadEntrenadorPage implements OnInit {
     });
   }
 
-  generarBloquesDia(
-    fecha: string,
-    horaInicio: string,
-    horaFin: string,
-    duracion: number
-  ): BloqueHorario[] {
+  generarBloquesDia(fecha: string, horaInicio: string, horaFin: string, duracion: number): BloqueHorario[] {
     const bloques: BloqueHorario[] = [];
-
     let inicio = new Date(`${fecha}T${horaInicio}:00`);
     const fin = new Date(`${fecha}T${horaFin}:00`);
 
@@ -153,121 +175,107 @@ export class DisponibilidadEntrenadorPage implements OnInit {
       const finBloque = new Date(inicio.getTime() + duracion * 60000);
       if (finBloque > fin) break;
 
-      const key = `${fecha} ${inicio.toTimeString().slice(0, 5)}:00-${fecha} ${finBloque.toTimeString().slice(0, 5)}:00`;
+      const key = `${fecha} ${this.formatTime(inicio)}-${fecha} ${this.formatTime(finBloque)}`;
 
       bloques.push({
         fecha,
-        hora_inicio: inicio.toTimeString().slice(0, 5),
-        hora_fin: finBloque.toTimeString().slice(0, 5),
+        hora_inicio: this.formatTime(inicio).slice(0, 5), // "HH:MM"
+        hora_fin: this.formatTime(finBloque).slice(0, 5),
         seleccionado: this.disponibilidadExistente.has(key),
         ocupado: false
       });
 
       inicio = finBloque;
     }
-
     return bloques;
   }
 
+  private formatTime(date: Date): string {
+    return date.toTimeString().slice(0, 8); // "HH:MM:SS"
+  }
+
   /* =============================
-     CARGAR DISPONIBILIDAD BD
+     CARGAR DATA
   ============================== */
   cargarDisponibilidadExistente() {
-    this.entrenamientoService
-      .getDisponibilidad(this.entrenador_id, this.club_id)
-      .subscribe((data: any[]) => {
+    this.isLoading = true;
+    this.entrenamientoService.getDisponibilidad(this.entrenador_id, this.club_id).subscribe({
+      next: (data: any[]) => {
         data.forEach(d => {
           const key = `${d.fecha_inicio}-${d.fecha_fin}`;
           this.disponibilidadExistente.add(key);
         });
-
-        // Re-generar bloques con selección aplicada
         this.generarBloquesSemana();
-
-        // Cargar reservas DESPUÉS de generar bloques
         this.cargarReservasExistentes();
-      });
+      },
+      error: (err) => {
+        console.error(err);
+        this.isLoading = false;
+      }
+    });
   }
 
-  /* =============================
-     CARGAR RESERVAS BD
-  ============================== */
   cargarReservasExistentes() {
-    this.entrenamientoService
-      .getReservasEntrenador(this.entrenador_id)
-      .subscribe((data: any) => {
+    this.entrenamientoService.getReservasEntrenador(this.entrenador_id).subscribe({
+      next: (data: any) => {
+        const reservas = [...(data.reservas_tradicionales || []), ...(data.packs_grupales || [])];
 
-
-        // Combinar reservas tradicionales y packs grupales en una sola array
-        const reservas = [
-          ...(data.reservas_tradicionales || []),
-          ...(data.packs_grupales || [])
-        ];
-
-
-
-        // Marcar bloques como ocupados si tienen reservas
         Object.keys(this.bloquesPorDia).forEach(fecha => {
           this.bloquesPorDia[fecha].forEach(bloque => {
-            // Buscar si hay una reserva para esta fecha y hora
             const tieneReserva = reservas.some(reserva => {
               if (!reserva.fecha || !reserva.hora_inicio) return false;
+              const status = reserva.estado || reserva.estado_grupo;
+              if (status === 'cancelado') return false;
 
-              const fechaReserva = reserva.fecha;
-              // Extraer solo HH:MM (primeros 5 caracteres) del hora_inicio
-              const horaReservaCompleta = String(reserva.hora_inicio);
-              const horaReserva = horaReservaCompleta.slice(0, 5); // "19:00" de "19:00:00"
-
-              const match = fechaReserva === fecha && horaReserva === bloque.hora_inicio;
-
-              if (match) {
-
-              }
-
-              return match;
+              // Fix for time format
+              const horaReserva = String(reserva.hora_inicio).slice(0, 5);
+              return reserva.fecha === fecha && horaReserva === bloque.hora_inicio;
             });
 
-            if (tieneReserva) {
-
-              bloque.ocupado = true;
-            }
+            if (tieneReserva) bloque.ocupado = true;
           });
         });
-
-
-      }, error => {
-        console.error('Error al cargar reservas:', error);
-      });
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.isLoading = false;
+      }
+    });
   }
 
   /* =============================
-     SELECCIÓN
+     INTERACTION
   ============================== */
+  seleccionarDia(fecha: string) {
+    this.diaSeleccionado = fecha;
+  }
+
+  get bloquesActuales() {
+    return this.bloquesPorDia[this.diaSeleccionado] || [];
+  }
+
   toggleBloque(b: BloqueHorario) {
     if (b.ocupado) return;
     b.seleccionado = !b.seleccionado;
   }
 
   seleccionarTodos() {
-    this.bloquesPorDia[this.diaSeleccionado].forEach(b => {
-      if (!b.ocupado) b.seleccionado = true;
-    });
+    this.bloquesActuales.forEach(b => { if (!b.ocupado) b.seleccionado = true; });
   }
 
   deseleccionarTodos() {
-    this.bloquesPorDia[this.diaSeleccionado].forEach(b => {
-      if (!b.ocupado) b.seleccionado = false;
-    });
+    this.bloquesActuales.forEach(b => { if (!b.ocupado) b.seleccionado = false; });
   }
 
   get todosSeleccionados(): boolean {
-    return this.bloquesPorDia[this.diaSeleccionado]?.every(
-      b => b.seleccionado || b.ocupado
-    );
+    const bloques = this.bloquesActuales;
+    if (!bloques || bloques.length === 0) return false;
+    return bloques.every(b => b.seleccionado || b.ocupado);
   }
 
   /* =============================
-     GUARDAR (SYNC REAL)
+     GUARDAR
   ============================== */
   guardarDisponibilidad() {
     const crear: any[] = [];
@@ -298,16 +306,147 @@ export class DisponibilidadEntrenadorPage implements OnInit {
       });
     });
 
-    this.entrenamientoService
-      .syncDisponibilidad({ crear, eliminar })
-      .subscribe(() => {
-        // Refresca estado local
+    if (crear.length === 0 && eliminar.length === 0) {
+      this.mostrarToast('No hay cambios para guardar');
+      return;
+    }
+
+    this.isLoading = true;
+    this.entrenamientoService.syncDisponibilidad({ crear, eliminar }).subscribe({
+      next: () => {
         this.disponibilidadExistente.clear();
-        crear.forEach(c =>
-          this.disponibilidadExistente.add(`${c.fecha_inicio}-${c.fecha_fin}`)
-        );
+        this.dias = [];
+        this.crearSemanaDesdeHoy();
+        this.cargarDisponibilidadExistente();
         this.mostrarToast('✅ Horario actualizado correctamente');
+      },
+      error: () => {
+        this.isLoading = false;
+        this.mostrarToast('❌ Error al guardar');
+      }
+    });
+  }
+
+  /* =============================
+     DEFAULT CONFIG
+  ============================== */
+  openDefaultModal() {
+    this.isLoading = true;
+    this.initTemplateBlocks();
+    this.entrenamientoService.getDefaultConfig(this.entrenador_id).subscribe({
+      next: (res) => {
+        res.forEach(range => {
+          const dayId = range.dia_semana;
+          const start = range.hora_inicio;
+          const end = range.hora_fin;
+          if (this.templateBlocks[dayId]) {
+            this.templateBlocks[dayId].forEach(b => {
+              if (b.time >= start && b.time < end) b.selected = true;
+            });
+          }
+        });
+        this.showDefaultModal = true;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        this.mostrarToast('Error cargando configuración');
+      }
+    });
+  }
+
+  initTemplateBlocks() {
+    this.templateBlocks = {};
+    const horas: string[] = [];
+    for (let h = 7; h <= 22; h++) {
+      const hh = h < 10 ? '0' + h : h;
+      horas.push(`${hh}:00`);
+    }
+    this.diasSemana.forEach(d => {
+      this.templateBlocks[d.id] = horas.map(h => ({ time: h, selected: false }));
+    });
+  }
+
+  toggleTemplateBlock(dayId: number, block: any) {
+    block.selected = !block.selected;
+  }
+
+  seleccionarTodoDiaTemplate(dayId: number) {
+    this.templateBlocks[dayId].forEach(b => b.selected = true);
+  }
+
+  deseleccionarTodoDiaTemplate(dayId: number) {
+    this.templateBlocks[dayId].forEach(b => b.selected = false);
+  }
+
+  saveDefaultConfig() {
+    this.isLoading = true;
+    const config: any[] = [];
+
+    Object.keys(this.templateBlocks).forEach(dayKey => {
+      const dayId = parseInt(dayKey);
+      const blocks = this.templateBlocks[dayId];
+      let currentRange: any = null;
+
+      blocks.forEach((b, idx) => {
+        if (b.selected) {
+          if (!currentRange) {
+            currentRange = {
+              dia_semana: dayId,
+              hora_inicio: b.time,
+              duracion_bloque: 60
+            };
+          }
+        } else {
+          if (currentRange) {
+            currentRange.hora_fin = b.time;
+            config.push(currentRange);
+            currentRange = null;
+          }
+        }
+        if (idx === blocks.length - 1 && currentRange) {
+          const lastH = parseInt(b.time.split(':')[0]);
+          currentRange.hora_fin = (lastH + 1 < 10 ? '0' : '') + (lastH + 1) + ':00';
+          config.push(currentRange);
+        }
       });
+    });
+
+    this.entrenamientoService.saveDefaultConfig({ entrenador_id: this.entrenador_id, config }).subscribe({
+      next: () => {
+        this.mostrarToast('✅ Plantilla semanal guardada');
+        this.showDefaultModal = false;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.mostrarToast('❌ Error al guardar plantilla');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  async applyDefaultConfig() {
+    const alert = await this.alertController.create({
+      header: 'Aplicar Plantilla',
+      message: 'Esto generará tus bloques para los próximos 30 días. ¿Continuar?',
+      buttons: [{ text: 'Cancelar', role: 'cancel' }, { text: 'Continuar', role: 'confirm', handler: () => this.confirmApply() }]
+    });
+    await alert.present();
+  }
+
+  confirmApply() {
+    this.isLoading = true;
+    this.entrenamientoService.applyDefaultConfig({ entrenador_id: this.entrenador_id, days_ahead: 30 }).subscribe({
+      next: () => {
+        this.mostrarToast('✅ Plantilla aplicada (30 días)');
+        this.disponibilidadExistente.clear();
+        this.cargarDisponibilidadExistente();
+      },
+      error: () => {
+        this.mostrarToast('❌ Error aplicando plantilla');
+        this.isLoading = false;
+      }
+    });
   }
 
   async mostrarToast(mensaje: string) {
@@ -315,8 +454,7 @@ export class DisponibilidadEntrenadorPage implements OnInit {
       message: mensaje,
       duration: 2500,
       position: 'bottom',
-      color: 'dark',
-      cssClass: 'nike-toast'
+      color: 'dark'
     });
     toast.present();
   }

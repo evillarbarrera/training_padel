@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { EntrenamientoService } from '../../services/entrenamiento.service';
 import { MysqlService } from '../../services/mysql.service';
-import { IonicModule, ToastController, AlertController } from '@ionic/angular';
+import { PacksService } from '../../services/pack.service';
+import { PackAlumnoService } from '../../services/pack_alumno.service';
+import { IonicModule, ToastController, AlertController, LoadingController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, peopleOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, peopleOutline, locationOutline, searchOutline, closeOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { chevronBackOutline } from 'ionicons/icons';
 
 @Component({
@@ -35,9 +37,57 @@ export class JugadorReservasPage implements OnInit {
   packs: any[] = [];
   entrenadores: any[] = [];
   selectedEntrenador: number | null = null;
-  selectedPack: any = null; // New
-  packsDelEntrenador: any[] = []; // New
+  selectedPack: any = null;
+  packsDelEntrenador: any[] = [];
   jugadorId = Number(localStorage.getItem('userId'));
+
+  // Discovery & Filtering
+  tipoEntrenamiento: 'todos' | 'individual' | 'multiplayer' | 'grupal' = 'todos';
+  regionSeleccionada: string = '';
+  comunaSeleccionada: string = '';
+  regions = [
+    { id: '13', name: 'Metropolitana de Santiago' },
+    { id: '15', name: 'Arica y Parinacota' },
+    { id: '1', name: 'Tarapacá' },
+    { id: '2', name: 'Antofagasta' },
+    { id: '3', name: 'Atacama' },
+    { id: '4', name: 'Coquimbo' },
+    { id: '5', name: 'Valparaíso' },
+    { id: '6', name: 'O\'Higgins' },
+    { id: '7', name: 'Maule' },
+    { id: '16', name: 'Ñuble' },
+    { id: '8', name: 'Biobío' },
+    { id: '9', name: 'Araucanía' },
+    { id: '14', name: 'Los Ríos' },
+    { id: '10', name: 'Los Lagos' },
+    { id: '11', name: 'Aysén' },
+    { id: '12', name: 'Magallanes' }
+  ];
+  allComunas: any = {
+    '13': ['Santiago', 'Las Condes', 'Providencia', 'Ñuñoa', 'Maipú', 'Puente Alto', 'La Florida', 'Vitacura', 'Lo Barnechea', 'Colina', 'Lampa', 'San Bernardo', 'Peñalolén'],
+    '15': ['Arica', 'Camarones', 'Putre', 'General Lagos'],
+    '1': ['Iquique', 'Alto Hospicio', 'Pozo Almonte', 'Pica', 'Huara'],
+    '2': ['Antofagasta', 'Calama', 'Mejillones', 'Taltal', 'Tocopilla'],
+    '3': ['Copiapó', 'Vallenar', 'Caldera', 'Chañaral', 'Huasco'],
+    '4': ['La Serena', 'Coquimbo', 'Ovalle', 'Illapel', 'Vicuña', 'Salamanca'],
+    '5': ['Valparaíso', 'Viña del Mar', 'Concón', 'Quilpué', 'Villa Alemana', 'Limache', 'Quillota', 'San Antonio', 'Los Andes', 'San Felipe'],
+    '6': ['Rancagua', 'Machalí', 'Rengo', 'San Fernando', 'Pichilemu', 'Santa Cruz'],
+    '7': ['Talca', 'Curicó', 'Linares', 'Constitución', 'Cauquenes', 'Parral'],
+    '16': ['Chillán', 'Chillán Viejo', 'San Carlos', 'Bulnes', 'Yungay'],
+    '8': ['Concepción', 'Talcahuano', 'San Pedro de la Paz', 'Chiguayante', 'Hualpén', 'Los Ángeles', 'Coronel', 'Lota', 'Tomé', 'Penco'],
+    '9': ['Temuco', 'Padre Las Casas', 'Villarrica', 'Pucón', 'Angol', 'Victoria', 'Lautaro'],
+    '14': ['Valdivia', 'La Unión', 'Río Bueno', 'Panguipulli', 'Paillaco', 'Mariquina'],
+    '10': ['Puerto Montt', 'Puerto Varas', 'Osorno', 'Castro', 'Ancud', 'Quellón', 'Frutillar'],
+    '11': ['Coyhaique', 'Puerto Aysén', 'Chile Chico', 'Cochrane'],
+    '12': ['Punta Arenas', 'Puerto Natales', 'Porvenir', 'Cabo de Hornos']
+  };
+  filteredComunas: string[] = [];
+  isLoadingDiscovery: boolean = false;
+
+  // Pack Purchase Modal
+  showPackModal: boolean = false;
+  availablePacks: any[] = [];
+  pendingHorario: any = null;
 
   // Para mis entrenamientos
   reservasIndividuales: any[] = [];
@@ -50,9 +100,13 @@ export class JugadorReservasPage implements OnInit {
   constructor(
     private entrenamientoService: EntrenamientoService,
     private mysqlService: MysqlService,
+    private packsService: PacksService,
+    private packAlumnoService: PackAlumnoService,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
+    private loadingCtrl: LoadingController,
     private router: Router,
+    private route: ActivatedRoute,
   ) {
     addIcons({
       settingsOutline,
@@ -60,23 +114,68 @@ export class JugadorReservasPage implements OnInit {
       calendarOutline,
       chevronBackOutline,
       logOutOutline,
-      peopleOutline
+      peopleOutline,
+      locationOutline,
+      searchOutline,
+      closeOutline,
+      checkmarkCircleOutline
     });
   }
 
   ngOnInit() {
-    // Obtener userId del localStorage
     const userIdStr = localStorage.getItem('userId');
     this.jugadorId = userIdStr ? Number(userIdStr) : 0;
 
     if (this.jugadorId <= 0) {
-      console.error('Error: No se encontró userId en localStorage');
+      this.router.navigate(['/login']);
       return;
     }
 
-    this.cargarMisEntrenamientos();
+    this.route.queryParams.subscribe(params => {
+      if (params['view']) {
+        this.vistaActual = params['view'];
+      }
+      this.cargarMisEntrenamientos();
+    });
+
+    this.loadUserProfile();
+  }
+
+  loadUserProfile() {
+    this.mysqlService.getPerfil(this.jugadorId).subscribe({
+      next: (res) => {
+        if (res.success) {
+          if (res.direccion) {
+            this.regionSeleccionada = res.direccion.region || '';
+            const selectedRegionObj = this.regions.find(r => r.name === this.regionSeleccionada);
+            if (selectedRegionObj) {
+              this.filteredComunas = this.allComunas[selectedRegionObj.id] || [];
+              this.comunaSeleccionada = res.direccion.comuna || '';
+            }
+          }
+        }
+        this.cargarEntrenadores();
+      },
+      error: () => this.cargarEntrenadores()
+    });
+  }
+
+  updateComunas(keepComuna = false): void {
+    const selectedRegion = this.regions.find(r => r.name === this.regionSeleccionada);
+    if (selectedRegion) {
+      this.filteredComunas = this.allComunas[selectedRegion.id] || [];
+      if (!keepComuna) this.comunaSeleccionada = '';
+    } else {
+      this.filteredComunas = [];
+    }
     this.cargarEntrenadores();
   }
+
+  onComunaChange(): void {
+    this.cargarEntrenadores();
+  }
+
+
 
   cargarMisEntrenamientos() {
     this.cargando = true;
@@ -84,16 +183,9 @@ export class JugadorReservasPage implements OnInit {
       next: (res: any) => {
         const ahora = new Date();
 
-        // Filtrar reservas que aún no han pasado
-        this.reservasIndividuales = (res.reservas_individuales || []).filter((r: any) => {
-          const fecha_hora = new Date(r.fecha + 'T' + r.hora_inicio);
-          return fecha_hora > ahora;
-        });
-
-        this.entrenamientosGrupales = (res.entrenamientos_grupales || []).filter((g: any) => {
-          const fecha_hora = new Date(g.fecha + 'T' + g.hora_inicio);
-          return fecha_hora > ahora;
-        });
+        // Mostrar todas las reservas que entrega la API (que ya vienen filtradas por fecha relevante)
+        this.reservasIndividuales = res.reservas_individuales || [];
+        this.entrenamientosGrupales = res.entrenamientos_grupales || [];
 
         this.cargando = false;
       },
@@ -105,28 +197,37 @@ export class JugadorReservasPage implements OnInit {
   }
 
   cargarEntrenadores() {
-    this.entrenamientoService
-      .getEntrenadorPorJugador(this.jugadorId)
-      .subscribe({
-        next: (res: any[]) => {
-          this.packs = res;
-          this.extraerEntrenadores();
-        },
-        error: err => console.error(err)
-      });
-  }
-
-  extraerEntrenadores() {
-    const map = new Map();
-    this.packs.forEach(p => {
-      if (!map.has(p.entrenador_id)) {
-        map.set(p.entrenador_id, {
-          id: p.entrenador_id,
-          nombre: p.entrenador_nombre
+    this.isLoadingDiscovery = true;
+    this.packsService.getAllPacks(undefined, undefined, 50, this.regionSeleccionada || undefined, this.comunaSeleccionada || undefined).subscribe({
+      next: (res: any[]) => {
+        const map = new Map();
+        res.forEach(p => {
+          if (p.entrenador_id && !map.has(p.entrenador_id)) {
+            map.set(p.entrenador_id, {
+              id: p.entrenador_id,
+              nombre: p.entrenador_nombre,
+              foto: p.entrenador_foto,
+              descripcion: p.entrenador_descripcion,
+              comuna: p.trainer_comuna
+            });
+          }
         });
+        this.entrenadores = Array.from(map.values());
+
+        // Also fetch user's active packs for later credit checking
+        this.entrenamientoService.getEntrenadorPorJugador(this.jugadorId).subscribe({
+          next: (resPacks: any[]) => {
+            this.packs = resPacks || [];
+            this.isLoadingDiscovery = false;
+          },
+          error: () => this.isLoadingDiscovery = false
+        });
+      },
+      error: (err) => {
+        console.error('Error loading discovery:', err);
+        this.isLoadingDiscovery = false;
       }
     });
-    this.entrenadores = Array.from(map.values());
   }
 
   get selectedCoachName(): string {
@@ -147,42 +248,128 @@ export class JugadorReservasPage implements OnInit {
     this.showCoachPicker = false;
     if (!this.selectedEntrenador) return;
 
+    this.cargando = true;
+
     // Filter packs for this trainer that have remaining sessions
     this.packsDelEntrenador = this.packs.filter(p => {
-      const isTrainer = Number(p.entrenador_id) === Number(this.selectedEntrenador);
-      const hasSessions = Number(p.sesiones_restantes) > 0;
-      // Filter out group packs (keep only individual or those with capacity <= 1)
-      const isIndividual = p.tipo === 'individual' || Number(p.cantidad_personas || 1) <= 1;
-
-      return isTrainer && hasSessions && isIndividual;
+      return Number(p.entrenador_id) === Number(this.selectedEntrenador) && Number(p.sesiones_restantes) > 0;
     });
-
-    // Sort by fecha_compra_pack DESC (newest first)
-    this.packsDelEntrenador.sort((a, b) => {
-      const dateA = new Date(a.fecha_compra_pack).getTime();
-      const dateB = new Date(b.fecha_compra_pack).getTime();
-      return dateB - dateA;
-    });
-
-    // Auto select first pack
-    if (this.packsDelEntrenador.length > 0) {
-      this.selectedPack = this.packsDelEntrenador[0];
-    } else {
-      this.selectedPack = null;
-    }
-
-    const packId = this.selectedPack ? this.selectedPack.pack_id : undefined;
-    console.log("Pack Seleccionado Mobile ID:", packId);
 
     this.entrenamientoService
-      .getDisponibilidadEntrenador(this.selectedEntrenador!, packId)
+      .getDisponibilidadEntrenador(this.selectedEntrenador!)
       .subscribe({
         next: res => {
           this.horarios = res;
           this.generarBloquesHorarios(res);
+          this.cargando = false;
         },
-        error: err => console.error(err)
+        error: err => {
+          console.error(err);
+          this.cargando = false;
+        }
       });
+  }
+
+  mostrarPacksDisponibles(horario: any) {
+    this.pendingHorario = horario;
+    this.cargando = true;
+
+    // Determine filter type based on the slot selected
+    let targetType = this.tipoEntrenamiento;
+    if (targetType === 'todos') {
+      targetType = 'individual'; // default
+    }
+
+    this.mysqlService.getAllPacks(this.selectedEntrenador!).subscribe({
+      next: (res) => {
+        console.log('Packs recibidos:', res);
+
+        // Filter by type
+        let filtered = res.filter(p => this.isPackMatch(p, targetType));
+
+        // Fallback: If no packs match the specific type, show everything from this coach
+        if (filtered.length === 0) {
+          filtered = res;
+        }
+
+        this.availablePacks = filtered.sort((a, b) => Number(a.precio) - Number(b.precio));
+        this.showPackModal = true;
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.cargando = false;
+        this.mostrarToast('❌ No se pudieron cargar los packs');
+      }
+    });
+  }
+
+  isPackMatch(pack: any, type: string): boolean {
+    const cant = Number(pack.cantidad_personas || 1);
+    const pTipo = pack.tipo?.toLowerCase() || 'individual';
+    if (type === 'individual') return cant === 1 && pTipo !== 'grupal';
+    if (type === 'multiplayer') return cant > 1 && pTipo !== 'grupal';
+    if (type === 'grupal') return pTipo === 'grupal';
+    return false;
+  }
+
+  async comprarPackYReservar(pack: any) {
+    const loader = await this.loadingCtrl.create({ message: 'Activando pack...' });
+    await loader.present();
+
+    const rawId = pack.id || pack.pack_id || pack.id_pack;
+    const packId = Number(rawId);
+
+    const packPayload = {
+      pack_id: packId,
+      jugador_id: Number(this.jugadorId)
+    };
+
+    this.packAlumnoService.insertPackAlumno(packPayload).subscribe({
+      next: (packRes: any) => {
+        const newPackJugadorId = packRes.pack_jugador_id;
+
+        let finalTipo = 'individual';
+        const packTypeStr = (pack.tipo || '').toLowerCase();
+        if (packTypeStr.includes('grupal') || packTypeStr.includes('multi')) {
+          finalTipo = 'grupal';
+        }
+
+        const payload = {
+          entrenador_id: Number(this.selectedEntrenador),
+          fecha: this.pendingHorario.fecha,
+          hora_inicio: this.pendingHorario.hora_inicio.toTimeString().slice(0, 5),
+          hora_fin: this.pendingHorario.hora_fin.toTimeString().slice(0, 5),
+          jugador_id: Number(this.jugadorId),
+          pack_id: packId,
+          pack_jugador_id: newPackJugadorId,
+          estado: 'reservado',
+          tipo: finalTipo,
+          cantidad_personas: 1
+        };
+
+        this.entrenamientoService.crearReserva(payload).subscribe({
+          next: () => {
+            loader.dismiss();
+            this.showPackModal = false;
+            this.alertCtrl.create({
+              header: '¡Listo!',
+              message: 'Pack activado y clase agendada correctamente.',
+              buttons: ['OK']
+            }).then(a => a.present());
+            this.onEntrenadorChange(); // Reload slots
+          },
+          error: () => {
+            loader.dismiss();
+            this.mostrarToast('❌ Error al agendar la clase');
+          }
+        });
+      },
+      error: () => {
+        loader.dismiss();
+        this.mostrarToast('❌ Error al procesar el pack');
+      }
+    });
   }
 
   onPackChange() {
@@ -202,118 +389,154 @@ export class JugadorReservasPage implements OnInit {
       });
   }
 
-  generarBloquesHorarios(disponibilidades: any[]) {
+  setFilter(tipo: any): void {
+    this.tipoEntrenamiento = tipo;
+    // Reset selections and regenerate based on the new filter
+    this.diaSeleccionado = '';
+    this.generarBloquesHorarios(this.horarios);
+  }
 
+  generarBloquesHorarios(disponibilidades: any[]) {
     this.horariosPorDia = {};
     this.dias = [];
 
-    const bloquesUnicos = new Set<string>(); // 👈 CLAVE
+    const bloquesUnicos = new Set<string>();
     const ahora = new Date();
 
     disponibilidades.forEach(d => {
+      // If it's a specific group class, it might have a 'tipo' field from the API
+      // If the user selected 'grupal', we only show slots that are grupal
+      // If it's a general availability slot, we treat it as individual/multiplayer depending on the intention
+      const slotTipo = (d.tipo || 'individual').toLowerCase();
 
-      let inicio = new Date(d.fecha_inicio);
-      const fin = new Date(d.fecha_fin);
+      if (this.tipoEntrenamiento !== 'todos') {
+        if (this.tipoEntrenamiento === 'grupal' && slotTipo !== 'grupal') return;
+        if (this.tipoEntrenamiento !== 'grupal' && slotTipo === 'grupal') return;
+      }
+
+      let inicio = new Date(d.fecha_inicio || d.hora_inicio);
+      const fin = new Date(d.fecha_fin || d.hora_fin);
       const ocupado = Boolean(d.ocupado);
 
       while (inicio < fin) {
-
         const bloqueInicio = new Date(inicio);
-        const bloqueFin = new Date(inicio);
-        bloqueFin.setHours(bloqueFin.getHours() + 1);
+        const bloqueFin = new Date(inicio.getTime() + 60 * 60 * 1000); // 1 hour slots
 
-        // 🚫 FILTRAR: No mostrar horarios que ya pasaron
         if (bloqueInicio > ahora && bloqueFin <= fin) {
-
           const fecha = bloqueInicio.toISOString().split('T')[0];
           const horaInicio = bloqueInicio.toTimeString().slice(0, 5);
           const horaFin = bloqueFin.toTimeString().slice(0, 5);
-
           const key = `${fecha} ${horaInicio}-${horaFin}`;
 
-          // 🚫 SI YA EXISTE, NO SE AGREGA
-          if (bloquesUnicos.has(key)) {
-            inicio.setHours(inicio.getHours() + 1);
-            continue;
+          if (!bloquesUnicos.has(key)) {
+            bloquesUnicos.add(key);
+
+            const hora = bloqueInicio.getHours();
+            let tramo: 'manana' | 'tarde' | 'noche' = 'noche';
+            if (hora >= 6 && hora < 12) tramo = 'manana';
+            else if (hora >= 12 && hora < 18) tramo = 'tarde';
+
+            if (!this.horariosPorDia[fecha]) {
+              this.horariosPorDia[fecha] = { manana: [], tarde: [], noche: [] };
+              this.dias.push(fecha);
+            }
+
+            this.horariosPorDia[fecha][tramo].push({
+              fecha,
+              hora_inicio: bloqueInicio,
+              hora_fin: bloqueFin,
+              ocupado: ocupado,
+              tipo: slotTipo,
+              pack_id: d.pack_id // Keep record if it's a fixed pack slot
+            });
           }
-
-          bloquesUnicos.add(key);
-
-          const hora = bloqueInicio.getHours();
-          let tramo: 'manana' | 'tarde' | 'noche' = 'noche';
-
-          if (hora >= 6 && hora < 12) tramo = 'manana';
-          else if (hora >= 12 && hora < 18) tramo = 'tarde';
-
-          if (!this.horariosPorDia[fecha]) {
-            this.horariosPorDia[fecha] = {
-              manana: [],
-              tarde: [],
-              noche: []
-            };
-            this.dias.push(fecha);
-          }
-
-          this.horariosPorDia[fecha][tramo].push({
-            fecha,
-            hora_inicio: bloqueInicio,
-            hora_fin: bloqueFin,
-            ocupado
-          });
         }
-
         inicio.setHours(inicio.getHours() + 1);
       }
     });
 
     this.dias.sort();
-    this.diaSeleccionado = this.dias[0];
-    this.tramoSeleccionado = 'manana';
+
+    // Auto-select first available day and tramo
+    if (this.dias.length > 0) {
+      this.diaSeleccionado = this.dias[0];
+      this.actualizarTramoAutomatico();
+    } else {
+      this.diaSeleccionado = '';
+    }
+  }
+
+  actualizarTramoAutomatico() {
+    if (!this.diaSeleccionado || !this.horariosPorDia[this.diaSeleccionado]) return;
+    const tramos = ['manana', 'tarde', 'noche'] as const;
+    for (const t of tramos) {
+      if (this.horariosPorDia[this.diaSeleccionado][t].length > 0) {
+        this.tramoSeleccionado = t;
+        break;
+      }
+    }
   }
 
 
   reservarHorario(horario: any) {
-    if (horario.ocupado) {
-      console.warn('Horario ocupado');
-      return;
+    if (horario.ocupado) return;
+
+    // Determine target type
+    let targetType = this.tipoEntrenamiento;
+    if (targetType === 'todos') {
+      targetType = 'individual';
     }
 
-    if (!this.selectedPack) {
-      this.alertCtrl.create({
-        header: 'Sin cupos disponibles',
-        message: 'No tienes un pack activo con sesiones disponibles para este entrenador.',
-        buttons: ['OK']
-      }).then(alert => alert.present());
-      return;
-    }
+    // Check if user has an active pack for this trainer and type
+    const packActivo = this.packs.find(p => {
+      const basicMatch = Number(p.entrenador_id) === Number(this.selectedEntrenador) &&
+        Number(p.sesiones_restantes) > 0 &&
+        this.isPackMatch(p, targetType);
 
-    const pack_id = this.selectedPack.pack_id;
-
-    const payload = {
-      entrenador_id: this.selectedEntrenador,
-      pack_id: pack_id,
-      pack_jugador_id: this.selectedPack ? this.selectedPack.pack_jugador_id : null,
-      fecha: horario.fecha,
-      hora_inicio: horario.hora_inicio.toTimeString().slice(0, 5),
-      hora_fin: horario.hora_fin.toTimeString().slice(0, 5),
-      jugador_id: this.jugadorId,
-      estado: 'reservado'
-    };
-
-    this.entrenamientoService.crearReserva(payload).subscribe({
-      next: () => {
-        this.mostrarToast('✅ Reserva guardada correctamente');
-
-        // refrescar disponibilidad
-        if (this.selectedEntrenador) {
-          this.onEntrenadorChange();
-        }
-      },
-      error: err => {
-        console.error('Error reserva:', err);
-        this.mostrarToast('❌ Error al guardar la reserva');
+      // Group slot handling
+      if (horario.tipo === 'grupal' && horario.pack_id) {
+        return basicMatch && Number(p.pack_id) === Number(horario.pack_id);
       }
+      return basicMatch;
     });
+
+    if (packActivo) {
+      this.alertCtrl.create({
+        header: '¿Confirmar Reserva?',
+        message: `Clase para el ${horario.fecha} a las ${horario.hora_inicio.toTimeString().slice(0, 5)}. Se descontará 1 crédito de tu pack.`,
+        buttons: [
+          { text: 'Cancelar', role: 'cancel' },
+          {
+            text: 'Reservar',
+            handler: () => {
+              const payload = {
+                entrenador_id: this.selectedEntrenador,
+                pack_id: packActivo.pack_id,
+                pack_jugador_id: packActivo.pack_jugador_id,
+                fecha: horario.fecha,
+                hora_inicio: horario.hora_inicio.toTimeString().slice(0, 5),
+                hora_fin: horario.hora_fin.toTimeString().slice(0, 5),
+                jugador_id: this.jugadorId,
+                estado: 'reservado',
+                tipo: targetType,
+                cantidad_personas: 1
+              };
+
+              this.entrenamientoService.crearReserva(payload).subscribe({
+                next: () => {
+                  this.mostrarToast('✅ Reserva guardada correctamente');
+                  this.onEntrenadorChange();
+                },
+                error: () => this.mostrarToast('❌ Error al guardar la reserva')
+              });
+            }
+          }
+        ]
+      }).then(a => a.present());
+    } else {
+      // NO PACK: Show available packs to buy
+      this.mostrarPacksDisponibles(horario);
+    }
   }
 
   async mostrarToast(mensaje: string) {

@@ -78,4 +78,8 @@ export const routes: Routes = [
     path: 'mis-habilidades/:id',
     loadComponent: () => import('./pages/mis-habilidades/mis-habilidades.page').then(m => m.MisHabilidadesPage)
   },
+  {
+    path: 'entrenador-agendar',
+    loadComponent: () => import('./pages/entrenador-agendar/entrenador-agendar.page').then(m => m.EntrenadorAgendarPage)
+  },
 ];

@@ -38,103 +38,97 @@
 
     <!-- Empty State -->
     <div *ngIf="!cargando && reservasIndividuales.length === 0 && entrenamientosGrupales.length === 0"
-      class="empty-state">
-      <ion-icon name="calendar-outline"></ion-icon>
-      <h3>Sin Entrenamientos</h3>
-      <p>No tienes entrenamientos programados</p>
-      <ion-button (click)="cambiarVista('agendar')" color="primary">
-        Agendar Clase
+      class="empty-state animate-fade-in">
+      <div class="empty-icon-box">
+        <ion-icon name="calendar-outline"></ion-icon>
+      </div>
+      <h3>TU AGENDA ESTÁ LIMPIA</h3>
+      <p>Es el momento perfecto para empezar a entrenar.</p>
+      <ion-button (click)="cambiarVista('agendar')" class="nike-btn-neon">
+        AGENDAR CLASE
       </ion-button>
     </div>
 
     <!-- Reservas Individuales -->
-    <div *ngIf="!cargando && reservasIndividuales.length > 0" class="entrenamientos-section">
+    <div *ngIf="!cargando && reservasIndividuales.length > 0" class="entrenamientos-section animate-up">
       <h3 class="section-title">
-        <ion-icon name="book-outline"></ion-icon>
-        Entrenamientos Individuales
+        <ion-icon name="person-outline"></ion-icon>
+        Individuales
       </h3>
-      <div *ngFor="let reserva of reservasIndividuales" class="nike-card entrenamiento-card">
+      <div *ngFor="let reserva of reservasIndividuales" class="entrenamiento-card animate-fade-in">
         <div class="card-header">
           <div class="fecha-badge">
-            {{ reserva.fecha | date:'dd MMM' }}
+            {{ reserva.fecha | date:'dd MMM' | uppercase }}
           </div>
-          <span [ngClass]="'estado-badge ' + reserva.estado">
-            {{ reserva.estado | uppercase }}
+          <span [ngClass]="['estado-badge', reserva.estado]">
+            {{ reserva.estado }}
           </span>
         </div>
-        <div class="tiempo-info">
-          <ion-icon name="time-outline"></ion-icon>
-          {{ reserva.hora_inicio | slice:0:5 }} - {{ reserva.hora_fin | slice:0:5 }}
+
+        <div class="card-main-info">
+          <div class="tiempo-info">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>{{ reserva.hora_inicio | slice:0:5 }} - {{ reserva.hora_fin | slice:0:5 }}</span>
+          </div>
+          <div class="entrenador-info">
+            <ion-icon name="medal-outline"></ion-icon>
+            <span>Coach: {{ reserva.entrenador_nombre }}</span>
+          </div>
+          <div class="pack-info">
+            <ion-icon name="ticket-outline"></ion-icon>
+            <span>{{ reserva.pack_nombre }}</span>
+          </div>
         </div>
-        <div class="pack-info">
-          <ion-icon name="book-outline"></ion-icon>
-          {{ reserva.pack_nombre }}
-        </div>
-        <div class="entrenador-info">
-          <ion-icon name="person-outline"></ion-icon>
-          {{ reserva.entrenador_nombre }}
-        </div>
-        <div class="card-actions">
-          <ion-button *ngIf="reserva.estado === 'reservado'" fill="outline" size="small"
-            (click)="mostrarConfirmacionCancelar(reserva)" color="danger">
-            <ion-icon name="close-circle-outline" slot="start"></ion-icon>
-            Cancelar
+
+        <div class="card-actions" *ngIf="reserva.estado === 'reservado'">
+          <ion-button fill="clear" color="danger" (click)="mostrarConfirmacionCancelar(reserva)" class="cancel-btn">
+            CANCELAR RESERVA
           </ion-button>
-          <span *ngIf="reserva.estado !== 'reservado'" class="estado-final">
-            {{ reserva.estado | uppercase }}
-          </span>
         </div>
       </div>
     </div>
 
     <!-- Entrenamientos Grupales -->
-    <div *ngIf="!cargando && entrenamientosGrupales.length > 0" class="entrenamientos-section">
+    <div *ngIf="!cargando && entrenamientosGrupales.length > 0" class="entrenamientos-section animate-up"
+      style="animation-delay: 0.1s;">
       <h3 class="section-title">
         <ion-icon name="people-outline"></ion-icon>
-        Entrenamientos Grupales
+        Grupales
       </h3>
-      <div *ngFor="let grupal of entrenamientosGrupales" class="nike-card entrenamiento-card grupal">
+      <div *ngFor="let grupal of entrenamientosGrupales" class="entrenamiento-card grupal animate-fade-in">
         <div class="card-header">
           <div class="fecha-badge">
-            {{ getDiasSemana(grupal.dia_semana) }}
+            {{ getDiasSemana(grupal.dia_semana) | uppercase }}
           </div>
-          <span [ngClass]="'estado-badge ' + grupal.estado_grupo">
-            {{ grupal.estado_grupo | uppercase }}
-          </span>
+          <span class="estado-badge reservado">GRUPO ABIERTO</span>
         </div>
 
-        <div class="tiempo-info">
-          <ion-icon name="time-outline"></ion-icon>
-          {{ grupal.hora_inicio | slice:0:5 }}
-          <ion-icon name="timer-outline"></ion-icon>
-          {{ grupal.duracion_calculada }}min
+        <div class="card-main-info">
+          <div class="tiempo-info">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>{{ grupal.hora_inicio | slice:0:5 }} ({{ grupal.duracion_calculada }} MIN)</span>
+          </div>
+          <div class="pack-info">
+            <ion-icon name="grid-outline"></ion-icon>
+            <span>{{ grupal.pack_nombre }} • {{ grupal.categoria }}</span>
+          </div>
+          <div class="cupos-badge highlight">
+            <ion-icon name="people-outline"></ion-icon>
+            <span>Sesión Grupal: {{ (grupal.cupos_ocupados || 0) }} / {{ grupal.capacidad_maxima }} Jugadores</span>
+          </div>
         </div>
 
-        <div class="pack-info">
-          <ion-icon name="book-outline"></ion-icon>
-          {{ grupal.pack_nombre }}
-        </div>
-
-        <div class="pack-info">
-          <span class="categoria-badge">{{ grupal.categoria }}</span>
-        </div>
-
-        <div class="cupos-badge" [ngClass]="grupal.estado_grupo">
-          👥 {{ grupal.cupos_ocupados }}/{{ grupal.capacidad_maxima }} cupos
-        </div>
-
-        <div *ngIf="grupal.otros_inscritos && grupal.otros_inscritos.length > 0" class="otros-inscritos">
-          <span class="inscritos-label">Compañeros:</span>
+        <div class="otros-inscritos" *ngIf="grupal.otros_inscritos?.length || (grupal.cupos_ocupados > 1)">
+          <div class="team-header">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            <span class="label">EQUIPO CONFIRMADO:</span>
+          </div>
           <div class="compañeros-list">
+            <div class="compañero me">Yo</div>
             <div *ngFor="let comp of grupal.otros_inscritos" class="compañero">
-              <ion-icon name="person-circle-outline"></ion-icon>
               {{ comp.nombre }}
             </div>
           </div>
-        </div>
-
-        <div *ngIf="!grupal.otros_inscritos || grupal.otros_inscritos.length === 0" class="otros-inscritos">
-          <p class="no-inscritos">Eres el único inscrito hasta ahora</p>
         </div>
       </div>
     </div>
@@ -143,67 +137,76 @@
 
   <div *ngIf="vistaActual === 'agendar'" class="agendar-nueva-view">
 
-    <!-- Selectores Custom (Nike Theme) -->
+    <!-- 1. Region & Comuna Filter -->
     <div class="booking-selectors-nike animate-up">
-      <!-- Coach Selector -->
-      <div class="selector-nike coach-selector-container" [class.has-selection]="selectedEntrenador"
-        (click)="toggleCoachPicker()">
-        <div class="selector-header">
-          <div class="selector-icon">
-            <ion-icon name="person-circle-outline"></ion-icon>
-          </div>
-          <div class="selector-info">
-            <span class="label">Entrenador</span>
-            <span class="value">{{ selectedCoachName }}</span>
-          </div>
-          <ion-icon name="chevron-down-outline" class="chevron"></ion-icon>
+      <div class="filters-row">
+        <div class="filter-selector">
+          <ion-icon name="location-outline"></ion-icon>
+          <ion-select [(ngModel)]="regionSeleccionada" (ionChange)="updateComunas()" placeholder="REGION"
+            interface="popover">
+            <ion-select-option value="">TODAS LAS REGIONES</ion-select-option>
+            <ion-select-option *ngFor="let r of regions" [value]="r.name">{{r.name}}</ion-select-option>
+          </ion-select>
         </div>
-      </div>
-
-      <!-- Pack Selector -->
-      <div class="selector-nike pack-selector-container" *ngIf="selectedEntrenador && packsDelEntrenador.length > 0">
-        <div class="selector-header">
-          <div class="selector-icon">
-            <ion-icon name="book-outline"></ion-icon>
-          </div>
-          <div class="selector-info">
-            <span class="label">Pack Seleccionado</span>
-            <ion-select [(ngModel)]="selectedPack" (ionChange)="onPackChange()" interface="popover" toggleIcon=""
-              class="value-select">
-              <ion-select-option *ngFor="let pack of packsDelEntrenador" [value]="pack">
-                {{ pack.pack_nombre }} ({{ pack.sesiones_restantes }} cred.)
-              </ion-select-option>
-            </ion-select>
-          </div>
-          <ion-icon name="chevron-down-outline" class="chevron"></ion-icon>
+        <div class="filter-selector">
+          <ion-icon name="search-outline"></ion-icon>
+          <ion-select [(ngModel)]="comunaSeleccionada" (ionChange)="onComunaChange()" placeholder="COMUNA"
+            interface="popover">
+            <ion-select-option value="">TODAS LAS COMUNAS</ion-select-option>
+            <ion-select-option *ngFor="let c of filteredComunas" [value]="c">{{c}}</ion-select-option>
+          </ion-select>
         </div>
       </div>
     </div>
 
-    <!-- Coach Picker Overlay -->
-    <div class="coach-picker-overlay" *ngIf="showCoachPicker" (click)="toggleCoachPicker()">
-      <div class="picker-panel animate-pop" (click)="$event.stopPropagation()">
-        <div class="picker-header">
-          <h3>Selecciona tu Coach</h3>
-          <p>Tus entrenadores disponibles</p>
-        </div>
-        <div class="picker-list">
-          <div class="coach-option" *ngFor="let coach of entrenadores"
-            (click)="selectedEntrenador = coach.id; onEntrenadorChange()">
-            <div class="coach-avatar">
-              <ion-icon name="person-circle-outline"></ion-icon>
-            </div>
-            <span class="coach-name">{{ coach.nombre }}</span>
-            <ion-icon name="checkmark-circle" class="check-icon" *ngIf="selectedEntrenador === coach.id"></ion-icon>
+    <!-- 2. Coach Discovery -->
+    <div class="discovery-scroll-container animate-fade-in" *ngIf="!isLoadingDiscovery">
+      <div class="discovery-header">
+        <h3>Coach Discovery</h3>
+        <span>Entrenadores de élite en tu zona</span>
+      </div>
+      <div class="trainers-horizontal-scroll">
+        <div class="trainer-mobile-card" *ngFor="let coach of entrenadores"
+          [class.active]="selectedEntrenador === coach.id"
+          (click)="selectedEntrenador = coach.id; onEntrenadorChange()">
+          <div class="trainer-photo-box">
+            <img [src]="coach.foto || 'assets/avatar.png'" class="trainer-img">
+            <ion-icon name="checkmark-circle" class="active-check" *ngIf="selectedEntrenador === coach.id"></ion-icon>
+          </div>
+          <div class="trainer-brief">
+            <span class="name">{{ coach.nombre }}</span>
+            <span class="location">{{ coach.comuna || 'Club Local' }}</span>
           </div>
         </div>
-        <button class="close-picker" (click)="toggleCoachPicker()">Cerrar</button>
+      </div>
+
+      <div *ngIf="entrenadores.length === 0" class="empty-trainers-mobile">
+        <ion-icon name="alert-circle-outline" style="font-size: 32px; opacity: 0.5;"></ion-icon>
+        <p>No hay entrenadores disponibles en esta zona.</p>
       </div>
     </div>
 
+    <!-- Loading Coaches -->
+    <div class="discovery-loading" *ngIf="isLoadingDiscovery">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>BUSCANDO COACHES...</p>
+    </div>
 
-    <!-- Day Selector (Premium) -->
-    <div class="segment-wrapper animate-up" style="animation-delay: 0.05s;">
+    <!-- 3. Session Filters & Selection (Visible only when Coach is selected) -->
+    <div *ngIf="selectedEntrenador && !cargando" class="animate-up">
+
+      <!-- Type Filter -->
+      <div class="type-filter-wrapper">
+        <ion-segment [(ngModel)]="tipoEntrenamiento" (ionChange)="setFilter(tipoEntrenamiento)"
+          class="nike-segment-types">
+          <ion-segment-button value="todos"><ion-label>TODAS</ion-label></ion-segment-button>
+          <ion-segment-button value="individual"><ion-label>INDIV.</ion-label></ion-segment-button>
+          <ion-segment-button value="multiplayer"><ion-label>MULTI</ion-label></ion-segment-button>
+          <ion-segment-button value="grupal"><ion-label>GRUPAL</ion-label></ion-segment-button>
+        </ion-segment>
+      </div>
+
+      <!-- Day Selector -->
       <ion-segment [(ngModel)]="diaSeleccionado" scrollable class="nike-segment-days-light">
         <ion-segment-button *ngFor="let d of dias" [value]="d">
           <ion-label>
@@ -212,52 +215,80 @@
           </ion-label>
         </ion-segment-button>
       </ion-segment>
-    </div>
 
-    <!-- Time Period Selector -->
-    <div class="period-wrapper animate-up" style="animation-delay: 0.1s;">
-      <ion-segment [(ngModel)]="tramoSeleccionado" class="nike-segment-periods" mode="ios">
-        <ion-segment-button value="manana">
-          <ion-label>MAÑANA</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="tarde">
-          <ion-label>TARDE</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="noche">
-          <ion-label>NOCHE</ion-label>
-        </ion-segment-button>
-      </ion-segment>
-    </div>
-
-    <!-- Slots Grid -->
-    <div class="horarios-grid animate-up"
-      *ngIf="diaSeleccionado && horariosPorDia[diaSeleccionado]?.[tramoSeleccionado]" style="animation-delay: 0.15s;">
-
-      <div class="nike-card horario-card" *ngFor="let h of horariosPorDia[diaSeleccionado][tramoSeleccionado]"
-        [class.ocupado]="h.ocupado" (click)="!h.ocupado && reservarHorario(h)">
-
-        <div class="hora-info">
-          <span class="time">{{ h.hora_inicio | date:'HH:mm' }}</span>
-          <span class="duration">60 min</span>
-        </div>
-
-        <div class="status-indicator">
-          <ion-badge [color]="h.ocupado ? 'medium' : 'success'" mode="ios">
-            {{ h.ocupado ? 'Ocupado' : 'Disponible' }}
-          </ion-badge>
-        </div>
-
-        <ion-icon name="chevron-forward-outline" class="arrow" *ngIf="!h.ocupado"></ion-icon>
+      <!-- Time Period Selector -->
+      <div class="period-wrapper">
+        <ion-segment [(ngModel)]="tramoSeleccionado" class="nike-segment-periods" mode="ios">
+          <ion-segment-button value="manana"><ion-label>MAÑANA</ion-label></ion-segment-button>
+          <ion-segment-button value="tarde"><ion-label>TARDE</ion-label></ion-segment-button>
+          <ion-segment-button value="noche"><ion-label>NOCHE</ion-label></ion-segment-button>
+        </ion-segment>
       </div>
 
-      <!-- No items in tramo -->
-      <div class="empty-tramo" *ngIf="horariosPorDia[diaSeleccionado][tramoSeleccionado].length === 0">
-        <ion-icon name="hourglass-outline"></ion-icon>
-        <p>No hay cupos disponibles en este tramo.</p>
+      <!-- Slots Grid -->
+      <div class="horarios-grid" *ngIf="diaSeleccionado && horariosPorDia[diaSeleccionado]?.[tramoSeleccionado]">
+        <div class="nike-card horario-card" *ngFor="let h of horariosPorDia[diaSeleccionado][tramoSeleccionado]"
+          [class.ocupado]="h.ocupado" (click)="!h.ocupado && reservarHorario(h)">
+          <div class="hora-info">
+            <span class="time">{{ h.hora_inicio | date:'HH:mm' }}</span>
+            <span class="duration">60 MIN</span>
+          </div>
+          <div class="status-indicator">
+            <ion-badge>{{ h.ocupado ? 'OCUPADO' : 'DISPONIBLE' }}</ion-badge>
+          </div>
+        </div>
+
+        <!-- Empty Slots in tramo -->
+        <div class="empty-tramo" *ngIf="horariosPorDia[diaSeleccionado][tramoSeleccionado].length === 0">
+          <ion-icon name="hour-glass-outline"></ion-icon>
+          <p>SIN CUPOS EN ESTE TRAMO</p>
+        </div>
       </div>
 
     </div>
 
+    <!-- Loading Availability -->
+    <div class="availability-loading-state animate-up" *ngIf="cargando">
+      <div class="loading-icon-wrapper">
+        <ion-icon name="time-outline" class="loading-main-icon"></ion-icon>
+        <ion-spinner name="crescent" class="loading-spinner-overlay"></ion-spinner>
+      </div>
+      <div class="loading-text">
+        <h4>Buscando horarios</h4>
+        <p>Estamos consultando la agenda del coach...</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="pack-buy-modal" *ngIf="showPackModal">
+    <div class="modal-backdrop" (click)="showPackModal = false"></div>
+    <div class="modal-panel animate-pop">
+      <div class="modal-header">
+        <div class="title-wrap">
+          <span class="subtitle">Agendar Clase</span>
+          <h2>ELEGIR PACK</h2>
+        </div>
+        <ion-button fill="clear" (click)="showPackModal = false">
+          <ion-icon name="close-outline"></ion-icon>
+        </ion-button>
+      </div>
+
+      <div class="pack-scroll">
+        <div class="pack-card-mobile" *ngFor="let pack of availablePacks" (click)="comprarPackYReservar(pack)">
+          <div class="pack-bits">
+            <span class="credits">{{ pack.sesiones_totales }} SESIONES</span>
+            <h3 class="name">{{ pack.nombre }}</h3>
+            <p class="price">{{ pack.precio | currency:'CLP':'$':'1.0-0' }}</p>
+          </div>
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+        </div>
+
+        <div *ngIf="availablePacks.length === 0" class="empty-packs">
+          <p>No hay packs disponibles para este tipo de sesión.</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Back FAB -->

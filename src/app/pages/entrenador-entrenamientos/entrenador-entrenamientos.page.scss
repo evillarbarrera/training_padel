@@ -1,19 +1,88 @@
 /* --- HEADER ESTILO NIKE --- */
 .header-nike {
-    height: 200px;
+    min-height: 240px;
+    padding-top: calc(50px + env(safe-area-inset-top));
+    padding-bottom: 30px;
+    padding-left: 25px;
+    padding-right: 25px;
+
+    /* Force top alignment */
+    margin-top: -60px;
+    width: 100%;
+    z-index: 0;
+
     position: relative;
     background: url('/assets/fondo-padel.png') center/cover no-repeat;
     display: flex;
     align-items: flex-end;
-    padding: 30px 25px;
+
     border-radius: 0 0 30px 30px;
     overflow: hidden;
+}
+
+/* ... existing styles ... */
+
+/* MULTI PLAYER RESERVATION */
+.players-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 15px;
+
+    .player-profile-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px;
+        border-radius: 12px;
+        background-color: #fbfbfb;
+        border: 1px solid #f2f2f7;
+
+        .avatar-circle {
+            width: 48px;
+            height: 48px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+            font-size: 16px;
+            font-weight: 700;
+            flex-shrink: 0;
+            position: relative;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+            .player-photo {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+            .initials {
+                z-index: 1;
+            }
+        }
+
+        .player-details {
+            h3 {
+                margin: 0;
+                font-size: 14px;
+                font-weight: 700;
+                color: #111;
+                line-height: 1.2;
+            }
+        }
+    }
 }
 
 .header-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7));
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.8));
     z-index: 1;
 }
 
@@ -24,7 +93,7 @@
     color: white;
 
     .header-title {
-        font-size: 32px;
+        font-size: 28px;
         font-weight: 800;
         margin: 0;
         letter-spacing: -1px;
@@ -33,15 +102,15 @@
     .header-sub {
         margin: 4px 0 0;
         opacity: 0.9;
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 500;
     }
 }
 
-/* DAY SELECTOR (Premium Tabs) */
+/* DAY SELECTOR */
 .segment-wrapper {
     padding: 15px 20px 0;
-    margin-top: -30px;
+    margin-top: -35px;
     position: relative;
     z-index: 100;
 }
@@ -49,38 +118,40 @@
 .nike-segment-days {
     --background: #ffffff;
     border-radius: 20px;
-    padding: 8px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    height: 90px;
+    padding: 6px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    height: 85px;
 
     ion-segment-button {
         --indicator-color: transparent;
         --color: #8e8e93;
-        --color-checked: var(--ion-color-primary);
-        min-width: 65px;
+        --color-checked: #111;
+        min-width: 60px;
+        border-radius: 14px;
+        transition: all 0.2s ease;
 
         ion-label {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
         }
 
         .day-name {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .day-date {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 800;
         }
 
         &.segment-button-checked {
             background: #f2f2f7;
-            border-radius: 14px;
+            transform: scale(1.05);
         }
     }
 
@@ -90,14 +161,14 @@
         right: 8px;
         width: 6px;
         height: 6px;
-        background: #ff3b30;
+        background: var(--ion-color-primary);
         border-radius: 50%;
     }
 }
 
 /* CONTAINER */
 .dashboard-container {
-    padding: 20px 20px 100px;
+    padding: 25px 20px 100px;
 }
 
 /* STATES */
@@ -106,75 +177,94 @@
     padding: 60px 40px;
 
     ion-spinner {
-        --color: var(--ion-color-primary);
+        --color: #111;
         margin-bottom: 15px;
     }
 
     .empty-icon-box {
-        font-size: 48px;
+        font-size: 40px;
         color: #e5e5ea;
         margin-bottom: 15px;
     }
 
     h2 {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 800;
+        color: #111;
     }
 
     p {
         color: #8e8e93;
-        font-size: 15px;
-        margin-top: 8px;
+        font-size: 14px;
+        margin-top: 6px;
     }
 }
 
-/* TRAINING CARDS */
+/* AGENDA LIST */
 .agenda-list {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
 }
 
 .training-card {
-    padding: 0;
-    margin-bottom: 0;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: transform 0.2s;
+    border: 1px solid rgba(0, 0, 0, 0.02);
+
+    &:active {
+        transform: scale(0.98);
+    }
 
     .card-header {
-        padding: 15px 20px;
+        padding: 20px 24px 15px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px solid #f2f2f7;
+        border-bottom: 1px solid #f9f9f9;
 
         .time-badge {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 15px;
-            font-weight: 800;
-            color: var(--ion-color-primary);
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 900;
+            color: #111;
+            letter-spacing: -0.5px;
 
             ion-icon {
-                font-size: 18px;
-                color: #3880ff;
+                font-size: 20px;
+                color: #888;
             }
         }
 
         .status-tag {
-            padding: 5px 10px;
-            border-radius: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
             font-size: 10px;
             font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
 
             &.pendiente {
-                background: #fff9c4;
+                background: #fffde7;
                 color: #fbc02d;
             }
 
-            &.confirmada {
-                background: #e8f5e9;
-                color: #4caf50;
+            &.reservado,
+            &.activo,
+            &.confirmada,
+            &.confirmado {
+                background: #ccff00;
+                color: #000;
+            }
+
+            &.finalizado {
+                background: #f5f5f5;
+                color: #999;
             }
 
             &.cancelado {
@@ -185,258 +275,258 @@
     }
 
     .card-body {
-        padding: 20px;
+        padding: 20px 24px;
 
-        .player-profile {
+        /* MULTI PLAYER RESERVATION */
+        .players-container {
             display: flex;
-            align-items: center;
-            gap: 15px;
+            flex-direction: column;
+            gap: 12px;
             margin-bottom: 15px;
 
-            .avatar-circle {
-                width: 48px;
-                height: 48px;
-                background: #f2f2f7;
-                border-radius: 16px;
+            .player-profile-row {
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                color: #8e8e93;
-                font-size: 20px;
-            }
+                gap: 12px;
+                padding: 8px;
+                border-radius: 12px;
+                background-color: #fafafa;
+                /* Subtle background for each player */
+                border: 1px solid #f0f0f0;
 
-            .player-details {
-                h3 {
-                    margin: 0;
-                    font-size: 18px;
-                    font-weight: 800;
+                .avatar-circle {
+                    width: 40px;
+                    height: 40px;
+                    background: #333;
+                    /* Dark default */
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    font-size: 16px;
+                    font-weight: 700;
+                    flex-shrink: 0;
+
+                    &.accent {
+                        background: var(--ion-color-primary, #ccff00);
+                        color: black;
+                    }
                 }
 
-                p {
-                    margin: 2px 0 0;
-                    font-size: 13px;
-                    color: #8e8e93;
+                .player-details {
+                    h3 {
+                        margin: 0;
+                        font-size: 14px;
+                        font-weight: 700;
+                        color: #111;
+                        line-height: 1.2;
+                    }
+                }
+            }
+
+            .single-email {
+                margin: 0 0 0 8px;
+                font-size: 12px;
+                color: #888;
+                font-weight: 500;
+            }
+        }
+
+        /* GRUPAL INFO */
+        .grupal-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+
+            .grupal-header {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+
+                .tipo-badge {
+                    background: #f0f7ff;
+                    color: #007aff;
+                    padding: 6px 10px;
+                    border-radius: 8px;
+                    font-size: 11px;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                }
+
+                .categoria {
+                    font-size: 12px;
+                    font-weight: 700;
+                    color: #333;
+                    background: #f5f5f5;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                }
+            }
+
+            .cupos-info {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+
+                .badge-cupos {
+                    font-size: 12px;
+                    font-weight: 700;
+                    color: #111;
+                }
+
+                .duracion {
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: #999;
+                }
+            }
+
+            .inscritos-list {
+                .inscritos-title {
+                    margin: 0 0 8px;
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: #999;
+                    text-transform: uppercase;
+                }
+
+                .inscritos-list-clean {
+                    margin-top: 10px;
+                    background: #fbfbfb;
+                    border-radius: 12px;
+                    padding: 12px 14px;
+                    border: 1px solid #f2f2f7;
+
+                    .inscritos-title {
+                        margin: 0 0 10px;
+                        font-size: 10px;
+                        font-weight: 800;
+                        color: #999;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
+
+                    .inscritos-avatars {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 12px;
+
+                        .inscrito-avatar-item {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            gap: 4px;
+
+                            .mini-avatar {
+                                width: 34px;
+                                height: 34px;
+                                border-radius: 50%;
+                                overflow: hidden;
+                                border: 2px solid #fff;
+                                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+                                img {
+                                    width: 100%;
+                                    height: 100%;
+                                    object-fit: cover;
+                                }
+                            }
+
+                            .inscrito-name {
+                                font-size: 9px;
+                                font-weight: 700;
+                                color: #555;
+                                text-align: center;
+                                max-width: 45px;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                white-space: nowrap;
+                            }
+                        }
+                    }
                 }
             }
         }
 
         .pack-row {
+            margin-top: 15px;
+
             .pack-label {
-                font-size: 11px;
+                font-size: 10px;
                 font-weight: 700;
-                color: #8e8e93;
-                background: #f2f2f7;
-                padding: 4px 10px;
-                border-radius: 6px;
+                color: #666;
+                background: #f9f9f9;
+                padding: 6px 12px;
+                border-radius: 20px;
+                text-transform: uppercase;
             }
         }
     }
 
     .card-footer {
-        padding: 5px 20px 15px;
+        padding: 0 24px 20px;
         display: flex;
         justify-content: flex-end;
 
         .btn-cancel {
-            --padding-start: 0;
-            --padding-end: 0;
-            font-size: 13px;
+            --color: #ff3b30;
+            font-size: 12px;
             font-weight: 700;
-            text-transform: none;
-            height: 36px;
+            --padding-start: 0;
+            margin: 0;
+            height: 30px;
         }
     }
 }
+
 /* FABs */
 .nike-fab {
-    --background: var(--ion-color-primary);
-    --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    --background: #111;
+    --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 
     ion-icon {
         font-size: 24px;
-        color: white;
+        color: #ccff00;
+        /* Volt Color for emphasis */
     }
 
     &.back-fab {
-        --background: white;
+        --background: #fff;
 
         ion-icon {
-            color: var(--ion-color-primary);
+            color: #111;
         }
     }
 }
 
-/* Estilos para Packs Grupales */
-.training-card.pack-grupal {
-    border-left: 5px solid #2196f3;
-    background: linear-gradient(135deg, #f5f9ff 0%, #fff 100%);
+/* ANIMATIONS */
+.animate-up {
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
 
-    .card-header {
-        border-bottom: 2px solid rgba(33, 150, 243, 0.2);
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-.grupal-info {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-
-    .grupal-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        .tipo-badge {
-            background: rgba(33, 150, 243, 0.2);
-            color: #2196f3;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .categoria {
-            background: rgba(156, 39, 176, 0.1);
-            color: #9c27b0;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-    }
-
-    .cupos-info {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-
-        .badge-cupos {
-            background: rgba(76, 175, 80, 0.1);
-            color: #4caf50;
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-
-            &.pendiente {
-                background: rgba(255, 193, 7, 0.1);
-                color: #ffc107;
-            }
-
-            &.activo {
-                background: rgba(76, 175, 80, 0.1);
-                color: #4caf50;
-            }
-        }
-
-        .duracion {
-            font-size: 13px;
-            color: #666;
-            font-weight: 500;
-        }
-    }
-
-    .inscritos-list {
-        padding: 8px 0;
-
-        .inscritos-title {
-            margin: 0;
-            font-size: 12px;
-            font-weight: 600;
-            color: #666;
-            text-transform: uppercase;
-        }
-
-        .inscritos-avatars {
-            display: flex;
-            gap: 6px;
-            margin-top: 6px;
-            flex-wrap: wrap;
-
-            .inscrito-avatar {
-                position: relative;
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                background: rgba(33, 150, 243, 0.1);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 11px;
-                font-weight: 700;
-                color: #2196f3;
-                border: 2px solid #2196f3;
-                cursor: help;
-
-                ion-icon {
-                    font-size: 16px;
-                    color: #2196f3;
-                }
-
-                .nombre-corto {
-                    position: absolute;
-                }
-            }
-        }
-    }
-}
-/* ===== RESPONSIVE IMAGES ===== */
-.nike-card {
-    img {
-        width: 100%;
-        height: auto;
-        max-height: 300px;
-        object-fit: cover;
-        border-radius: 12px;
-        display: block;
-    }
+.animate-fade {
+    animation: fadeIn 0.5s ease-out both;
 }
 
-/* ===== FLOATING ACTION BUTTON FIX ===== */
-ion-fab {
-    &[horizontal="end"] {
-        right: 20px;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
     }
 
-    ion-fab-button {
-        --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-
-        &:hover {
-            --box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-        }
-    }
-}
-
-/* Responsive adjustments */
-@media (max-width: 480px) {
-    .nike-card img {
-        max-height: 250px;
-    }
-
-    ion-fab {
-        right: 16px;
-        bottom: 76px;
-    }
-}
-
-@media (min-width: 481px) and (max-width: 768px) {
-    .nike-card img {
-        max-height: 280px;
-    }
-
-    ion-fab {
-        right: 20px;
-        bottom: 80px;
-    }
-}
-
-@media (min-width: 769px) {
-    .nike-card img {
-        max-height: 320px;
-    }
-
-    ion-fab {
-        right: 24px;
-        bottom: 88px;
+    to {
+        opacity: 1;
     }
 }

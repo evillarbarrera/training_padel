@@ -141,10 +141,20 @@ export class PerfilPage implements OnInit {
     this.mysqlService.getPerfil(this.userId).subscribe({
       next: (res) => {
         if (res.success) {
-          this.profile = { ...this.profile, ...res.user };
+          // Robust photo selection
+          const p1 = res.user.foto_perfil;
+          const p2 = res.user.foto;
+          let fotoRaw = p1 || p2;
+          let finalFoto = "";
+
+          if (fotoRaw && fotoRaw.length > 5 && !fotoRaw.includes('imagen_defecto')) {
+            finalFoto = fotoRaw.startsWith('http') ? fotoRaw : `https://api.padelmanager.cl/${fotoRaw.startsWith('/') ? fotoRaw.substring(1) : fotoRaw}`;
+          }
+
+          this.profile = { ...this.profile, ...res.user, foto_perfil: finalFoto };
           if (res.direccion) {
             this.direccion = { ...res.direccion };
-            this.updateComunas(true); // Cargar comunas iniciales
+            this.updateComunas(true);
           }
         }
       },
@@ -172,6 +182,9 @@ export class PerfilPage implements OnInit {
       telefono: this.profile.telefono,
       instagram: this.profile.instagram,
       facebook: this.profile.facebook,
+      foto_perfil: this.profile.foto_perfil,
+      categoria: this.profile.categoria || 'Cuarta',
+      descripcion: this.profile.descripcion || '',
       ...this.direccion
     };
 

@@ -40,178 +40,231 @@
 
 /* CONTAINER */
 .dashboard-container {
-  padding: 20px 25px 100px;
+  padding: 20px 20px 100px;
 }
 
-/* COACH PROFILE */
-.coach-profile-card {
-  background: white;
-  border-radius: 20px;
-  padding: 15px;
+/* DAY SELECTOR BUBBLES */
+.day-selector-scroll {
   display: flex;
-  align-items: center;
-  gap: 15px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  margin-bottom: 25px;
-  border: 1px solid #f2f2f7;
+  overflow-x: auto;
+  gap: 12px;
+  padding: 10px 5px 25px;
+  scrollbar-width: none;
 
-  .coach-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 14px;
-    object-fit: cover;
+  &::-webkit-scrollbar {
+    display: none;
   }
 
-  .coach-meta {
-    h2 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--ion-color-primary);
-    }
-
-    p {
-      margin: 2px 0 0;
-      font-size: 12px;
-      color: #8e8e93;
-      font-weight: 600;
-    }
-  }
-}
-
-/* SEARCH BOX */
-.search-section {
-  margin-bottom: 30px;
-}
-
-.nike-search-box {
-  background: #f2f2f7;
-  border-radius: 14px;
-  padding: 2px 15px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  ion-icon {
-    font-size: 18px;
-    color: #8e8e93;
-  }
-
-  ion-input {
-    --padding-start: 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--ion-color-primary);
-  }
-}
-
-/* AGENDA LIST */
-.agenda-list {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
-
-.day-group {
-  .day-header {
+  .day-bubble {
+    min-width: 60px;
+    height: 80px;
+    background: white;
+    border-radius: 18px;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    padding-bottom: 12px;
-    border-bottom: 2px solid #f2f2f7;
-    margin-bottom: 15px;
+    justify-content: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f2f2f7;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     .day-name {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--ion-color-primary);
-      text-transform: capitalize;
+      font-size: 10px;
+      font-weight: 700;
+      color: #8e8e93;
+      margin-bottom: 4px;
     }
 
     .day-number {
-      font-size: 12px;
-      font-weight: 800;
-      color: white;
-      background: var(--ion-color-primary);
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-    }
-  }
-}
-
-.sessions-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.session-small-card {
-  margin: 0;
-  padding: 12px 15px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  border: 1px solid #f2f2f7;
-
-  .session-time {
-    font-size: 14px;
-    font-weight: 800;
-    color: var(--ion-color-primary);
-    width: 50px;
-    flex-shrink: 0;
-  }
-
-  .session-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-
-    .student-name {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--ion-color-primary);
-    }
-
-    .session-type {
-      font-size: 11px;
-      font-weight: 600;
-      color: #8e8e93;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-  }
-
-  .session-actions {
-    display: flex;
-    gap: 5px;
-
-    ion-button {
-      --padding-start: 8px;
-      --padding-end: 8px;
-      height: 36px;
-      margin: 0;
       font-size: 18px;
-      --color: #8e8e93;
+      font-weight: 800;
+      color: #1c1c1e;
+    }
 
-      &.btn-cancel {
-        --color: #ff3b30;
+    &.active {
+      background: var(--ion-color-primary);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(var(--ion-color-primary-rgb), 0.3);
+      border-color: var(--ion-color-primary);
+
+      .day-name,
+      .day-number {
+        color: white;
       }
     }
   }
 }
 
-.empty-day {
-  padding: 10px 0;
+/* SESSIONS SECTION */
+.sessions-section {
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 5px;
+
+    h3 {
+      font-size: 20px;
+      font-weight: 800;
+      margin: 0;
+      color: #1c1c1e;
+    }
+
+    .count-badge {
+      font-size: 10px;
+      font-weight: 800;
+      color: #8e8e93;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+.loading-state {
+  padding: 40px;
+  text-align: center;
+
+  ion-spinner {
+    --color: var(--ion-color-primary);
+  }
+}
+
+/* PREMIUM SESSION CARD */
+.session-premium-card {
+  display: flex;
+  padding: 18px;
+  gap: 15px;
+  margin-bottom: 12px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid #f2f2f7;
+
+  .card-time-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 60px;
+    border-right: 1px solid #f2f2f7;
+    padding-right: 10px;
+
+    .time-start {
+      font-size: 16px;
+      font-weight: 800;
+      color: #1c1c1e;
+    }
+
+    .duration {
+      font-size: 10px;
+      font-weight: 700;
+      color: #aeaeb2;
+    }
+  }
+
+  .card-main-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .session-type-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+
+      .type-badge {
+        font-size: 9px;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(52, 199, 89, 0.1);
+        color: #34c759;
+
+        &.grupal {
+          background: rgba(88, 86, 214, 0.1);
+          color: #5856d6;
+        }
+      }
+
+      .status-badge {
+        font-size: 9px;
+        font-weight: 800;
+
+        &.activo {
+          color: #34c759;
+        }
+
+        &.pendiente {
+          color: #ff9500;
+        }
+      }
+    }
+
+    .student-names {
+      margin: 2px 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: #1c1c1e;
+    }
+
+    .enrollment-info {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: #8e8e93;
+      font-weight: 500;
+
+      ion-icon {
+        font-size: 14px;
+      }
+    }
+
+    .pack-name {
+      margin: 0;
+      font-size: 11px;
+      color: #aeaeb2;
+      font-style: italic;
+    }
+  }
+
+  .card-actions {
+    display: flex;
+    align-items: center;
+
+    ion-button {
+      --color: #c7c7cc;
+      --padding-start: 10px;
+      --padding-end: 10px;
+      height: 40px;
+    }
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+
+  .empty-icon-box {
+    width: 60px;
+    height: 60px;
+    background: #f2f2f7;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+
+    ion-icon {
+      font-size: 24px;
+      color: #c7c7cc;
+    }
+  }
 
   p {
-    font-size: 12px;
-    color: #c7c7cc;
-    font-style: italic;
-    margin: 0;
+    font-size: 14px;
+    color: #aeaeb2;
+    font-weight: 500;
   }
 }
 
@@ -231,5 +284,21 @@
     ion-icon {
       color: var(--ion-color-primary);
     }
+  }
+}
+
+.animate-up {
+  animation: animateUp 0.5s ease backwards;
+}
+
+@keyframes animateUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

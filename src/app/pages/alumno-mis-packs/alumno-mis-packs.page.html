@@ -11,13 +11,17 @@
 
     <div class="main-container animate-up">
 
-        <!-- Action Bar -->
-        <div class="action-bar" *ngIf="!isLoading">
-            <h2 class="section-title">Activos</h2>
-            <ion-button fill="clear" color="primary" (click)="irAComprar()">
-                <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-                Comprar
-            </ion-button>
+        <!-- Tabs Selector -->
+        <div class="segment-wrapper">
+            <ion-segment [(ngModel)]="vistaActual" (ionChange)="onSegmentChange($event)" mode="ios"
+                class="nike-segment">
+                <ion-segment-button value="activos">
+                    <ion-label>ACTIVOS</ion-label>
+                </ion-segment-button>
+                <ion-segment-button value="historial">
+                    <ion-label>HISTORIAL</ion-label>
+                </ion-segment-button>
+            </ion-segment>
         </div>
 
         <!-- Loading -->
@@ -27,19 +31,19 @@
         </div>
 
         <!-- Empty State -->
-        <div *ngIf="!isLoading && packs.length === 0" class="empty-state">
-            <ion-icon name="ticket-outline"></ion-icon>
-            <h3>Sin Packs Activos</h3>
-            <p>No tienes sesiones disponibles en este momento.</p>
-            <ion-button expand="block" color="primary" class="nike-btn" (click)="irAComprar()">
-                Explorar Planes
-            </ion-button>
+        <div *ngIf="!isLoading && packsVisibles.length === 0" class="empty-state">
+            <div class="empty-icon-box">
+                <ion-icon name="ticket-outline"></ion-icon>
+            </div>
+            <h3>Sigue Entrenando</h3>
+            <p *ngIf="vistaActual === 'activos'">No tienes sesiones disponibles en este momento.</p>
+            <p *ngIf="vistaActual === 'historial'">Aún no tienes un historial de packs finalizados.</p>
         </div>
 
         <!-- Packs Grid -->
-        <div class="packs-grid" *ngIf="!isLoading && packs.length > 0">
-            <div class="nike-card pack-card animate-pop" *ngFor="let pack of packs"
-                [class.grupal]="pack.cantidad_personas > 1">
+        <div class="packs-grid" *ngIf="!isLoading && packsVisibles.length > 0">
+            <div class="nike-card pack-card animate-pop" *ngFor="let pack of packsVisibles"
+                [class.grupal]="pack.cantidad_personas > 1" [class.finalizado]="vistaActual === 'historial'">
 
                 <div class="card-header">
                     <div class="pack-name-section">
@@ -49,6 +53,7 @@
                             'INDIVIDUAL' }}
                         </ion-badge>
                     </div>
+                    <div class="status-indicator-dot" *ngIf="vistaActual === 'activos'"></div>
                 </div>
 
                 <div class="card-body">
@@ -70,8 +75,8 @@
                         </div>
                     </div>
 
-                    <!-- Team Management for Multi-player Packs -->
-                    <div class="team-management" *ngIf="pack.cantidad_personas > 1">
+                    <!-- Team Management only for active multiplayer packs -->
+                    <div class="team-management" *ngIf="pack.cantidad_personas > 1 && vistaActual === 'activos'">
                         <div class="team-title">
                             <ion-icon name="people-outline"></ion-icon>
                             <span>Mi Equipo ({{ (pack.invitados?.length || 0) + 1 }}/{{ pack.cantidad_personas
@@ -96,9 +101,25 @@
                             </button>
                         </div>
                     </div>
-                </div>
 
+                    <!-- Finalized date for history -->
+                    <div class="finalized-info" *ngIf="vistaActual === 'historial'">
+                        <ion-icon name="checkmark-circle-outline"></ion-icon>
+                        <span>Pack Completado</span>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-controls" *ngIf="totalPaginas > 1">
+            <ion-button fill="clear" [disabled]="paginaActual === 1" (click)="cambiarPagina(-1)">
+                <ion-icon name="chevron-back-outline"></ion-icon>
+            </ion-button>
+            <span class="page-indicator">Página {{ paginaActual }} de {{ totalPaginas }}</span>
+            <ion-button fill="clear" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(1)">
+                <ion-icon name="chevron-forward-outline"></ion-icon>
+            </ion-button>
         </div>
 
     </div>

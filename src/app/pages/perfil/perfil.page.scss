@@ -1,25 +1,26 @@
-.perfil-content {
-    --background: #f8f8f8;
+/* --- PROFILE CONTENT --- */
+ion-content {
+    --background: var(--nike-bg-color);
 }
 
+/* --- HEADER ESTILO NIKE --- */
 .header-nike {
     position: relative;
-    height: calc(220px + var(--ion-safe-area-top));
-    background: #000;
+    height: 240px;
+    /* Reducido */
+    background: url('/assets/perfil-bg.jpg') center/cover no-repeat;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
-    padding-top: var(--ion-safe-area-top);
-    overflow: visible;
-    /* Ensure nothing gets clipped if it overflows up */
+    padding-bottom: 40px;
+    border-radius: 0 0 50px 50px;
+    overflow: hidden;
+    margin-top: -10px;
 
     .header-overlay {
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 100%);
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.8) 100%);
         z-index: 1;
     }
 
@@ -27,49 +28,59 @@
         position: relative;
         z-index: 2;
         text-align: center;
-        color: #fff;
+        color: white;
 
         .header-title {
-            font-size: 2.5rem;
-            font-weight: 900;
+            font-size: 24px;
+            /* Reducido */
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: -1px;
+            letter-spacing: -0.5px;
             margin: 0;
+            line-height: 1.1;
         }
 
         .header-sub {
-            font-size: 0.9rem;
-            opacity: 0.8;
+            font-size: 11px;
+            /* Reducido */
+            font-weight: 900;
+            opacity: 1;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1.5px;
+            margin-top: 6px;
+            color: #ccff00;
+            /* Neon Directo */
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
         }
     }
 }
 
 .profile-container {
     max-width: 600px;
-    margin: -30px auto 40px;
+    margin: -50px auto 40px;
     padding: 0 20px;
     position: relative;
     z-index: 10;
 }
 
+/* --- AVATAR SECTION --- */
 .avatar-section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 35px;
 
     .avatar-wrapper {
         position: relative;
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        border: 4px solid #fff;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        background: #fff;
+        width: 130px;
+        height: 130px;
+        border-radius: 45px;
+        border: 5px solid white;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        background: var(--nike-gray-light);
         cursor: pointer;
         overflow: hidden;
+        transition: all 0.3s ease;
 
         img {
             width: 100%;
@@ -79,10 +90,7 @@
 
         .edit-overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             background: rgba(0, 0, 0, 0.4);
             display: flex;
             align-items: center;
@@ -91,104 +99,116 @@
             transition: opacity 0.3s ease;
 
             ion-icon {
-                color: #fff;
-                font-size: 2rem;
+                color: white;
+                font-size: 32px;
             }
         }
 
         &:hover .edit-overlay {
             opacity: 1;
         }
+
+        &:active {
+            transform: scale(0.95);
+        }
     }
 
     .role-badge {
-        margin-top: 10px;
-        background: #000;
-        color: #fff;
-        padding: 4px 12px;
+        margin-top: 12px;
+        background: black;
+        color: white;
+        padding: 6px 16px;
         border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 700;
+        font-size: 10px;
+        font-weight: 900;
         text-transform: uppercase;
+        letter-spacing: 1px;
     }
 }
 
+/* --- SECTION CARDS --- */
 .section-card {
-    background: #fff;
-    border-radius: 20px;
-    padding: 25px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    background: white;
+    border-radius: 35px;
+    padding: 30px;
+    margin-bottom: 25px;
+    border: 1px solid var(--nike-gray-soft);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 
     .section-title {
-        font-size: 1.1rem;
-        font-weight: 800;
+        font-size: 13px;
+        font-weight: 900;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 20px;
+        letter-spacing: 2px;
+        margin-bottom: 25px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
+        color: var(--nike-gray-medium);
 
         ion-icon {
-            font-size: 1.2rem;
-            color: #3880ff;
+            font-size: 18px;
+            color: black;
         }
     }
 }
 
 .nike-input-group {
     display: grid;
-    gap: 15px;
+    gap: 18px;
 
     .nike-item {
-        --padding-start: 15px;
-        --inner-padding-end: 15px;
-        --background: #fdfdfd;
-        --border-radius: 12px;
-        border: 1px solid #eee;
-        margin-bottom: 5px;
+        --padding-start: 16px;
+        --inner-padding-end: 16px;
+        --background: var(--nike-gray-light);
+        --border-radius: 20px;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
 
         &.item-has-focus {
-            border-color: #000;
-            --background: #fff;
+            border-color: black;
+            --background: white;
         }
 
         ion-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #888;
+            font-size: 10px;
+            font-weight: 900;
+            color: var(--nike-gray-medium);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
         }
 
         ion-input,
         ion-select {
-            font-weight: 600;
-            --padding-top: 10px;
-            --padding-bottom: 10px;
-            width: 100%;
+            font-weight: 800;
+            font-size: 15px;
+            --padding-top: 12px;
+            --padding-bottom: 12px;
         }
     }
 }
 
 .save-btn {
-    --background: #000;
-    --background-activated: #333;
-    --border-radius: 12px;
-    height: 56px;
-    font-weight: 800;
+    --background: black;
+    --color: white;
+    --border-radius: 25px;
+    height: 64px;
+    font-weight: 950;
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    margin-top: 20px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    margin-top: 30px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+
+    &:active {
+        transform: scale(0.98);
+    }
 }
 
 .back-fab {
-    --background: #fff;
-    --color: #000;
-    border: 1px solid #eee;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --background: var(--nike-gray-light);
+    --color: black;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .animate-up {

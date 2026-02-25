@@ -6,17 +6,23 @@ import {
   IonFab,
   IonFabButton,
   IonIcon,
-  IonButton
+  IonButton,
+  IonRefresher,
+  IonRefresherContent
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
 import {
   settingsOutline, homeOutline, calendarOutline, logOutOutline,
   albumsOutline, barbellOutline, personOutline, close,
-  calendarNumberOutline, trophyOutline, barChartOutline
+  calendarNumberOutline, trophyOutline, barChartOutline,
+  sparklesOutline, videocamOutline
 } from 'ionicons/icons';
-import { ActionSheetController } from '@ionic/angular/standalone';
+import { ActionSheetController, LoadingController } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
+import { environment } from '../../../environments/environment';
+import { HttpClient } from '@angular/common/http';
+import { ViewChild, ElementRef } from '@angular/core';
 
 @Component({
   selector: 'app-jugador-home',
@@ -29,23 +35,35 @@ import { MysqlService } from '../../services/mysql.service';
     IonFab,
     IonFabButton,
     IonIcon,
-    IonButton
+    IonButton,
+    IonRefresher,
+    IonRefresherContent
   ]
 })
 export class JugadorHomePage implements OnInit {
 
   jugadorNombre = "...";
+  fotoPerfil = "";
 
   // Datos de Packs
   clasesPagadas = 0;
   clasesReservadas = 0;
   clasesDisponibles = 0;
+  clasesGrupales = 0;
   packsDetalle: any[] = [];
+  proximaClase: any = null;
+  isDev = !environment.production && environment.showSocialFeatures;
+
+  // AI Analysis states
+  @ViewChild('videoInput') videoInput!: ElementRef;
+  aiResult: any = null;
 
   constructor(
     private router: Router,
     private actionSheetCtrl: ActionSheetController,
-    private mysqlService: MysqlService
+    private loadingCtrl: LoadingController,
+    private mysqlService: MysqlService,
+    private http: HttpClient
   ) {
     addIcons({
       settingsOutline,
@@ -58,7 +76,9 @@ export class JugadorHomePage implements OnInit {
       close,
       calendarNumberOutline,
       trophyOutline,
-      barChartOutline
+      barChartOutline,
+      sparklesOutline,
+      videocamOutline
     });
   }
 
@@ -82,18 +102,54 @@ export class JugadorHomePage implements OnInit {
       next: (res) => {
         this.jugadorNombre = res.nombre;
 
+        // Try to get photo from stats first
+        if (res.foto_perfil) {
+          const foto = res.foto_perfil;
+          this.fotoPerfil = foto.startsWith('http') ? foto : `https://api.padelmanager.cl/${foto}`;
+        }
+
         // Datos de Packs
         if (res.estadisticas.packs) {
           this.clasesPagadas = res.estadisticas.packs.pagadas;
           this.clasesReservadas = res.estadisticas.packs.reservadas;
           this.clasesDisponibles = res.estadisticas.packs.disponibles;
+          this.clasesGrupales = res.estadisticas.packs.grupales || 0;
           this.packsDetalle = res.estadisticas.packs.detalle || [];
+        }
+
+        if (res.prox_clase) {
+          this.proximaClase = res.prox_clase;
+        } else {
+          this.proximaClase = null;
         }
       },
       error: (err) => {
         console.error('Error al cargar estadísticas:', err);
       }
     });
+
+    // Double check with profile endpoint
+    this.mysqlService.getPerfil(userId).subscribe({
+      next: (res) => {
+        if (res.success && res.user.foto_perfil) {
+          const foto = res.user.foto_perfil;
+          this.fotoPerfil = foto.startsWith('http') ? foto : `https://api.padelmanager.cl/${foto}`;
+        }
+      }
+    });
+  }
+
+  handleRefresh(event: any) {
+    this.cargarStats();
+    setTimeout(() => {
+      event.target.complete();
+    }, 1000);
+  }
+
+  getSaldoPercent(): number {
+    if (this.clasesPagadas === 0) return 0;
+    const pct = (this.clasesDisponibles / this.clasesPagadas) * 100;
+    return Math.min(100, Math.max(0, pct));
   }
 
   agendar() {
@@ -105,8 +161,43 @@ export class JugadorHomePage implements OnInit {
   }
 
   misHabilidades() {
-    console.log('Navigating to Mis Habilidades...');
     this.router.navigate(['/mis-habilidades']);
+  }
+
+  analizarVideo() {
+    this.videoInput.nativeElement.click();
+  }
+
+  async onVideoSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const loading = await this.loadingCtrl.create({
+      message: 'Gemini analizando técnica (esto puede tardar 1 min)...',
+      spinner: 'dots',
+      mode: 'ios',
+      cssClass: 'ai-loading-custom'
+    });
+    await loading.present();
+
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('video', file);
+
+    // Call our new backend proxy
+    this.http.post<any>('https://api.padelmanager.cl/ia/gemini_analyze.php', formData)
+      .subscribe({
+        next: (res) => {
+          loading.dismiss();
+          if (res.success) {
+            this.aiResult = res.analysis;
+          }
+        },
+        error: (err) => {
+          loading.dismiss();
+          console.error('AI Analysis Error:', err);
+        }
+      });
   }
 
   goToHome() {
@@ -114,17 +205,17 @@ export class JugadorHomePage implements OnInit {
   }
 
   goToAgenda() {
-    this.router.navigate(['/jugador-reservas']);
+    this.router.navigate(['/jugador-reservas'], { queryParams: { view: 'agendar' } });
+  }
+
+  goToMisClases() {
+    this.router.navigate(['/jugador-reservas'], { queryParams: { view: 'mis-entrenamientos' } });
   }
 
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
     this.router.navigate(['/login']);
-  }
-
-  goToPackAlumno() {
-    this.goToMisPacks();
   }
 
   goToMisPacks() {
@@ -143,15 +234,8 @@ export class JugadorHomePage implements OnInit {
           }
         },
         {
-          text: 'Mis Reservas',
-          icon: 'calendar-number-outline',
-          handler: () => {
-            this.router.navigate(['/jugador-calendario']);
-          }
-        },
-        {
-          text: 'Mis Packs y Créditos',
-          icon: 'albums-outline',
+          text: 'Mis Packs',
+          icon: 'ticket-outline',
           handler: () => {
             this.goToMisPacks();
           }

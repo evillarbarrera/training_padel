@@ -40,66 +40,104 @@
 :root {
   --ion-color-primary: #000000;
   --ion-color-secondary: #ffffff;
-  --ion-color-tertiary: #3880ff;
+  --ion-color-tertiary: #ccff00;
+  /* Nike Neon */
 
   --ion-color-primary-shade: #1a1a1a;
   --ion-color-primary-tint: #333333;
 
+  /* Nike Design Tokens */
+  --nike-black: #000000;
+  --nike-white: #ffffff;
+  --nike-neon: #ccff00;
+  --nike-gray-light: #f4f4f7;
+  --nike-gray-soft: #eeeeee;
+  --nike-gray-medium: #8e8e93;
+
+  /* Premium Typography */
   --ion-font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Roboto", sans-serif;
 
   /* Global Design Tokens */
   --nike-card-bg: #ffffff;
-  --nike-card-radius: 24px;
-  --nike-card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  --nike-bg-color: #f7f7f7;
-  --nike-transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  --nike-card-radius: 32px;
+  --nike-card-shadow: 0 15px 40px rgba(0, 0, 0, 0.06);
+  --nike-bg-color: #ffffff;
+  --nike-transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Global Styles */
 ion-content {
   --background: var(--nike-bg-color);
+  --padding-top: 0;
 }
 
 .nike-bg {
   background-color: var(--nike-bg-color);
 }
 
+/* Elite Typography System (Refined & Balanced) */
+h1,
+.nike-title-xl {
+  font-weight: 800 !important;
+  font-size: 24px !important;
+  letter-spacing: -0.5px !important;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+h2,
+.nike-title-lg {
+  font-weight: 800 !important;
+  font-size: 20px !important;
+  letter-spacing: -0.3px !important;
+  text-transform: uppercase;
+}
+
+h3,
+.nike-title-md {
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+p,
+span,
+div {
+  font-family: var(--ion-font-family);
+  letter-spacing: 0;
+  font-size: 12.5px;
+}
+
+
 .nike-card {
   background: var(--nike-card-bg);
   border-radius: var(--nike-card-radius);
   box-shadow: var(--nike-card-shadow);
-  padding: 24px;
+  padding: 20px;
+  /* Menos padding */
   margin-bottom: 20px;
   transition: var(--nike-transition);
-  border: 1px solid rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.03);
 
   &:active {
-    transform: scale(0.98);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
+    transform: scale(0.97);
   }
 }
 
-.nike-button {
-  --border-radius: 12px;
+.nike-button-pill {
+  --border-radius: 30px;
   --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  --transition: var(--nike-transition);
-  font-weight: 700;
-  letter-spacing: -0.5px;
-}
-
-/* Typography Overrides */
-h1,
-h2,
-h3 {
-  font-weight: 800;
-  letter-spacing: -1px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 /* Animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
 
   to {
@@ -109,17 +147,19 @@ h3 {
 }
 
 .animate-up {
-  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Header Override */
 ion-header {
-  --background: var(--ion-color-primary);
-  color: white;
-  font-weight: 600;
-}
-
-ion-content {
-  --padding-top: 20px;
+  ion-toolbar {
+    --background: white;
+    --color: black;
+    --border-style: none;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+  }
 }
 
 // ===== RESPONSIVE IMAGES =====
@@ -127,14 +167,13 @@ img {
   max-width: 100%;
   height: auto;
   display: block;
+  border-radius: 20px;
 }
 
-.nike-card img,
-.card img {
+.nike-card img {
   width: 100%;
-  height: auto;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 25px;
 }
 
 // Imágenes en galerías
@@ -155,8 +194,10 @@ ion-fab {
 }
 
 ion-fab-button {
-  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  
+  --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  --background: black;
+  --color: #ccff00;
+
   &:hover {
     --box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
   }

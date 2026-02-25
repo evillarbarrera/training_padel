@@ -5,7 +5,7 @@ import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { MysqlService } from '../../services/mysql.service';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { chevronBackOutline, calendarOutline, personOutline, timeOutline } from 'ionicons/icons';
+import { chevronBackOutline, calendarOutline, personOutline, timeOutline, informationCircleOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-jugador-calendario',
@@ -27,7 +27,7 @@ export class JugadorCalendarioPage implements OnInit {
     private alertController: AlertController,
     private toastController: ToastController
   ) {
-    addIcons({ chevronBackOutline, calendarOutline, personOutline, timeOutline });
+    addIcons({ chevronBackOutline, calendarOutline, personOutline, timeOutline, informationCircleOutline });
   }
 
   ngOnInit() {

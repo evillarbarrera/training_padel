@@ -1,11 +1,15 @@
 /* --- HEADER ESTILO NIKE --- */
 .header-nike {
-  height: 200px;
+  height: 250px;
   position: relative;
+  margin-top: -50px;
+  padding-top: calc(50px + var(--ion-safe-area-top));
   background: url('/assets/fondo-padel.png') center/cover no-repeat;
   display: flex;
   align-items: flex-end;
-  padding: 30px 25px;
+  padding-bottom: 30px;
+  padding-left: 25px;
+  padding-right: 25px;
   border-radius: 0 0 30px 30px;
   overflow: hidden;
 }
@@ -35,6 +39,31 @@
     opacity: 0.9;
     font-size: 15px;
     font-weight: 500;
+  }
+}
+
+/* HELPER ACTIONS */
+.helper-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 20px 25px 0;
+
+  .secondary-btn {
+    height: 44px;
+    margin: 0;
+    font-size: 11px;
+    --border-radius: 12px;
+    --background: white;
+    --color: #111;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #f2f2f7;
+
+    ion-icon {
+      font-size: 16px;
+      margin-right: 4px;
+      color: var(--ion-color-primary);
+    }
   }
 }
 
@@ -79,39 +108,41 @@
   }
 }
 
-/* QUICK ACTIONS */
-.actions-section {
-  padding: 20px 25px 0;
-}
-
-.nike-card-actions {
-  background: white;
-  border-radius: 16px;
-  padding: 5px;
+/* TOOLS BAR */
+.tools-bar {
+  padding: 15px 25px 5px;
   display: flex;
-  justify-content: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f2f2f7;
+  justify-content: space-between;
+  align-items: center;
 
-  ion-button {
-    --color: var(--ion-color-primary);
-    font-weight: 700;
+  .info-text {
     font-size: 13px;
-    letter-spacing: 0.3px;
+    font-weight: 700;
+    color: #8e8e93;
+  }
 
-    &.btn-clear {
-      --color: #8e8e93;
+  .tools-actions {
+    display: flex;
+    gap: 8px;
+
+    ion-button {
+      font-size: 12px;
+      font-weight: 700;
+      --padding-start: 8px;
+      --padding-end: 8px;
+      height: 28px;
+      margin: 0;
     }
   }
 }
 
 /* CONTAINER */
 .dashboard-container {
-  padding: 20px 25px 120px;
+  padding: 0 0 120px;
 }
 
-/* BLOCKS GRID */
 .blocks-grid {
+  padding: 10px 25px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
@@ -127,80 +158,180 @@
   position: relative;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   background: white;
-  border: 2px solid #f2f2f7;
+  border: 1px solid #f2f2f7;
+  border-radius: 12px;
 
   .block-time {
-    font-size: 14px;
-    font-weight: 800;
-    color: #8e8e93;
+    font-size: 15px;
+    font-weight: 700;
+    color: #111;
   }
 
   .selection-check {
     position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 16px;
-    height: 16px;
-    background: #4CAF50;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    background: #34c759;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transition: opacity 0.2s ease;
+    box-shadow: 0 2px 6px rgba(52, 199, 89, 0.4);
+    z-index: 3;
 
     ion-icon {
-      font-size: 10px;
+      font-size: 12px;
       color: white;
-      font-weight: 800;
+      font-weight: 900;
+    }
+  }
+
+  .occupied-indicator {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    border-radius: 12px;
+
+    ion-icon {
+      font-size: 24px;
+      color: #ff3b30;
     }
   }
 
   &.selected {
-    background: #4CAF50;
-    border-color: #4CAF50;
-    transform: scale(1.05);
-    z-index: 2;
-    box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+    background: #eaffed;
+    border-color: #34c759;
 
     .block-time {
-      color: white;
-      font-weight: 900;
-    }
-
-    .selection-check {
-      opacity: 1;
+      color: #111;
     }
   }
 
   &.occupied {
-    background: #f44336;
-    border-color: #d32f2f;
-    opacity: 0.85;
-    pointer-events: none;
-    cursor: not-allowed;
+    opacity: 0.7;
+    background: #f9f9f9;
+    border-color: #eee;
 
     .block-time {
-      color: white;
+      opacity: 0.3;
       text-decoration: line-through;
-      font-weight: 900;
     }
-  }
-
-  &:active:not(.occupied) {
-    transform: scale(0.95);
   }
 }
 
-/* FAB ACTIONS */
-.fab-secondary-position {
-  margin-bottom: 70px;
-  /* Positions it above the Save FAB */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #8e8e93;
+  font-size: 14px;
+}
+
+/* MODAL STYLES */
+.nike-modal {
+  --height: 85%;
+  --border-radius: 20px 20px 0 0;
+
+  ion-toolbar {
+    --background: white;
+
+    ion-title {
+      font-weight: 800;
+      font-size: 18px;
+    }
+  }
+
+  .modal-content-padded {
+    padding: 20px;
+  }
+
+  .modal-intro {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 20px;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  .template-days-row {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding-bottom: 15px;
+    margin-bottom: 10px;
+
+    .day-chip {
+      flex: 0 0 auto;
+      background: #f2f2f7;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #8e8e93;
+      text-transform: uppercase;
+
+      &.active {
+        background: #111;
+        color: white;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      }
+    }
+  }
+
+  .template-tools {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+
+    span {
+      font-size: 14px;
+      font-weight: 700;
+    }
+  }
+
+  .template-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 30px;
+
+    .t-block {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 13px;
+      font-weight: 600;
+
+      &.selected {
+        background: #34c759;
+        color: white;
+        border-color: #34c759;
+        box-shadow: 0 4px 10px rgba(52, 199, 89, 0.3);
+      }
+    }
+  }
+}
+
+/* FAB */
+.fab-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
 }
 
 .nike-fab {
   --background: var(--ion-color-primary);
-  --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  --box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
   margin: 0;
   width: 56px;
   height: 56px;
@@ -220,5 +351,7 @@
 
   &.save-fab {
     --background: #34c759;
+    /* Green for save */
+    --box-shadow: 0 8px 20px rgba(52, 199, 89, 0.4);
   }
 }

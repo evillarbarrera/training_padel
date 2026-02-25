@@ -1,5 +1,5 @@
 {
-  "name": "training",
+  "name": "PadelManager Training",
   "integrations": {},
   "type": "angular-standalone",
   "proxies": {

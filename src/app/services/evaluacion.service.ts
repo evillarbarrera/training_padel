@@ -8,13 +8,14 @@ import { Observable } from 'rxjs';
 export class EvaluacionService {
     private apiUrl = 'https://api.padelmanager.cl/evaluaciones';
 
-    private token = localStorage.getItem('token') || '';
+    private token = btoa('1|padel_academy');
 
     constructor(private http: HttpClient) { }
 
     private getHeaders() {
         return new HttpHeaders({
-            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.token}`,
+            'Content-Type': 'application/json'
         });
     }
 
@@ -27,6 +28,15 @@ export class EvaluacionService {
     }
 
     getVideos(jugadorId: number): Observable<any[]> {
-        return this.http.get<any[]>(`https://api.padelmanager.cl/api_training/entrenador/get_videos.php?jugador_id=${jugadorId}`, { headers: this.getHeaders() });
+        return this.http.get<any[]>(`https://api.padelmanager.cl/entrenador/get_videos.php?jugador_id=${jugadorId}`, { headers: this.getHeaders() });
+    }
+
+    uploadVideo(formData: FormData): Observable<any> {
+        // For file uploads, we SHOULD NOT set 'Content-Type': 'application/json'
+        // HttpClient handles the boundary automatically for FormData
+        const headers = new HttpHeaders({
+            'Authorization': `Bearer ${this.token}`
+        });
+        return this.http.post(`https://api.padelmanager.cl/entrenador/add_video.php`, formData, { headers });
     }
 }

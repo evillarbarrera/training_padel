@@ -3,9 +3,10 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { IonHeader, IonButton, IonIcon, IonInput, IonContent, IonFab, IonFabButton } from '@ionic/angular/standalone';
+import { IonHeader, IonButton, IonIcon, IonInput, IonContent, IonFab, IonFabButton, IonAvatar, IonBadge, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { searchOutline } from 'ionicons/icons';
+import { searchOutline, addCircleOutline, timeOutline, peopleOutline, personOutline, chevronBackOutline, informationCircleOutline } from 'ionicons/icons';
+import { MysqlService } from '../../services/mysql.service';
 
 @Component({
   selector: 'app-entrenador-agenda',
@@ -22,91 +23,128 @@ import { searchOutline } from 'ionicons/icons';
     IonInput,
     IonContent,
     IonFab,
-    IonFabButton
+    IonFabButton,
+    IonAvatar,
+    IonBadge,
+    IonSpinner
   ]
 })
 export class EntrenadorAgendaPage {
-
-  entrenadorNombre = "Coach Nico";
-  avatarUrl = "https://padel-ejercicios.com/wp-content/uploads/2025/07/Coach-Santiago-Just-Padel-819x1024-1.jpg";
+  entrenadorNombre = "";
+  avatarUrl = "";
+  userId: number | null = null;
+  isLoading = true;
 
   busqueda = "";
-  diaSeleccionado = "Todos";
+  diaSeleccionadoIdx = 0; // Index of selected day in week array
 
-  dias = ["Todos", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+  entrenamientos: any[] = [];
+  entrenamientosFiltrados: any[] = [];
 
-  entrenamientos = [
-    { alumno: "Pedro", dia: "Lunes", hora: "09:00", tipo: "Volea", intensidad: "alta" },
-    { alumno: "Ana", dia: "Lunes", hora: "10:00", tipo: "Defensa", intensidad: "media" },
-    { alumno: "Luis", dia: "Martes", hora: "08:00", tipo: "Smash", intensidad: "alta" },
-    { alumno: "Carla", dia: "Miércoles", hora: "11:00", tipo: "Bandeja", intensidad: "baja" },
-  ];
-
-  entrenamientosPorDia: any = {};
-
-  constructor(private router: Router) {
-    addIcons({ searchOutline });
+  constructor(
+    private router: Router,
+    private mysqlService: MysqlService
+  ) {
+    addIcons({ searchOutline, addCircleOutline, timeOutline, peopleOutline, personOutline, chevronBackOutline, informationCircleOutline });
   }
 
   ngOnInit() {
-    this.organizarPorDia();
+    this.userId = Number(localStorage.getItem('userId'));
+    if (!this.userId) {
+      this.router.navigate(['/login']);
+      return;
+    }
     this.generarSemana();
+    this.cargarPerfil();
+    this.loadAgenda();
   }
 
-  organizarPorDia() {
-    this.entrenamientosPorDia = {};
-
-    this.dias.forEach(d => {
-      this.entrenamientosPorDia[d] = [];
+  cargarPerfil() {
+    if (!this.userId) return;
+    this.mysqlService.getPerfil(this.userId).subscribe(res => {
+      if (res.success) {
+        this.entrenadorNombre = res.user.nombre;
+        this.avatarUrl = res.user.foto_perfil || res.user.foto || "assets/images/placeholder_coach.png";
+      }
     });
+  }
 
-    this.entrenamientos.forEach(e => {
-      this.entrenamientosPorDia[e.dia].push(e);
+  loadAgenda() {
+    if (!this.userId) return;
+    this.isLoading = true;
+    this.mysqlService.getEntrenadorAgenda(this.userId).subscribe({
+      next: (res: any) => {
+        const tradicionales = res.reservas_tradicionales || [];
+        const grupales = res.packs_grupales || [];
+        this.entrenamientos = [...tradicionales, ...grupales];
+        this.filtrarPorDia();
+        this.isLoading = false;
+      },
+      error: (err: any) => {
+        console.error('Error loadAgenda:', err);
+        this.isLoading = false;
+      }
     });
+  }
+
+  seleccionarDia(idx: number) {
+    this.diaSeleccionadoIdx = idx;
+    this.filtrarPorDia();
+  }
+
+  filtrarPorDia() {
+    const diaSel = this.semana[this.diaSeleccionadoIdx];
+    const fechaStr = diaSel.fecha.toISOString().split('T')[0];
+    const diaNombre = diaSel.nombre;
+
+    this.entrenamientosFiltrados = this.entrenamientos.filter(e => {
+      if (e.fecha) return e.fecha === fechaStr;
+      if (e.tipo === 'grupal_template') return this.mapDia(e.dia_semana) === diaNombre;
+      return false;
+    }).sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio));
+  }
+
+  mapDia(val: any): string {
+    const d = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+    return d[Number(val)] || "";
   }
 
   volver() {
     this.router.navigate(['/entrenador-home']);
   }
 
-  anular(ent: any) {
+  reagendarClase(e: any) { }
+  cancelarClase(e: any) { }
 
-  }
-
-  reagendar(ent: any) {
-
-  }
-
-  reagendarClase(e: any) {
-
-    // Lógica para reprogramar
-  }
-
-  cancelarClase(e: any) {
-
-    // Lógica para cancelar
+  irA_Agendar() {
+    this.router.navigate(['/entrenador-agendar']);
   }
 
   semana: { nombre: string; numero: number; fecha: Date }[] = [];
 
   generarSemana() {
-    const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-
+    const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
     const hoy = new Date();
-    const inicioSemana = new Date(hoy);
-    inicioSemana.setDate(hoy.getDate() - hoy.getDay() + 1); // lunes
 
-    this.semana = diasSemana.map((nombre, i) => {
-      const fecha = new Date(inicioSemana);
-      fecha.setDate(inicioSemana.getDate() + i);
+    // Find monday of current week
+    const currentDay = hoy.getDay();
+    const diff = hoy.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+    const monday = new Date(hoy.setDate(diff));
 
-      return {
-        nombre,
-        numero: fecha.getDate(),
-        fecha
-      };
-    });
+    this.semana = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      this.semana.push({
+        nombre: diasSemana[d.getDay()],
+        numero: d.getDate(),
+        fecha: d
+      });
+      // Set initial selection to today if possible
+      const today = new Date();
+      if (d.getDate() === today.getDate() && d.getMonth() === today.getMonth()) {
+        this.diaSeleccionadoIdx = i;
+      }
+    }
   }
-
-
 }

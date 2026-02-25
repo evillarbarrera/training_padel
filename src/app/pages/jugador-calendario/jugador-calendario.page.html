@@ -70,6 +70,11 @@
               </div>
             </div>
           </div>
+          <!-- Info Message for Pending Groups -->
+          <div class="group-info-row" *ngIf="reserva.tipo === 'grupal' && reserva.estado_grupo !== 'activo'">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <p>Se activará con <strong>{{ reserva.capacidad_minima || 4 }}</strong> jugadores.</p>
+          </div>
         </div>
 
         <div class="card-body">

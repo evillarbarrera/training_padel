@@ -165,4 +165,12 @@ export class MysqlService {
       { headers: this.headers }
     );
   }
+
+  getAllPacks(entrenadorId?: number): Observable<any[]> {
+    let url = `${this.api}/packs/get_all_packs.php`;
+    if (entrenadorId) {
+      url += `?entrenador_id=${entrenadorId}`;
+    }
+    return this.http.get<any[]>(url, { headers: this.headers });
+  }
 }

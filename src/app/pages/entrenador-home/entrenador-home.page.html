@@ -4,16 +4,73 @@
   <div class="header-nike">
     <div class="header-overlay"></div>
     <div class="header-content">
-      <h1 class="header-title">Hola, {{ coachNombre }}</h1>
-      <p class="header-sub">Gestión Academy • Padel</p>
+      <div class="coach-profile-brief">
+        <div class="profile-img-container" *ngIf="coachFoto">
+          <img [src]="coachFoto" class="coach-img" />
+        </div>
+        <div class="title-details">
+          <p class="welcome-pre">BIENVENIDO,</p>
+          <h1 class="header-title">{{ coachNombre }}</h1>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Main Content -->
   <div class="dashboard-container">
 
+    <!-- Performance Summary (Integrated Metrics) -->
+    <div class="metrics-dashboard animate-up">
+      <div class="metric-item">
+        <span class="metric-value">{{ stats.total_alumnos }}</span>
+        <span class="metric-label">Alumnos<br>Totales</span>
+      </div>
+      <div class="metric-divider"></div>
+      <div class="metric-item">
+        <span class="metric-value">{{ stats.clases_mes }}</span>
+        <span class="metric-label">Clases<br>del Mes</span>
+      </div>
+    </div>
+
+
+
+    <!-- Próximas Clases Section (Replicated from Web) -->
+    <div class="next-classes-section animate-up" style="animation-delay: 0.1s;">
+      <div class="section-header">
+        <h3 class="section-title">Próximas Clases</h3>
+        <ion-badge color="dark" *ngIf="clasesHoyList.length > 0">{{ clasesHoyList.length }}</ion-badge>
+      </div>
+
+      <div class="classes-container" *ngIf="clasesHoyList.length > 0">
+        <div class="class-card-mini" *ngFor="let clase of clasesHoyList">
+          <div class="time-col">
+            <span class="day-label" [class.tomorrow]="clase.diaLabel === 'Mañana'">{{ clase.diaLabel }}</span>
+            <span class="hour">{{ clase.hora }}</span>
+          </div>
+          <div class="info-col">
+            <span class="title">{{ clase.titulo }}</span>
+            <span class="subtitle">{{ clase.subtitulo }}</span>
+          </div>
+          <div class="type-col">
+            <ion-badge [color]="clase.tipo === 'Grupal' ? 'warning' : 'primary'">
+              {{ clase.tipo }}
+            </ion-badge>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-classes" *ngIf="clasesHoyList.length === 0 && !isLoading">
+        <ion-icon name="checkmark-done-circle-outline"></ion-icon>
+        <p>No hay clases para hoy ni mañana 🎉</p>
+      </div>
+
+      <div class="loading-state" *ngIf="isLoading">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+    </div>
+
     <!-- Modules Grid -->
-    <div class="modules-column animate-up">
+    <div class="modules-column animate-up" style="animation-delay: 0.2s;">
 
       <!-- Agenda Card -->
       <div class="nike-card module-card" (click)="goToAgenda()">

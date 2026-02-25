@@ -4,60 +4,137 @@
   <div class="header-nike">
     <div class="header-overlay"></div>
     <div class="header-content">
-      <h1 class="header-title">Configurar Turnos</h1>
-      <p class="header-sub">Define tus horas de entrenamiento</p>
+      <h1 class="header-title">Mi Disponibilidad</h1>
+      <p class="header-sub">Gestiona tus horarios de clase</p>
     </div>
   </div>
 
-  <!-- Day Selector (Premium) -->
-  <div class="segment-wrapper animate-up">
-    <ion-segment scrollable [(ngModel)]="diaSeleccionado" class="nike-segment-days-light">
-      <ion-segment-button *ngFor="let d of dias" [value]="d.fecha">
-        <ion-label>
-          <span class="day-label">{{ d.nombre | slice:0:3 | uppercase }}</span>
-          <span class="date-label">{{ d.fecha | date:'dd' }}</span>
-        </ion-label>
-      </ion-segment-button>
-    </ion-segment>
-  </div>
-
-  <!-- Quick Actions (Premium) -->
-  <div class="actions-section animate-up" *ngIf="bloquesPorDia[diaSeleccionado]" style="animation-delay: 0.05s;">
-    <div class="nike-card-actions">
-      <ion-button fill="clear" (click)="seleccionarTodos()" *ngIf="!todosSeleccionados">
-        <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
-        Seleccionar Todo
-      </ion-button>
-      <ion-button fill="clear" class="btn-clear" (click)="deseleccionarTodos()" *ngIf="todosSeleccionados">
-        <ion-icon name="close-circle-outline" slot="start"></ion-icon>
-        Deseleccionar Todo
-      </ion-button>
-    </div>
-  </div>
-
-  <!-- Blocks Container -->
   <div class="dashboard-container">
 
-    <div class="blocks-grid animate-up" *ngIf="bloquesPorDia[diaSeleccionado]" style="animation-delay: 0.1s;">
+    <!-- Actions Row -->
+    <div class="helper-actions animate-up">
+      <ion-button expand="block" class="nike-button secondary-btn" (click)="openDefaultModal()">
+        <ion-icon name="settings-outline" slot="start"></ion-icon>
+        Config. Semana Base
+      </ion-button>
 
-      <div class="nike-card block-card" *ngFor="let b of bloquesPorDia[diaSeleccionado]"
-        [class.selected]="b.seleccionado" [class.occupied]="b.ocupado" (click)="!b.ocupado && toggleBloque(b)">
+      <ion-button expand="block" class="nike-button secondary-btn" (click)="applyDefaultConfig()">
+        <ion-icon name="flash-outline" slot="start"></ion-icon>
+        Aplicar Plantilla (30d)
+      </ion-button>
+    </div>
+
+    <!-- Day Selector -->
+    <div class="segment-wrapper animate-up" style="animation-delay: 0.05s;">
+      <ion-segment scrollable [(ngModel)]="diaSeleccionado" class="nike-segment-days-light" mode="md">
+        <ion-segment-button *ngFor="let d of dias" [value]="d.fecha">
+          <ion-label>
+            <span class="day-label">{{ d.nombre | slice:0:3 | uppercase }}</span>
+            <span class="date-label">{{ d.fecha | date:'dd' }}</span>
+          </ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- Selection Tools -->
+    <div class="tools-bar animate-up" *ngIf="bloquesActuales.length > 0" style="animation-delay: 0.1s;">
+      <div class="info-text">
+        {{ bloquesActuales.length }} bloques
+      </div>
+      <div class="tools-actions">
+        <ion-button fill="clear" size="small" (click)="seleccionarTodos()" *ngIf="!todosSeleccionados">
+          Todo
+        </ion-button>
+        <ion-button fill="clear" size="small" color="danger" (click)="deseleccionarTodos()" *ngIf="todosSeleccionados">
+          Nada
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Blocks Grid -->
+    <div class="blocks-grid animate-up" *ngIf="bloquesActuales.length > 0" style="animation-delay: 0.15s;">
+      <div class="nike-card block-card" *ngFor="let b of bloquesActuales" [class.selected]="b.seleccionado"
+        [class.occupied]="b.ocupado" (click)="!b.ocupado && toggleBloque(b)">
 
         <span class="block-time">{{ b.hora_inicio }}</span>
+
         <div class="selection-check" *ngIf="b.seleccionado">
           <ion-icon name="checkmark-outline"></ion-icon>
         </div>
-      </div>
 
+        <div class="occupied-indicator" *ngIf="b.ocupado">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="bloquesActuales.length === 0">
+      <p>No se pudieron generar bloques para este día.</p>
     </div>
 
   </div>
 
-  <!-- Save & Back FAB Actions -->
-  <!-- Save & Back FAB Actions -->
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="fab-secondary-position">
+  <!-- Modal Default Week -->
+  <ion-modal [isOpen]="showDefaultModal" (didDismiss)="showDefaultModal = false" class="nike-modal">
+    <ng-template>
+      <ion-header mode="ios" class="ion-no-border">
+        <ion-toolbar>
+          <ion-title>Semana Base</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="showDefaultModal = false">
+              <ion-icon name="close-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <div class="modal-content-padded">
+          <p class="modal-intro">Configura tu horario habitual. "Aplicar Plantilla" copiará esto a los próximos 30 días.
+          </p>
+
+          <!-- Day Tabs Template -->
+          <div class="template-days-row">
+            <div *ngFor="let d of diasSemana" class="day-chip" [class.active]="selectedDayTemplate === d.id"
+              (click)="selectedDayTemplate = d.id">
+              {{ d.name | slice:0:3 }}
+            </div>
+          </div>
+
+          <!-- Template Tools -->
+          <div class="template-tools">
+            <span>{{ templateBlocks[selectedDayTemplate]?.length || 0 }} horas</span>
+            <div class="t-actions">
+              <ion-button fill="clear" size="small"
+                (click)="seleccionarTodoDiaTemplate(selectedDayTemplate)">Todo</ion-button>
+              <ion-button fill="clear" size="small" color="medium"
+                (click)="deseleccionarTodoDiaTemplate(selectedDayTemplate)">Nada</ion-button>
+            </div>
+          </div>
+
+          <!-- Template Grid -->
+          <div class="template-grid">
+            <div *ngFor="let b of templateBlocks[selectedDayTemplate]" class="t-block" [class.selected]="b.selected"
+              (click)="toggleTemplateBlock(selectedDayTemplate, b)">
+              {{ b.time }}
+            </div>
+          </div>
+
+          <ion-button expand="block" class="nike-button main-btn save-tmpl-btn" (click)="saveDefaultConfig()">
+            Guardar Plantilla
+          </ion-button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- FABs -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="fab-wrapper">
     <ion-fab-button class="nike-fab back-fab" (click)="goBack()">
       <ion-icon name="chevron-back-outline"></ion-icon>
+    </ion-fab-button>
+    <ion-fab-button class="nike-fab save-fab" (click)="guardarDisponibilidad()">
+      <ion-icon name="save-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>
 

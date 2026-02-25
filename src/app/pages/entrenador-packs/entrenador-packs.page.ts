@@ -9,7 +9,7 @@ import { IonicModule } from '@ionic/angular';
 
 import { addIcons } from 'ionicons';
 import { settingsOutline, homeOutline, calendarOutline, logOutOutline, searchOutline } from 'ionicons/icons';
-import { chevronBackOutline, createOutline, trashOutline } from 'ionicons/icons';
+import { chevronBackOutline, createOutline, trashOutline, chevronForwardOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-entrenador-packs',
@@ -19,7 +19,7 @@ import { chevronBackOutline, createOutline, trashOutline } from 'ionicons/icons'
   imports: [
     CommonModule,
     FormsModule,
-    IonicModule  // aquí está todo lo que necesitas
+    IonicModule
   ],
   providers: [AlertController, LoadingController]
 })
@@ -28,6 +28,11 @@ export class EntrenadorPacksPage implements OnInit {
   packsFiltrados: any[] = [];
   filtro: string = '';
   mostrarFormulario = false;
+
+  // Filters & Pagination
+  segmentoSeleccionado: 'individual' | 'multijugador' | 'grupal' = 'individual';
+  paginaActual: number = 1;
+  elementosPorPagina: number = 3;
 
   nuevoPack: any = {
     nombre: '',
@@ -59,6 +64,7 @@ export class EntrenadorPacksPage implements OnInit {
       homeOutline,
       calendarOutline,
       chevronBackOutline,
+      chevronForwardOutline, // Added
       createOutline,
       trashOutline,
       logOutOutline,
@@ -78,9 +84,46 @@ export class EntrenadorPacksPage implements OnInit {
   }
 
   filtrarPacks() {
-    this.packsFiltrados = this.packs.filter(p =>
-      p.nombre.toLowerCase().includes(this.filtro.toLowerCase())
-    );
+    // Reset pagination on filter change
+    this.paginaActual = 1;
+
+    this.packsFiltrados = this.packs.filter(p => {
+      const matchesName = p.nombre.toLowerCase().includes(this.filtro.toLowerCase());
+
+      let matchesSegment = false;
+      if (this.segmentoSeleccionado === 'individual') {
+        // Tipo individual y (sin cantidad definida o cantidad = 1)
+        matchesSegment = p.tipo === 'individual' && (!p.cantidad_personas || p.cantidad_personas <= 1);
+      } else if (this.segmentoSeleccionado === 'multijugador') {
+        // Tipo individual pero con mas de 1 persona (ej: parejas)
+        matchesSegment = p.tipo === 'individual' && (p.cantidad_personas > 1);
+      } else if (this.segmentoSeleccionado === 'grupal') {
+        matchesSegment = p.tipo === 'grupal';
+      }
+
+      return matchesName && matchesSegment;
+    });
+  }
+
+  cambiarSegmento(event: any) {
+    this.segmentoSeleccionado = event.detail.value;
+    this.filtrarPacks();
+  }
+
+  get packsPaginados() {
+    const inicio = (this.paginaActual - 1) * this.elementosPorPagina;
+    return this.packsFiltrados.slice(inicio, inicio + this.elementosPorPagina);
+  }
+
+  get totalPaginas() {
+    return Math.ceil(this.packsFiltrados.length / this.elementosPorPagina);
+  }
+
+  cambiarPagina(delta: number) {
+    const nuevaPagina = this.paginaActual + delta;
+    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPaginas) {
+      this.paginaActual = nuevaPagina;
+    }
   }
 
   toggleFormulario() {

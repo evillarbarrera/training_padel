@@ -1,61 +1,58 @@
 .nike-content {
-  --background: transparent;
-  display: flex;
-  flex-direction: column;
+  --background: #000;
 }
+
+.fixed-bg {
+  position: fixed;
+  top: -25vh;
+  left: -25vw;
+  width: 150vw;
+  height: 150vh;
+  z-index: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 100%),
+    url('/assets/fondo-padel.png') center/cover no-repeat;
+}
+
 
 .center-wrapper {
-  flex: 1;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  /* Change to start to push down from top */
+  justify-content: center; // Centrado vertical real
   align-items: center;
-  padding-top: calc(80px + var(--ion-safe-area-top));
-  /* Push content down */
-  padding-bottom: 50px;
-}
-
-/* Background Logic */
-.background-image {
-  background: url('/assets/fondo-padel.png') center/cover no-repeat;
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-}
-
-.background-overlay {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 100%);
-  position: absolute;
-  inset: 0;
-  z-index: -1;
+  padding: 40px 20px;
+  box-sizing: border-box;
 }
 
 /* Hero Branding */
 .hero-section {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
   animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 
   .brand-logo {
-    width: 100px;
-    height: 100px;
+    width: 90px; // Un poco más pequeña para ahorrar espacio
+    height: 90px;
     border-radius: 50%;
     margin: 0 auto 12px;
-    margin-bottom: 12px;
-    border: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   }
 
   .brand-title {
-    font-size: 36px;
+    font-size: 32px;
     color: white;
     margin: 0;
+    font-weight: 900;
     text-transform: uppercase;
+    letter-spacing: -1px;
   }
 
   .brand-tagline {
-    font-size: 16px;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
     margin: 0;
     font-weight: 500;
   }
@@ -63,92 +60,111 @@
 
 /* Form Container */
 .form-wrapper {
-  width: 90%;
-  max-width: 400px;
+  width: 100%;
+  max-width: 380px;
 }
 
 .nike-card {
   text-align: center;
+  background: white; // El card SI tiene fondo blanco
+  padding: 30px 20px;
+  border-radius: 28px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 
   .login-header {
     margin: 0;
-    font-size: 26px;
-    color: #1a1111;
+    font-size: 24px;
+    font-weight: 800;
+    color: #000;
+    text-transform: uppercase;
   }
 
   .login-sub {
-    margin: 8px 0 30px;
-    color: #8e8e93;
+    margin: 8px 0 25px;
+    color: #666;
+    font-size: 14px;
     font-weight: 500;
   }
 }
 
 /* Nike Items (Inputs) */
 .input-group {
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 
 .nike-item {
-  --background: #f2f2f7;
-  --border-radius: 12px;
+  --background: #f4f4f7;
+  --border-radius: 16px;
   --padding-start: 15px;
   --highlight-height: 0;
   margin-bottom: 12px;
-  border: 1px solid transparent;
-  transition: var(--nike-transition);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
 
   &.item-has-focus {
-    border-color: var(--ion-color-primary);
+    border-color: var(--ion-color-tertiary);
     --background: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 
   ion-icon {
     color: #8e8e93;
     font-size: 20px;
-    margin-right: 12px;
   }
 
   ion-input {
-    --padding-top: 15px;
-    --padding-bottom: 15px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    font-weight: 600;
+    caret-color: var(--ion-color-tertiary);
+  }
+}
+
+.options-group {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 20px;
+  padding: 0 10px;
+
+  ion-checkbox {
+    --size: 18px;
+    --border-radius: 4px;
+    --checkbox-background-checked: var(--ion-color-primary);
+    font-size: 14px;
+    color: #666;
     font-weight: 500;
+
+    &::part(label) {
+      margin-inline-start: 10px;
+    }
   }
 }
 
 /* Buttons */
 .main-btn {
   height: 56px;
-  --color: white;
-  margin-bottom: 15px;
+  --background: #000;
+  --background-activated: #222;
+  --border-radius: 16px;
+  --color: #fff;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 10px;
 }
 
-.divider {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  margin: 20px 0;
-  color: #c7c7cc;
-  font-size: 13px;
-  font-weight: 600;
+/* Footer */
+.footer-text {
+  margin-top: 25px;
+  font-size: 14px;
+  color: #666;
 
-  &::before,
-  &::after {
-    content: '';
-    flex: 1;
-    border-bottom: 1px solid #e5e5ea;
+  .link {
+    color: #000;
+    font-weight: 800;
+    text-decoration: underline;
+    margin-left: 5px;
+    cursor: pointer;
   }
-
-  span {
-    padding: 0 10px;
-  }
-}
-
-.google-btn {
-  height: 52px;
-  --border-color: #e5e5ea;
-  --color: #000;
-  margin-bottom: 25px;
 }
 
 /* Footer */

@@ -62,6 +62,14 @@
                         </ion-range>
                     </div>
 
+                    <!-- New Commentary for this stroke -->
+                    <div class="stroke-comment-container">
+                        <div class="metric-label">Comentario para {{ golpe }}</div>
+                        <ion-textarea [(ngModel)]="evaluationData[golpe].comentario" rows="2"
+                            placeholder="Detalles sobre la ejecución de {{ golpe }}..."
+                            class="nike-textarea-small"></ion-textarea>
+                    </div>
+
                 </div>
             </ion-accordion>
         </ion-accordion-group>

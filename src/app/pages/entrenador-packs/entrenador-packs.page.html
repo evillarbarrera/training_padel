@@ -24,13 +24,26 @@
         <ion-input placeholder="Buscar por nombre..." [(ngModel)]="filtro" (ionInput)="filtrarPacks()">
         </ion-input>
       </div>
+
+      <!-- Category Segment -->
+      <ion-segment [value]="segmentoSeleccionado" (ionChange)="cambiarSegmento($event)" mode="md" scrollable>
+        <ion-segment-button value="individual">
+          <ion-label>Individuales</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="multijugador">
+          <ion-label>Multi</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="grupal">
+          <ion-label>Grupales</ion-label>
+        </ion-segment-button>
+      </ion-segment>
     </div>
 
     <!-- Packs List -->
     <div class="packs-list">
 
       <div class="nike-card horizontal-pack-card coach-pack animate-up"
-        *ngFor="let pack of packsFiltrados; let i = index" [style.animation-delay]="(i * 0.05) + 's'">
+        *ngFor="let pack of packsPaginados; let i = index" [style.animation-delay]="(i * 0.05) + 's'">
         <div class="card-media">
           <img src="assets/mod-packs.jpg" class="pack-img">
         </div>
@@ -70,6 +83,17 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="pagination-controls animate-fade" *ngIf="totalPaginas > 1">
+        <ion-button fill="clear" [disabled]="paginaActual === 1" (click)="cambiarPagina(-1)">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </ion-button>
+        <span class="page-info">Página {{ paginaActual }} de {{ totalPaginas }}</span>
+        <ion-button fill="clear" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(1)">
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+        </ion-button>
       </div>
 
     </div>

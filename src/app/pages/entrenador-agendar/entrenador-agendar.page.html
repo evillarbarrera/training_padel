@@ -1,0 +1,158 @@
+<ion-content>
+
+    <!-- Hero Header -->
+    <div class="header-nike">
+        <div class="header-overlay"></div>
+        <div class="header-content">
+            <h1 class="header-title">Agendar Clase</h1>
+            <p class="header-sub">Gestión para tus alumnos</p>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+
+        <!-- STUDENT LIST (Main View) -->
+        <section class="section-nike animate-up">
+            <div class="search-box-nike">
+                <ion-searchbar animated="true" placeholder="Buscar alumno..." [(ngModel)]="filtroAlumnos" mode="ios"
+                    class="custom-search">
+                </ion-searchbar>
+            </div>
+
+            <div class="student-grid">
+                <div class="nike-card student-card" *ngFor="let a of alumnosPaginados" (click)="seleccionarAlumno(a)">
+                    <div class="avatar-large">
+                        <img [src]="a.jugador_foto" />
+                    </div>
+                    <div class="info">
+                        <h3>{{ a.jugador_nombre }}</h3>
+                        <p class="pack-name">{{ a.pack_nombre || 'Sin Pack Activo' }}</p>
+                        <div class="credits-badge">
+                            <ion-icon name="stats-chart-outline"></ion-icon>
+                            <span>{{ a.sesiones_restantes }} clases</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGINATION CONTROLS -->
+            <div class="pagination-controls" *ngIf="totalPaginas > 1">
+                <ion-button (click)="cambiarPagina(-1)" [disabled]="paginaActual === 1">
+                    <ion-icon name="chevron-back-outline"></ion-icon>
+                </ion-button>
+                <div class="page-info">Página {{ paginaActual }} de {{ totalPaginas }}</div>
+                <ion-button (click)="cambiarPagina(1)" [disabled]="paginaActual === totalPaginas">
+                    <ion-icon name="chevron-forward-outline"></ion-icon>
+                </ion-button>
+            </div>
+
+            <div class="empty-state" *ngIf="alumnosFiltrados.length === 0 && !isLoading">
+                <p>No se encontraron alumnos.</p>
+            </div>
+        </section>
+
+        <!-- AGENDAR MODAL -->
+        <ion-modal [isOpen]="isModalOpen" (didDismiss)="cerrarModal()">
+            <ng-template>
+                <ion-header class="ion-no-border">
+                    <ion-toolbar>
+                        <ion-title>Agendar Clase</ion-title>
+                        <ion-buttons slot="end">
+                            <ion-button (click)="cerrarModal()">
+                                <ion-icon name="close-outline" size="large"></ion-icon>
+                            </ion-button>
+                        </ion-buttons>
+                    </ion-toolbar>
+                </ion-header>
+
+                <ion-content class="modal-content-nike">
+                    <div class="modal-body">
+
+                        <div class="selected-student-header" *ngIf="alumnoSeleccionado">
+                            <div class="modal-avatar-wrapper">
+                                <img [src]="alumnoSeleccionado.jugador_foto" />
+                            </div>
+                            <div>
+                                <h2>{{ alumnoSeleccionado.jugador_nombre }}</h2>
+                                <p>{{ alumnoSeleccionado.pack_nombre }} - {{ alumnoSeleccionado.sesiones_restantes }}
+                                    restantes</p>
+                            </div>
+                        </div>
+
+                        <!-- RECURRENCE -->
+                        <div class="nike-card recurrence-card">
+                            <ion-item lines="none" style="--background: transparent;">
+                                <ion-icon name="repeat-outline" slot="start"></ion-icon>
+                                <ion-label>Repetir reserva</ion-label>
+                                <ion-select [(ngModel)]="recurrencia" interface="popover" placeholder="1 vez"
+                                    mode="ios">
+                                    <ion-select-option [value]="1">Solo esta vez</ion-select-option>
+                                    <ion-select-option [value]="2">2 Semanas</ion-select-option>
+                                    <ion-select-option [value]="4">1 Mes</ion-select-option>
+                                    <ion-select-option [value]="8">2 Meses</ion-select-option>
+                                </ion-select>
+                            </ion-item>
+                        </div>
+
+                        <!-- DAY SELECTOR -->
+                        <h3 class="section-title">Selecciona Día</h3>
+                        <div class="day-selector-nike" *ngIf="diasAgenda.length > 0; else noDias">
+                            <ion-segment [(ngModel)]="diaSeleccionado" scrollable mode="md" class="nike-segment-days">
+                                <ion-segment-button *ngFor="let d of diasAgenda" [value]="d">
+                                    <ion-label>
+                                        <span class="day-label">{{ d | date:'EEE' | uppercase }}</span>
+                                        <span class="date-label">{{ d | date:'dd' }}</span>
+                                    </ion-label>
+                                </ion-segment-button>
+                            </ion-segment>
+                        </div>
+                        <ng-template #noDias>
+                            <p class="no-data-msg" *ngIf="!cargandoHorarios">No hay días disponibles.</p>
+                        </ng-template>
+
+                        <!-- TIME SLOTS -->
+                        <div *ngIf="diaSeleccionado">
+                            <h3 class="section-title">Horarios Disponibles</h3>
+
+                            <ion-segment [(ngModel)]="tramoSeleccionado" mode="ios" class="nike-segment-periods">
+                                <ion-segment-button value="manana"><ion-label>Mañana</ion-label></ion-segment-button>
+                                <ion-segment-button value="tarde"><ion-label>Tarde</ion-label></ion-segment-button>
+                                <ion-segment-button value="noche"><ion-label>Noche</ion-label></ion-segment-button>
+                            </ion-segment>
+
+                            <div class="slots-grid-modal">
+                                <ng-container
+                                    *ngIf="horariosPorDia[diaSeleccionado]?.[tramoSeleccionado]?.length > 0; else noSlots">
+                                    <div class="nike-card slot-card-modal"
+                                        *ngFor="let h of horariosPorDia[diaSeleccionado][tramoSeleccionado]"
+                                        [class.ocupado]="h.ocupado" (click)="seleccionarHorario(h)">
+                                        <span class="time">{{ h.dateInicio | date:'HH:mm' }}</span>
+                                    </div>
+                                </ng-container>
+                                <ng-template #noSlots>
+                                    <div class="empty-slots">
+                                        <p>No hay horas en este tramo.</p>
+                                    </div>
+                                </ng-template>
+                            </div>
+                        </div>
+
+                        <div class="loading-state" *ngIf="cargandoHorarios">
+                            <ion-spinner name="crescent"></ion-spinner>
+                            <p>Cargando disponibilidad...</p>
+                        </div>
+                    </div>
+                </ion-content>
+            </ng-template>
+        </ion-modal>
+
+    </div>
+
+    <!-- Back FAB -->
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button class="nike-fab back-fab" (click)="goBack()">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+
+</ion-content>

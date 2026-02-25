@@ -1,60 +1,84 @@
-<ion-content>
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+  <!-- Hidden File Input for Video -->
+  <input type="file" #videoInput (change)="onVideoSelected($event)" accept="video/*" style="display: none;">
 
   <!-- Hero Header -->
   <div class="header-nike">
     <div class="header-overlay"></div>
-    <div class="header-content">
-      <h1 class="header-title">Hola, {{ jugadorNombre }}</h1>
-      <p class="header-sub">Padel Player • {{ clasesPagadas }} clases</p>
+    <div class="header-content-wrapper">
+      <div class="avatar-circle">
+        <img [src]="fotoPerfil || 'assets/avatar.png'" alt="Avatar" />
+      </div>
+      <div class="header-text">
+        <p class="welcome-pre">CONTINUAR ENTRENANDO,</p>
+        <h1 class="header-title">{{ jugadorNombre }}</h1>
+      </div>
     </div>
   </div>
 
   <!-- Main Content -->
   <div class="dashboard-container">
 
-    <!-- Packs Stats Section -->
-    <div class="packs-stats animate-up" *ngIf="clasesPagadas > 0">
-      <h3 class="stats-title">Mis Clases</h3>
-      <div class="stats-row">
-        <div class="nike-card stat-card stats-card-small">
-          <span class="stat-value stat-primary">{{ clasesPagadas }}</span>
-          <span class="stat-label">Pagadas</span>
+    <!-- Integrated Metrics Summary -->
+    <div class="metrics-dashboard animate-up" *ngIf="clasesPagadas > 0 || clasesReservadas > 0">
+      <div class="metric-item">
+        <span class="metric-value">{{ clasesPagadas }}</span>
+        <span class="metric-label">En<br>Packs</span>
+      </div>
+      <div class="metric-divider"></div>
+      <div class="metric-item">
+        <span class="metric-value">{{ clasesReservadas }}</span>
+        <span class="metric-label">Clases<br>Agendadas</span>
+      </div>
+      <div class="metric-divider" *ngIf="clasesDisponibles > 0"></div>
+      <div class="metric-item highlight circular-metric" *ngIf="clasesPagadas > 0" (click)="goToMisPacks()">
+        <div class="circular-progress" [style.--percent]="getSaldoPercent()">
+          <span class="metric-value">{{ clasesDisponibles }}</span>
         </div>
+        <span class="metric-label">De {{ clasesPagadas }}<br>Clases</span>
+      </div>
+    </div>
 
-        <div class="nike-card stat-card stats-card-small">
-          <span class="stat-value stat-warning">{{ clasesReservadas }}</span>
-          <span class="stat-label">Reservadas</span>
+    <!-- PRÓXIMA CLASE: Minimalista, una sola fila -->
+    <div class="next-session-row animate-up" *ngIf="proximaClase" (click)="goToMisClases()">
+      <div class="row-main">
+        <div class="row-icon">
+          <ion-icon name="calendar-outline"></ion-icon>
         </div>
-
-        <div class="nike-card stat-card stats-card-small">
-          <span class="stat-value stat-success">{{ clasesDisponibles }}</span>
-          <span class="stat-label">Disponibles</span>
+        <div class="row-text">
+          <span class="label">SIGUIENTE SESIÓN:</span>
+          <span class="value">{{ proximaClase.fecha | date:'d MMM' }} • {{ proximaClase.hora_inicio.slice(0,5) }}
+            HRS</span>
         </div>
       </div>
+      <ion-icon name="chevron-forward-outline" class="row-arrow"></ion-icon>
     </div>
 
     <!-- Modules Grid -->
     <div class="modules-column animate-up" style="animation-delay: 0.1s;">
 
-      <!-- Agenda Card -->
-      <div class="nike-card module-card" (click)="goToAgenda()">
-        <img src="/assets/mod-agenda.jpg" class="module-img" />
+      <!-- Mis Clases Card (Moved from hidden settings) -->
+      <div class="nike-card module-card" (click)="goToMisClases()">
+        <img src="/assets/mod-packs.jpg" class="module-img" />
         <div class="module-body">
           <div class="module-text">
-            <h3>Agendar Clase</h3>
-            <p>Reserva tu próximo entrenamiento</p>
+            <h3>Mis Clases</h3>
+            <p>Consulta tus reservas y asistencias</p>
           </div>
           <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
         </div>
       </div>
 
-      <!-- Packs Card -->
-      <div class="nike-card module-card" (click)="goToPackAlumno()">
-        <img src="/assets/mod-packs.jpg" class="module-img" />
+      <!-- Agenda Card -->
+      <div class="nike-card module-card" (click)="goToAgenda()">
+        <img src="/assets/reserva-bg.jpg" class="module-img" />
         <div class="module-body">
           <div class="module-text">
-            <h3>Packs de Entrenamiento</h3>
-            <p>Gestiona tus sesiones disponibles</p>
+            <h3>Agendar Clase</h3>
+            <p>Reserva tu próximo entrenamiento</p>
           </div>
           <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
         </div>
@@ -72,6 +96,123 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- DEVELOPMENT SOCIAL FEATURES (Only visible in Dev) -->
+    <div class="social-dev-section animate-up" *ngIf="isDev" style="animation-delay: 0.2s; margin-top: 40px;">
+
+      <div class="section-badge-dev">CAPACIDADES AI: EXPERIMENTAL</div>
+
+      <!-- Gemini AI Card -->
+      <div class="nike-card ai-feature-card" (click)="analizarVideo()">
+        <div class="ai-header">
+          <div class="gemini-badge">
+            <ion-icon name="sparkles-outline"></ion-icon>
+            <span>GEMINI PRO</span>
+          </div>
+          <div class="ai-status">BETA</div>
+        </div>
+        <div class="ai-body">
+          <div class="ai-main-text">
+            <h3>ANÁLISIS DE VIDEO</h3>
+            <p>Sube tu video y recibe correcciones técnicas impulsadas por Inteligencia Artificial.</p>
+          </div>
+          <div class="ai-action">
+            <ion-icon name="videocam-outline"></ion-icon>
+            <span>ANALIZAR</span>
+          </div>
+        </div>
+        <div class="ai-visual-effect"></div>
+      </div>
+
+      <h2 class="nike-title-lg" style="margin: 30px 0 20px 5px; color: var(--nike-black);">Coach Tips & Clips</h2>
+
+      <!-- Video Feed Placeholder -->
+      <div class="video-feed-container">
+        <div class="video-card-dev">
+          <div class="video-placeholder">
+            <ion-icon name="play-circle-outline"></ion-icon>
+            <div class="video-overlay-text">
+              <span class="coach-tag">Coach Muñoz</span>
+              <span class="video-title">Tip: El Remate de Potencia</span>
+            </div>
+          </div>
+          <div class="video-actions-dev">
+            <ion-button fill="clear" color="dark"><ion-icon name="heart-outline"></ion-icon></ion-button>
+            <ion-button fill="clear" color="dark"><ion-icon name="chatbubble-outline"></ion-icon></ion-button>
+            <ion-button fill="solid" class="nike-btn-mini" (click)="goToAgenda()">AGENDAR</ion-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Challenges Placeholder -->
+      <h2 class="nike-title-lg" style="margin: 30px 0 20px 5px; color: var(--nike-black);">Retos de la Semana</h2>
+      <div class="nike-card challenge-card-dev">
+        <div class="challenge-icon">
+          <ion-icon name="trophy-outline"></ion-icon>
+        </div>
+        <div class="challenge-info">
+          <h3>20 BANDEJAS</h3>
+          <p>Sube tu video y gana 50 puntos</p>
+          <div class="progress-bar-dev">
+            <div class="progress-fill-dev"></div>
+          </div>
+        </div>
+        <ion-button fill="outline" color="dark" size="small">UNIÉNDOME</ion-button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Gemini Analysis Results Modal (Semi-overlay) -->
+  <div class="ai-results-overlay" *ngIf="aiResult" [class.show]="aiResult">
+    <div class="ai-results-card animate-up">
+      <div class="results-header">
+        <div class="header-main">
+          <ion-icon name="sparkles"></ion-icon>
+          <h3>{{ aiResult.title }}</h3>
+        </div>
+        <ion-button fill="clear" color="light" (click)="aiResult = null">
+          <ion-icon name="close"></ion-icon>
+        </ion-button>
+      </div>
+
+      <div class="results-body">
+        <div class="score-section">
+          <div class="score-circle">
+            <span class="score-val">{{ aiResult.score }}</span>
+            <span class="score-pct">%</span>
+          </div>
+          <p class="score-label">MATCH TÉCNICO</p>
+        </div>
+
+        <div class="feedback-text">
+          <p>{{ aiResult.feedback }}</p>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-progress" *ngFor="let m of aiResult.metrics">
+            <div class="metric-info">
+              <span>{{ m.label }}</span>
+              <span>{{ m.value }}/10</span>
+            </div>
+            <div class="progress-bg">
+              <div class="progress-fill" [style.width]="(m.value * 10) + '%'"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tips-section">
+          <h4>TIPS DE MEJORA</h4>
+          <ul>
+            <li *ngFor="let tip of aiResult.tips">{{ tip }}</li>
+          </ul>
+        </div>
+
+        <ion-button expand="block" class="nike-btn-black" (click)="aiResult = null">
+          ENTENDIDO
+        </ion-button>
+      </div>
     </div>
   </div>
 

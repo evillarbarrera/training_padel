@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NavController, AlertController } from '@ionic/angular';
+import { NavController, AlertController, LoadingController } from '@ionic/angular';
 import {
     IonContent, IonFab, IonFabButton, IonIcon,
     IonAccordionGroup, IonAccordion, IonItem, IonLabel,
@@ -44,6 +44,7 @@ export class NuevaEvaluacionPage implements OnInit {
         private route: ActivatedRoute,
         private navCtrl: NavController,
         private alertCtrl: AlertController,
+        private loadingCtrl: LoadingController, // Injected
         private evaluacionService: EvaluacionService,
         private mysqlService: MysqlService
     ) {
@@ -59,7 +60,8 @@ export class NuevaEvaluacionPage implements OnInit {
                 tecnica: 5,
                 control: 5,
                 direccion: 5,
-                decision: 5
+                decision: 5,
+                comentario: ''
             };
         });
 
@@ -70,8 +72,21 @@ export class NuevaEvaluacionPage implements OnInit {
         this.mysqlService.getPerfil(this.jugadorId).subscribe({
             next: (res) => {
                 if (res) {
-                    this.alumnoNombre = res.nombre || 'Alumno';
-                    this.alumnoFoto = res.foto_perfil || res.link_foto || null;
+                    const userData = res.user || res;
+                    this.alumnoNombre = userData.nombre || 'Alumno';
+
+                    let foto = userData.foto_perfil || userData.link_foto || userData.foto;
+                    let fotoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(this.alumnoNombre)}&background=ccff00&color=000`; // Default fallback
+
+                    if (foto && typeof foto === 'string' && foto.trim().length > 0 && !foto.includes('imagen_defecto')) {
+                        if (!foto.startsWith('http')) {
+                            const cleanPath = foto.startsWith('/') ? foto.substring(1) : foto;
+                            fotoUrl = `https://api.padelmanager.cl/${cleanPath}`;
+                        } else {
+                            fotoUrl = foto;
+                        }
+                    }
+                    this.alumnoFoto = fotoUrl;
                 }
             },
             error: (err) => console.error('Error cargando perfil:', err)
@@ -109,7 +124,14 @@ export class NuevaEvaluacionPage implements OnInit {
         this.navCtrl.back();
     }
 
-    submit() {
+    async submit() {
+        const loading = await this.loadingCtrl.create({
+            message: 'Guardando evaluación...',
+            spinner: 'crescent',
+            duration: 5000 // Timeout safety
+        });
+        await loading.present();
+
         const payload = {
             jugador_id: this.jugadorId,
             entrenador_id: this.entrenadorId,
@@ -119,11 +141,13 @@ export class NuevaEvaluacionPage implements OnInit {
 
         this.evaluacionService.crearEvaluacion(payload).subscribe({
             next: async () => {
+                await loading.dismiss();
                 const alert = await this.alertCtrl.create({ header: 'Éxito', message: 'Evaluación guardada', buttons: ['OK'] });
                 await alert.present();
                 this.navCtrl.back();
             },
             error: async (err) => {
+                await loading.dismiss();
                 console.error(err);
                 const alert = await this.alertCtrl.create({ header: 'Error', message: 'No se pudo guardar', buttons: ['OK'] });
                 await alert.present();

@@ -74,6 +74,40 @@ export class EntrenamientoService {
     );
   }
 
+  getMisAlumnos(entrenadorId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.api}/entrenador/get_mis_alumnos.php?entrenador_id=${entrenadorId}`,
+      { headers: this.headers }
+    );
+  }
 
+  getDefaultConfig(entrenadorId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.api}/disponibilidad/get_config.php?entrenador_id=${entrenadorId}`,
+      { headers: this.headers }
+    );
+  }
 
+  saveDefaultConfig(payload: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.api}/disponibilidad/save_config.php`,
+      payload,
+      { headers: this.headers }
+    );
+  }
+
+  applyDefaultConfig(payload: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.api}/disponibilidad/apply_config.php`,
+      payload,
+      { headers: this.headers }
+    );
+  }
+
+  getDashboardStats(entrenadorId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.api}/entrenador/get_dashboard_stats.php?entrenador_id=${entrenadorId}`,
+      { headers: this.headers }
+    );
+  }
 }

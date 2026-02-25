@@ -16,7 +16,7 @@
     <div class="search-section animate-up">
       <div class="nike-search-box">
         <ion-icon name="search-outline"></ion-icon>
-        <ion-input placeholder="Buscar alumno..." [(ngModel)]="filtro">
+        <ion-input placeholder="Buscar alumno..." [(ngModel)]="filtro" [debounce]="200">
         </ion-input>
       </div>
     </div>
@@ -24,10 +24,13 @@
     <!-- Students List -->
     <div class="students-list">
 
-      <div class="nike-card horizontal-student-card animate-up" *ngFor="let alumno of alumnosFiltrados; let i = index"
+      <div class="nike-card horizontal-student-card animate-up" *ngFor="let alumno of alumnosPaginados; let i = index"
         [style.animation-delay]="(i * 0.05) + 's'">
         <div class="card-media">
-          <img src="/assets/mod-packs.jpg" class="student-img" />
+          <div class="avatar-container">
+            <span class="initials">{{ getInitials(alumno.nombre) }}</span>
+            <img [src]="alumno.foto" class="student-img" (error)="$event.target.style.display='none'" />
+          </div>
         </div>
 
         <div class="card-content-main">
@@ -38,25 +41,23 @@
             </ion-badge>
           </div>
 
-          <div class="student-details">
-            <p><strong>Pack:</strong> {{ alumno.pack ?? 'Sin pack active' }}</p>
-          </div>
-
-          <!-- Classes Stats -->
-          <!-- Stats Row -->
           <!-- Stats Row -->
           <div class="stats-row">
             <div class="stat-item">
               <span class="stat-value">{{ alumno.pagadas || 0 }}</span>
-              <span class="stat-label">Pagadas</span>
+              <span class="stat-label">Pag.</span>
             </div>
             <div class="stat-item">
               <span class="stat-value">{{ alumno.reservadas }}</span>
-              <span class="stat-label">Reservadas</span>
+              <span class="stat-label">Res.</span>
+            </div>
+            <div class="stat-item highlight-grupal" *ngIf="alumno.grupales > 0">
+              <span class="stat-value">{{ alumno.grupales }}</span>
+              <span class="stat-label">Grup.</span>
             </div>
             <div class="stat-item">
               <span class="stat-value">{{ alumno.pendientes }}</span>
-              <span class="stat-label">Restantes</span>
+              <span class="stat-label">Rest.</span>
             </div>
           </div>
 
@@ -65,12 +66,32 @@
               <ion-icon name="stats-chart-outline" slot="start"></ion-icon>
               Progreso
             </ion-button>
+
             <ion-button class="action-button" (click)="evaluar(alumno.id)">
               <ion-icon name="analytics-outline" slot="start"></ion-icon>
               Evaluar
             </ion-button>
+
+            <!-- Video Upload -->
+            <ion-button class="action-button video-btn" (click)="subirVideo(alumno.id)">
+              <ion-icon name="videocam-outline" slot="start"></ion-icon>
+              Video
+            </ion-button>
+            <input type="file" [id]="'videoInput-' + alumno.id" style="display: none;"
+              accept="video/mp4,video/x-m4v,video/*" (change)="onVideoSelected($event, alumno.id)">
           </div>
         </div>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="pagination-controls animate-fade" *ngIf="totalPaginas > 1">
+        <ion-button fill="clear" [disabled]="paginaActual === 1" (click)="cambiarPagina(-1)">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </ion-button>
+        <span class="page-info">Página {{ paginaActual }} de {{ totalPaginas }}</span>
+        <ion-button fill="clear" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(1)">
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+        </ion-button>
       </div>
 
       <!-- No Results -->
@@ -89,5 +110,76 @@
       <ion-icon name="chevron-back-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>
+
+  <!-- Premium Booking Modal -->
+  <div class="booking-modal-overlay" *ngIf="showBookingModal">
+    <div class="modal-backdrop" (click)="showBookingModal = false"></div>
+    <div class="modal-content animate-pop">
+
+      <div class="modal-header">
+        <div class="user-brief" *ngIf="selectedAlumno">
+          <span class="pre">Agendar para</span>
+          <h2>{{ selectedAlumno.nombre }}</h2>
+        </div>
+        <ion-button fill="clear" (click)="showBookingModal = false">
+          <ion-icon name="close-outline"></ion-icon>
+        </ion-button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- Day Selector -->
+        <div class="day-selector-nike" *ngIf="diasAgenda.length > 0">
+          <ion-segment [(ngModel)]="diaSeleccionado" scrollable class="nike-segment-days-light">
+            <ion-segment-button *ngFor="let d of diasAgenda" [value]="d">
+              <ion-label>
+                {{ d | date:'dd/MM' : 'UTC' }}
+              </ion-label>
+            </ion-segment-button>
+          </ion-segment>
+        </div>
+
+        <!-- Period Selector -->
+        <div class="period-selector-nike" *ngIf="diaSeleccionado">
+          <ion-segment [(ngModel)]="tramoSeleccionado" class="nike-segment-periods" mode="ios">
+            <ion-segment-button value="manana">
+              <ion-label>MAÑANA</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="tarde">
+              <ion-label>TARDE</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="noche">
+              <ion-label>NOCHE</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+        </div>
+
+        <!-- Slots Grid -->
+        <div class="slots-container" *ngIf="diaSeleccionado && !cargandoHorarios">
+          <div class="horarios-grid" *ngIf="horariosPorDia[diaSeleccionado]?.[tramoSeleccionado]?.length > 0">
+            <div class="nike-card slot-card" *ngFor="let h of horariosPorDia[diaSeleccionado][tramoSeleccionado]"
+              [class.ocupado]="h.ocupado" (click)="seleccionarHorario(h)">
+              <span class="time">{{ h.hora_inicio | date:'HH:mm' }}</span>
+              <ion-badge [color]="h.ocupado ? 'medium' : 'success'">
+                {{ h.ocupado ? 'Ocupado' : 'Disponible' }}
+              </ion-badge>
+            </div>
+          </div>
+
+          <div class="empty-slots" *ngIf="horariosPorDia[diaSeleccionado]?.[tramoSeleccionado]?.length === 0">
+            <ion-icon name="time-outline"></ion-icon>
+            <p>No hay bloques disponibles en este tramo.</p>
+          </div>
+        </div>
+
+        <div class="loading-slots" *ngIf="cargandoHorarios">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Cargando disponibilidad...</p>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
 
 </ion-content>

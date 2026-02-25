@@ -3,15 +3,19 @@ ion-content {
 }
 
 /* --- HEADER ESTILO NIKE --- */
+/* --- HEADER ESTILO NIKE --- */
 .header-nike {
     position: relative;
-    height: 240px;
+    height: 280px;
     background: url('/assets/fondo-padel.png') center/cover no-repeat;
-    background-attachment: fixed;
+    /* background-attachment: fixed; Removed as it conflicts with immersive headers on iOS sometimes */
     border-bottom-left-radius: 30px;
     border-bottom-right-radius: 30px;
     overflow: hidden;
-    margin-top: -8px;
+    margin-top: -50px;
+    /* Immersive negative margin */
+    padding-top: calc(50px + var(--ion-safe-area-top));
+    /* Compensate for status bar */
 }
 
 .header-overlay {
@@ -36,11 +40,16 @@ ion-content {
 
     .avatar-container,
     .avatar-placeholder {
-        width: 60px;
-        height: 60px;
+        width: 85px;
+        /* Increased size */
+        height: 85px;
+        /* Increased size */
         border-radius: 50%;
-        border: 2px solid white;
+        border: 3px solid white;
+        /* Thicker border */
         overflow: hidden;
+        flex-shrink: 0;
+        /* Prevent shrinking */
 
         img {
             width: 100%;
@@ -50,13 +59,15 @@ ion-content {
     }
 
     .avatar-placeholder {
-        background: var(--ion-color-primary);
+        background: #ccff00;
+        /* Neon Green Fallback */
         color: #000;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: bold;
-        font-size: 24px;
+        font-weight: 800;
+        font-size: 28px;
+        text-transform: uppercase;
     }
 
     .header-title {
@@ -200,6 +211,56 @@ ion-content {
 .videos-view {
     padding-bottom: 40px;
 
+    .video-segment-container {
+        margin-bottom: 24px;
+        background: #f1f1f1;
+        border-radius: 12px;
+        padding: 4px;
+
+        .nike-sub-segment {
+            background: transparent;
+            --background: transparent;
+
+            ion-segment-button {
+                --indicator-color: #fff;
+                --color: #666;
+                --color-checked: #000;
+                --border-radius: 10px;
+                min-height: 36px;
+                font-size: 12px;
+                font-weight: 700;
+            }
+        }
+    }
+
+    .upload-action-container {
+        .nike-btn-outline-black {
+            width: 100%;
+            height: 50px;
+            background: #000;
+            color: #fff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+
+            &:active {
+                transform: scale(0.98);
+            }
+
+            ion-icon {
+                font-size: 20px;
+            }
+        }
+    }
+
     .no-videos {
         text-align: center;
         padding: 60px 20px;
@@ -281,5 +342,275 @@ ion-content {
             color: #555;
             line-height: 1.5;
         }
+
+        /* AI Video Actions */
+        .ai-video-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+
+            button {
+                flex: 1;
+                height: 44px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                font-size: 11px;
+                font-weight: 800;
+                letter-spacing: 0.5px;
+                transition: all 0.3s ease;
+                border: none;
+                cursor: pointer;
+
+                ion-icon {
+                    font-size: 16px;
+                }
+
+                &.ai-btn-analyze {
+                    background: #f0f0f0;
+                    color: #555;
+
+                    &:active {
+                        background: #e0e0e0;
+                    }
+
+                    span {
+                        text-transform: uppercase;
+                    }
+                }
+
+                &.ai-btn-report {
+                    background: #111;
+                    color: #ccff00;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+                    &:active {
+                        transform: scale(0.97);
+                    }
+                }
+            }
+        }
     }
+}
+
+/* --- AI RESULTS OVERLAY --- */
+.ai-results-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.4s ease;
+
+    &.show {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .ai-results-card {
+        background: white;
+        width: 100%;
+        max-width: 450px;
+        border-radius: 40px;
+        overflow: hidden;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+
+        .results-header {
+            background: #000;
+            padding: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .header-main {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+
+                ion-icon {
+                    color: #ccff00;
+                    font-size: 24px;
+                }
+
+                h3 {
+                    margin: 0;
+                    color: white;
+                    font-size: 20px;
+                    font-weight: 950;
+                    text-transform: uppercase;
+                }
+            }
+
+            ion-button {
+                --padding-start: 0;
+                --padding-end: 0;
+                width: 32px;
+                height: 32px;
+            }
+        }
+
+        .results-body {
+            padding: 30px;
+
+            .ai-badge-header {
+                display: inline-block;
+                background: #f2f2f7;
+                color: #000;
+                font-size: 9px;
+                font-weight: 950;
+                padding: 4px 12px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                letter-spacing: 1px;
+            }
+
+            .score-section {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin-bottom: 30px;
+
+                .score-circle {
+                    width: 100px;
+                    height: 100px;
+                    border: 4px solid #f2f2f7;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    position: relative;
+                    background: #fafafa;
+                    margin-bottom: 10px;
+
+                    .score-val {
+                        font-size: 38px;
+                        font-weight: 950;
+                        color: #000;
+                    }
+
+                    .score-pct {
+                        font-size: 14px;
+                        font-weight: 800;
+                        color: #8e8e93;
+                        margin-top: 10px;
+                        margin-left: 2px;
+                    }
+                }
+
+                .score-label {
+                    font-size: 10px;
+                    font-weight: 950;
+                    color: #8e8e93;
+                    letter-spacing: 2px;
+                }
+            }
+
+            .feedback-text {
+                background: #f8f8fa;
+                padding: 20px;
+                border-radius: 20px;
+                margin-bottom: 25px;
+
+                p {
+                    margin: 0;
+                    font-size: 14px;
+                    color: #3a3a3c;
+                    line-height: 1.5;
+                    font-weight: 500;
+                }
+            }
+
+            .metrics-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                margin-bottom: 30px;
+
+                .metric-progress {
+                    .metric-info {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 6px;
+
+                        span {
+                            font-size: 11px;
+                            font-weight: 900;
+                            text-transform: uppercase;
+                            color: #000;
+                        }
+                    }
+
+                    .progress-bg {
+                        height: 6px;
+                        background: #f2f2f7;
+                        border-radius: 3px;
+                        overflow: hidden;
+
+                        .progress-fill {
+                            height: 100%;
+                            background: #000;
+                            border-radius: 3px;
+                            transition: width 1s ease-out;
+                        }
+                    }
+                }
+            }
+
+            .tips-section {
+                margin-bottom: 30px;
+
+                h4 {
+                    font-size: 11px;
+                    font-weight: 950;
+                    color: #ccff00;
+                    background: black;
+                    display: inline-block;
+                    padding: 4px 12px;
+                    border-radius: 8px;
+                    margin: 0 0 15px;
+                    letter-spacing: 1px;
+                }
+
+                ul {
+                    margin: 0;
+                    padding-left: 20px;
+
+                    li {
+                        font-size: 13px;
+                        color: #3a3a3c;
+                        margin-bottom: 10px;
+                        font-weight: 500;
+                    }
+                }
+            }
+
+            .nike-btn-black {
+                --background: #000;
+                --color: #fff;
+                --border-radius: 20px;
+                height: 54px;
+                font-weight: 950;
+                letter-spacing: 1px;
+                margin-top: 10px;
+            }
+        }
+    }
+}
+
+/* AI Loading Custom Styling */
+.ai-loading-custom {
+    --background: #000;
+    --color: #ccff00;
+    --spinner-color: #ccff00;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
