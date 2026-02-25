@@ -25,7 +25,7 @@
     <!-- Integrated Metrics Summary -->
     <div class="metrics-dashboard animate-up"
       *ngIf="clasesPagadas > 0 || clasesReservadas > 0 || clasesDisponibles > 0">
-      <div class="metric-item highlight">
+      <div class="metric-item highlight animate-pulse">
         <span class="metric-value">{{ clasesDisponibles }}</span>
         <span class="metric-label">CLASES<br>DISPONIBLES</span>
       </div>
@@ -42,9 +42,9 @@
     </div>
 
     <!-- PRÓXIMA CLASE: Minimalista, una sola fila -->
-    <div class="next-session-row animate-up" *ngIf="proximaClase" (click)="goToMisClases()">
+    <div class="next-session-row animate-up delay-1" *ngIf="proximaClase" (click)="goToMisClases()">
       <div class="row-main">
-        <div class="row-icon">
+        <div class="row-icon float-element">
           <ion-icon name="calendar-outline"></ion-icon>
         </div>
         <div class="row-text">
@@ -60,7 +60,7 @@
     <div class="modules-column animate-up" style="animation-delay: 0.1s;">
 
       <!-- Mis Clases Card (Moved from hidden settings) -->
-      <div class="nike-card module-card" (click)="goToMisClases()">
+      <div class="nike-card module-card animate-pop delay-2" (click)="goToMisClases()">
         <img src="/assets/mod-packs.jpg" class="module-img" />
         <div class="module-body">
           <div class="module-text">
@@ -72,7 +72,7 @@
       </div>
 
       <!-- Agenda Card -->
-      <div class="nike-card module-card" (click)="goToAgenda()">
+      <div class="nike-card module-card animate-pop delay-3" (click)="goToAgenda()">
         <img src="/assets/reserva-bg.jpg" class="module-img" />
         <div class="module-body">
           <div class="module-text">
@@ -84,7 +84,7 @@
       </div>
 
       <!-- Skills Card -->
-      <div class="nike-card module-card" (click)="misHabilidades()">
+      <div class="nike-card module-card animate-pop delay-4" (click)="misHabilidades()">
         <img src="/assets/mod-alumnos.jpg" class="module-img" />
         <div class="module-body">
           <div class="module-text">

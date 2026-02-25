@@ -133,11 +133,11 @@ div {
   letter-spacing: 1px;
 }
 
-/* Animations */
+/* Animations System */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(20px);
   }
 
   to {
@@ -146,14 +146,105 @@ div {
   }
 }
 
+@keyframes popIn {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  70% {
+    transform: scale(1.02);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulseNeon {
+  0% {
+    box-shadow: 0 0 0 0 rgba(204, 255, 0, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(204, 255, 0, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(204, 255, 0, 0);
+  }
+}
+
+@keyframes slideRight {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 .animate-up {
-  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pop {
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.animate-pulse {
+  animation: pulseNeon 2s infinite;
+}
+
+/* Staggered Delays */
+.delay-1 {
+  animation-delay: 0.1s;
+}
+
+.delay-2 {
+  animation-delay: 0.2s;
+}
+
+.delay-3 {
+  animation-delay: 0.3s;
+}
+
+.delay-4 {
+  animation-delay: 0.4s;
+}
+
+/* Premium Interactions */
+.nike-card {
+  background: var(--nike-card-bg);
+  border-radius: var(--nike-card-radius);
+  box-shadow: var(--nike-card-shadow);
+  padding: 20px;
+  margin-bottom: 20px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+
+  &:active {
+    transform: scale(0.96) translateY(2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.premium-glass {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(15px) saturate(180%);
+  -webkit-backdrop-filter: blur(15px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 /* Header Override */
 ion-header {
   ion-toolbar {
-    --background: white;
+    --background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
     --color: black;
     --border-style: none;
     font-weight: 950;
@@ -168,21 +259,30 @@ img {
   height: auto;
   display: block;
   border-radius: 20px;
+  transition: transform 0.5s ease;
 }
 
-.nike-card img {
-  width: 100%;
-  object-fit: cover;
-  border-radius: 25px;
+.nike-card:hover img {
+  transform: scale(1.03);
 }
 
-// Imágenes en galerías
-.gallery-image,
-.thumbnail-image {
-  width: 100%;
-  max-height: 300px;
-  object-fit: cover;
-  border-radius: 8px;
+/* Float Animation */
+.float-element {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 // ===== FLOATING ACTION BUTTON =====
@@ -197,23 +297,14 @@ ion-fab-button {
   --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   --background: black;
   --color: #ccff00;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
-  &:hover {
-    --box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  &:active {
+    transform: scale(0.85) rotate(-10deg);
   }
 }
 
-// Asegurar que FAB esté siempre a la derecha
-@media (max-width: 768px) {
-  ion-fab {
-    right: 16px;
-    bottom: 76px;
-  }
-}
-
-@media (min-width: 769px) {
-  ion-fab {
-    right: 24px;
-    bottom: 88px;
-  }
+/* Global Transition for Page Views */
+ion-router-outlet {
+  background: var(--nike-bg-color);
 }

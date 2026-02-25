@@ -34,8 +34,8 @@
             </ion-segment>
         </div>
 
-        <!-- Radar Chart Card (Skills) -->
-        <div class="nike-card chart-card animate-up" *ngIf="hasData && selectedTab === 'radar'">
+        <!-- Skill Radar Section -->
+        <div class="nike-card radar-section animate-up delay-1" *ngIf="selectedTab === 'radar'">
             <h3 class="card-title">Radar de Rendimiento</h3>
             <p class="card-subtitle">Basado en tu última evaluación</p>
 
@@ -106,32 +106,35 @@
                     has subido videos personales para análisis.' }}</p>
             </div>
 
-            <div class="video-card-nike" *ngFor="let vid of filteredVideos">
-                <div class="video-wrapper">
-                    <video [src]="vid.video_url" controls preload="metadata" playsinline></video>
-                </div>
-                <div class="video-footer">
-                    <div class="vid-meta">
-                        <span class="vid-date">{{ vid.fecha | date:'dd/MM/yyyy' }}</span>
-                        <span class="vid-coach">{{ vid.tipo === 'personal' ? 'Mi Video' : 'Coach ' +
-                            vid.entrenador_nombre }}</span>
+            <div class="video-grid" *ngIf="filteredVideos.length > 0">
+                <div class="nike-card video-card animate-pop delay-{{(i % 4) + 1}}"
+                    *ngFor="let vid of filteredVideos; let i = index">
+                    <div class="video-wrapper">
+                        <video [src]="vid.video_url" controls preload="metadata" playsinline></video>
                     </div>
-                    <h4 class="vid-title">{{ vid.titulo || 'Clip de Entrenamiento' }}</h4>
-                    <p class="vid-comment" *ngIf="vid.comentario">{{ vid.comentario }}</p>
+                    <div class="video-footer">
+                        <div class="vid-meta">
+                            <span class="vid-date">{{ vid.fecha | date:'dd/MM/yyyy' }}</span>
+                            <span class="vid-coach">{{ vid.tipo === 'personal' ? 'Mi Video' : 'Coach ' +
+                                vid.entrenador_nombre }}</span>
+                        </div>
+                        <h4 class="vid-title">{{ vid.titulo || 'Clip de Entrenamiento' }}</h4>
+                        <p class="vid-comment" *ngIf="vid.comentario">{{ vid.comentario }}</p>
 
-                    <!-- AI Analysis Actions -->
-                    <div class="ai-video-actions">
-                        <button class="ai-btn-analyze" *ngIf="!aiResults[vid.id]" (click)="analizarVideo(vid)"
-                            [disabled]="isAnalyzing[vid.id]">
-                            <ion-icon name="sparkles-outline" *ngIf="!isAnalyzing[vid.id]"></ion-icon>
-                            <ion-spinner name="crescent" *ngIf="isAnalyzing[vid.id]"></ion-spinner>
-                            <span>{{ isAnalyzing[vid.id] ? 'ANALIZANDO...' : 'ANALIZAR CON GEMINI AI' }}</span>
-                        </button>
+                        <!-- AI Analysis Actions -->
+                        <div class="ai-video-actions">
+                            <button class="ai-btn-analyze" *ngIf="!aiResults[vid.id]" (click)="analizarVideo(vid)"
+                                [disabled]="isAnalyzing[vid.id]">
+                                <ion-icon name="sparkles-outline" *ngIf="!isAnalyzing[vid.id]"></ion-icon>
+                                <ion-spinner name="crescent" *ngIf="isAnalyzing[vid.id]"></ion-spinner>
+                                <span>{{ isAnalyzing[vid.id] ? 'ANALIZANDO...' : 'ANALIZAR CON GEMINI AI' }}</span>
+                            </button>
 
-                        <button class="ai-btn-report" *ngIf="aiResults[vid.id]" (click)="verReporte(vid)">
-                            <ion-icon name="sparkles"></ion-icon>
-                            <span>VER REPORTE AI</span>
-                        </button>
+                            <button class="ai-btn-report" *ngIf="aiResults[vid.id]" (click)="verReporte(vid)">
+                                <ion-icon name="sparkles"></ion-icon>
+                                <span>VER REPORTE AI</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

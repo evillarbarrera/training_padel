@@ -241,16 +241,31 @@ ion-content {
 }
 
 .module-card {
+  position: relative;
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   padding: 0;
   overflow: hidden;
-  margin-bottom: 0;
+  margin-bottom: 20px;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
   border-radius: 35px;
+
+  &:active {
+    transform: scale(0.96) translateY(4px);
+  }
 
   .module-img {
     width: 100%;
     height: 160px;
     object-fit: cover;
     border-radius: 0;
+    transition: transform 0.6s ease;
+  }
+
+  &:hover .module-img {
+    transform: scale(1.08);
   }
 
   .module-body {
@@ -258,40 +273,33 @@ ion-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    background: white;
   }
 
   .module-text {
     h3 {
       margin: 0;
       font-size: 18px;
-      /* Reducido */
       font-weight: 800;
-      letter-spacing: -0.5px;
+      color: #111;
       text-transform: uppercase;
     }
 
     p {
-      margin: 2px 0 0;
-      font-size: 12px;
-      /* Reducido */
-      color: var(--nike-gray-medium);
-      font-weight: 600;
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: #777;
     }
   }
 
   .module-arrow {
-    font-size: 18px;
-    color: var(--nike-black);
-    opacity: 0.15;
+    font-size: 24px;
+    color: #111;
+    transition: transform 0.3s ease;
   }
 
-  &:active {
-    transform: scale(0.96);
-
-    .module-arrow {
-      opacity: 1;
-      color: var(--ion-color-tertiary);
-    }
+  &:hover .module-arrow {
+    transform: translateX(5px);
   }
 }
 

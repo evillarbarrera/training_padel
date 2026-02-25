@@ -25,12 +25,12 @@
   <div class="dashboard-container">
 
     <!-- Role Badge -->
-    <div class="role-section animate-up">
+    <div class="role-section animate-pop">
       <span class="role-badge">{{ profile.rol }}</span>
     </div>
 
     <!-- Datos Personales -->
-    <div class="section-card animate-up" style="animation-delay: 0.1s">
+    <div class="section-card animate-up delay-1">
       <h3 class="section-title">
         <ion-icon name="person-outline"></ion-icon>
         Datos Personales
@@ -52,7 +52,7 @@
     </div>
 
     <!-- Redes Sociales -->
-    <div class="section-card animate-up" style="animation-delay: 0.2s">
+    <div class="section-card animate-up delay-2">
       <h3 class="section-title">
         <ion-icon name="share-social-outline"></ion-icon>
         Redes Sociales
@@ -70,7 +70,7 @@
     </div>
 
     <!-- Dirección -->
-    <div class="section-card animate-up" style="animation-delay: 0.3s">
+    <div class="section-card animate-up delay-3">
       <h3 class="section-title">
         <ion-icon name="location-outline"></ion-icon>
         Dirección
@@ -107,7 +107,7 @@
       </div>
     </div>
 
-    <ion-button expand="block" class="save-btn animate-up" (click)="saveProfile()" [disabled]="loading">
+    <ion-button expand="block" class="save-btn animate-up delay-4" (click)="saveProfile()" [disabled]="loading">
       <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
       <span *ngIf="!loading">Guardar Cambios</span>
     </ion-button>
