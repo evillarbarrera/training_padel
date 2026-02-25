@@ -16,6 +16,8 @@ import {
   IonSpinner,
   IonSelect,
   IonSelectOption,
+  IonRefresher,
+  IonRefresherContent,
   NavController,
   ToastController
 } from '@ionic/angular/standalone';
@@ -48,6 +50,8 @@ import {
     IonSpinner,
     IonSelect,
     IonSelectOption,
+    IonRefresher,
+    IonRefresherContent,
     CommonModule,
     FormsModule
   ]
@@ -135,7 +139,7 @@ export class PerfilPage implements OnInit {
     this.loadProfile();
   }
 
-  loadProfile() {
+  loadProfile(event?: any) {
     if (!this.userId) return;
 
     this.mysqlService.getPerfil(this.userId).subscribe({
@@ -157,9 +161,17 @@ export class PerfilPage implements OnInit {
             this.updateComunas(true);
           }
         }
+        if (event) event.target.complete();
       },
-      error: (err) => console.error('Error loading profile:', err)
+      error: (err) => {
+        console.error('Error loading profile:', err);
+        if (event) event.target.complete();
+      }
     });
+  }
+
+  handleRefresh(event: any) {
+    this.loadProfile(event);
   }
 
   updateComunas(keepComuna = false) {

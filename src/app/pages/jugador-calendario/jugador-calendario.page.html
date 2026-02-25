@@ -1,4 +1,7 @@
 <ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
   <!-- Hero Header -->
   <div class="header-nike">
@@ -27,7 +30,7 @@
     <!-- Loading State -->
     <div *ngIf="cargando" class="state-container animate-fade">
       <ion-spinner name="crescent"></ion-spinner>
-      <p>Cargando sesiones...</p>
+      <p>Cargando clases...</p>
     </div>
 
     <!-- Empty State -->
@@ -37,7 +40,7 @@
       </div>
       <h2>{{ tipoVista === 'proximas' ? 'Sin clases agendadas' : 'Cero registros' }}</h2>
       <p>{{ tipoVista === 'proximas' ? 'Tu agenda está libre por ahora. Puedes ver tus entrenamientos grupales en la
-        sección "Mis Entrenamientos".' : 'Aún no tienes historial de clases.' }}</p>
+        sección "Mis Clases".' : 'Aún no tienes historial de clases.' }}</p>
       <ion-button *ngIf="tipoVista === 'proximas'" class="nike-button-small" (click)="goBack()">
         Agendar Mi Primera Clase
       </ion-button>
@@ -58,18 +61,44 @@
 
             <div class="badges-right">
               <div class="modalidad-tag" [class.grupal]="reserva.tipo === 'grupal'"
-                [class.individual]="reserva.tipo !== 'grupal'">
+                [class.multi]="reserva.cantidad_personas > 1 && reserva.tipo !== 'grupal'"
+                [class.individual]="reserva.tipo !== 'grupal' && reserva.cantidad_personas <= 1">
+                <ion-icon
+                  [name]="(reserva.tipo === 'grupal' || reserva.cantidad_personas > 1) ? 'people' : 'person'"></ion-icon>
                 {{ reserva.tipo === 'grupal' ? 'GRUPAL (' + reserva.cupos_ocupados + '/' + reserva.capacidad_maxima +
                 ')' :
-                'INDIVIDUAL' }}
+                (reserva.cantidad_personas > 1 ? 'MULTIJUGADOR' : 'INDIVIDUAL') }}
               </div>
               <div class="status-tag"
-                [ngClass]="reserva.tipo === 'grupal' ? reserva.estado_grupo?.toLowerCase() : reserva.estado?.toLowerCase()">
+                [ngClass]="reserva.tipo === 'grupal' ? (reserva.estado_grupo?.toLowerCase() || 'pendiente') : (reserva.estado?.toLowerCase() || 'reservada')">
+                <ion-icon
+                  [name]="(reserva.estado_grupo === 'activo' || reserva.estado === 'reservado' || reserva.estado === 'confirmada') ? 'checkmark-circle' : 'time'"></ion-icon>
                 {{ reserva.tipo === 'grupal' ? (reserva.estado_grupo === 'activo' ? 'ACTIVADA' : 'PENDIENTE') :
                 (reserva.estado || 'RESERVADA') }}
               </div>
             </div>
           </div>
+
+          <!-- Team Display (Multi-player) -->
+          <div class="team-section-ionic" *ngIf="reserva.cantidad_personas > 1">
+            <div class="team-label">Mi Equipo:</div>
+            <div class="team-avatars">
+              <div class="avatar-chip owner" [title]="jugadorNombre">
+                {{ jugadorNombre.charAt(0) }}
+              </div>
+              <div class="avatar-chip guest" *ngFor="let inv of reserva.invitados"
+                [class.pending]="inv.estado === 'pendiente'"
+                [title]="inv.nombre + (inv.estado === 'pendiente' ? ' (Pendiente)' : '')">
+                {{ inv.nombre.charAt(0) }}
+                <div class="status-dot" *ngIf="inv.estado === 'pendiente'"></div>
+              </div>
+              <div class="avatar-chip add" *ngIf="(reserva.invitados?.length + 1) < reserva.cantidad_personas"
+                (click)="abrirModalInvitacion(reserva)">
+                <ion-icon name="add-outline"></ion-icon>
+              </div>
+            </div>
+          </div>
+
           <!-- Info Message for Pending Groups -->
           <div class="group-info-row" *ngIf="reserva.tipo === 'grupal' && reserva.estado_grupo !== 'activo'">
             <ion-icon name="information-circle-outline"></ion-icon>
@@ -114,5 +143,39 @@
       <ion-icon name="chevron-back-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>
+
+  <!-- Invitation Modal (Ionic Style) -->
+  <div class="nike-modal-overlay" *ngIf="showModalInvitacion" (click)="cerrarModal()">
+    <div class="nike-modal-card animate-pop" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="header-icon">
+          <ion-icon name="mail-outline"></ion-icon>
+        </div>
+        <h2>Invitar Compañero</h2>
+        <ion-button fill="clear" color="dark" (click)="cerrarModal()" class="btn-close-modal">
+          <ion-icon name="close-outline"></ion-icon>
+        </ion-button>
+      </div>
+
+      <div class="modal-body">
+        <p>Ingresa el email de tu compañero para que se una a este pack Duo/Multi. Debe estar registrado en la App.</p>
+
+        <div class="nike-input-group">
+          <ion-label>Email del Jugador</ion-label>
+          <ion-input type="email" [(ngModel)]="emailInvitado" placeholder="ejemplo@correo.com"
+            class="nike-input-field"></ion-input>
+        </div>
+
+        <div class="modal-actions">
+          <ion-button fill="outline" color="medium" (click)="cerrarModal()" class="nike-button-modal">
+            Cancelar
+          </ion-button>
+          <ion-button (click)="enviarInvitacion()" class="nike-button-modal confirm">
+            Enviar Invitación
+          </ion-button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </ion-content>

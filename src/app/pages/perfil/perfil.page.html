@@ -1,4 +1,7 @@
 <ion-content class="perfil-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
   <!-- Hero Header -->
   <div class="header-nike">

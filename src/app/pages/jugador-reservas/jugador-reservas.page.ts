@@ -8,8 +8,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, peopleOutline, locationOutline, searchOutline, closeOutline, checkmarkCircleOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, peopleOutline, locationOutline, searchOutline, closeOutline, checkmarkCircleOutline, personOutline, mailOutline, addOutline } from 'ionicons/icons';
 import { chevronBackOutline } from 'ionicons/icons';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-jugador-reservas',
@@ -97,6 +98,12 @@ export class JugadorReservasPage implements OnInit {
   // Picker State
   showCoachPicker: boolean = false;
 
+  // Invitation Logic
+  showModalInvitacion = false;
+  selectedReserva: any = null;
+  emailInvitado: string = '';
+  jugadorNombre: string = localStorage.getItem('nombre') || 'Yo';
+
   constructor(
     private entrenamientoService: EntrenamientoService,
     private mysqlService: MysqlService,
@@ -107,6 +114,7 @@ export class JugadorReservasPage implements OnInit {
     private loadingCtrl: LoadingController,
     private router: Router,
     private route: ActivatedRoute,
+    private notificationService: NotificationService
   ) {
     addIcons({
       settingsOutline,
@@ -118,7 +126,10 @@ export class JugadorReservasPage implements OnInit {
       locationOutline,
       searchOutline,
       closeOutline,
-      checkmarkCircleOutline
+      checkmarkCircleOutline,
+      personOutline,
+      mailOutline,
+      addOutline
     });
   }
 
@@ -141,10 +152,11 @@ export class JugadorReservasPage implements OnInit {
     this.loadUserProfile();
   }
 
-  loadUserProfile() {
+  loadUserProfile(event?: any) {
     this.mysqlService.getPerfil(this.jugadorId).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         if (res.success) {
+          if (res.nombre) this.jugadorNombre = res.nombre;
           if (res.direccion) {
             this.regionSeleccionada = res.direccion.region || '';
             const selectedRegionObj = this.regions.find(r => r.name === this.regionSeleccionada);
@@ -155,9 +167,18 @@ export class JugadorReservasPage implements OnInit {
           }
         }
         this.cargarEntrenadores();
+        if (event) event.target.complete();
       },
-      error: () => this.cargarEntrenadores()
+      error: () => {
+        this.cargarEntrenadores();
+        if (event) event.target.complete();
+      }
     });
+  }
+
+  handleRefresh(event: any) {
+    this.cargarMisEntrenamientos();
+    this.loadUserProfile(event);
   }
 
   updateComunas(keepComuna = false): void {
@@ -351,7 +372,11 @@ export class JugadorReservasPage implements OnInit {
         this.entrenamientoService.crearReserva(payload).subscribe({
           next: () => {
             loader.dismiss();
-            this.showPackModal = false;
+            // Notifications
+            this.notificationService.notificarPackContratado(this.jugadorId, pack.nombre);
+            this.notificationService.notificarReservaCreada(this.jugadorId, pack.nombre, payload.fecha, payload.hora_inicio);
+            this.notificationService.programarRecordatorio(this.jugadorId, pack.nombre, payload.fecha, payload.hora_inicio);
+
             this.alertCtrl.create({
               header: '¡Listo!',
               message: 'Pack activado y clase agendada correctamente.',
@@ -391,8 +416,7 @@ export class JugadorReservasPage implements OnInit {
 
   setFilter(tipo: any): void {
     this.tipoEntrenamiento = tipo;
-    // Reset selections and regenerate based on the new filter
-    this.diaSeleccionado = '';
+    // Don't reset diaSeleccionado to improve UX
     this.generarBloquesHorarios(this.horarios);
   }
 
@@ -400,13 +424,19 @@ export class JugadorReservasPage implements OnInit {
     this.horariosPorDia = {};
     this.dias = [];
 
+    // Pre-populate 10 days from today
+    for (let i = 0; i < 10; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      const ds = d.toISOString().split('T')[0];
+      this.dias.push(ds);
+      this.horariosPorDia[ds] = { manana: [], tarde: [], noche: [] };
+    }
+
     const bloquesUnicos = new Set<string>();
     const ahora = new Date();
 
     disponibilidades.forEach(d => {
-      // If it's a specific group class, it might have a 'tipo' field from the API
-      // If the user selected 'grupal', we only show slots that are grupal
-      // If it's a general availability slot, we treat it as individual/multiplayer depending on the intention
       const slotTipo = (d.tipo || 'individual').toLowerCase();
 
       if (this.tipoEntrenamiento !== 'todos') {
@@ -420,42 +450,38 @@ export class JugadorReservasPage implements OnInit {
 
       while (inicio < fin) {
         const bloqueInicio = new Date(inicio);
-        const bloqueFin = new Date(inicio.getTime() + 60 * 60 * 1000); // 1 hour slots
+        const bloqueFin = new Date(inicio.getTime() + 60 * 60 * 1000);
 
         if (bloqueInicio > ahora && bloqueFin <= fin) {
           const fecha = bloqueInicio.toISOString().split('T')[0];
-          const horaInicio = bloqueInicio.toTimeString().slice(0, 5);
-          const horaFin = bloqueFin.toTimeString().slice(0, 5);
-          const key = `${fecha} ${horaInicio}-${horaFin}`;
 
-          if (!bloquesUnicos.has(key)) {
-            bloquesUnicos.add(key);
+          // Only add to result if day falls within the 10 days we track
+          if (this.horariosPorDia[fecha]) {
+            const horaInicio = bloqueInicio.toTimeString().slice(0, 5);
+            const horaFin = bloqueFin.toTimeString().slice(0, 5);
+            const key = `${fecha} ${horaInicio}-${horaFin}`;
 
-            const hora = bloqueInicio.getHours();
-            let tramo: 'manana' | 'tarde' | 'noche' = 'noche';
-            if (hora >= 6 && hora < 12) tramo = 'manana';
-            else if (hora >= 12 && hora < 18) tramo = 'tarde';
+            if (!bloquesUnicos.has(key)) {
+              bloquesUnicos.add(key);
+              const hora = bloqueInicio.getHours();
+              let tramo: 'manana' | 'tarde' | 'noche' = 'noche';
+              if (hora >= 6 && hora < 12) tramo = 'manana';
+              else if (hora >= 12 && hora < 18) tramo = 'tarde';
 
-            if (!this.horariosPorDia[fecha]) {
-              this.horariosPorDia[fecha] = { manana: [], tarde: [], noche: [] };
-              this.dias.push(fecha);
+              this.horariosPorDia[fecha][tramo].push({
+                fecha,
+                hora_inicio: bloqueInicio,
+                hora_fin: bloqueFin,
+                ocupado: ocupado,
+                tipo: slotTipo,
+                pack_id: d.pack_id
+              });
             }
-
-            this.horariosPorDia[fecha][tramo].push({
-              fecha,
-              hora_inicio: bloqueInicio,
-              hora_fin: bloqueFin,
-              ocupado: ocupado,
-              tipo: slotTipo,
-              pack_id: d.pack_id // Keep record if it's a fixed pack slot
-            });
           }
         }
         inicio.setHours(inicio.getHours() + 1);
       }
     });
-
-    this.dias.sort();
 
     // Auto-select first available day and tramo
     if (this.dias.length > 0) {
@@ -481,24 +507,41 @@ export class JugadorReservasPage implements OnInit {
   reservarHorario(horario: any) {
     if (horario.ocupado) return;
 
-    // Determine target type
-    let targetType = this.tipoEntrenamiento;
-    if (targetType === 'todos') {
-      targetType = 'individual';
-    }
+    let packActivo: any = null;
+    let finalType = this.tipoEntrenamiento;
 
-    // Check if user has an active pack for this trainer and type
-    const packActivo = this.packs.find(p => {
-      const basicMatch = Number(p.entrenador_id) === Number(this.selectedEntrenador) &&
+    // Logic Fix: If 'todos', first try to find any compatible pack
+    if (this.tipoEntrenamiento === 'todos') {
+      // Prefer individual packs, then multiplayer
+      packActivo = this.packs.find(p =>
+        Number(p.entrenador_id) === Number(this.selectedEntrenador) &&
         Number(p.sesiones_restantes) > 0 &&
-        this.isPackMatch(p, targetType);
-
-      // Group slot handling
-      if (horario.tipo === 'grupal' && horario.pack_id) {
-        return basicMatch && Number(p.pack_id) === Number(horario.pack_id);
+        this.isPackMatch(p, 'individual')
+      );
+      if (packActivo) {
+        finalType = 'individual';
+      } else {
+        packActivo = this.packs.find(p =>
+          Number(p.entrenador_id) === Number(this.selectedEntrenador) &&
+          Number(p.sesiones_restantes) > 0 &&
+          this.isPackMatch(p, 'multiplayer')
+        );
+        if (packActivo) finalType = 'multiplayer';
       }
-      return basicMatch;
-    });
+    } else {
+      // Use current filter
+      packActivo = this.packs.find(p => {
+        const basicMatch = Number(p.entrenador_id) === Number(this.selectedEntrenador) &&
+          Number(p.sesiones_restantes) > 0 &&
+          this.isPackMatch(p, this.tipoEntrenamiento);
+
+        if (horario.tipo === 'grupal' && horario.pack_id) {
+          return basicMatch && Number(p.pack_id) === Number(horario.pack_id);
+        }
+        return basicMatch;
+      });
+      finalType = this.tipoEntrenamiento;
+    }
 
     if (packActivo) {
       this.alertCtrl.create({
@@ -518,12 +561,16 @@ export class JugadorReservasPage implements OnInit {
                 hora_fin: horario.hora_fin.toTimeString().slice(0, 5),
                 jugador_id: this.jugadorId,
                 estado: 'reservado',
-                tipo: targetType,
+                tipo: finalType,
                 cantidad_personas: 1
               };
 
               this.entrenamientoService.crearReserva(payload).subscribe({
                 next: () => {
+                  // Notifications
+                  this.notificationService.notificarReservaCreada(this.jugadorId, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
+                  this.notificationService.programarRecordatorio(this.jugadorId, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
+
                   this.mostrarToast('✅ Reserva guardada correctamente');
                   this.onEntrenadorChange();
                 },
@@ -653,6 +700,44 @@ export class JugadorReservasPage implements OnInit {
           position: 'top'
         });
         await toast.present();
+      }
+    });
+  }
+
+  // --- Invitation Methods ---
+  abrirModalInvitacion(reserva: any) {
+    this.selectedReserva = reserva;
+    this.emailInvitado = '';
+    this.showModalInvitacion = true;
+  }
+
+  cerrarModal() {
+    this.showModalInvitacion = false;
+    this.selectedReserva = null;
+  }
+
+  enviarInvitacion() {
+    if (!this.emailInvitado || !this.emailInvitado.includes('@')) {
+      this.mostrarToast('Ingresa un email válido');
+      return;
+    }
+
+    if (!this.selectedReserva || !this.selectedReserva.pack_jugador_id) {
+      this.mostrarToast('No se pudo identificar el pack para esta reserva.');
+      return;
+    }
+
+    this.mostrarToast('Enviando invitación...');
+
+    this.packAlumnoService.invitarJugador(this.selectedReserva.pack_jugador_id, this.emailInvitado).subscribe({
+      next: (res: any) => {
+        this.mostrarToast(res.message || 'Invitación enviada correctamente.');
+        this.cerrarModal();
+        this.cargarMisEntrenamientos();
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.mostrarToast(err.error?.error || 'No se pudo enviar la invitación.');
       }
     });
   }

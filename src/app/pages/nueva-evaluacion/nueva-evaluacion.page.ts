@@ -12,6 +12,7 @@ import { EvaluacionService } from '../../services/evaluacion.service';
 import { MysqlService } from '../../services/mysql.service';
 import { addIcons } from 'ionicons';
 import { add, remove, caretDownCircle, chevronBackOutline, checkmarkOutline } from 'ionicons/icons';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
     selector: 'app-nueva-evaluacion',
@@ -46,7 +47,8 @@ export class NuevaEvaluacionPage implements OnInit {
         private alertCtrl: AlertController,
         private loadingCtrl: LoadingController, // Injected
         private evaluacionService: EvaluacionService,
-        private mysqlService: MysqlService
+        private mysqlService: MysqlService,
+        private notificationService: NotificationService
     ) {
         addIcons({ add, remove, 'caret-down-circle': caretDownCircle, chevronBackOutline, checkmarkOutline });
     }
@@ -142,6 +144,9 @@ export class NuevaEvaluacionPage implements OnInit {
         this.evaluacionService.crearEvaluacion(payload).subscribe({
             next: async () => {
                 await loading.dismiss();
+                // Send Notification
+                this.notificationService.notificarEvaluacionGenerada(this.jugadorId);
+
                 const alert = await this.alertCtrl.create({ header: 'Éxito', message: 'Evaluación guardada', buttons: ['OK'] });
                 await alert.present();
                 this.navCtrl.back();

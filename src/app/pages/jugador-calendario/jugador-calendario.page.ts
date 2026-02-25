@@ -3,9 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { MysqlService } from '../../services/mysql.service';
+import { PackAlumnoService } from '../../services/pack_alumno.service';
 import { Router } from '@angular/router';
+import { NotificationService } from '../../services/notification.service';
 import { addIcons } from 'ionicons';
-import { chevronBackOutline, calendarOutline, personOutline, timeOutline, informationCircleOutline } from 'ionicons/icons';
+import { chevronBackOutline, calendarOutline, personOutline, timeOutline, informationCircleOutline, addOutline, mailOutline, closeOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-jugador-calendario',
@@ -20,14 +22,22 @@ export class JugadorCalendarioPage implements OnInit {
   entrenamientosGrupales: any[] = [];
   cargando = true;
   tipoVista: 'proximas' | 'historial' = 'proximas';
+  jugadorNombre: string = localStorage.getItem('nombre') || 'Yo';
+
+  // Invitation Logic
+  showModalInvitacion = false;
+  selectedReserva: any = null;
+  emailInvitado: string = '';
 
   constructor(
     private mysqlService: MysqlService,
+    private packAlumnoService: PackAlumnoService,
     private router: Router,
     private alertController: AlertController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private notificationService: NotificationService
   ) {
-    addIcons({ chevronBackOutline, calendarOutline, personOutline, timeOutline, informationCircleOutline });
+    addIcons({ chevronBackOutline, calendarOutline, personOutline, timeOutline, informationCircleOutline, addOutline, mailOutline, closeOutline });
   }
 
   ngOnInit() {
@@ -62,7 +72,7 @@ export class JugadorCalendarioPage implements OnInit {
     });
   }
 
-  cargarReservas() {
+  cargarReservas(event?: any) {
     const userId = Number(localStorage.getItem('userId'));
     if (!userId) {
       this.router.navigate(['/login']);
@@ -75,12 +85,18 @@ export class JugadorCalendarioPage implements OnInit {
         this.reservasIndividuales = res.reservas_individuales || [];
         this.entrenamientosGrupales = res.entrenamientos_grupales || [];
         this.cargando = false;
+        if (event) event.target.complete();
       },
       error: (err) => {
         console.error('Error al cargar reservas:', err);
         this.cargando = false;
+        if (event) event.target.complete();
       }
     });
+  }
+
+  handleRefresh(event: any) {
+    this.cargarReservas(event);
   }
 
   async cancelarReserva(reserva: any) {
@@ -126,6 +142,15 @@ export class JugadorCalendarioPage implements OnInit {
     } else {
       this.mysqlService.cancelarReservaJugador(id, userId).subscribe({
         next: async (res) => {
+          // Notification to coach
+          if (reserva.entrenador_id) {
+            this.notificationService.notificarCancelacionACoach(
+              reserva.entrenador_id,
+              this.jugadorNombre,
+              reserva.fecha,
+              reserva.hora_inicio || ''
+            );
+          }
           this.mostrarToast('Reserva cancelada exitosamente', 'success');
           this.cargarReservas();
         },
@@ -148,5 +173,43 @@ export class JugadorCalendarioPage implements OnInit {
 
   goBack() {
     this.router.navigate(['/jugador-home']);
+  }
+
+  // --- Invitation Methods ---
+  abrirModalInvitacion(reserva: any) {
+    this.selectedReserva = reserva;
+    this.emailInvitado = '';
+    this.showModalInvitacion = true;
+  }
+
+  cerrarModal() {
+    this.showModalInvitacion = false;
+    this.selectedReserva = null;
+  }
+
+  enviarInvitacion() {
+    if (!this.emailInvitado || !this.emailInvitado.includes('@')) {
+      this.mostrarToast('Ingresa un email válido', 'warning');
+      return;
+    }
+
+    if (!this.selectedReserva || !this.selectedReserva.pack_jugador_id) {
+      this.mostrarToast('No se pudo identificar el pack para esta reserva.', 'danger');
+      return;
+    }
+
+    this.mostrarToast('Enviando invitación...', 'primary');
+
+    this.packAlumnoService.invitarJugador(this.selectedReserva.pack_jugador_id, this.emailInvitado).subscribe({
+      next: (res: any) => {
+        this.mostrarToast(res.message || 'Invitación enviada correctamente.', 'success');
+        this.cerrarModal();
+        this.cargarReservas();
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.mostrarToast(err.error?.error || 'No se pudo enviar la invitación.', 'danger');
+      }
+    });
   }
 }

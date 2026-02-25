@@ -13,7 +13,9 @@ import {
   IonFabButton,
   IonSpinner,
   IonSegment,
-  IonSegmentButton
+  IonSegmentButton,
+  IonRefresher,
+  IonRefresherContent
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -26,6 +28,7 @@ import {
 } from 'ionicons/icons';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular/standalone';
 import { EvaluacionService } from '../../services/evaluacion.service';
+import { NotificationService } from '../../services/notification.service';
 
 interface AlumnoApi {
   jugador_id: number;
@@ -55,6 +58,8 @@ interface AlumnoApi {
     IonFabButton,
     IonSegment,
     IonSegmentButton,
+    IonRefresher,
+    IonRefresherContent,
     IonSpinner
   ],
 })
@@ -91,7 +96,8 @@ export class AlumnosPage implements OnInit {
     private evaluacionService: EvaluacionService,
     private alertCtrl: AlertController,
     private loadingCtrl: LoadingController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private notificationService: NotificationService
   ) {
     addIcons({
       searchOutline, peopleOutline, statsChartOutline, analyticsOutline, videocamOutline,
@@ -115,7 +121,7 @@ export class AlumnosPage implements OnInit {
     this.cargarAlumnos();
   }
 
-  cargarAlumnos() {
+  cargarAlumnos(event?: any) {
     const profesorId = localStorage.getItem('userId');
 
     this.http.get<any[]>(
@@ -130,6 +136,7 @@ export class AlumnosPage implements OnInit {
         console.log('API Response Alumnos:', res); // Log entire response
         if (!res) {
           this.alumnos = [];
+          if (event) event.target.complete();
           return;
         }
 
@@ -194,11 +201,17 @@ export class AlumnosPage implements OnInit {
             });
           }
         });
+        if (event) event.target.complete();
       },
       error: (err: any) => {
         console.error('Error cargando alumnos', err);
+        if (event) event.target.complete();
       }
     });
+  }
+
+  handleRefresh(event: any) {
+    this.cargarAlumnos(event);
   }
 
   verProgreso(alumnoId: number) {
@@ -345,6 +358,11 @@ export class AlumnosPage implements OnInit {
         this.entrenamientoService.crearReserva(payload).subscribe({
           next: () => {
             loading.dismiss();
+
+            // Notifications
+            this.notificationService.notificarReservaCreada(this.selectedAlumno.id, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
+            this.notificationService.programarRecordatorio(this.selectedAlumno.id, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
+
             this.showBookingModal = false;
             this.mostrarToast('✅ Clase agendada exitosamente');
             this.cargarAlumnos(); // Refresh stats

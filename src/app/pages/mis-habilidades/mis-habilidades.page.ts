@@ -7,6 +7,7 @@ import {
     IonSegment, IonSegmentButton, IonLabel,
     IonFab, IonFabButton,
     IonList, IonItem, IonBadge, IonSpinner,
+    IonRefresher, IonRefresherContent,
     AlertController, LoadingController
 } from '@ionic/angular/standalone';
 import { HttpClient } from '@angular/common/http';
@@ -31,7 +32,8 @@ Chart.register(...registerables);
         IonButton, IonIcon,
         IonSegment, IonSegmentButton, IonLabel,
         IonFab, IonFabButton,
-        IonList, IonItem, IonBadge, IonSpinner
+        IonList, IonItem, IonBadge, IonSpinner,
+        IonRefresher, IonRefresherContent
     ]
 })
 
@@ -127,12 +129,18 @@ export class MisHabilidadesPage implements OnInit {
 
     ionViewWillEnter() {
         if (this.userId) {
-            this.loadUserProfile();
-            this.loadEvaluaciones();
-            this.loadVideos();
+            this.handleRefresh(null);
         } else {
             console.warn('No User ID found');
             this.isLoading = false;
+        }
+    }
+
+    handleRefresh(event: any) {
+        if (this.userId) {
+            this.loadUserProfile();
+            this.loadEvaluaciones(event);
+            this.loadVideos();
         }
     }
 
@@ -172,7 +180,7 @@ export class MisHabilidadesPage implements OnInit {
         });
     }
 
-    loadEvaluaciones() {
+    loadEvaluaciones(event?: any) {
         console.log('Loading evaluaciones for user:', this.userId);
         this.evaluacionService.getEvaluaciones(this.userId!).subscribe({
             next: (data) => {
@@ -227,11 +235,13 @@ export class MisHabilidadesPage implements OnInit {
                     this.hasData = false;
                 }
                 this.isLoading = false;
+                if (event) event.target.complete();
                 this.cdr.detectChanges();
             },
             error: (err) => {
                 console.error('Error loading evaluaciones:', err);
                 this.isLoading = false;
+                if (event) event.target.complete();
                 this.cdr.detectChanges();
             }
         });

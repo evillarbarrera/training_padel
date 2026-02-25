@@ -164,7 +164,8 @@ ion-content {
 
     &.highlight {
       .metric-value {
-        color: var(--ion-color-primary);
+        color: #ccff00; // Neon Padel
+        text-shadow: 0 0 10px rgba(204, 255, 0, 0.2);
       }
     }
 

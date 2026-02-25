@@ -23,6 +23,7 @@ import { RouterModule } from '@angular/router';
 import { addIcons } from 'ionicons';
 import { settingsOutline, homeOutline, calendarOutline, logOutOutline, locationOutline, mapOutline, globeOutline, funnelOutline, personCircleOutline } from 'ionicons/icons';
 import { chevronBackOutline } from 'ionicons/icons';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-pack-alumno',
@@ -63,7 +64,8 @@ export class PackAlumnoPage implements OnInit {
     private packsService: PacksService,
     private router: Router,
     private alertCtrl: AlertController,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private notificationService: NotificationService
   ) {
     addIcons({
       settingsOutline,
@@ -357,6 +359,8 @@ export class PackAlumnoPage implements OnInit {
       });
 
       await alert.present();
+      // Notification
+      this.notificationService.notificarPackContratado(jugadorId, pack.nombre);
       this.cargarPacks(); // Recargar para actualizar cupos
     } catch (err: any) {
       const alert = await this.alertCtrl.create({

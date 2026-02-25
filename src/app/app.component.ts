@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Platform } from '@ionic/angular';
+import { NotificationService } from './services/notification.service';
 
 @Component({
   selector: 'app-root',
@@ -9,7 +10,10 @@ import { Platform } from '@ionic/angular';
   imports: [IonApp, IonRouterOutlet],
 })
 export class AppComponent {
-  constructor(private platform: Platform) {
+  constructor(
+    private platform: Platform,
+    private notificationService: NotificationService
+  ) {
     this.initializeApp();
   }
 
@@ -25,5 +29,8 @@ export class AppComponent {
     } else {
       console.log('AppComponent: Skipping Capacitor GoogleAuth (running in web mode)');
     }
+
+    // Initialize Notifications
+    this.notificationService.initializeMessaging();
   }
 }

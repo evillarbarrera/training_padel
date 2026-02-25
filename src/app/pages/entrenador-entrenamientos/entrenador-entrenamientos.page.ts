@@ -13,7 +13,9 @@ import {
   IonButton,
   IonFab,
   IonFooter,
-  IonAlert
+  IonAlert,
+  IonRefresher,
+  IonRefresherContent
 } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
 import { NotificationService } from '../../services/notification.service';
@@ -52,6 +54,8 @@ interface DiaAgenda {
     IonBadge,
     IonSpinner,
     IonButton,
+    IonRefresher,
+    IonRefresherContent,
     IonFab
   ]
 })
@@ -110,7 +114,7 @@ export class EntrenadorEntrenamientosPage implements OnInit {
     this.diaSeleccionado = this.dias[0].fecha;
   }
 
-  cargarAgenda() {
+  cargarAgenda(event?: any) {
     this.cargando = true;
     this.mysqlService.getEntrenadorAgenda(this.entrenadorId).subscribe({
       next: (res: any) => {
@@ -133,8 +137,6 @@ export class EntrenadorEntrenamientosPage implements OnInit {
           }));
           todasReservas.push(...packsGrupalesMapeados);
         }
-
-
 
         // Distribuir en días
         this.dias.forEach(dia => {
@@ -199,14 +201,19 @@ export class EntrenadorEntrenamientosPage implements OnInit {
           dia.data.sort((a, b) => (a.hora_inicio || '').localeCompare(b.hora_inicio || ''));
         });
 
-
         this.cargando = false;
+        if (event) event.target.complete();
       },
       error: (err) => {
         console.error('Error al cargar agenda:', err);
         this.cargando = false;
+        if (event) event.target.complete();
       }
     });
+  }
+
+  handleRefresh(event: any) {
+    this.cargarAgenda(event);
   }
 
   get agendaActual(): any[] {
@@ -243,11 +250,20 @@ export class EntrenadorEntrenamientosPage implements OnInit {
   ejecutarCancelacion(item: any) {
     this.mysqlService.cancelarReserva(item.reserva_id).subscribe({
       next: async () => {
-        // TODO: Enviar notificación al alumno (cuando el backend esté configurado)
-        // const alumnoId = item.alumno_id;
-        // const packNombre = item.pack_nombre || item.nombre_pack || 'Entrenamiento';
-        // const fecha = item.fecha || new Date().toISOString().split('T')[0];
-        // this.notificationService.sendCancelationNotification(alumnoId, packNombre, fecha);
+        // Enviar notificación al alumno
+        const packNombre = item.pack_nombre || item.nombre_pack || 'Entrenamiento';
+        const fecha = item.fecha || new Date().toISOString().split('T')[0];
+
+        if (item.jugador_id) {
+          this.notificationService.sendCancelationNotification(item.jugador_id, packNombre, fecha);
+        } else if (item.jugadores && item.jugadores.length > 0) {
+          // If multiple players (e.g. group or multiplayer)
+          item.jugadores.forEach((j: any) => {
+            if (j.id || j.jugador_id) {
+              this.notificationService.sendCancelationNotification(j.id || j.jugador_id, packNombre, fecha);
+            }
+          });
+        }
 
         const toast = await this.toastCtrl.create({
           message: '✅ Entrenamiento cancelado y horario liberado',

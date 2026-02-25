@@ -122,36 +122,92 @@ export class NotificationService {
    * Enviar notificación de cancelación de reserva
    */
   sendCancelationNotification(alumnoId: number, packNombre: string, fecha: string): void {
-    if (this.userId) {
-      this.mysqlService.enviarNotificacion({
-        user_id: alumnoId,
-        titulo: '❌ Reserva Cancelada',
-        mensaje: `La reserva para "${packNombre}" ha sido cancelada por el entrenador.`,
-        tipo: 'cancelacion',
-        fecha_referencia: fecha
-      }).subscribe({
-        next: () => { },
-        error: (err) => console.warn('⚠️ No se pudo guardar notificación (pero la cancelación fue exitosa):', err)
-      });
-    }
+    this.mysqlService.enviarNotificacion({
+      user_id: alumnoId,
+      titulo: '❌ Reserva Cancelada',
+      mensaje: `La reserva para "${packNombre}" ha sido cancelada por el entrenador.`,
+      tipo: 'cancelacion',
+      fecha_referencia: fecha
+    }).subscribe({
+      next: () => { },
+      error: (err) => console.warn('⚠️ No se pudo guardar notificación:', err)
+    });
+  }
+
+  /**
+   * Notificar cuando un alumno contrata un pack
+   */
+  notificarPackContratado(userId: number, packNombre: string): void {
+    this.mysqlService.enviarNotificacion({
+      user_id: userId,
+      titulo: '🎟️ Nuevo Pack Contratado',
+      mensaje: `¡Felicidades! Has activado correctamente tu "${packNombre}".`,
+      tipo: 'pack_contratado'
+    }).subscribe({
+      next: () => { },
+      error: (err) => console.error('Error notificar pack contratado:', err)
+    });
+  }
+
+  /**
+   * Notificar cuando se reserva un entrenamiento
+   */
+  notificarReservaCreada(userId: number, packNombre: string, fecha: string, hora: string): void {
+    this.mysqlService.enviarNotificacion({
+      user_id: userId,
+      titulo: '🎾 Clase Confirmada',
+      mensaje: `Tu reserva para "${packNombre}" el ${fecha} a las ${hora} ha sido confirmada.`,
+      tipo: 'reserva_confirmada'
+    }).subscribe({
+      next: () => { },
+      error: (err) => console.error('Error notificar reserva confirmada:', err)
+    });
+  }
+
+  /**
+   * Notificar cuando se genera una evaluación
+   */
+  notificarEvaluacionGenerada(userId: number): void {
+    this.mysqlService.enviarNotificacion({
+      user_id: userId,
+      titulo: '📊 Nueva Evaluación Disponible',
+      mensaje: 'Tu entrenador ha subido una nueva evaluación técnica. ¡Revisa tu progreso!',
+      tipo: 'evaluacion_disponible'
+    }).subscribe({
+      next: () => { },
+      error: (err) => console.error('Error notificar evaluación:', err)
+    });
+  }
+
+  /**
+   * Notificar al coach cuando un alumno cancela una reserva
+   */
+  notificarCancelacionACoach(coachId: number, alumnoNombre: string, fecha: string, hora: string): void {
+    this.mysqlService.enviarNotificacion({
+      user_id: coachId,
+      titulo: '⚠️ Clase Cancelada por Alumno',
+      mensaje: `${alumnoNombre} ha cancelado su asistencia para el ${fecha} a las ${hora}.`,
+      tipo: 'cancelacion_alumno'
+    }).subscribe({
+      next: () => { },
+      error: (err) => console.error('Error notificar cancelacion a coach:', err)
+    });
   }
 
   /**
    * Programar recordatorio para el día anterior al entrenamiento
    */
   programarRecordatorio(alumnoId: number, packNombre: string, fechaEntrenamiento: string, horaInicio: string): void {
-    if (this.userId) {
-      this.mysqlService.programarRecordatorio({
-        user_id: alumnoId,
-        pack_nombre: packNombre,
-        fecha_entrenamiento: fechaEntrenamiento,
-        hora_inicio: horaInicio,
-        tipo: 'recordatorio_dia_anterior'
-      }).subscribe({
-        next: () => { },
-        error: (err) => console.error('Error programando recordatorio:', err)
-      });
-    }
+    this.mysqlService.programarRecordatorio({
+      user_id: alumnoId,
+      pack_nombre: packNombre,
+      fecha_entrenamiento: fechaEntrenamiento,
+      hora_inicio: horaInicio,
+      tipo: 'recordatorio_dia_anterior'
+    }).subscribe({
+      next: () => { },
+      error: (err) => console.error('Error programando recordatorio:', err)
+    });
   }
 
   /**

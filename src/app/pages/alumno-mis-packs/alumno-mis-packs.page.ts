@@ -89,7 +89,7 @@ export class AlumnoMisPacksPage implements OnInit {
         });
     }
 
-    loadPacks() {
+    loadPacks(event?: any) {
         this.isLoading = true;
         this.packService.getMisPacks(this.userId).subscribe({
             next: (res: any) => {
@@ -101,13 +101,20 @@ export class AlumnoMisPacksPage implements OnInit {
 
                 this.isLoading = false;
                 this.paginaActual = 1; // Reset pagination
+                if (event) event.target.complete();
             },
             error: (err) => {
                 console.error('Error cargando packs:', err);
                 this.isLoading = false;
                 this.mostrarToast('Error al cargar tus packs', 'danger');
+                if (event) event.target.complete();
             }
         });
+    }
+
+    handleRefresh(event: any) {
+        this.loadPacks(event);
+        this.loadProfile();
     }
 
     get packsVisibles() {

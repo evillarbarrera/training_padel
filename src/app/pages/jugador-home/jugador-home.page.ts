@@ -234,13 +234,6 @@ export class JugadorHomePage implements OnInit {
           }
         },
         {
-          text: 'Mis Packs',
-          icon: 'ticket-outline',
-          handler: () => {
-            this.goToMisPacks();
-          }
-        },
-        {
           text: 'Cerrar sesión',
           icon: 'log-out-outline',
           role: 'destructive',

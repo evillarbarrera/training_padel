@@ -1,10 +1,13 @@
 <ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
   <!-- Hero Header -->
   <div class="header-nike">
     <div class="header-overlay"></div>
     <div class="header-content">
-      <h1 class="header-title">{{vistaActual === 'mis-entrenamientos' ? 'Mis Entrenamientos' : 'Agendar Clase'}}</h1>
+      <h1 class="header-title">{{vistaActual === 'mis-entrenamientos' ? 'Mis Clases' : 'Agendar Clase'}}</h1>
       <p class="header-sub">{{vistaActual === 'mis-entrenamientos' ? 'Tus sesiones programadas' : 'Selecciona tu horario
         ideal'}}</p>
     </div>
@@ -16,7 +19,7 @@
       <ion-segment-button value="mis-entrenamientos" (click)="cambiarVista('mis-entrenamientos')">
         <ion-label>
           <ion-icon name="calendar-outline"></ion-icon>
-          Mis Entrenamientos
+          Mis Clases
         </ion-label>
       </ion-segment-button>
       <ion-segment-button value="agendar" (click)="cambiarVista('agendar')">
@@ -53,16 +56,26 @@
     <div *ngIf="!cargando && reservasIndividuales.length > 0" class="entrenamientos-section animate-up">
       <h3 class="section-title">
         <ion-icon name="person-outline"></ion-icon>
-        Individuales
+        Clases Programadas
       </h3>
       <div *ngFor="let reserva of reservasIndividuales" class="entrenamiento-card animate-fade-in">
         <div class="card-header">
           <div class="fecha-badge">
             {{ reserva.fecha | date:'dd MMM' | uppercase }}
           </div>
-          <span [ngClass]="['estado-badge', reserva.estado]">
-            {{ reserva.estado }}
-          </span>
+          <div class="header-tags">
+            <span class="modality-tag" [class.multi]="reserva.cantidad_personas > 1 && reserva.tipo !== 'grupal'"
+              [class.grupal]="reserva.tipo === 'grupal'"
+              [class.individual]="reserva.tipo !== 'grupal' && reserva.cantidad_personas <= 1">
+              <ion-icon
+                [name]="(reserva.tipo === 'grupal' || reserva.cantidad_personas > 1) ? 'people-outline' : 'person-outline'"></ion-icon>
+              {{ reserva.tipo === 'grupal' ? 'GRUPAL' : (reserva.cantidad_personas > 1 ? 'MULTIJUGADOR' : 'INDIVIDUAL')
+              }}
+            </span>
+            <span [ngClass]="['estado-badge', reserva.estado]">
+              {{ reserva.estado | uppercase }}
+            </span>
+          </div>
         </div>
 
         <div class="card-main-info">
@@ -74,12 +87,27 @@
             <ion-icon name="medal-outline"></ion-icon>
             <span>Coach: {{ reserva.entrenador_nombre }}</span>
           </div>
-          <div class="pack-info">
-            <ion-icon name="ticket-outline"></ion-icon>
-            <span>{{ reserva.pack_nombre }}</span>
-          </div>
         </div>
 
+        <!-- Team Section (Multi-player) -->
+        <div class="team-section-mini" *ngIf="reserva.cantidad_personas > 1">
+          <div class="team-label">Mi Equipo:</div>
+          <div class="team-avatars">
+            <div class="avatar-chip owner" [title]="jugadorNombre">
+              {{ jugadorNombre.charAt(0) }}
+            </div>
+            <div class="avatar-chip guest" *ngFor="let inv of reserva.invitados"
+              [class.pending]="inv.estado === 'pendiente'"
+              [title]="inv.nombre + (inv.estado === 'pendiente' ? ' (Pendiente)' : '')">
+              {{ inv.nombre.charAt(0) }}
+              <div class="status-dot" *ngIf="inv.estado === 'pendiente'"></div>
+            </div>
+            <div class="avatar-chip add" *ngIf="(reserva.invitados?.length + 1) < reserva.cantidad_personas"
+              (click)="abrirModalInvitacion(reserva)">
+              <ion-icon name="add-outline"></ion-icon>
+            </div>
+          </div>
+        </div>
         <div class="card-actions" *ngIf="reserva.estado === 'reservado'">
           <ion-button fill="clear" color="danger" (click)="mostrarConfirmacionCancelar(reserva)" class="cancel-btn">
             CANCELAR RESERVA
@@ -93,14 +121,14 @@
       style="animation-delay: 0.1s;">
       <h3 class="section-title">
         <ion-icon name="people-outline"></ion-icon>
-        Grupales
+        Clases Grupales
       </h3>
       <div *ngFor="let grupal of entrenamientosGrupales" class="entrenamiento-card grupal animate-fade-in">
         <div class="card-header">
           <div class="fecha-badge">
-            {{ getDiasSemana(grupal.dia_semana) | uppercase }}
+            {{ getDiasSemana(grupal.dia_semana) | uppercase }} {{ grupal.fecha | date:'dd MMM' | uppercase }}
           </div>
-          <span class="estado-badge reservado">GRUPO ABIERTO</span>
+          <span class="estado-badge reservado">INSCRITO</span>
         </div>
 
         <div class="card-main-info">
@@ -225,21 +253,18 @@
         </ion-segment>
       </div>
 
-      <!-- Slots Grid -->
-      <div class="horarios-grid" *ngIf="diaSeleccionado && horariosPorDia[diaSeleccionado]?.[tramoSeleccionado]">
-        <div class="nike-card horario-card" *ngFor="let h of horariosPorDia[diaSeleccionado][tramoSeleccionado]"
-          [class.ocupado]="h.ocupado" (click)="!h.ocupado && reservarHorario(h)">
-          <div class="hora-info">
+      <!-- Slots Circle Grid -->
+      <div class="horarios-circle-grid" *ngIf="diaSeleccionado && horariosPorDia[diaSeleccionado]?.[tramoSeleccionado]">
+        <div class="slot-circle" *ngFor="let h of horariosPorDia[diaSeleccionado][tramoSeleccionado]"
+          [class.occupied]="h.ocupado" (click)="!h.ocupado && reservarHorario(h)">
+          <div class="circle-content">
             <span class="time">{{ h.hora_inicio | date:'HH:mm' }}</span>
-            <span class="duration">60 MIN</span>
           </div>
-          <div class="status-indicator">
-            <ion-badge>{{ h.ocupado ? 'OCUPADO' : 'DISPONIBLE' }}</ion-badge>
-          </div>
+          <div class="strike-line" *ngIf="h.ocupado"></div>
         </div>
 
         <!-- Empty Slots in tramo -->
-        <div class="empty-tramo" *ngIf="horariosPorDia[diaSeleccionado][tramoSeleccionado].length === 0">
+        <div class="empty-tramo-full" *ngIf="horariosPorDia[diaSeleccionado][tramoSeleccionado].length === 0">
           <ion-icon name="hour-glass-outline"></ion-icon>
           <p>SIN CUPOS EN ESTE TRAMO</p>
         </div>
@@ -297,5 +322,39 @@
       <ion-icon name="chevron-back-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>
+
+  <!-- Invitation Modal -->
+  <div class="nike-modal-overlay" *ngIf="showModalInvitacion" (click)="cerrarModal()">
+    <div class="nike-modal-card animate-pop" (click)="$event.stopPropagation()">
+      <div class="modal-header-inv">
+        <div class="header-icon-inv">
+          <ion-icon name="mail-outline"></ion-icon>
+        </div>
+        <h2>Invitar Compañero</h2>
+        <ion-button fill="clear" color="dark" (click)="cerrarModal()" class="btn-close-modal-inv">
+          <ion-icon name="close-outline"></ion-icon>
+        </ion-button>
+      </div>
+
+      <div class="modal-body-inv">
+        <p>Ingresa el email de tu compañero para que se una a este pack Duo/Multi. Debe estar registrado en la App.</p>
+
+        <div class="nike-input-group-inv">
+          <ion-label>Email del Jugador</ion-label>
+          <ion-input type="email" [(ngModel)]="emailInvitado" placeholder="ejemplo@correo.com"
+            class="nike-input-field-inv"></ion-input>
+        </div>
+
+        <div class="modal-actions-inv">
+          <ion-button fill="outline" color="medium" (click)="cerrarModal()" class="nike-button-modal-inv">
+            Cancelar
+          </ion-button>
+          <ion-button (click)="enviarInvitacion()" class="nike-button-modal-inv confirm">
+            Enviar Invitación
+          </ion-button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </ion-content>
