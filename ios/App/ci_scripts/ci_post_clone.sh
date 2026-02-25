@@ -25,7 +25,7 @@ fi
 # 2. Instalar dependencias de Node
 # Esto es CRUCIAL para que el Podfile encuentre los scripts de Capacitor
 echo "--- Running npm install ---"
-npm install
+npm install --legacy-peer-deps
 
 # 3. Moverse a la carpeta de iOS y ejecutar pod install
 cd ios/App
