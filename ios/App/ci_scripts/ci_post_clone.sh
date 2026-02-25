@@ -25,7 +25,7 @@ fi
 # 2. Instalar dependencias de Node
 # Esto es CRUCIAL para que el Podfile encuentre los scripts de Capacitor
 echo "--- Running npm install ---"
-npm install --legacy-peer-deps
+npm install --legacy-peer-deps --ignore-scripts
 
 # 3. Sincronizar Capacitor (Crea 'public', 'capacitor.config.json', etc.)
 echo "--- Running npx cap sync ios ---"
