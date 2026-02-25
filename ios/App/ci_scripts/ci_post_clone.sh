@@ -27,7 +27,11 @@ fi
 echo "--- Running npm install ---"
 npm install --legacy-peer-deps
 
-# 3. Moverse a la carpeta de iOS y ejecutar pod install
+# 3. Sincronizar Capacitor (Crea 'public', 'capacitor.config.json', etc.)
+echo "--- Running npx cap sync ios ---"
+npx cap sync ios
+
+# 4. Moverse a la carpeta de iOS y ejecutar pod install
 cd ios/App
 echo "--- Running pod install in $(pwd) ---"
 pod install
