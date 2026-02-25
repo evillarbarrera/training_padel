@@ -1,4 +1,4 @@
-#!/sys/bin/sh
+#!/bin/sh
 
 #  ci_post_clone.sh
 #  App
