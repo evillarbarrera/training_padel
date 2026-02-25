@@ -1,29 +1,30 @@
 #!/bin/sh
 
-#  ci_post_clone.sh
-#  App
-#
-#  Created by Antigravity.
-#
+# Salir inmediatamente si un comando falla
+set -e
 
-echo "--- Starting post-clone script ---"
+echo "--- Starting CI Post-Clone Script ---"
+echo "--- Repository Path: $CI_PRIMARY_REPOSITORY_PATH ---"
 
-# The script runs from ios/App/ci_scripts. 
-# Go up to the root of the project (training/)
-cd ../../../
-echo "--- Current directory (root): $(pwd) ---"
+# 1. Moverse a la raíz del proyecto (donde está package.json)
+cd "$CI_PRIMARY_REPOSITORY_PATH"
 
-# 1. Install Node dependencies
-echo "--- Installing Node dependencies ---"
+# 2. Instalar dependencias de Node.js
+echo "--- Installing Node.js dependencies ---"
 npm install
 
-# 2. Build the Angular app
-echo "--- Building Angular app ---"
+# 3. Compilar la aplicación web (Angular)
+echo "--- Building Web App (NG Build) ---"
 npm run build
 
-# 3. Use Capacitor to sync the build to the iOS project
-# This will also run 'pod install' internally
-echo "--- Syncing Capacitor project ---"
+# 4. Sincronizar Capacitor
+# Esto copia 'www' a 'ios/App/App/public'
+echo "--- Syncing Capacitor ---"
 npx cap sync ios
 
-echo "--- Post-clone script finished ---"
+# 5. Asegurar que CocoaPods se instale correctamente en el directorio de iOS
+echo "--- Final Pod Install ---"
+cd ios/App
+pod install
+
+echo "--- CI Post-Clone Script Completed Successfully ---"
