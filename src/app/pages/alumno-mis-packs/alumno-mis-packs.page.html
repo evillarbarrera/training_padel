@@ -6,9 +6,14 @@
     <!-- Nike Hero Header (Matching Mob Theme) -->
     <div class="header-nike">
         <div class="header-overlay"></div>
-        <div class="header-content">
-            <h1 class="header-title">Mis Packs</h1>
-            <p class="header-sub">Créditos y Gestión de Equipo</p>
+        <div class="header-content-wrapper">
+            <div class="avatar-circle">
+                <img [src]="fotoPerfil || 'assets/avatar.png'" alt="Avatar" />
+            </div>
+            <div class="header-text">
+                <p class="welcome-pre">MIS CRÉDITOS Y EQUIPO</p>
+                <h1 class="header-title">{{ jugadorNombre }}</h1>
+            </div>
         </div>
     </div>
 

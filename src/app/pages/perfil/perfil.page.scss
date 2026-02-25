@@ -6,81 +6,41 @@ ion-content {
 /* --- HEADER ESTILO NIKE --- */
 .header-nike {
     position: relative;
-    height: 240px;
-    /* Reducido */
+    height: 250px;
     background: url('/assets/perfil-bg.jpg') center/cover no-repeat;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding-bottom: 40px;
-    border-radius: 0 0 50px 50px;
+    background-attachment: fixed;
+    border-bottom-left-radius: 40px;
+    border-bottom-right-radius: 40px;
     overflow: hidden;
-    margin-top: -10px;
+    margin-top: -8px;
 
     .header-overlay {
         position: absolute;
         inset: 0;
-        background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.8) 100%);
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.75));
         z-index: 1;
     }
-
-    .header-content {
-        position: relative;
-        z-index: 2;
-        text-align: center;
-        color: white;
-
-        .header-title {
-            font-size: 24px;
-            /* Reducido */
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: -0.5px;
-            margin: 0;
-            line-height: 1.1;
-        }
-
-        .header-sub {
-            font-size: 11px;
-            /* Reducido */
-            font-weight: 900;
-            opacity: 1;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-top: 6px;
-            color: #ccff00;
-            /* Neon Directo */
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-        }
-    }
 }
 
-.profile-container {
-    max-width: 600px;
-    margin: -50px auto 40px;
-    padding: 0 20px;
-    position: relative;
-    z-index: 10;
-}
-
-/* --- AVATAR SECTION --- */
-.avatar-section {
+.header-content-wrapper {
+    position: absolute;
+    bottom: 60px;
+    left: 30px;
+    z-index: 2;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    margin-bottom: 35px;
+    gap: 25px;
+    width: 100%;
 
-    .avatar-wrapper {
-        position: relative;
-        width: 130px;
-        height: 130px;
-        border-radius: 45px;
-        border: 5px solid white;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-        background: var(--nike-gray-light);
-        cursor: pointer;
+    .avatar-circle {
+        width: 65px;
+        height: 65px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.5);
         overflow: hidden;
-        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        flex-shrink: 0;
+        position: relative;
 
         img {
             width: 100%;
@@ -88,41 +48,70 @@ ion-content {
             object-fit: cover;
         }
 
-        .edit-overlay {
+        .edit-overlay-small {
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            opacity: 1;
 
             ion-icon {
                 color: white;
-                font-size: 32px;
+                font-size: 20px;
             }
-        }
-
-        &:hover .edit-overlay {
-            opacity: 1;
-        }
-
-        &:active {
-            transform: scale(0.95);
         }
     }
 
+    .header-text {
+        .welcome-pre {
+            font-size: 10px;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 950;
+            margin: 0;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+            line-height: 1;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+    }
+}
+
+.dashboard-container {
+    padding: 0 20px 100px;
+    background: white;
+    border-radius: 40px 40px 0 0;
+    position: relative;
+    z-index: 10;
+    margin-top: -30px;
+}
+
+/* --- ROLE SECTION --- */
+.role-section {
+    display: flex;
+    justify-content: center;
+    padding-top: 30px;
+    margin-bottom: 30px;
+
     .role-badge {
-        margin-top: 12px;
         background: black;
         color: white;
-        padding: 6px 16px;
+        padding: 8px 20px;
         border-radius: 20px;
-        font-size: 10px;
-        font-weight: 900;
+        font-size: 11px;
+        font-weight: 950;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 1.5px;
     }
 }
 

@@ -25,8 +25,9 @@ import {
 })
 export class AlumnoMisPacksPage implements OnInit {
     userId: number = 0;
-    jugadorNombre: string = '';
-    jugadorFoto: string | null = null;
+    jugadorNombre = localStorage.getItem('nombre') || 'Usuario';
+    jugadorFoto = localStorage.getItem('foto_perfil') || '';
+    fotoPerfil = localStorage.getItem('foto_perfil') || '';
 
     // Packs data
     allPacks: any[] = [];

@@ -6,10 +6,15 @@
   <!-- Hero Header -->
   <div class="header-nike">
     <div class="header-overlay"></div>
-    <div class="header-content">
-      <h1 class="header-title">{{vistaActual === 'mis-entrenamientos' ? 'Mis Clases' : 'Agendar Clase'}}</h1>
-      <p class="header-sub">{{vistaActual === 'mis-entrenamientos' ? 'Tus sesiones programadas' : 'Selecciona tu horario
-        ideal'}}</p>
+    <div class="header-content-wrapper">
+      <div class="avatar-circle">
+        <img [src]="fotoPerfil || 'assets/avatar.png'" alt="Avatar" />
+      </div>
+      <div class="header-text">
+        <p class="welcome-pre">{{vistaActual === 'mis-entrenamientos' ? 'MIS CLASES PROGRAMADAS' : 'RESERVAR NUEVO
+          HORARIO'}}</p>
+        <h1 class="header-title">{{ jugadorNombre }}</h1>
+      </div>
     </div>
   </div>
 

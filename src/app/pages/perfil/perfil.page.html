@@ -6,23 +6,26 @@
   <!-- Hero Header -->
   <div class="header-nike">
     <div class="header-overlay"></div>
-    <div class="header-content">
-      <h1 class="header-title">Mi Perfil</h1>
-      <p class="header-sub">Gestiona tu identidad y datos</p>
-    </div>
-  </div>
-
-  <div class="profile-container">
-
-    <!-- Avatar & Role -->
-    <div class="avatar-section animate-up">
-      <div class="avatar-wrapper" (click)="fileInput.click()">
+    <div class="header-content-wrapper">
+      <div class="avatar-circle" (click)="fileInput.click()">
         <img [src]="profile.foto_perfil || 'assets/avatar.png'" alt="Avatar" />
-        <div class="edit-overlay">
+        <div class="edit-overlay-small">
           <ion-icon name="camera-outline"></ion-icon>
         </div>
       </div>
-      <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none">
+      <div class="header-text">
+        <p class="welcome-pre">GESTIONAR MI CUENTA</p>
+        <h1 class="header-title">{{ profile.nombre || 'Mi Perfil' }}</h1>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none">
+
+  <div class="dashboard-container">
+
+    <!-- Role Badge -->
+    <div class="role-section animate-up">
       <span class="role-badge">{{ profile.rol }}</span>
     </div>
 

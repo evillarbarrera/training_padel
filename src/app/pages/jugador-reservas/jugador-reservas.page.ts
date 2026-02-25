@@ -25,6 +25,9 @@ import { NotificationService } from '../../services/notification.service';
 })
 export class JugadorReservasPage implements OnInit {
 
+  jugadorNombre = '...';
+  fotoPerfil = '';
+
   // Vista actual
   vistaActual: 'agendar' | 'mis-entrenamientos' = 'mis-entrenamientos';
 
@@ -102,7 +105,6 @@ export class JugadorReservasPage implements OnInit {
   showModalInvitacion = false;
   selectedReserva: any = null;
   emailInvitado: string = '';
-  jugadorNombre: string = localStorage.getItem('nombre') || 'Yo';
 
   constructor(
     private entrenamientoService: EntrenamientoService,
@@ -155,14 +157,29 @@ export class JugadorReservasPage implements OnInit {
   loadUserProfile(event?: any) {
     this.mysqlService.getPerfil(this.jugadorId).subscribe({
       next: (res: any) => {
-        if (res.success) {
-          if (res.nombre) this.jugadorNombre = res.nombre;
-          if (res.direccion) {
-            this.regionSeleccionada = res.direccion.region || '';
+        if (res) {
+          const userData = res.user || res;
+          if (userData.nombre) this.jugadorNombre = userData.nombre;
+
+          // Process Foto
+          const p1 = userData.foto_perfil;
+          const p2 = userData.foto;
+          const p3 = userData.link_foto;
+          let fotoRaw = p1 || p2 || p3;
+
+          if (fotoRaw && fotoRaw.length > 5 && !fotoRaw.includes('imagen_defecto')) {
+            this.fotoPerfil = fotoRaw.startsWith('http') ? fotoRaw : `https://api.padelmanager.cl/${fotoRaw.startsWith('/') ? fotoRaw.substring(1) : fotoRaw}`;
+          } else {
+            this.fotoPerfil = 'assets/avatar.png';
+          }
+
+          if (res.direccion || userData.direccion) {
+            const dir = res.direccion || userData.direccion;
+            this.regionSeleccionada = dir.region || '';
             const selectedRegionObj = this.regions.find(r => r.name === this.regionSeleccionada);
             if (selectedRegionObj) {
               this.filteredComunas = this.allComunas[selectedRegionObj.id] || [];
-              this.comunaSeleccionada = res.direccion.comuna || '';
+              this.comunaSeleccionada = dir.comuna || '';
             }
           }
         }

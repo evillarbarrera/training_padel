@@ -114,16 +114,11 @@ export class MisHabilidadesPage implements OnInit {
 
         if (routeId) {
             this.userId = Number(routeId);
-            // Don't load local storage user if viewing another user
             this.jugadorNombre = 'Cargando...';
         } else {
             this.userId = Number(localStorage.getItem('userId'));
-            // Try to get from local storage initially
-            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            if (user) {
-                this.jugadorFoto = user.foto_perfil || null;
-                this.jugadorNombre = user.nombre || 'Jugador';
-            }
+            this.jugadorNombre = '...';
+            this.jugadorFoto = '';
         }
     }
 
@@ -169,7 +164,7 @@ export class MisHabilidadesPage implements OnInit {
                         }
                     } else {
                         console.warn('Invalid photo path or default found:', foto);
-                        this.jugadorFoto = null;
+                        this.jugadorFoto = 'assets/avatar.png';
                     }
                     console.log('Final Jugador Foto:', this.jugadorFoto);
 

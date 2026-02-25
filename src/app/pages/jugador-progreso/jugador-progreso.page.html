@@ -3,9 +3,14 @@
   <!-- Hero Header -->
   <div class="header-nike">
     <div class="header-overlay"></div>
-    <div class="header-content animate-fade">
-      <h1 class="header-title">Mi Progreso</h1>
-      <p class="header-sub">Tu evolución en la pista</p>
+    <div class="header-content-wrapper">
+      <div class="avatar-circle">
+        <img [src]="fotoPerfil || 'assets/avatar.png'" alt="Avatar" />
+      </div>
+      <div class="header-text">
+        <p class="welcome-pre">MI PROGRESO TÉCNICO</p>
+        <h1 class="header-title">{{ jugadorNombre }}</h1>
+      </div>
     </div>
   </div>
 

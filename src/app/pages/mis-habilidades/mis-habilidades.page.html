@@ -5,21 +5,15 @@
     <!-- Hero Header -->
     <div class="header-nike">
         <div class="header-overlay"></div>
-        <div class="header-content">
-            <div class="profile-row">
-                <div class="avatar-container" *ngIf="jugadorFoto">
-                    <img [src]="jugadorFoto" />
-                </div>
-                <div class="avatar-placeholder" *ngIf="!jugadorFoto">
-                    {{ jugadorNombre?.charAt(0) || 'J' }}
-                </div>
-                <div>
-                    <h1 class="header-title">Mis Habilidades</h1>
-                    <p class="header-sub">Análisis Técnico • {{ jugadorNombre }}</p>
-                </div>
+        <div class="header-content-wrapper">
+            <div class="avatar-circle">
+                <img [src]="jugadorFoto || 'assets/avatar.png'" alt="Avatar" />
+            </div>
+            <div class="header-text">
+                <p class="welcome-pre">ANÁLISIS TÉCNICO ELITE</p>
+                <h1 class="header-title">{{ jugadorNombre }}</h1>
             </div>
         </div>
-
     </div>
 
     <!-- Main Content -->
