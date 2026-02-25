@@ -8,22 +8,22 @@
 
 echo "--- Starting post-clone script ---"
 
-# The script runs from the ios/App/ci_scripts folder.
-# We need to go up to where the Podfile is (ios/App).
-cd ..
+# The script runs from ios/App/ci_scripts. 
+# Go up to the root of the project (training/)
+cd ../../../
+echo "--- Current directory (root): $(pwd) ---"
 
-echo "--- Current directory: $(pwd) ---"
+# 1. Install Node dependencies
+echo "--- Installing Node dependencies ---"
+npm install
 
-# Install CocoaPods
-export HOMEBREW_NO_AUTO_UPDATE=1
-echo "--- Installing CocoaPods via Homebrew ---"
-brew install cocoapods
+# 2. Build the Angular app
+echo "--- Building Angular app ---"
+npm run build
 
-# Verify pod installation
-echo "--- CocoaPods version: $(pod --version) ---"
-
-# Install dependencies.
-echo "--- Running pod install ---"
-pod install
+# 3. Use Capacitor to sync the build to the iOS project
+# This will also run 'pod install' internally
+echo "--- Syncing Capacitor project ---"
+npx cap sync ios
 
 echo "--- Post-clone script finished ---"
