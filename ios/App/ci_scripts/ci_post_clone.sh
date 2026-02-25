@@ -5,20 +5,31 @@ set -e
 
 echo "--- Starting CI Post-Clone Script ---"
 
-# The script runs from ios/App/ci_scripts folder.
-# We just need to go to ios/App and run pod install.
-# Since we committed 'www' and synced locally, the native project is ready.
-
-cd ..
+# Ir a la raíz del repositorio
+cd "$CI_PRIMARY_REPOSITORY_PATH"
 echo "--- Current directory: $(pwd) ---"
 
-# Install CocoaPods
+# 1. Instalar Node.js y CocoaPods si no están (Xcode Cloud suele tener brew)
 export HOMEBREW_NO_AUTO_UPDATE=1
-echo "--- Installing CocoaPods via Homebrew ---"
-brew install cocoapods
 
-# Install dependencies.
-echo "--- Running pod install ---"
+if ! command -v node >/dev/null 2>&1; then
+    echo "--- Installing Node.js via Homebrew ---"
+    brew install node
+fi
+
+if ! command -v pod >/dev/null 2>&1; then
+    echo "--- Installing CocoaPods via Homebrew ---"
+    brew install cocoapods
+fi
+
+# 2. Instalar dependencias de Node
+# Esto es CRUCIAL para que el Podfile encuentre los scripts de Capacitor
+echo "--- Running npm install ---"
+npm install
+
+# 3. Moverse a la carpeta de iOS y ejecutar pod install
+cd ios/App
+echo "--- Running pod install in $(pwd) ---"
 pod install
 
-echo "--- Post-clone script finished ---"
+echo "--- Post-clone script finished successfully ---"
