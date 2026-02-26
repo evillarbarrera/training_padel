@@ -314,17 +314,16 @@ ion-router-outlet {
   position: relative;
   overflow: hidden;
 
-  // Ghost watermark - large logo faded into the header
   &::after {
     content: '';
     position: absolute;
-    top: -15px;
-    right: -25px;
-    width: 200px;
-    height: 200px;
+    top: 10px;
+    right: 12px;
+    width: 80px;
+    height: 80px;
     background: url('/assets/logo-transparent.png') center/contain no-repeat;
     filter: invert(1) brightness(2);
-    opacity: 0.12;
+    opacity: 0.10;
     z-index: 1;
     pointer-events: none;
   }
