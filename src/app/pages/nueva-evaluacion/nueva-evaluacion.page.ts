@@ -35,8 +35,8 @@ export class NuevaEvaluacionPage implements OnInit {
     alumnoFoto: string | null = null;
 
     golpes = [
-        'Derecha', 'Reves', 'Voleas', 'Bandeja', 'Vibora',
-        'Remate', 'Salida de Pared', 'Globo', 'Saque', 'Resto'
+        'Derecha', 'Reves', 'Volea de Derecha', 'Volea de Reves', 'Bandeja', 'Vibora',
+        'Rulo', 'Remate', 'Salida de Pared', 'Globo', 'Saque', 'Resto'
     ];
 
     evaluationData: any = {};
@@ -73,34 +73,46 @@ export class NuevaEvaluacionPage implements OnInit {
     }
 
     cargarUltimaEvaluacion() {
-        if (!this.jugadorId || !this.entrenadorId) return;
+        if (!this.jugadorId) return;
 
-        this.evaluacionService.getUltimaEvaluacion(this.jugadorId, this.entrenadorId).subscribe({
-            next: (res) => {
-                if (res && res.success && res.evaluacion) {
-                    const ultima = res.evaluacion;
-                    // Mapear scores si existen
-                    if (ultima.scores) {
-                        try {
-                            const parsedScores = typeof ultima.scores === 'string' ? JSON.parse(ultima.scores) : ultima.scores;
+        this.evaluacionService.getEvaluaciones(this.jugadorId).subscribe({
+            next: (data) => {
+                if (data && data.length > 0) {
+                    // Ordenar por ID descendente para obtener la última evaluación absoluta
+                    const sorted = data.sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+                    const latest = sorted[0];
 
-                            // Fusionar con los golpes existentes para no perder estructura
+                    if (latest && latest.scores) {
+                        let scores = latest.scores;
+                        if (typeof scores === 'string') {
+                            try {
+                                scores = JSON.parse(scores);
+                            } catch (e) {
+                                console.error('Error parseando scores previo:', e);
+                                scores = null;
+                            }
+                        }
+
+                        if (scores) {
+                            // Fusionar puntajes previos en la estructura actual
                             this.golpes.forEach(golpe => {
-                                if (parsedScores[golpe]) {
+                                const prevScore = scores[golpe] || scores[golpe.toLowerCase()]; // Fallback por si acaso
+                                if (prevScore) {
                                     this.evaluationData[golpe] = {
-                                        ...this.evaluationData[golpe],
-                                        ...parsedScores[golpe]
+                                        tecnica: Number(prevScore.tecnica) || 5,
+                                        control: Number(prevScore.control) || 5,
+                                        direccion: Number(prevScore.direccion) || 5,
+                                        decision: Number(prevScore.decision) || 5,
+                                        comentario: ''
                                     };
                                 }
                             });
-                            console.log('Cargada evaluación previa:', this.evaluationData);
-                        } catch (e) {
-                            console.error('Error parseando scores previos:', e);
+                            console.log('Evaluación previa cargada (ID ' + latest.id + ')');
                         }
                     }
                 }
             },
-            error: (err) => console.error('Error cargando última evaluación:', err)
+            error: (err) => console.error('Error cargando evaluación previa:', err)
         });
     }
 
