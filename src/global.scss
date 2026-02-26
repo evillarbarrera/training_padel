@@ -318,12 +318,13 @@ ion-router-outlet {
   &::after {
     content: '';
     position: absolute;
-    top: -20px;
-    right: -30px;
-    width: 180px;
-    height: 180px;
+    top: -15px;
+    right: -25px;
+    width: 200px;
+    height: 200px;
     background: url('/assets/logo-transparent.png') center/contain no-repeat;
-    opacity: 0.06;
+    filter: invert(1) brightness(2);
+    opacity: 0.12;
     z-index: 1;
     pointer-events: none;
   }
