@@ -36,12 +36,17 @@
 
     <!-- Próximas Clases Section (Replicated from Web) -->
     <div class="next-classes-section animate-up" style="animation-delay: 0.1s;">
-      <div class="section-header">
-        <h3 class="section-title">Próximas Clases</h3>
-        <ion-badge color="dark" *ngIf="clasesHoyList.length > 0">{{ clasesHoyList.length }}</ion-badge>
+      <div class="section-header" (click)="isClassesExpanded = !isClassesExpanded">
+        <div class="header-left">
+          <h3 class="section-title">Próximas Clases</h3>
+          <ion-badge color="dark" *ngIf="clasesHoyList.length > 0">{{ clasesHoyList.length }}</ion-badge>
+        </div>
+        <ion-button fill="clear" color="dark" class="toggle-btn">
+          <ion-icon [name]="isClassesExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        </ion-button>
       </div>
 
-      <div class="classes-container" *ngIf="clasesHoyList.length > 0">
+      <div class="classes-container" *ngIf="clasesHoyList.length > 0 && isClassesExpanded">
         <div class="class-card-mini" *ngFor="let clase of clasesHoyList">
           <div class="time-col">
             <span class="day-label" [class.tomorrow]="clase.diaLabel === 'Mañana'">{{ clase.diaLabel }}</span>
@@ -60,7 +65,7 @@
         </div>
       </div>
 
-      <div class="empty-classes" *ngIf="clasesHoyList.length === 0 && !isLoading">
+      <div class="empty-classes" *ngIf="clasesHoyList.length === 0 && !isLoading && isClassesExpanded">
         <ion-icon name="checkmark-done-circle-outline"></ion-icon>
         <p>No hay clases para hoy ni mañana 🎉</p>
       </div>

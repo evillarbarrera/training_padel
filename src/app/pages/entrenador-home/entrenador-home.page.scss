@@ -178,22 +178,37 @@ ion-content {
   .section-header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: space-between; // Space between title and toggle
     margin-bottom: 15px;
+    cursor: pointer;
 
-    .section-title {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 800;
-      color: #111;
-      letter-spacing: -0.5px;
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .section-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 800;
+        color: #111;
+        letter-spacing: -0.5px;
+      }
+
+      ion-badge {
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-weight: 800;
+        font-size: 11px;
+      }
     }
 
-    ion-badge {
-      border-radius: 6px;
-      padding: 4px 8px;
-      font-weight: 800;
-      font-size: 11px;
+    .toggle-btn {
+      --padding-start: 0;
+      --padding-end: 0;
+      height: 24px;
+      margin: 0;
+      font-size: 20px;
     }
   }
 

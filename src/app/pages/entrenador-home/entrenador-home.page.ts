@@ -18,7 +18,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, checkmarkDoneCircleOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-entrenador-home',
@@ -42,6 +42,7 @@ export class EntrenadorHomePage {
   coachFoto: string | null = null;
   isLoading: boolean = false;
   clasesHoyList: any[] = [];
+  isClassesExpanded: boolean = false;
   stats: any = {
     total_alumnos: 0,
     clases_mes: 0,
@@ -65,7 +66,9 @@ export class EntrenadorHomePage {
       logOutOutline,
       personOutline,
       addCircleOutline,
-      checkmarkDoneCircleOutline
+      checkmarkDoneCircleOutline,
+      chevronDownOutline,
+      chevronUpOutline
     });
   }
 
