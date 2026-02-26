@@ -8,7 +8,7 @@ import { AlertController, LoadingController } from '@ionic/angular';
 import { IonicModule } from '@ionic/angular';
 
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, searchOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, searchOutline, addOutline, timeOutline, peopleOutline, trophyOutline, cubeOutline, closeOutline } from 'ionicons/icons';
 import { chevronBackOutline, createOutline, trashOutline, chevronForwardOutline } from 'ionicons/icons';
 
 @Component({
@@ -64,11 +64,17 @@ export class EntrenadorPacksPage implements OnInit {
       homeOutline,
       calendarOutline,
       chevronBackOutline,
-      chevronForwardOutline, // Added
+      chevronForwardOutline,
       createOutline,
       trashOutline,
       logOutOutline,
-      searchOutline
+      searchOutline,
+      addOutline,
+      timeOutline,
+      peopleOutline,
+      trophyOutline,
+      cubeOutline,
+      closeOutline
     });
   }
 

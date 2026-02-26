@@ -4,98 +4,159 @@
   <div class="header-nike">
     <div class="header-overlay"></div>
     <div class="header-content">
+      <p class="header-pre">COACH ACADEMY</p>
       <h1 class="header-title">Mis Packs</h1>
       <p class="header-sub">Gestiona tu oferta académica</p>
+    </div>
+    <div class="header-stats">
+      <div class="stat-bubble animate-pop">
+        <span class="stat-number">{{ packsFiltrados.length }}</span>
+        <span class="stat-label">Activos</span>
+      </div>
     </div>
   </div>
 
   <!-- Main Content -->
-  <div class="dashboard-container">
+  <div class="main-container">
 
-    <!-- Actions & Filter -->
-    <div class="actions-wrapper animate-up">
-      <ion-button expand="block" class="nike-button main-btn" (click)="abrirModal()">
-        <ion-icon name="plus-outline" slot="start"></ion-icon>
-        Nuevo Pack
-      </ion-button>
-
-      <div class="nike-search-box">
-        <ion-icon name="search-outline"></ion-icon>
-        <ion-input placeholder="Buscar por nombre..." [(ngModel)]="filtro" (ionInput)="filtrarPacks()">
-        </ion-input>
-      </div>
-
-      <!-- Category Segment -->
-      <ion-segment [value]="segmentoSeleccionado" (ionChange)="cambiarSegmento($event)" mode="md" scrollable>
+    <!-- Segment Pills -->
+    <div class="segment-wrapper animate-up">
+      <ion-segment [value]="segmentoSeleccionado" (ionChange)="cambiarSegmento($event)" mode="md" class="nike-segment"
+        scrollable>
         <ion-segment-button value="individual">
-          <ion-label>Individuales</ion-label>
+          <ion-label>Individual</ion-label>
         </ion-segment-button>
         <ion-segment-button value="multijugador">
           <ion-label>Multi</ion-label>
         </ion-segment-button>
         <ion-segment-button value="grupal">
-          <ion-label>Grupales</ion-label>
+          <ion-label>Grupal</ion-label>
         </ion-segment-button>
       </ion-segment>
     </div>
 
-    <!-- Packs List -->
-    <div class="packs-list">
+    <!-- Search + Add -->
+    <div class="actions-bar animate-up delay-1">
+      <div class="search-box">
+        <ion-icon name="search-outline"></ion-icon>
+        <ion-input placeholder="Buscar pack..." [(ngModel)]="filtro" (ionInput)="filtrarPacks()">
+        </ion-input>
+      </div>
+      <button class="add-btn" (click)="abrirModal()">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+    </div>
 
-      <div class="nike-card horizontal-pack-card coach-pack animate-up"
-        *ngFor="let pack of packsPaginados; let i = index" [style.animation-delay]="(i * 0.05) + 's'">
-        <div class="card-media">
-          <img src="assets/mod-packs.jpg" class="pack-img">
-        </div>
+    <!-- Packs Grid -->
+    <div class="packs-grid">
+      <div class="pack-card animate-up" *ngFor="let pack of packsPaginados; let i = index"
+        [style.animation-delay]="(i * 0.08) + 's'"
+        [ngClass]="{'tipo-individual': pack.tipo === 'individual', 'tipo-grupal': pack.tipo === 'grupal'}">
 
-        <div class="card-content-main">
-          <div class="pack-header">
-            <h3>{{ pack.nombre }}</h3>
-            <span class="price-tag">${{ pack.precio }}</span>
+        <!-- Card Top Accent -->
+        <div class="card-accent"></div>
+
+        <div class="card-body">
+          <!-- Top Row: Name + Type Badge -->
+          <div class="card-top">
+            <div class="pack-info">
+              <h3 class="pack-name">{{ pack.nombre }}</h3>
+              <span class="type-badge" [ngClass]="pack.tipo">
+                {{ pack.tipo === 'grupal' ? '👥 Grupal' : (pack.cantidad_personas > 1 ? '🤝 Multi' : '🎯 Individual') }}
+              </span>
+            </div>
+            <div class="pack-price">
+              <span class="currency">$</span>
+              <span class="amount">{{ pack.precio | number }}</span>
+            </div>
           </div>
 
-          <div class="pack-details-row">
-            <span>{{ pack.sesiones_totales }} clases</span>
-            <span class="dot">•</span>
-            <span>{{ pack.duracion_sesion_min }} min</span>
-            <span class="dot">•</span>
-            <span class="type-tag">{{ pack.tipo }}</span>
-            <!-- Info grupal si aplica -->
+          <!-- Stats Row -->
+          <div class="stats-row">
+            <div class="stat-item">
+              <ion-icon name="calendar-outline"></ion-icon>
+              <div class="stat-text">
+                <span class="stat-val">{{ pack.sesiones_totales }}</span>
+                <span class="stat-lbl">Clases</span>
+              </div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <ion-icon name="time-outline"></ion-icon>
+              <div class="stat-text">
+                <span class="stat-val">{{ pack.duracion_sesion_min }}</span>
+                <span class="stat-lbl">Min</span>
+              </div>
+            </div>
+            <ng-container *ngIf="pack.tipo === 'individual' && pack.cantidad_personas > 1">
+              <div class="stat-divider"></div>
+              <div class="stat-item">
+                <ion-icon name="people-outline"></ion-icon>
+                <div class="stat-text">
+                  <span class="stat-val">{{ pack.cantidad_personas }}</span>
+                  <span class="stat-lbl">Pers.</span>
+                </div>
+              </div>
+            </ng-container>
             <ng-container *ngIf="pack.tipo === 'grupal'">
-              <span class="dot">•</span>
-              <span class="cupos-badge" [ngClass]="pack.estado_grupo">
-                <ng-container *ngIf="pack.estado_grupo === 'activo'">🟢 {{ pack.cupos_ocupados }}/{{
-                  pack.capacidad_maxima }}</ng-container>
-                <ng-container *ngIf="pack.estado_grupo === 'pendiente'">🟡 {{ pack.cupos_ocupados }}/{{
-                  pack.capacidad_minima }}</ng-container>
-              </span>
+              <div class="stat-divider"></div>
+              <div class="stat-item">
+                <ion-icon name="people-outline"></ion-icon>
+                <div class="stat-text">
+                  <span class="stat-val cupos" [ngClass]="pack.estado_grupo">
+                    {{ pack.cupos_ocupados }}/{{ pack.capacidad_maxima }}
+                  </span>
+                  <span class="stat-lbl">Cupos</span>
+                </div>
+              </div>
             </ng-container>
           </div>
 
-          <div class="pack-footer">
-            <div class="footer-actions">
-              <ion-button fill="clear" color="primary" class="btn-icon" (click)="editarPack(pack)">
-                <ion-icon name="create-outline"></ion-icon>
-              </ion-button>
-              <ion-button fill="clear" color="danger" class="btn-icon" (click)="eliminarPack(pack.id)">
-                <ion-icon name="trash-outline"></ion-icon>
-              </ion-button>
-            </div>
+          <!-- Grupal Extra Info -->
+          <div class="grupal-info" *ngIf="pack.tipo === 'grupal' && pack.categoria">
+            <span class="info-chip">
+              <ion-icon name="trophy-outline"></ion-icon>
+              {{ pack.categoria }}
+            </span>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="card-actions">
+            <button class="action-btn edit" (click)="editarPack(pack)">
+              <ion-icon name="create-outline"></ion-icon>
+              <span>Editar</span>
+            </button>
+            <button class="action-btn delete" (click)="eliminarPack(pack.id)">
+              <ion-icon name="trash-outline"></ion-icon>
+              <span>Eliminar</span>
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Pagination Controls -->
-      <div class="pagination-controls animate-fade" *ngIf="totalPaginas > 1">
-        <ion-button fill="clear" [disabled]="paginaActual === 1" (click)="cambiarPagina(-1)">
-          <ion-icon name="chevron-back-outline"></ion-icon>
-        </ion-button>
-        <span class="page-info">Página {{ paginaActual }} de {{ totalPaginas }}</span>
-        <ion-button fill="clear" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(1)">
-          <ion-icon name="chevron-forward-outline"></ion-icon>
+      <!-- Empty State -->
+      <div class="empty-state animate-pop" *ngIf="packsFiltrados.length === 0">
+        <div class="empty-icon-box">
+          <ion-icon name="cube-outline"></ion-icon>
+        </div>
+        <h3>Sin Packs</h3>
+        <p>Crea tu primer pack y empieza a ofrecer clases.</p>
+        <ion-button class="nike-btn" expand="block" (click)="abrirModal()">
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          Crear Pack
         </ion-button>
       </div>
+    </div>
 
+    <!-- Pagination Controls -->
+    <div class="pagination-controls animate-fade" *ngIf="totalPaginas > 1">
+      <ion-button fill="clear" [disabled]="paginaActual === 1" (click)="cambiarPagina(-1)">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </ion-button>
+      <span class="page-info">{{ paginaActual }} / {{ totalPaginas }}</span>
+      <ion-button fill="clear" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(1)">
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </ion-button>
     </div>
 
   </div>

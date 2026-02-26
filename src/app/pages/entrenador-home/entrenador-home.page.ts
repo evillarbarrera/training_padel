@@ -146,7 +146,14 @@ export class EntrenadorHomePage {
             fecha: r.fecha,
             diaLabel: r.fecha === fechaHoy ? 'Hoy' : 'Mañana',
             hora: r.hora_inicio.substring(0, 5),
-            tipo: r.tipo === 'pack_grupal' ? 'Grupal' : 'Individual',
+            tipo: (r.tipo === 'pack_grupal' || r.tipo === 'grupal') ? 'Grupal' :
+              (
+                r.tipo?.toLowerCase() === 'multijugador' ||
+                (r.cantidad_personas && r.cantidad_personas > 1) ||
+                (r.pack_nombre?.toLowerCase()?.includes('duo')) ||
+                (r.pack_nombre?.toLowerCase()?.includes('dupla')) ||
+                (r.pack_nombre?.toLowerCase()?.includes('pareja'))
+              ) ? 'Multijugador' : 'Individual',
             titulo: r.jugador_nombre || 'Clase Grupal',
             subtitulo: r.pack_nombre,
             estado: r.estado

@@ -52,7 +52,8 @@
             <span class="subtitle">{{ clase.subtitulo }}</span>
           </div>
           <div class="type-col">
-            <ion-badge [color]="clase.tipo === 'Grupal' ? 'warning' : 'primary'">
+            <ion-badge
+              [color]="clase.tipo === 'Grupal' ? 'warning' : (clase.tipo === 'Multijugador' ? 'tertiary' : 'primary')">
               {{ clase.tipo }}
             </ion-badge>
           </div>
