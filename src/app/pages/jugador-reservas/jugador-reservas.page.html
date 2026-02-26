@@ -144,6 +144,9 @@
           <div class="pack-info">
             <ion-icon name="grid-outline"></ion-icon>
             <span>{{ grupal.pack_nombre }} • {{ grupal.categoria }}</span>
+            <span class="gender-tag-mini" *ngIf="grupal.genero" [class]="grupal.genero">
+              {{ getGeneroLabel(grupal.genero) }}
+            </span>
           </div>
           <div class="cupos-badge highlight">
             <ion-icon name="people-outline"></ion-icon>
@@ -261,9 +264,12 @@
       <!-- Slots Circle Grid -->
       <div class="horarios-circle-grid" *ngIf="diaSeleccionado && horariosPorDia[diaSeleccionado]?.[tramoSeleccionado]">
         <div class="slot-circle" *ngFor="let h of horariosPorDia[diaSeleccionado][tramoSeleccionado]"
-          [class.occupied]="h.ocupado" (click)="!h.ocupado && reservarHorario(h)">
+          [class.occupied]="h.ocupado" [class.grupal]="h.tipo === 'grupal'" (click)="!h.ocupado && reservarHorario(h)">
           <div class="circle-content">
             <span class="time">{{ h.hora_inicio | date:'HH:mm' }}</span>
+            <span class="slot-cat" *ngIf="h.tipo === 'grupal'" [class]="h.genero">
+              {{ h.categoria || h.nombre_pack | slice:0:12 }}
+            </span>
           </div>
           <div class="strike-line" *ngIf="h.ocupado"></div>
         </div>

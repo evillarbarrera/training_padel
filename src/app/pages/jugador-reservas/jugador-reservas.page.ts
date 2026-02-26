@@ -223,7 +223,10 @@ export class JugadorReservasPage implements OnInit {
 
         // Mostrar todas las reservas que entrega la API (que ya vienen filtradas por fecha relevante)
         this.reservasIndividuales = res.reservas_individuales || [];
-        this.entrenamientosGrupales = res.entrenamientos_grupales || [];
+        this.entrenamientosGrupales = (res.entrenamientos_grupales || []).map((eg: any) => ({
+          ...eg,
+          genero: this.detectarGenero(eg.pack_nombre || '', eg.categoria || '')
+        }));
 
         this.cargando = false;
       },
@@ -491,7 +494,10 @@ export class JugadorReservasPage implements OnInit {
                 hora_fin: bloqueFin,
                 ocupado: ocupado,
                 tipo: slotTipo,
-                pack_id: d.pack_id
+                pack_id: d.pack_id,
+                nombre_pack: d.nombre_pack,
+                categoria: d.categoria,
+                genero: this.detectarGenero(d.nombre_pack || '', d.categoria || '')
               });
             }
           }
@@ -757,6 +763,21 @@ export class JugadorReservasPage implements OnInit {
         this.mostrarToast(err.error?.error || 'No se pudo enviar la invitación.');
       }
     });
+  }
+
+  detectarGenero(nombre: string, categoria: string): 'masculino' | 'femenino' | 'mixto' | null {
+    const text = `${nombre} ${categoria}`.toLowerCase();
+    if (text.includes('varon') || text.includes('masc') || text.includes('caballero') || text.includes('hombre')) return 'masculino';
+    if (text.includes('dama') || text.includes('feme') || text.includes('mujer') || text.includes('chica')) return 'femenino';
+    if (text.includes('mixto')) return 'mixto';
+    return null;
+  }
+
+  getGeneroLabel(genero: string | null): string {
+    if (genero === 'masculino') return 'VARONES';
+    if (genero === 'femenino') return 'DAMAS';
+    if (genero === 'mixto') return 'MIXTO';
+    return '';
   }
 
 }
