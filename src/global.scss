@@ -309,42 +309,22 @@ ion-router-outlet {
   background: var(--nike-bg-color);
 }
 
-/* ─── Global PadelManager Brand Badge ─── */
+/* ─── Global PadelManager Brand Watermark ─── */
 .header-nike {
   position: relative;
+  overflow: hidden;
 
-  // Logo image inside the pill
-  &::before {
+  // Ghost watermark - large logo faded into the header
+  &::after {
     content: '';
     position: absolute;
-    top: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 24px;
-    height: 24px;
-    background: url('/assets/logo-circular.png') center/contain no-repeat;
-    border-radius: 50%;
-    z-index: 4;
-    margin-left: -46px;
-  }
-
-  // Text pill
-  &::after {
-    content: 'PadelManager';
-    position: absolute;
-    top: 14px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 4;
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    color: rgba(255, 255, 255, 0.85);
-    background: rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    padding: 5px 16px 5px 34px;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    top: -20px;
+    right: -30px;
+    width: 180px;
+    height: 180px;
+    background: url('/assets/logo-transparent.png') center/contain no-repeat;
+    opacity: 0.06;
+    z-index: 1;
+    pointer-events: none;
   }
 }
