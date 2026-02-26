@@ -27,6 +27,10 @@ export class EvaluacionService {
         return this.http.get<any[]>(`${this.apiUrl}/get_evaluaciones.php?jugador_id=${jugadorId}`, { headers: this.getHeaders() });
     }
 
+    getUltimaEvaluacion(jugadorId: number, entrenadorId: number): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/get_ultima.php?jugador_id=${jugadorId}&entrenador_id=${entrenadorId}`, { headers: this.getHeaders() });
+    }
+
     getVideos(jugadorId: number): Observable<any[]> {
         return this.http.get<any[]>(`https://api.padelmanager.cl/entrenador/get_videos.php?jugador_id=${jugadorId}`, { headers: this.getHeaders() });
     }

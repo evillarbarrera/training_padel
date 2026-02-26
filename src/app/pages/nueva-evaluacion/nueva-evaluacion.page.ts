@@ -57,6 +57,7 @@ export class NuevaEvaluacionPage implements OnInit {
         this.jugadorId = Number(this.route.snapshot.paramMap.get('id'));
         this.entrenadorId = Number(localStorage.getItem('userId'));
 
+        // Inicializar con valores por defecto
         this.golpes.forEach(golpe => {
             this.evaluationData[golpe] = {
                 tecnica: 5,
@@ -68,6 +69,39 @@ export class NuevaEvaluacionPage implements OnInit {
         });
 
         this.cargarAlumno();
+        this.cargarUltimaEvaluacion();
+    }
+
+    cargarUltimaEvaluacion() {
+        if (!this.jugadorId || !this.entrenadorId) return;
+
+        this.evaluacionService.getUltimaEvaluacion(this.jugadorId, this.entrenadorId).subscribe({
+            next: (res) => {
+                if (res && res.success && res.evaluacion) {
+                    const ultima = res.evaluacion;
+                    // Mapear scores si existen
+                    if (ultima.scores) {
+                        try {
+                            const parsedScores = typeof ultima.scores === 'string' ? JSON.parse(ultima.scores) : ultima.scores;
+
+                            // Fusionar con los golpes existentes para no perder estructura
+                            this.golpes.forEach(golpe => {
+                                if (parsedScores[golpe]) {
+                                    this.evaluationData[golpe] = {
+                                        ...this.evaluationData[golpe],
+                                        ...parsedScores[golpe]
+                                    };
+                                }
+                            });
+                            console.log('Cargada evaluación previa:', this.evaluationData);
+                        } catch (e) {
+                            console.error('Error parseando scores previos:', e);
+                        }
+                    }
+                }
+            },
+            error: (err) => console.error('Error cargando última evaluación:', err)
+        });
     }
 
     cargarAlumno() {
