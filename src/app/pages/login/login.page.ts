@@ -8,6 +8,7 @@ import { MysqlService } from 'src/app/services/mysql.service';
 import { ToastController, AlertController, Platform, LoadingController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { mailOutline, lockClosedOutline } from 'ionicons/icons';
+import { timeout } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
@@ -57,28 +58,42 @@ export class LoginPage implements OnInit {
     this.isLoading = true;
 
     try {
-      this.mysql.login(this.usuario, this.password).subscribe({
-        next: (res) => {
-          this.isLoading = false;
-          localStorage.setItem('token', res.token);
-          localStorage.setItem('userId', res.id.toString());
+      this.mysql.login(this.usuario, this.password)
+        .pipe(timeout(7000))
+        .subscribe({
+          next: (res) => {
+            this.isLoading = false;
 
-          if (this.recordar) {
-            localStorage.setItem('savedUser', this.usuario);
-            localStorage.setItem('savedPass', this.password);
-          } else {
-            localStorage.removeItem('savedUser');
-            localStorage.removeItem('savedPass');
+            if (res && res.token && res.id) {
+              localStorage.setItem('token', res.token);
+              localStorage.setItem('userId', res.id.toString());
+
+              if (this.recordar) {
+                localStorage.setItem('savedUser', this.usuario);
+                localStorage.setItem('savedPass', this.password);
+              } else {
+                localStorage.removeItem('savedUser');
+                localStorage.removeItem('savedPass');
+              }
+
+              this.redirectBasedOnRole(res.rol);
+            } else {
+              // Si el servidor responde pero no hay token (ej: credenciales erróneas en formato success: false)
+              this.showError(res.message || 'Credenciales incorrectas');
+            }
+          },
+          error: (err) => {
+            this.isLoading = false;
+            console.error('Login error:', err);
+
+            // Respuesta inmediata ante errores conocidos
+            const errorMessage = err.status === 401 ? 'Correo o contraseña incorrectos' :
+              err.status === 404 ? 'Usuario no encontrado' :
+                'Error de conexión. Inténtalo de nuevo.';
+
+            this.showError(errorMessage);
           }
-
-          this.redirectBasedOnRole(res.rol);
-        },
-        error: (err) => {
-          this.isLoading = false;
-          console.error('Login error:', err);
-          this.showError('Credenciales incorrectas o error de conexión');
-        }
-      });
+        });
     } catch (e: any) {
       this.isLoading = false;
       console.error('Critical Error in login flow:', e);
