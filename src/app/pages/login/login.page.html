@@ -1,44 +1,51 @@
-<ion-content class="nike-content">
+<ion-content class="login-content">
   <div class="fixed-bg"></div>
 
-  <div class="center-wrapper">
-    <!-- Hero Branding -->
-    <div class="hero-section">
-      <img src="assets/logo-circular.png" class="brand-logo" alt="PadelManager Logo" />
-    </div>
+  <div class="login-wrapper">
+    <!-- Unified Login Card with integrated logo -->
+    <div class="login-card">
+      <!-- Logo integrado en la parte superior del card -->
+      <div class="logo-container">
+        <div class="logo-ring">
+          <img src="assets/logo-circular.png" class="brand-logo" alt="PadelManager" />
+        </div>
+      </div>
 
-    <!-- Form Container -->
-    <div class="form-wrapper animate-up">
-      <div class="nike-card">
-        <h2 class="login-header">Bienvenido</h2>
-        <p class="login-sub">Inicia sesión para continuar</p>
+      <!-- Brand Name -->
+      <h1 class="brand-name">Padel<span>Manager</span></h1>
+      <p class="brand-tagline">Tu academia, tu ritmo</p>
 
+      <!-- Divider -->
+      <div class="divider"></div>
+
+      <!-- Form -->
+      <div class="form-section">
         <div class="input-group">
-          <ion-item lines="none" class="nike-item">
-            <ion-icon name="mail-outline" slot="start"></ion-icon>
+          <div class="input-field">
+            <ion-icon name="mail-outline"></ion-icon>
             <ion-input type="email" placeholder="Correo electrónico" [(ngModel)]="usuario" mode="md"></ion-input>
-          </ion-item>
+          </div>
 
-          <ion-item lines="none" class="nike-item">
-            <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+          <div class="input-field">
+            <ion-icon name="lock-closed-outline"></ion-icon>
             <ion-input type="password" placeholder="Contraseña" [(ngModel)]="password" mode="md"></ion-input>
-          </ion-item>
+          </div>
         </div>
 
-        <div class="options-group">
-          <ion-checkbox [(ngModel)]="recordar" justify="start" labelPlacement="end">Recordar credenciales</ion-checkbox>
+        <div class="options-row">
+          <ion-checkbox [(ngModel)]="recordar" justify="start" labelPlacement="end">Recordar</ion-checkbox>
         </div>
 
-        <ion-button expand="block" class="nike-button main-btn" (click)="login()" [disabled]="isLoading">
+        <ion-button expand="block" class="login-btn" (click)="login()" [disabled]="isLoading">
           <ion-spinner name="crescent" *ngIf="isLoading"></ion-spinner>
           <span *ngIf="!isLoading">Entrar</span>
         </ion-button>
-
-        <p class="footer-text">
-
-          ¿No tienes cuenta? <span class="link" (click)="goToRegister()">Regístrate</span>
-        </p>
       </div>
+
+      <!-- Footer -->
+      <p class="register-link">
+        ¿No tienes cuenta? <span (click)="goToRegister()">Regístrate</span>
+      </p>
     </div>
   </div>
 </ion-content>
