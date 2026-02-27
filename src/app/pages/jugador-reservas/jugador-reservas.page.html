@@ -92,6 +92,13 @@
             <ion-icon name="medal-outline"></ion-icon>
             <span>Coach: {{ reserva.entrenador_nombre }}</span>
           </div>
+          <div class="location-info" *ngIf="reserva.club_nombre">
+            <ion-icon name="location-outline"></ion-icon>
+            <span class="club-name">{{ reserva.club_nombre }}</span>
+            <a [href]="reserva.club_maps" target="_blank" class="maps-link" *ngIf="reserva.club_maps">
+              (Ver dirección)
+            </a>
+          </div>
         </div>
 
         <!-- Team Section (Multi-player) -->
@@ -151,6 +158,13 @@
           <div class="cupos-badge highlight">
             <ion-icon name="people-outline"></ion-icon>
             <span>Sesión Grupal: {{ (grupal.cupos_ocupados || 0) }} / {{ grupal.capacidad_maxima }} Jugadores</span>
+          </div>
+          <div class="location-info" *ngIf="grupal.club_nombre">
+            <ion-icon name="location-outline"></ion-icon>
+            <span class="club-name">{{ grupal.club_nombre }}</span>
+            <a [href]="grupal.club_maps" target="_blank" class="maps-link" *ngIf="grupal.club_maps">
+              (Ver dirección)
+            </a>
           </div>
         </div>
 
@@ -231,6 +245,55 @@
     <!-- 3. Session Filters & Selection (Visible only when Coach is selected) -->
     <div *ngIf="selectedEntrenador && !cargando" class="animate-up">
 
+      <!-- Coach & Club Context -->
+      <div class="booking-context-card">
+        <div class="coach-mini-info">
+          <div class="info-left">
+            <span class="context-label">COACH SELECCIONADO</span>
+            <h4 class="coach-name">{{ selectedCoachName }}</h4>
+            <div class="coach-contact" *ngIf="entrenadorTelefono">
+              <ion-icon name="call-outline"></ion-icon>
+              <span>{{ entrenadorTelefono }}</span>
+            </div>
+          </div>
+          <div class="info-right">
+            <ion-button fill="clear" (click)="selectedEntrenador = null" class="change-coach-btn">
+              CAMBIAR
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="club-selection-box" *ngIf="clubesDisponibles.length > 0">
+          <span class="context-label">¿DÓNDE ENTRENAMOS?</span>
+          <div class="custom-select-wrapper">
+            <ion-icon name="location-outline" class="loc-icon"></ion-icon>
+            <ion-select [(ngModel)]="selectedClubId" (ionChange)="onClubFilterChange()" placeholder="SELECCIONAR CLUB"
+              interface="popover" class="club-filter-select">
+              <ion-select-option [value]="null">TODOS LOS CLUBES</ion-select-option>
+              <ion-select-option *ngFor="let club of clubesDisponibles" [value]="club.id">
+                {{ club.nombre }}
+              </ion-select-option>
+            </ion-select>
+          </div>
+
+          <div class="location-details-box animate-fade-in" *ngIf="selectedClubId">
+            <div *ngIf="getSelectedClub()?.direccion; else noAddress">
+              <p class="address-text">{{ getSelectedClub()?.direccion }}</p>
+              <a [href]="getSelectedClub()?.maps" target="_blank" class="maps-link-btn" *ngIf="getSelectedClub()?.maps">
+                <ion-icon name="map-outline"></ion-icon>
+                VER EN GOOGLE MAPS
+              </a>
+            </div>
+            <ng-template #noAddress>
+              <div class="no-address-warning">
+                <ion-icon name="warning-outline"></ion-icon>
+                <span>El entrenador no ha registrado la dirección exacta de este club.</span>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+
       <!-- Type Filter -->
       <div class="type-filter-wrapper">
         <ion-segment [(ngModel)]="tipoEntrenamiento" (ionChange)="setFilter(tipoEntrenamiento)"
@@ -244,7 +307,7 @@
 
       <!-- Day Selector -->
       <ion-segment [(ngModel)]="diaSeleccionado" scrollable class="nike-segment-days-light">
-        <ion-segment-button *ngFor="let d of dias" [value]="d">
+        <ion-segment-button *ngFor="let d of filteredDias" [value]="d">
           <ion-label>
             <span class="day-label">{{ d | date:'EEE' | uppercase }}</span>
             <span class="date-label">{{ d | date:'dd' }}</span>

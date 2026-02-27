@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, peopleOutline, locationOutline, searchOutline, closeOutline, checkmarkCircleOutline, personOutline, mailOutline, addOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, peopleOutline, locationOutline, searchOutline, closeOutline, checkmarkCircleOutline, personOutline, mailOutline, addOutline, callOutline, mapOutline, warningOutline } from 'ionicons/icons';
 import { chevronBackOutline } from 'ionicons/icons';
 import { NotificationService } from '../../services/notification.service';
 
@@ -106,6 +106,12 @@ export class JugadorReservasPage implements OnInit {
   selectedReserva: any = null;
   emailInvitado: string = '';
 
+  // Multiclub & Contact
+  clubesDisponibles: any[] = [];
+  selectedClubId: number | null = null;
+  entrenadorTelefono: string = '';
+  coachSelectedData: any = null;
+
   constructor(
     private entrenamientoService: EntrenamientoService,
     private mysqlService: MysqlService,
@@ -131,7 +137,10 @@ export class JugadorReservasPage implements OnInit {
       checkmarkCircleOutline,
       personOutline,
       mailOutline,
-      addOutline
+      addOutline,
+      callOutline,
+      mapOutline,
+      warningOutline
     });
   }
 
@@ -249,7 +258,8 @@ export class JugadorReservasPage implements OnInit {
               nombre: p.entrenador_nombre,
               foto: p.entrenador_foto,
               descripcion: p.entrenador_descripcion,
-              comuna: p.trainer_comuna
+              comuna: p.trainer_comuna,
+              telefono: p.entrenador_telefono
             });
           }
         });
@@ -268,6 +278,16 @@ export class JugadorReservasPage implements OnInit {
         console.error('Error loading discovery:', err);
         this.isLoadingDiscovery = false;
       }
+    });
+  }
+
+  get filteredDias(): string[] {
+    // Club filtering is already handled by the API call and generarBloquesHorarios,
+    // so we only need to hide days that ended up with zero slots.
+    return this.dias.filter(dia => {
+      const tramos = this.horariosPorDia[dia];
+      if (!tramos) return false;
+      return tramos.manana.length > 0 || tramos.tarde.length > 0 || tramos.noche.length > 0;
     });
   }
 
@@ -297,10 +317,36 @@ export class JugadorReservasPage implements OnInit {
     });
 
     this.entrenamientoService
-      .getDisponibilidadEntrenador(this.selectedEntrenador!)
+      .getDisponibilidadEntrenador(this.selectedEntrenador!, undefined, this.selectedClubId || undefined)
       .subscribe({
         next: res => {
           this.horarios = res;
+
+          // Extraer clubes únicos de la disponibilidad SOLO si no tenemos un club ya seleccionado
+          // O siempre extraerlos para mantener el listado completo
+          const clubMap = new Map();
+          res.forEach((slot: any) => {
+            if (slot.club_id && !clubMap.has(slot.club_id)) {
+              clubMap.set(slot.club_id, {
+                id: slot.club_id,
+                nombre: slot.club_nombre,
+                direccion: slot.club_direccion,
+                maps: slot.club_maps
+              });
+            }
+          });
+
+          // Si no hay club seleccionado, actualizamos la lista de clubes disponibles
+          // Si ya hay uno, mantenemos la lista previa para no perder opciones en el select
+          if (this.clubesDisponibles.length === 0 || !this.selectedClubId) {
+            this.clubesDisponibles = Array.from(clubMap.values());
+          }
+
+          // Set trainer contact
+          if (res.length > 0) {
+            this.entrenadorTelefono = res[0].entrenador_telefono;
+          }
+
           this.generarBloquesHorarios(res);
           this.cargando = false;
         },
@@ -424,7 +470,7 @@ export class JugadorReservasPage implements OnInit {
     console.log("Cambio de Pack Mobile - Nuevo ID:", packId);
 
     this.entrenamientoService
-      .getDisponibilidadEntrenador(this.selectedEntrenador!, packId)
+      .getDisponibilidadEntrenador(this.selectedEntrenador!, packId, this.selectedClubId || undefined)
       .subscribe({
         next: res => {
           this.horarios = res;
@@ -438,6 +484,14 @@ export class JugadorReservasPage implements OnInit {
     this.tipoEntrenamiento = tipo;
     // Don't reset diaSeleccionado to improve UX
     this.generarBloquesHorarios(this.horarios);
+  }
+
+  getSelectedClub() {
+    return this.clubesDisponibles.find(c => Number(c.id) === Number(this.selectedClubId));
+  }
+
+  onClubFilterChange() {
+    this.onEntrenadorChange();
   }
 
   generarBloquesHorarios(disponibilidades: any[]) {
@@ -458,6 +512,9 @@ export class JugadorReservasPage implements OnInit {
 
     disponibilidades.forEach(d => {
       const slotTipo = (d.tipo || 'individual').toLowerCase();
+
+      // Filter by club if selected
+      if (this.selectedClubId && Number(d.club_id) !== Number(this.selectedClubId)) return;
 
       if (this.tipoEntrenamiento !== 'todos') {
         if (this.tipoEntrenamiento === 'grupal' && slotTipo !== 'grupal') return;
@@ -507,8 +564,11 @@ export class JugadorReservasPage implements OnInit {
     });
 
     // Auto-select first available day and tramo
-    if (this.dias.length > 0) {
-      this.diaSeleccionado = this.dias[0];
+    const currentFiltered = this.filteredDias;
+    if (currentFiltered.length > 0) {
+      if (!this.diaSeleccionado || !currentFiltered.includes(this.diaSeleccionado)) {
+        this.diaSeleccionado = currentFiltered[0];
+      }
       this.actualizarTramoAutomatico();
     } else {
       this.diaSeleccionado = '';

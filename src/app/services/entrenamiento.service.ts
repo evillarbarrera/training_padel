@@ -37,10 +37,13 @@ export class EntrenamientoService {
     );
   }
 
-  getDisponibilidadEntrenador(entrenadorId: number, packId?: number) {
+  getDisponibilidadEntrenador(entrenadorId: number, packId?: number, clubId?: number) {
     let url = `${this.api}/entrenador/get_disponibilidad.php?entrenador_id=${entrenadorId}`;
     if (packId) {
       url += `&pack_id=${packId}`;
+    }
+    if (clubId) {
+      url += `&club_id=${clubId}`;
     }
     return this.http.get<any[]>(url, { headers: this.headers });
   }
@@ -52,11 +55,10 @@ export class EntrenamientoService {
   }
 
 
-  getDisponibilidad(entrenadorId: number, clubId: number): Observable<any[]> {
-    return this.http.get<any[]>(
-      `${this.api}/disponibilidad/get.php?entrenador_id=${entrenadorId}&club_id=${clubId}`,
-      { headers: this.headers }
-    );
+  getDisponibilidad(entrenadorId: number, clubId?: number): Observable<any[]> {
+    let url = `${this.api}/disponibilidad/get.php?entrenador_id=${entrenadorId}`;
+    if (clubId) url += `&club_id=${clubId}`;
+    return this.http.get<any[]>(url, { headers: this.headers });
   }
 
   getReservasEntrenador(entrenadorId: number): Observable<any[]> {
@@ -109,5 +111,18 @@ export class EntrenamientoService {
       `${this.api}/entrenador/get_dashboard_stats.php?entrenador_id=${entrenadorId}`,
       { headers: this.headers }
     );
+  }
+
+  getClubes(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/clubes/get_clubes.php`, { headers: this.headers });
+  }
+
+  addClub(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.api}/clubes/add_club.php`, payload, { headers: this.headers });
+  }
+
+  migrateAvailability(entrenadorId: number, clubId: number): Observable<any> {
+    const payload = { entrenador_id: entrenadorId, club_id: clubId };
+    return this.http.post<any>(`${this.api}/disponibilidad/migrate_to_club.php`, payload, { headers: this.headers });
   }
 }

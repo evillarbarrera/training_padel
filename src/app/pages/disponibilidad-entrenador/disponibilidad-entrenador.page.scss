@@ -141,6 +141,207 @@
   padding: 0 0 120px;
 }
 
+// Club Selector Styles
+/* --- CLUB SELECTOR PREMIUM --- */
+.club-selector-wrapper {
+  margin: 10px 25px 25px; // Reduced overlap significantly
+  position: relative;
+  z-index: 10;
+
+  .venue-card {
+    background: white;
+    padding: 18px;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+
+    .venue-icon-box {
+      width: 50px;
+      height: 50px;
+      background: #f8fafc;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ion-color-primary);
+      font-size: 24px;
+    }
+
+    .venue-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+
+      .venue-label {
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #94a3b8;
+        letter-spacing: 1px;
+        margin-bottom: 2px;
+      }
+
+      .venue-selector-row {
+        display: flex;
+        align-items: center;
+
+        .premium-select {
+          width: 100%;
+          font-size: 17px;
+          font-weight: 900;
+          color: #000;
+          --placeholder-color: #000;
+          --placeholder-opacity: 1;
+          padding: 0;
+          min-height: auto;
+
+          &::part(container) {
+            padding: 0;
+          }
+
+          &::part(placeholder),
+          &::part(text) {
+            padding: 0;
+          }
+        }
+      }
+    }
+
+    .venue-actions {
+      .btn-add-venue {
+        --padding-start: 0;
+        --padding-end: 0;
+        --background: transparent;
+        --color: var(--ion-color-primary);
+        --border-radius: 50%;
+        height: 44px;
+        width: 44px;
+        margin: 0;
+        box-shadow: none;
+
+        ion-icon {
+          font-size: 32px;
+        }
+      }
+    }
+  }
+}
+
+.nike-list {
+  background: transparent;
+  padding: 0;
+  margin-bottom: 25px;
+
+  .nike-item {
+    --background: #f8f8f8;
+    --border-radius: 12px;
+    --padding-start: 15px;
+    --inner-padding-end: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #eee;
+
+    ion-label {
+      font-size: 11px !important;
+      font-weight: 800 !important;
+      color: #999 !important;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px !important;
+    }
+
+    ion-input,
+    ion-select {
+      font-weight: 700;
+      color: #111;
+      --padding-top: 5px;
+      --padding-bottom: 12px;
+    }
+  }
+}
+
+/* --- MIGRATION BANNER --- */
+.migration-banner {
+  background: #fff8e1;
+  margin: 0 25px 20px;
+  padding: 15px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #ffe082;
+  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.1);
+
+  .banner-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    ion-icon {
+      font-size: 24px;
+      color: #ffa000;
+    }
+
+    .banner-text {
+      p {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 800;
+        color: #5d4037;
+      }
+
+      span {
+        font-size: 10px;
+        color: #795548;
+        font-weight: 600;
+        display: block;
+      }
+    }
+  }
+
+  .btn-sync-now {
+    --color: white;
+    --background: #ffa000;
+    --border-radius: 10px;
+    font-size: 11px;
+    font-weight: 950;
+    height: 36px;
+    margin: 0;
+    --padding-start: 12px;
+    --padding-end: 12px;
+  }
+}
+
+.save-club-btn {
+  height: 54px;
+  font-size: 15px;
+  margin-top: 10px;
+}
+
+.modal-club-selector {
+  background: #f2f2f7;
+  border-radius: 14px;
+  padding: 8px 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--ion-color-primary);
+  }
+
+  .nike-select-modal {
+    flex: 1;
+    font-weight: 700;
+    font-size: 14px;
+    color: #111;
+  }
+}
+
 .blocks-grid {
   padding: 10px 25px;
   display: grid;
@@ -221,6 +422,41 @@
     .block-time {
       opacity: 0.3;
       text-decoration: line-through;
+    }
+  }
+
+  &.locked-other {
+    background: #f1f5f9;
+    border: 1px dashed #cbd5e1;
+    cursor: not-allowed;
+
+    .block-time {
+      color: #94a3b8;
+      font-size: 13px;
+    }
+  }
+
+  .other-club-indicator {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(241, 245, 249, 0.8);
+    border-radius: 12px;
+    z-index: 2;
+
+    ion-icon {
+      font-size: 18px;
+      color: #64748b;
+    }
+
+    .other-label {
+      font-size: 8px;
+      font-weight: 800;
+      color: #94a3b8;
+      margin-top: 2px;
     }
   }
 }

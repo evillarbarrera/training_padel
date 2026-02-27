@@ -13,6 +13,11 @@ import {
   IonSegmentButton,
   IonLabel,
   IonButton,
+  IonInput,
+  IonItem,
+  IonList,
+  IonSelect,
+  IonSelectOption,
   ToastController,
   AlertController,
   LoadingController
@@ -22,7 +27,7 @@ import { FormsModule } from '@angular/forms';
 import { EntrenamientoService } from '../../services/entrenamiento.service';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { saveOutline, checkmarkDoneOutline, closeCircleOutline, chevronBackOutline, settingsOutline, flashOutline } from 'ionicons/icons';
+import { saveOutline, checkmarkDoneOutline, closeCircleOutline, chevronBackOutline, settingsOutline, flashOutline, locationOutline, addCircleOutline, chevronDownOutline, checkmarkOutline, lockClosedOutline, closeOutline } from 'ionicons/icons';
 
 /* =============================
    INTERFACES
@@ -32,7 +37,9 @@ interface BloqueHorario {
   hora_inicio: string;
   hora_fin: string;
   seleccionado: boolean;
-  ocupado: boolean;
+  ocupado: boolean; // Reserved by student
+  lockedByOtherClub?: boolean;
+  club_id?: number | null;
 }
 
 interface DiaSemana {
@@ -63,13 +70,20 @@ interface DiaSemana {
     IonHeader,
     IonToolbar,
     IonTitle,
-    IonButtons
+    IonButtons,
+    IonInput,
+    IonItem,
+    IonList,
+    IonSelect,
+    IonSelectOption
   ]
 })
 export class DisponibilidadEntrenadorPage implements OnInit {
 
   entrenador_id = Number(localStorage.getItem('userId'));
   club_id = 1;
+  clubes: any[] = [];
+  selectedClubId: number = 1;
 
   // Default Week Config
   showDefaultModal = false;
@@ -85,6 +99,29 @@ export class DisponibilidadEntrenadorPage implements OnInit {
   templateBlocks: { [dayId: number]: { time: string, selected: boolean }[] } = {};
   selectedDayTemplate: number = 1; // Default Lunes
 
+  // Add Club
+  showAddClubModal = false;
+  allRegions = [
+    { id: '13', name: 'Metropolitana de Santiago' },
+    { id: '6', name: 'O\'Higgins' },
+    { id: '5', name: 'Valparaíso' }
+    // Reducido por simplicidad, se pueden añadir más
+  ];
+  allComunas: any = {
+    '13': ['Santiago', 'Las Condes', 'Providencia', 'Ñuñoa', 'Maipú', 'Puente Alto', 'La Florida', 'Vitacura', 'Lo Barnechea', 'Colina', 'Lampa', 'San Bernardo', 'Peñalolén'],
+    '6': ['Rancagua', 'Machalí', 'Rengo', 'San Fernando', 'Pichilemu', 'Santa Cruz'],
+    '5': ['Valparaíso', 'Viña del Mar', 'Concón', 'Quilpué', 'Villa Alemana', 'Limache', 'Quillota', 'San Antonio', 'Los Andes', 'San Felipe']
+  };
+  availableComunas: string[] = [];
+  newClub = {
+    nombre: '',
+    direccion: '',
+    region: '',
+    comuna: '',
+    telefono: '',
+    email: ''
+  };
+
   constructor(
     private entrenamientoService: EntrenamientoService,
     private toastCtrl: ToastController,
@@ -92,7 +129,20 @@ export class DisponibilidadEntrenadorPage implements OnInit {
     private alertController: AlertController,
     private loadingCtrl: LoadingController
   ) {
-    addIcons({ saveOutline, checkmarkDoneOutline, closeCircleOutline, chevronBackOutline, settingsOutline, flashOutline });
+    addIcons({
+      saveOutline,
+      checkmarkDoneOutline,
+      closeCircleOutline,
+      chevronBackOutline,
+      settingsOutline,
+      flashOutline,
+      locationOutline,
+      addCircleOutline,
+      chevronDownOutline,
+      checkmarkOutline,
+      lockClosedOutline,
+      closeOutline
+    });
   }
 
   /* =============================
@@ -101,16 +151,77 @@ export class DisponibilidadEntrenadorPage implements OnInit {
   dias: DiaSemana[] = [];
   diaSeleccionado: string = '';
   bloquesPorDia: { [fecha: string]: BloqueHorario[] } = {};
-  disponibilidadExistente: Set<string> = new Set();
+  disponibilidadExistente: Map<string, number> = new Map();
   isLoading = false;
+  hasSlotsWithoutClub = false;
 
   /* =============================
      INIT
   ============================== */
   ngOnInit() {
+    this.cargarClubes();
     this.crearSemanaDesdeHoy();
     this.generarBloquesSemana();
     this.cargarDisponibilidadExistente();
+  }
+
+  cargarClubes() {
+    this.entrenamientoService.getClubes().subscribe({
+      next: (res) => {
+        this.clubes = res;
+        if (res.length > 0 && !this.selectedClubId) {
+          this.selectedClubId = res[0].id;
+        }
+      }
+    });
+  }
+
+  onClubChange() {
+    this.disponibilidadExistente.clear();
+    this.cargarDisponibilidadExistente();
+  }
+
+  // --- ADD CLUB METHODS ---
+  openAddClubModal(ev?: Event) {
+    if (ev) {
+      ev.stopPropagation();
+    }
+    this.showAddClubModal = true;
+  }
+
+  onRegionChange(ev: any) {
+    const regionId = ev.detail.value;
+    const regionObj = this.allRegions.find(r => r.name === regionId);
+    if (regionObj) {
+      this.availableComunas = this.allComunas[regionObj.id] || [];
+    } else {
+      this.availableComunas = [];
+    }
+  }
+
+  saveNewClub() {
+    if (!this.newClub.nombre || !this.newClub.region || !this.newClub.comuna) {
+      this.mostrarToast('Por favor completa los campos obligatorios');
+      return;
+    }
+
+    this.isLoading = true;
+    const payload = { ...this.newClub, admin_id: this.entrenador_id };
+    this.entrenamientoService.addClub(payload).subscribe({
+      next: (res) => {
+        this.mostrarToast('✅ Club creado exitosamente');
+        this.showAddClubModal = false;
+        this.newClub = { nombre: '', direccion: '', region: '', comuna: '', telefono: '', email: '' }; // Reset
+        this.cargarClubes(); // Recargar lista
+        if (res.id) this.selectedClubId = res.id;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.isLoading = false;
+        this.mostrarToast('❌ Error al crear club');
+      }
+    });
   }
 
   /* =============================
@@ -176,13 +287,18 @@ export class DisponibilidadEntrenadorPage implements OnInit {
       if (finBloque > fin) break;
 
       const key = `${fecha} ${this.formatTime(inicio)}-${fecha} ${this.formatTime(finBloque)}`;
+      const savedClubId = this.disponibilidadExistente.get(key);
+      const isThisClub = savedClubId === Number(this.selectedClubId);
+      const isOtherClub = savedClubId && savedClubId !== Number(this.selectedClubId);
 
       bloques.push({
         fecha,
         hora_inicio: this.formatTime(inicio).slice(0, 5), // "HH:MM"
         hora_fin: this.formatTime(finBloque).slice(0, 5),
-        seleccionado: this.disponibilidadExistente.has(key),
-        ocupado: false
+        seleccionado: isThisClub || false,
+        ocupado: false,
+        lockedByOtherClub: isOtherClub || false,
+        club_id: savedClubId
       });
 
       inicio = finBloque;
@@ -199,11 +315,18 @@ export class DisponibilidadEntrenadorPage implements OnInit {
   ============================== */
   cargarDisponibilidadExistente() {
     this.isLoading = true;
-    this.entrenamientoService.getDisponibilidad(this.entrenador_id, this.club_id).subscribe({
+    this.hasSlotsWithoutClub = false;
+    this.disponibilidadExistente.clear();
+
+    this.entrenamientoService.getDisponibilidad(this.entrenador_id).subscribe({
       next: (data: any[]) => {
         data.forEach(d => {
           const key = `${d.fecha_inicio}-${d.fecha_fin}`;
-          this.disponibilidadExistente.add(key);
+          this.disponibilidadExistente.set(key, Number(d.club_id));
+
+          if (!d.club_id || d.club_id === 0) {
+            this.hasSlotsWithoutClub = true;
+          }
         });
         this.generarBloquesSemana();
         this.cargarReservasExistentes();
@@ -256,22 +379,22 @@ export class DisponibilidadEntrenadorPage implements OnInit {
   }
 
   toggleBloque(b: BloqueHorario) {
-    if (b.ocupado) return;
+    if (b.ocupado || b.lockedByOtherClub) return;
     b.seleccionado = !b.seleccionado;
   }
 
   seleccionarTodos() {
-    this.bloquesActuales.forEach(b => { if (!b.ocupado) b.seleccionado = true; });
+    this.bloquesActuales.forEach(b => { if (!b.ocupado && !b.lockedByOtherClub) b.seleccionado = true; });
   }
 
   deseleccionarTodos() {
-    this.bloquesActuales.forEach(b => { if (!b.ocupado) b.seleccionado = false; });
+    this.bloquesActuales.forEach(b => { if (!b.ocupado && !b.lockedByOtherClub) b.seleccionado = false; });
   }
 
   get todosSeleccionados(): boolean {
     const bloques = this.bloquesActuales;
     if (!bloques || bloques.length === 0) return false;
-    return bloques.every(b => b.seleccionado || b.ocupado);
+    return bloques.every(b => b.seleccionado || b.ocupado || b.lockedByOtherClub);
   }
 
   /* =============================
@@ -284,14 +407,15 @@ export class DisponibilidadEntrenadorPage implements OnInit {
     Object.values(this.bloquesPorDia).forEach(bloques => {
       bloques.forEach(b => {
         const key = `${b.fecha} ${b.hora_inicio}:00-${b.fecha} ${b.hora_fin}:00`;
-        const existia = this.disponibilidadExistente.has(key);
+        const existiaId = this.disponibilidadExistente.get(key);
+        const existia = existiaId === Number(this.selectedClubId);
 
         if (b.seleccionado && !existia) {
           crear.push({
             profesor_id: this.entrenador_id,
             fecha_inicio: `${b.fecha} ${b.hora_inicio}:00`,
             fecha_fin: `${b.fecha} ${b.hora_fin}:00`,
-            club_id: this.club_id
+            club_id: this.selectedClubId
           });
         }
 
@@ -300,7 +424,7 @@ export class DisponibilidadEntrenadorPage implements OnInit {
             profesor_id: this.entrenador_id,
             fecha_inicio: `${b.fecha} ${b.hora_inicio}:00`,
             fecha_fin: `${b.fecha} ${b.hora_fin}:00`,
-            club_id: this.club_id
+            club_id: this.selectedClubId
           });
         }
       });
@@ -326,7 +450,32 @@ export class DisponibilidadEntrenadorPage implements OnInit {
       }
     });
   }
-
+  async migrateSlots() {
+    const alert = await this.alertController.create({
+      header: 'Vincular Horarios',
+      message: 'Tienes horarios guardados que no están asociados a ningún club. ¿Deseas vincularlos todos al club seleccionado actualmente?',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Vincular ahora',
+          handler: () => {
+            this.isLoading = true;
+            this.entrenamientoService.migrateAvailability(this.entrenador_id, this.selectedClubId).subscribe({
+              next: (res) => {
+                this.mostrarToast(res.message || 'Horarios vinculados correctamente');
+                this.cargarDisponibilidadExistente();
+              },
+              error: () => {
+                this.isLoading = false;
+                this.mostrarToast('Error al vincular horarios');
+              }
+            });
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
   /* =============================
      DEFAULT CONFIG
   ============================== */
@@ -393,6 +542,7 @@ export class DisponibilidadEntrenadorPage implements OnInit {
           if (!currentRange) {
             currentRange = {
               dia_semana: dayId,
+              club_id: this.selectedClubId,
               hora_inicio: b.time,
               duracion_bloque: 60
             };
