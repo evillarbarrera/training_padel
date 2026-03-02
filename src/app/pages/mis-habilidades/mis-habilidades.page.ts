@@ -16,7 +16,7 @@ import { Chart, registerables } from 'chart.js';
 import { EvaluacionService } from '../../services/evaluacion.service';
 import { MysqlService } from '../../services/mysql.service';
 import { addIcons } from 'ionicons';
-import { arrowBackOutline, analyticsOutline, chevronBackOutline, informationCircleOutline, sparklesOutline, sparkles, videocamOutline, close, cloudUploadOutline, videocamOffOutline } from 'ionicons/icons';
+import { arrowBackOutline, analyticsOutline, chevronBackOutline, informationCircleOutline, sparklesOutline, sparkles, videocamOutline, close, cloudUploadOutline, videocamOffOutline, trashOutline, trash } from 'ionicons/icons';
 
 Chart.register(...registerables);
 
@@ -68,6 +68,8 @@ export class MisHabilidadesPage implements OnInit {
 
     // Video Tab State
     selectedVideoTab: string = 'clases';
+    activeCategory: string = 'Todos';
+    availableCategories: string[] = ['Todos'];
     videoInputPersonal!: any;
 
     constructor(
@@ -80,7 +82,7 @@ export class MisHabilidadesPage implements OnInit {
         private loadingCtrl: LoadingController,
         private http: HttpClient
     ) {
-        addIcons({ arrowBackOutline, analyticsOutline, chevronBackOutline, informationCircleOutline, sparklesOutline, sparkles, videocamOutline, close, 'cloud-upload-outline': cloudUploadOutline, 'videocam-off-outline': videocamOffOutline });
+        addIcons({ arrowBackOutline, analyticsOutline, chevronBackOutline, informationCircleOutline, sparklesOutline, sparkles, videocamOutline, close, 'cloud-upload-outline': cloudUploadOutline, 'videocam-off-outline': videocamOffOutline, 'trash-outline': trashOutline, trash });
     }
 
     async verDetalleGolpe(golpe: string) {
@@ -392,16 +394,28 @@ export class MisHabilidadesPage implements OnInit {
 
     get filteredVideos() {
         return this.videos.filter(v => {
+            // Role/Tab filter
+            let matchType = false;
             if (this.isEntrenadorView) {
-                return !v.tipo || v.tipo === 'clase';
+                matchType = !v.tipo || v.tipo === 'clase';
             } else {
                 if (this.selectedVideoTab === 'clases') {
-                    return !v.tipo || v.tipo === 'clase';
+                    matchType = !v.tipo || v.tipo === 'clase';
                 } else {
-                    return v.tipo === 'personal';
+                    matchType = v.tipo === 'personal';
                 }
             }
+
+            if (!matchType) return false;
+
+            // Category filter
+            if (this.activeCategory === 'Todos') return true;
+            return v.categoria === this.activeCategory;
         });
+    }
+
+    setCategory(cat: string) {
+        this.activeCategory = cat;
     }
 
     segmentVideoChanged(event: any) {
@@ -409,9 +423,60 @@ export class MisHabilidadesPage implements OnInit {
     }
 
     async subirVideoPersonal() {
+        const categories = ['General', 'Drive', 'Revés', 'Volea', 'Smash', 'Bandeja', 'Saque', 'Globo', 'Bajada de Pared'];
+
+        const catAlert = await this.alertCtrl.create({
+            header: '¿Qué golpe es?',
+            inputs: categories.map(cat => ({
+                type: 'radio',
+                label: cat,
+                value: cat,
+                checked: cat === 'General'
+            })),
+            buttons: [
+                { text: 'Cancelar', role: 'cancel' },
+                {
+                    text: 'Siguiente',
+                    handler: (categoria) => {
+                        this.pedirDetallesVideo(categoria, 'personal');
+                    }
+                }
+            ],
+            cssClass: 'nike-alert'
+        });
+        await catAlert.present();
+    }
+
+    async subirVideoCoach() {
+        const categories = ['General', 'Drive', 'Revés', 'Volea', 'Smash', 'Bandeja', 'Saque', 'Globo', 'Bajada de Pared'];
+
+        const catAlert = await this.alertCtrl.create({
+            header: 'Categoría / Golpe',
+            subHeader: 'Selecciona el golpe del alumno',
+            inputs: categories.map(cat => ({
+                type: 'radio',
+                label: cat,
+                value: cat,
+                checked: cat === 'General'
+            })),
+            buttons: [
+                { text: 'Cancelar', role: 'cancel' },
+                {
+                    text: 'Siguiente',
+                    handler: (categoria) => {
+                        this.pedirDetallesVideo(categoria, 'clase');
+                    }
+                }
+            ],
+            cssClass: 'nike-alert'
+        });
+        await catAlert.present();
+    }
+
+    async pedirDetallesVideo(categoria: string, tipo: 'personal' | 'clase') {
         const alert = await this.alertCtrl.create({
-            header: 'Subir Video Personal',
-            subHeader: 'Añade detalles para tu análisis',
+            header: tipo === 'personal' ? 'Subir Video Personal' : 'Subir Video de Clase',
+            subHeader: `Categoría: ${categoria}`,
             inputs: [
                 {
                     name: 'titulo',
@@ -422,42 +487,42 @@ export class MisHabilidadesPage implements OnInit {
                 {
                     name: 'comentario',
                     type: 'textarea',
-                    placeholder: '¿Qué quieres que la IA analice?',
+                    placeholder: 'Comentarios adicionales...',
                     label: 'Comentario'
                 }
             ],
             buttons: [
+                { text: 'Atrás', role: 'cancel' },
                 {
-                    text: 'Cancelar',
-                    role: 'cancel'
-                },
-                {
-                    text: 'Seleccionar Video',
+                    text: 'Seleccionar Archivo',
                     handler: (data) => {
-                        if (!data.titulo) {
+                        if (!data.titulo && tipo === 'personal') {
                             alert.message = 'El título es obligatorio';
                             return false;
                         }
-                        this.abrirSelectorVideo(data.titulo, data.comentario);
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'video/*';
+                        input.onchange = (e) => {
+                            if (tipo === 'personal') {
+                                this.onPersonalVideoSelected(e, data.titulo, categoria, data.comentario);
+                            } else {
+                                this.onCoachVideoSelected(e, data.titulo, categoria, data.comentario);
+                            }
+                        };
+                        input.click();
                         return true;
                     }
                 }
             ],
             cssClass: 'nike-alert'
         });
-
         await alert.present();
     }
 
-    abrirSelectorVideo(titulo: string, comentario: string) {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'video/*';
-        input.onchange = (e) => this.onPersonalVideoSelected(e, titulo, comentario);
-        input.click();
-    }
 
-    async onPersonalVideoSelected(event: any, titulo: string, comentario: string) {
+
+    async onPersonalVideoSelected(event: any, titulo: string, categoria: string, comentario: string) {
         const file = event.target.files[0];
         if (!file) return;
 
@@ -477,6 +542,7 @@ export class MisHabilidadesPage implements OnInit {
         formData.append('video', file);
         formData.append('jugador_id', this.userId.toString());
         formData.append('tipo', 'personal');
+        formData.append('categoria', categoria);
         formData.append('titulo', titulo);
         formData.append('comentario', comentario || '');
 
@@ -497,43 +563,9 @@ export class MisHabilidadesPage implements OnInit {
         });
     }
 
-    async subirVideoCoach() {
-        const alert = await this.alertCtrl.create({
-            header: 'Subir Video de Clase',
-            subHeader: 'Añade detalles para el análisis',
-            inputs: [
-                {
-                    name: 'titulo',
-                    type: 'text',
-                    placeholder: 'Ej: Práctica de Volea',
-                    label: 'Título'
-                },
-                {
-                    name: 'comentario',
-                    type: 'textarea',
-                    placeholder: '¿Alguna nota sobre este video?',
-                    label: 'Comentario'
-                }
-            ],
-            buttons: [
-                { text: 'Cancelar', role: 'cancel' },
-                {
-                    text: 'Siguiente: Seleccionar Archivo',
-                    handler: (data) => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'video/*';
-                        input.onchange = (e) => this.onCoachVideoSelected(e, data.titulo, data.comentario);
-                        input.click();
-                    }
-                }
-            ],
-            cssClass: 'nike-alert'
-        });
-        await alert.present();
-    }
 
-    async onCoachVideoSelected(event: any, titulo: string, comentario: string) {
+
+    async onCoachVideoSelected(event: any, titulo: string, categoria: string, comentario: string) {
         const file = event.target.files?.[0];
         if (!file) return;
 
@@ -554,7 +586,7 @@ export class MisHabilidadesPage implements OnInit {
         formData.append('jugador_id', this.userId!.toString());
         formData.append('entrenador_id', this.entrenadorId!.toString());
         formData.append('tipo', 'clase');
-        formData.append('categoria', 'General');
+        formData.append('categoria', categoria);
         formData.append('titulo', titulo || 'Video de entrenamiento');
         formData.append('comentario', comentario || '');
 
@@ -608,6 +640,15 @@ export class MisHabilidadesPage implements OnInit {
                 //     }
                 // });
                 console.log('Final Processed Videos:', this.videos);
+
+                // Extract available categories
+                const catsSet = new Set<string>();
+                catsSet.add('Todos');
+                this.videos.forEach(v => {
+                    if (v.categoria) catsSet.add(v.categoria);
+                });
+                this.availableCategories = Array.from(catsSet);
+
                 this.cdr.detectChanges();
             },
             error: (err) => console.error('Error loading videos:', err)
@@ -663,5 +704,50 @@ export class MisHabilidadesPage implements OnInit {
         } else {
             this.router.navigate(['/jugador-home']);
         }
+    }
+
+    async confirmarEliminarVideo(vid: any) {
+        const alert = await this.alertCtrl.create({
+            header: 'Eliminar Video',
+            message: '¿Estás seguro de que deseas eliminar este video permanentemente?',
+            buttons: [
+                { text: 'Cancelar', role: 'cancel' },
+                {
+                    text: 'Eliminar',
+                    role: 'destructive',
+                    handler: () => {
+                        this.ejecutarEliminarVideo(vid.id);
+                    }
+                }
+            ],
+            cssClass: 'nike-alert'
+        });
+        await alert.present();
+    }
+
+    async ejecutarEliminarVideo(videoId: number) {
+        const loading = await this.loadingCtrl.create({
+            message: 'Eliminando video...',
+            spinner: 'dots',
+            mode: 'ios'
+        });
+        await loading.present();
+
+        this.evaluacionService.deleteVideo(videoId).subscribe({
+            next: (res) => {
+                loading.dismiss();
+                if (res.success) {
+                    this.videos = this.videos.filter(v => v.id !== videoId);
+                    this.cdr.detectChanges();
+                } else {
+                    alert('Error: ' + (res.error || 'No se pudo eliminar'));
+                }
+            },
+            error: (err) => {
+                loading.dismiss();
+                console.error('Delete error:', err);
+                alert('Error de conexión al eliminar');
+            }
+        });
     }
 }

@@ -39,4 +39,9 @@ export class EvaluacionService {
         });
         return this.http.post(`https://api.padelmanager.cl/entrenador/add_video.php`, formData, { headers });
     }
+
+    deleteVideo(videoId: number): Observable<any> {
+        const body = { video_id: videoId };
+        return this.http.post(`https://api.padelmanager.cl/entrenador/delete_video.php`, body, { headers: this.getHeaders() });
+    }
 }

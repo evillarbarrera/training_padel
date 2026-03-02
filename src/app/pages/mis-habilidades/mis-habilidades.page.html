@@ -107,6 +107,16 @@
                 </button>
             </div>
 
+            <!-- Category Filter Pills -->
+            <div class="category-filters-mobile animate-up" *ngIf="availableCategories.length > 1">
+                <div class="category-pills-scroll">
+                    <button *ngFor="let cat of availableCategories" class="cat-pill"
+                        [class.active]="activeCategory === cat" (click)="setCategory(cat)">
+                        {{ cat }}
+                    </button>
+                </div>
+            </div>
+
             <!-- List of Filtered Videos -->
             <div class="no-videos" *ngIf="filteredVideos.length === 0">
                 <ion-icon name="videocam-off-outline"></ion-icon>
@@ -124,9 +134,9 @@
                     </div>
                     <div class="video-footer">
                         <div class="vid-meta">
+                            <span class="vid-category">{{ vid.categoria }}</span>
+                            <span class="vid-divider">•</span>
                             <span class="vid-date">{{ vid.fecha | date:'dd/MM/yyyy' }}</span>
-                            <span class="vid-coach">{{ vid.tipo === 'personal' ? 'Mi Video' : 'Coach ' +
-                                vid.entrenador_nombre }}</span>
                         </div>
                         <h4 class="vid-title">{{ vid.titulo || 'Clip de Entrenamiento' }}</h4>
                         <p class="vid-comment" *ngIf="vid.comentario">{{ vid.comentario }}</p>
@@ -143,6 +153,10 @@
                             <button class="ai-btn-report" *ngIf="aiResults[vid.id]" (click)="verReporte(vid)">
                                 <ion-icon name="sparkles"></ion-icon>
                                 <span>VER REPORTE AI</span>
+                            </button>
+
+                            <button class="delete-btn" (click)="confirmarEliminarVideo(vid)">
+                                <ion-icon name="trash-outline"></ion-icon>
                             </button>
                         </div>
                     </div>
