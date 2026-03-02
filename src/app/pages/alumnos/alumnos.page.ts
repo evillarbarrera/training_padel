@@ -390,78 +390,7 @@ export class AlumnosPage implements OnInit {
     this.router.navigate(['/entrenador-home']);
   }
 
-  async subirVideo(alumnoId: number) {
-    const alert = await this.alertCtrl.create({
-      header: 'Subir Video',
-      subHeader: 'Requisitos del archivo',
-      message: '• Formato: MP4, MOV, AVI o WMV\n• Tamaño máximo: 20MB\n• Nota: Se recomiendan videos cortos.',
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Seleccionar',
-          handler: () => {
-            const input = document.getElementById(`videoInput-${alumnoId}`) as HTMLInputElement;
-            if (input) {
-              input.click();
-            }
-          }
-        }
-      ]
-    });
 
-    await alert.present();
-  }
-
-  async onVideoSelected(event: any, alumnoId: number) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Video Validation
-    const allowedExtensions = ['mp4', 'mov', 'avi', 'wmv'];
-    const fileExtension = file.name.split('.').pop().toLowerCase();
-
-    if (!allowedExtensions.includes(fileExtension)) {
-      this.mostrarToast('❌ Formato no permitido. Use MP4 o MOV.');
-      return;
-    }
-
-    if (file.size > 20 * 1024 * 1024) {
-      this.mostrarToast('❌ El video supera los 20MB permitidos.');
-      return;
-    }
-
-    const loading = await this.loadingCtrl.create({
-      message: 'Subiendo video...',
-      cssClass: 'custom-loading'
-    });
-    await loading.present();
-
-    const formData = new FormData();
-    formData.append('video', file);
-    formData.append('jugador_id', alumnoId.toString());
-    formData.append('entrenador_id', this.entrenadorId.toString());
-    formData.append('titulo', 'Video de entrenamiento');
-    formData.append('comentario', '');
-
-    this.evaluacionService.uploadVideo(formData).subscribe({
-      next: (res) => {
-        loading.dismiss();
-        this.mostrarToast('✅ Video subido correctamente');
-        // Reset input
-        event.target.value = '';
-      },
-      error: (err) => {
-        loading.dismiss();
-        console.error('Error subiendo video:', err);
-        const detail = err.error?.error || 'Error de conexión';
-        this.mostrarToast(`❌ Error al subir: ${detail}`);
-        event.target.value = '';
-      }
-    });
-  }
 
   getInitials(name: string): string {
     if (!name) return '??';

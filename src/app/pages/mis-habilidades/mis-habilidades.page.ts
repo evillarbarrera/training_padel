@@ -63,6 +63,9 @@ export class MisHabilidadesPage implements OnInit {
     aiActiveResult: any = null;
     isAnalyzing: { [key: number]: boolean } = {};
 
+    isEntrenadorView: boolean = false;
+    entrenadorId: number | null = null;
+
     // Video Tab State
     selectedVideoTab: string = 'clases';
     videoInputPersonal!: any;
@@ -114,9 +117,13 @@ export class MisHabilidadesPage implements OnInit {
 
         if (routeId) {
             this.userId = Number(routeId);
+            this.isEntrenadorView = true;
+            this.entrenadorId = Number(localStorage.getItem('userId'));
             this.jugadorNombre = 'Cargando...';
+            this.selectedVideoTab = 'clases';
         } else {
             this.userId = Number(localStorage.getItem('userId'));
+            this.isEntrenadorView = false;
             this.jugadorNombre = '...';
             this.jugadorFoto = '';
         }
@@ -385,10 +392,14 @@ export class MisHabilidadesPage implements OnInit {
 
     get filteredVideos() {
         return this.videos.filter(v => {
-            if (this.selectedVideoTab === 'clases') {
+            if (this.isEntrenadorView) {
                 return !v.tipo || v.tipo === 'clase';
             } else {
-                return v.tipo === 'personal';
+                if (this.selectedVideoTab === 'clases') {
+                    return !v.tipo || v.tipo === 'clase';
+                } else {
+                    return v.tipo === 'personal';
+                }
             }
         });
     }
@@ -482,6 +493,65 @@ export class MisHabilidadesPage implements OnInit {
                 console.error(err);
                 const msg = err.error?.error || 'Error al conectar con el servidor';
                 alert('Error al subir video: ' + msg);
+            }
+        });
+    }
+
+    async subirVideoCoach() {
+        const alert = await this.alertCtrl.create({
+            header: 'Subir Video de Clase',
+            subHeader: 'Requisitos del archivo',
+            message: '• Formato: MP4, MOV, AVI o WMV\n• Tamaño máximo: 20MB',
+            buttons: [
+                { text: 'Cancelar', role: 'cancel' },
+                {
+                    text: 'Seleccionar',
+                    handler: () => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'video/*';
+                        input.onchange = (e) => this.onCoachVideoSelected(e);
+                        input.click();
+                    }
+                }
+            ]
+        });
+        await alert.present();
+    }
+
+    async onCoachVideoSelected(event: any) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 20 * 1024 * 1024) {
+            alert('❌ El video supera los 20MB permitidos.');
+            return;
+        }
+
+        const loading = await this.loadingCtrl.create({
+            message: 'Subiendo video...',
+            spinner: 'dots',
+            mode: 'ios'
+        });
+        await loading.present();
+
+        const formData = new FormData();
+        formData.append('video', file);
+        formData.append('jugador_id', this.userId!.toString());
+        formData.append('entrenador_id', this.entrenadorId!.toString());
+        formData.append('titulo', 'Video de entrenamiento');
+        formData.append('comentario', '');
+
+        this.evaluacionService.uploadVideo(formData).subscribe({
+            next: (res) => {
+                loading.dismiss();
+                if (res.success) {
+                    this.loadVideos();
+                }
+            },
+            error: (err) => {
+                loading.dismiss();
+                alert('Error al subir video: ' + (err.error?.error || 'Error de conexión'));
             }
         });
     }

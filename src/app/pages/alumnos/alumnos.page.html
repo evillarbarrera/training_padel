@@ -75,13 +75,7 @@
               Evaluar
             </ion-button>
 
-            <!-- Video Upload -->
-            <ion-button class="action-button video-btn" (click)="subirVideo(alumno.id)">
-              <ion-icon name="videocam-outline" slot="start"></ion-icon>
-              Video
-            </ion-button>
-            <input type="file" [id]="'videoInput-' + alumno.id" style="display: none;"
-              accept="video/mp4,video/x-m4v,video/*" (change)="onVideoSelected($event, alumno.id)">
+
           </div>
         </div>
       </div>

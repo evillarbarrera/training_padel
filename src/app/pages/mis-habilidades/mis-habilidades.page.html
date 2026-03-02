@@ -78,8 +78,8 @@
         <div class="videos-view animate-up" *ngIf="selectedTab === 'videos'">
 
             <!-- Sub-tabs for Videos -->
-            <div class="video-segment-container">
-                <ion-segment [value]="selectedVideoTab" (ionChange)="segmentVideoChanged($event)" mode="md"
+            <div class="video-segment-container" *ngIf="!isEntrenadorView">
+                <ion-segment [(ngModel)]="selectedVideoTab" (ionChange)="segmentVideoChanged($event)" mode="md"
                     class="nike-sub-segment">
                     <ion-segment-button value="clases">
                         <ion-label>Clases</ion-label>
@@ -90,8 +90,17 @@
                 </ion-segment>
             </div>
 
-            <!-- Upload Button for Personal Videos -->
-            <div class="upload-action-container" *ngIf="selectedVideoTab === 'personales'" style="margin-bottom: 20px;">
+            <!-- Upload Button for Coach -->
+            <div class="upload-action-container" *ngIf="isEntrenadorView" style="margin-bottom: 20px;">
+                <button class="nike-btn-outline-black w-full" (click)="subirVideoCoach()">
+                    <ion-icon name="videocam-outline"></ion-icon>
+                    <span>SUBIR VIDEO DEL ALUMNO</span>
+                </button>
+            </div>
+
+            <!-- Upload Button for Personal Videos (Student) -->
+            <div class="upload-action-container" *ngIf="!isEntrenadorView && selectedVideoTab === 'personales'"
+                style="margin-bottom: 20px;">
                 <button class="nike-btn-outline-black w-full" (click)="subirVideoPersonal()">
                     <ion-icon name="cloud-upload-outline"></ion-icon>
                     <span>SUBIR VIDEO PERSONAL</span>
@@ -102,8 +111,9 @@
             <div class="no-videos" *ngIf="filteredVideos.length === 0">
                 <ion-icon name="videocam-off-outline"></ion-icon>
                 <h3>Sin videos</h3>
-                <p>{{ selectedVideoTab === 'clases' ? 'Tu entrenador aún no ha subido clips de tus sesiones.' : 'Aún no
-                    has subido videos personales para análisis.' }}</p>
+                <p>{{ isEntrenadorView ? 'Aún no has subido clips de entrenamiento para este alumno.' :
+                    (selectedVideoTab === 'clases' ? 'Tu entrenador aún no ha subido clips de tus sesiones.' : 'Aún no
+                    has subido videos personales para análisis.') }}</p>
             </div>
 
             <div class="video-grid" *ngIf="filteredVideos.length > 0">
