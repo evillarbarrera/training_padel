@@ -242,8 +242,12 @@ export class EntrenadorHomePage {
     // Limpiar token y userId del localStorage
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
-    await this.authService.logout();
-    this.router.navigate(['/login']);
+    try {
+      await this.authService.logout();
+    } catch (e) {
+      console.warn("Logout error:", e);
+    }
+    this.router.navigate(['/login'], { replaceUrl: true });
   }
 
   goToHome() {

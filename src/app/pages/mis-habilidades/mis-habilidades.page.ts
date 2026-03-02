@@ -500,26 +500,40 @@ export class MisHabilidadesPage implements OnInit {
     async subirVideoCoach() {
         const alert = await this.alertCtrl.create({
             header: 'Subir Video de Clase',
-            subHeader: 'Requisitos del archivo',
-            message: '• Formato: MP4, MOV, AVI o WMV\n• Tamaño máximo: 20MB',
+            subHeader: 'Añade detalles para el análisis',
+            inputs: [
+                {
+                    name: 'titulo',
+                    type: 'text',
+                    placeholder: 'Ej: Práctica de Volea',
+                    label: 'Título'
+                },
+                {
+                    name: 'comentario',
+                    type: 'textarea',
+                    placeholder: '¿Alguna nota sobre este video?',
+                    label: 'Comentario'
+                }
+            ],
             buttons: [
                 { text: 'Cancelar', role: 'cancel' },
                 {
-                    text: 'Seleccionar',
-                    handler: () => {
+                    text: 'Siguiente: Seleccionar Archivo',
+                    handler: (data) => {
                         const input = document.createElement('input');
                         input.type = 'file';
                         input.accept = 'video/*';
-                        input.onchange = (e) => this.onCoachVideoSelected(e);
+                        input.onchange = (e) => this.onCoachVideoSelected(e, data.titulo, data.comentario);
                         input.click();
                     }
                 }
-            ]
+            ],
+            cssClass: 'nike-alert'
         });
         await alert.present();
     }
 
-    async onCoachVideoSelected(event: any) {
+    async onCoachVideoSelected(event: any, titulo: string, comentario: string) {
         const file = event.target.files?.[0];
         if (!file) return;
 
@@ -539,8 +553,10 @@ export class MisHabilidadesPage implements OnInit {
         formData.append('video', file);
         formData.append('jugador_id', this.userId!.toString());
         formData.append('entrenador_id', this.entrenadorId!.toString());
-        formData.append('titulo', 'Video de entrenamiento');
-        formData.append('comentario', '');
+        formData.append('tipo', 'clase');
+        formData.append('categoria', 'General');
+        formData.append('titulo', titulo || 'Video de entrenamiento');
+        formData.append('comentario', comentario || '');
 
         this.evaluacionService.uploadVideo(formData).subscribe({
             next: (res) => {
