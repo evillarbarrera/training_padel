@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ActionSheetController } from '@ionic/angular';
@@ -57,6 +57,8 @@ export class EntrenadorHomePage {
     private authService: AuthService,
     private entrenamientoService: EntrenamientoService,
     private actionSheetCtrl: ActionSheetController,
+    private ngZone: NgZone,
+
 
   ) {
     addIcons({
@@ -239,15 +241,15 @@ export class EntrenadorHomePage {
   }
 
   async logout() {
-    // Limpiar token y userId del localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    try {
-      await this.authService.logout();
-    } catch (e) {
-      console.warn("Logout error:", e);
-    }
-    this.router.navigate(['/login'], { replaceUrl: true });
+    console.log('Logging out trainer...');
+    localStorage.clear();
+
+    // Intentar cerrar sesión en el servicio pero no bloquear la navegación si falla o demora
+    this.authService.logout().catch(err => console.warn("AuthService logout error:", err));
+
+    this.ngZone.run(() => {
+      this.router.navigate(['/login'], { replaceUrl: true });
+    });
   }
 
   goToHome() {

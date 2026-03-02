@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -62,7 +62,9 @@ export class JugadorHomePage implements OnInit {
     private router: Router,
     private actionSheetCtrl: ActionSheetController,
     private loadingCtrl: LoadingController,
+    private ngZone: NgZone,
     private mysqlService: MysqlService,
+
     private http: HttpClient
   ) {
     addIcons({
@@ -213,9 +215,11 @@ export class JugadorHomePage implements OnInit {
   }
 
   logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    this.router.navigate(['/login']);
+    console.log('Logging out player...');
+    localStorage.clear();
+    this.ngZone.run(() => {
+      this.router.navigate(['/login'], { replaceUrl: true });
+    });
   }
 
   goToMisPacks() {
