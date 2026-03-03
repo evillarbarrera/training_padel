@@ -112,11 +112,23 @@
             </ng-container>
           </div>
 
-          <!-- Grupal Extra Info -->
-          <div class="grupal-info" *ngIf="pack.tipo === 'grupal' && pack.categoria">
+          <!-- Individual Range -->
+          <div class="grupal-info" *ngIf="pack.tipo === 'individual' && pack.rango_horario_inicio">
             <span class="info-chip">
+              <ion-icon name="time-outline"></ion-icon>
+              Disponible: {{ formatTime24(pack.rango_horario_inicio) }} - {{ formatTime24(pack.rango_horario_fin) }} hrs
+            </span>
+          </div>
+
+          <!-- Grupal Extra Info -->
+          <div class="grupal-info" *ngIf="pack.tipo === 'grupal'">
+            <span class="info-chip" *ngIf="pack.categoria">
               <ion-icon name="trophy-outline"></ion-icon>
               {{ pack.categoria }}
+            </span>
+            <span class="info-chip">
+              <ion-icon name="time-outline"></ion-icon>
+              {{ getDiaNombre(pack.dia_semana) }} {{ formatTime24(pack.hora_inicio) }} hrs
             </span>
           </div>
 
@@ -186,35 +198,87 @@
 
     <ion-content>
       <div class="modal-form">
-        <div class="input-group">
-          <div class="nike-field">
-            <label>Nombre del Pack</label>
-            <ion-item lines="none" class="nike-item">
-              <ion-input [(ngModel)]="nuevoPack.nombre" placeholder="Ej: Pack Pro 10"></ion-input>
-            </ion-item>
-          </div>
 
-          <div class="nike-field">
-            <label>Tipo de Sesión</label>
-            <ion-item lines="none" class="nike-item">
-              <ion-select [(ngModel)]="nuevoPack.tipo" interface="popover">
-                <ion-select-option value="individual">Individual</ion-select-option>
-                <ion-select-option value="grupal">Grupal</ion-select-option>
-              </ion-select>
-            </ion-item>
+        <!-- SECCIÓN 1: Información Básica -->
+        <div class="form-section Nike-Nike">
+          <div class="section-header">
+            <ion-icon name="clipboard-outline"></ion-icon>
+            <h4>Información del Pack</h4>
           </div>
+          <div class="input-group">
+            <div class="nike-field">
+              <label>NOMBRE COMERCIAL</label>
+              <ion-item lines="none" class="nike-item">
+                <ion-input [(ngModel)]="nuevoPack.nombre" placeholder="Ej: Especial Verano 10"></ion-input>
+              </ion-item>
+            </div>
 
-          <!-- Campos para packs grupales -->
-          <ng-container *ngIf="nuevoPack.tipo === 'grupal'">
             <div class="form-grid">
               <div class="nike-field">
-                <label>Capacidad Mínima</label>
+                <label>Tipo de Pack</label>
+                <ion-item lines="none" class="nike-item">
+                  <ion-select [(ngModel)]="nuevoPack.tipo" interface="popover">
+                    <ion-select-option value="individual">Individual</ion-select-option>
+                    <ion-select-option value="grupal">Grupal</ion-select-option>
+                  </ion-select>
+                </ion-item>
+              </div>
+              <div class="nike-field">
+                <label>Precio ($)</label>
+                <ion-item lines="none" class="nike-item">
+                  <ion-input type="number" [(ngModel)]="nuevoPack.precio" placeholder="0"></ion-input>
+                </ion-item>
+              </div>
+            </div>
+
+            <div class="nike-field">
+              <label>Descripción</label>
+              <ion-item lines="none" class="nike-item textarea">
+                <ion-textarea [(ngModel)]="nuevoPack.descripcion"
+                  placeholder="Explica los beneficios de este pack..."></ion-textarea>
+              </ion-item>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECCIÓN 2: Configuración -->
+        <div class="form-section">
+          <div class="section-header">
+            <ion-icon name="settings-outline"></ion-icon>
+            <h4>Configuración</h4>
+          </div>
+          <div class="form-grid">
+            <div class="nike-field">
+              <label>Nº Clases</label>
+              <ion-item lines="none" class="nike-item">
+                <ion-input type="number" [(ngModel)]="nuevoPack.sesiones_totales"></ion-input>
+              </ion-item>
+            </div>
+            <div class="nike-field">
+              <label>Min por Clase</label>
+              <ion-item lines="none" class="nike-item">
+                <ion-input type="number" [(ngModel)]="nuevoPack.duracion_sesion_min"></ion-input>
+              </ion-item>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECCIÓN 3: Detalles Grupales -->
+        <div class="form-section" *ngIf="nuevoPack.tipo === 'grupal'">
+          <div class="section-header">
+            <ion-icon name="people-outline"></ion-icon>
+            <h4>Detalles del Grupo</h4>
+          </div>
+          <div class="input-group">
+            <div class="form-grid">
+              <div class="nike-field">
+                <label>Cap. Mínima</label>
                 <ion-item lines="none" class="nike-item">
                   <ion-input type="number" [(ngModel)]="nuevoPack.capacidad_minima" min="2" max="6"></ion-input>
                 </ion-item>
               </div>
               <div class="nike-field">
-                <label>Capacidad Máxima</label>
+                <label>Cap. Máxima</label>
                 <ion-item lines="none" class="nike-item">
                   <ion-input type="number" [(ngModel)]="nuevoPack.capacidad_maxima" min="2" max="6"></ion-input>
                 </ion-item>
@@ -223,7 +287,7 @@
 
             <div class="form-grid">
               <div class="nike-field">
-                <label>Día de la Semana</label>
+                <label>Día</label>
                 <ion-item lines="none" class="nike-item">
                   <ion-select [(ngModel)]="nuevoPack.dia_semana" interface="popover">
                     <ion-select-option [value]="0">Domingo</ion-select-option>
@@ -237,9 +301,11 @@
                 </ion-item>
               </div>
               <div class="nike-field">
-                <label>Hora de Inicio</label>
-                <ion-item lines="none" class="nike-item">
-                  <ion-input type="time" [(ngModel)]="nuevoPack.hora_inicio"></ion-input>
+                <label>Hora Inicio (24h)</label>
+                <ion-item lines="none" class="nike-item datetime-item">
+                  <ion-datetime presentation="time" hourCycle="h23" [(ngModel)]="nuevoPack.hora_inicio" size="cover"
+                    prefer-wheel="true">
+                  </ion-datetime>
                 </ion-item>
               </div>
             </div>
@@ -247,69 +313,49 @@
             <div class="nike-field">
               <label>Categoría</label>
               <ion-item lines="none" class="nike-item">
-                <ion-input [(ngModel)]="nuevoPack.categoria"
-                  placeholder="Ej: Principiantes, Intermedios, Avanzados"></ion-input>
-              </ion-item>
-            </div>
-          </ng-container>
-
-          <div class="form-grid">
-            <div class="nike-field">
-              <label>Nº Clases</label>
-              <ion-item lines="none" class="nike-item">
-                <ion-input type="number" [(ngModel)]="nuevoPack.sesiones_totales"></ion-input>
-              </ion-item>
-            </div>
-            <div class="nike-field">
-              <label>Minutos</label>
-              <ion-item lines="none" class="nike-item">
-                <ion-input type="number" [(ngModel)]="nuevoPack.duracion_sesion_min"></ion-input>
+                <ion-input [(ngModel)]="nuevoPack.categoria" placeholder="Ej: Avanzados / 4ta"></ion-input>
               </ion-item>
             </div>
           </div>
+        </div>
 
-          <!-- Time Range (Opcional) -->
-          <div class="nike-field" *ngIf="nuevoPack.tipo === 'individual'">
-            <div class="nike-field" style="margin-bottom: 20px;">
-              <label>Cantidad Personas</label>
-              <p class="helper-text-mobile" style="margin-bottom: 5px;">Ej: 2 para Pack Dupla/Pareja.</p>
+        <!-- SECCIÓN 3B: Restricciones Individuales -->
+        <div class="form-section" *ngIf="nuevoPack.tipo === 'individual'">
+          <div class="section-header">
+            <ion-icon name="time-outline"></ion-icon>
+            <h4>Rango de Disponibilidad</h4>
+          </div>
+          <div class="input-group">
+            <div class="nike-field">
+              <label>CANTIDAD PERSONAS (DUPLA/PAREJA)</label>
               <ion-item lines="none" class="nike-item">
                 <ion-input type="number" [(ngModel)]="nuevoPack.cantidad_personas" min="1"></ion-input>
               </ion-item>
             </div>
 
-            <label>Rango Horario Permitido (Opc.)</label>
-            <p class="helper-text-mobile">Solo permite reservas en este horario.</p>
+            <label>HORARIO PERMITIDO (24H)</label>
+            <p class="helper-text-mobile">Opcional: Solo permite reservas en este bloque.</p>
             <div class="form-grid">
-              <ion-item lines="none" class="nike-item compact">
+              <ion-item lines="none" class="nike-item datetime-item">
                 <ion-label position="stacked" style="margin-bottom:4px; font-size:10px;">Desde</ion-label>
-                <ion-input type="time" [(ngModel)]="nuevoPack.rango_horario_inicio"></ion-input>
+                <ion-datetime presentation="time" hourCycle="h23" [(ngModel)]="nuevoPack.rango_horario_inicio"
+                  prefer-wheel="true"></ion-datetime>
               </ion-item>
-              <ion-item lines="none" class="nike-item compact">
+              <ion-item lines="none" class="nike-item datetime-item">
                 <ion-label position="stacked" style="margin-bottom:4px; font-size:10px;">Hasta</ion-label>
-                <ion-input type="time" [(ngModel)]="nuevoPack.rango_horario_fin"></ion-input>
+                <ion-datetime presentation="time" hourCycle="h23" [(ngModel)]="nuevoPack.rango_horario_fin"
+                  prefer-wheel="true"></ion-datetime>
               </ion-item>
             </div>
           </div>
-
-          <div class="nike-field">
-            <label>Precio ($)</label>
-            <ion-item lines="none" class="nike-item">
-              <ion-input type="number" [(ngModel)]="nuevoPack.precio"></ion-input>
-            </ion-item>
-          </div>
-
-          <div class="nike-field">
-            <label>Descripción</label>
-            <ion-item lines="none" class="nike-item textarea">
-              <ion-textarea [(ngModel)]="nuevoPack.descripcion" placeholder="Detalles del pack..."></ion-textarea>
-            </ion-item>
-          </div>
         </div>
 
-        <ion-button expand="block" class="nike-button main-btn save-btn" (click)="crearPack()">
-          Confirmar y Guardar
-        </ion-button>
+        <div class="footer-actions">
+          <ion-button expand="block" class="nike-button save-btn" (click)="crearPack()">
+            {{ nuevoPack.id ? 'Actualizar Pack' : 'Crear Pack Premium' }}
+          </ion-button>
+        </div>
+
       </div>
     </ion-content>
   </ng-template>

@@ -146,24 +146,37 @@ export class EntrenadorPacksPage implements OnInit {
   isSaving = false;
 
   async crearPack() {
-    if (this.isSaving) {
-      console.warn('Ya se está guardando un pack...');
-      return;
-    }
+    if (this.isSaving) return;
 
     try {
-      const p = this.nuevoPack || {};
+      // Clonamos para no modificar el objeto de la UI directamente mientras se guarda
+      const p = { ...this.nuevoPack };
 
-      // 1. Validaciones de UI robustas
+      // 1. Validaciones básicas
       const nombreVal = (p.nombre || '').toString().trim();
       if (nombreVal.length === 0) {
         await this.presentAlert('Campo Requerido', 'Por favor ingresa un nombre para el pack.');
         return;
       }
 
+      // Helper para extraer HH:mm de strings ISO o strings con segundos
+      const sanitizeTime = (val: any) => {
+        if (!val) return null;
+        // Si es un ISO de ion-datetime (ej: 2023-10-10T14:30:00...)
+        if (typeof val === 'string' && val.includes('T')) {
+          return val.split('T')[1].substring(0, 5);
+        }
+        // Si ya es un string corto o largo (ej: 14:30:00)
+        return val.toString().substring(0, 5);
+      };
+
+      p.hora_inicio = sanitizeTime(p.hora_inicio);
+      p.rango_horario_inicio = sanitizeTime(p.rango_horario_inicio);
+      p.rango_horario_fin = sanitizeTime(p.rango_horario_fin);
+
       if (p.tipo === 'individual') {
         if (!p.sesiones_totales || Number(p.sesiones_totales) <= 0) {
-          await this.presentAlert('Clases Requeridas', 'Debes indicar un número de clases mayor a 0 para packs individuales.');
+          await this.presentAlert('Clases Requeridas', 'Debes indicar un número de clases mayor a 0.');
           return;
         }
       }
@@ -180,26 +193,22 @@ export class EntrenadorPacksPage implements OnInit {
         }
       }
 
-      const precioVal = Number(p.precio);
-      if (isNaN(precioVal) || precioVal < 0 || p.precio === null || p.precio === '') {
+      if (!p.precio || Number(p.precio) < 0) {
         await this.presentAlert('Precio Requerido', 'Por favor ingresa un precio válido.');
         return;
       }
 
       const userId = localStorage.getItem('userId');
       if (!userId || userId === '0') {
-        await this.presentAlert('Sesión Expirada', 'Por favor vuelve a iniciar sesión para crear packs.');
+        await this.presentAlert('Sesión Expirada', 'Vuelve a iniciar sesión.');
         this.router.navigate(['/login']);
         return;
       }
 
-      // 2. Iniciamos proceso de guardado
       this.isSaving = true;
-
       const loading = await this.loadingCtrl.create({
-        message: p.id ? 'Guardando cambios...' : 'Creando pack...',
-        spinner: 'crescent',
-        duration: 10000
+        message: p.id ? 'Actualizando...' : 'Creando...',
+        spinner: 'crescent'
       });
       await loading.present();
 
@@ -212,22 +221,21 @@ export class EntrenadorPacksPage implements OnInit {
           loading.dismiss();
           this.isSaving = false;
           this.cerrarModal();
-          this.resetFormulario();
           this.cargarPacks();
         },
         error: async (err) => {
           loading.dismiss();
           this.isSaving = false;
-          console.error('Error en operación:', err);
-          const errMsg = err.error?.error || err.message || 'Error de conexión';
-          await this.presentAlert('Error del Servidor', 'No se pudo guardar: ' + errMsg);
+          console.error('Error al guardar pack:', err);
+          const msg = err.error?.error || 'Error de servidor';
+          await this.presentAlert('Error', msg);
         }
       });
 
-    } catch (err: any) {
+    } catch (e: any) {
       this.isSaving = false;
-      console.error('Crash en crearPack:', err);
-      alert('Error inesperado: ' + err.message);
+      console.error(e);
+      alert('Error: ' + e.message);
     }
   }
 
@@ -260,20 +268,31 @@ export class EntrenadorPacksPage implements OnInit {
     this.nuevoPack = {
       id: null,
       nombre: '',
-      tipo: 'individual',
-      sesiones_totales: null,
+      tipo: this.segmentoSeleccionado === 'grupal' ? 'grupal' : 'individual',
+      sesiones_totales: 0,
       duracion_sesion_min: 60,
-      precio: null,
+      precio: 0,
       descripcion: '',
-      capacidad_minima: 4,
-      capacidad_maxima: 6,
-      dia_semana: null,
-      hora_inicio: null,
+      capacidad_minima: 2,
+      capacidad_maxima: 4,
+      dia_semana: 1, // Lunes por defecto
+      hora_inicio: '10:00',
       categoria: '',
       rango_horario_inicio: null,
       rango_horario_fin: null,
       cantidad_personas: 1
     };
+  }
+
+  getDiaNombre(dia: any): string {
+    const d = Number(dia);
+    const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    return dias[d] || '';
+  }
+
+  formatTime24(time: string): string {
+    if (!time) return '';
+    return time.substring(0, 5);
   }
 
   editarPack(pack: any) {
