@@ -79,6 +79,11 @@ export class EntrenadorPacksPage implements OnInit {
   }
 
   ngOnInit() {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      this.router.navigate(['/login']);
+      return;
+    }
     this.cargarPacks();
   }
 
@@ -174,6 +179,7 @@ export class EntrenadorPacksPage implements OnInit {
         error: (err) => {
           loading.dismiss();
           console.error('Error al editar pack', err);
+          this.presentAlert('Error', 'No se pudo actualizar el pack. ' + (err.error?.error || err.message || ''));
         }
       });
     } else {
@@ -188,6 +194,7 @@ export class EntrenadorPacksPage implements OnInit {
         error: (err) => {
           loading.dismiss();
           console.error('Error al crear pack', err);
+          this.presentAlert('Error', 'No se pudo crear el pack. ' + (err.error?.error || err.message || ''));
         }
       });
     }
@@ -210,6 +217,7 @@ export class EntrenadorPacksPage implements OnInit {
   }
 
   abrirModal() {
+    this.resetFormulario();
     this.modalOpen = true;
   }
 
@@ -219,6 +227,7 @@ export class EntrenadorPacksPage implements OnInit {
 
   resetFormulario() {
     this.nuevoPack = {
+      id: null,
       nombre: '',
       tipo: 'individual',
       sesiones_totales: null,
@@ -231,7 +240,8 @@ export class EntrenadorPacksPage implements OnInit {
       hora_inicio: null,
       categoria: '',
       rango_horario_inicio: null,
-      rango_horario_fin: null
+      rango_horario_fin: null,
+      cantidad_personas: 1
     };
   }
 
@@ -280,7 +290,10 @@ export class EntrenadorPacksPage implements OnInit {
         this.resetFormulario();
         this.cargarPacks();
       },
-      error: (err) => console.error("Error editando pack:", err)
+      error: (err) => {
+        console.error("Error editando pack:", err);
+        this.presentAlert('Error', 'No se pudo guardar la edición.');
+      }
     });
   }
 
