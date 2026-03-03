@@ -99,14 +99,16 @@ export class EntrenadorPacksPage implements OnInit {
     this.paginaActual = 1;
 
     this.packsFiltrados = this.packs.filter(p => {
+      // SOLO PACKS ACTIVOS
+      const isActivo = p.activo == 1 || p.activo === true || p.activo === '1';
+      if (!isActivo) return false;
+
       const matchesName = p.nombre.toLowerCase().includes(this.filtro.toLowerCase());
 
       let matchesSegment = false;
       if (this.segmentoSeleccionado === 'individual') {
-        // Tipo individual y (sin cantidad definida o cantidad = 1)
         matchesSegment = p.tipo === 'individual' && (!p.cantidad_personas || p.cantidad_personas <= 1);
       } else if (this.segmentoSeleccionado === 'multijugador') {
-        // Tipo individual pero con mas de 1 persona (ej: parejas)
         matchesSegment = p.tipo === 'individual' && (p.cantidad_personas > 1);
       } else if (this.segmentoSeleccionado === 'grupal') {
         matchesSegment = p.tipo === 'grupal';
@@ -141,63 +143,72 @@ export class EntrenadorPacksPage implements OnInit {
     this.mostrarFormulario = !this.mostrarFormulario;
   }
 
+  isSaving = false;
+
   async crearPack() {
-    // Validations
-    if (!this.nuevoPack.nombre) {
-      this.presentAlert('Error', 'El nombre es obligatorio');
+    if (this.isSaving) return;
+
+    const p = this.nuevoPack;
+
+    // Validaciones básicas
+    if (!p.nombre || p.nombre.trim().length === 0) {
+      await this.presentAlert('Campo Requerido', 'Por favor ingresa un nombre para el pack.');
       return;
     }
 
-    if (this.nuevoPack.tipo === 'individual' && (!this.nuevoPack.sesiones_totales || this.nuevoPack.sesiones_totales <= 0)) {
-      this.presentAlert('Error', 'Las sesiones totales deben ser mayor a 0');
+    if (p.tipo === 'individual' && (!p.sesiones_totales || p.sesiones_totales <= 0)) {
+      await this.presentAlert('Clases Requeridas', 'Debes indicar un número de clases mayor a 0.');
       return;
     }
 
-    if (this.nuevoPack.tipo === 'grupal') {
-      if (this.nuevoPack.capacidad_minima > this.nuevoPack.capacidad_maxima) {
-        this.presentAlert('Error', 'La capacidad mínima no puede ser mayor que la máxima');
+    if (!p.precio || p.precio < 0) {
+      await this.presentAlert('Precio Requerido', 'Por favor ingresa un precio válido.');
+      return;
+    }
+
+    if (p.tipo === 'grupal') {
+      // dia_semana puede ser 0 (Domingo), así que chequeamos null/undefined
+      if (!p.capacidad_minima || !p.capacidad_maxima ||
+        p.dia_semana === null || p.dia_semana === undefined ||
+        !p.hora_inicio || !p.categoria) {
+        await this.presentAlert('Datos Incompletos', 'Para packs grupales todos los campos son obligatorios (Capacidad, Día, Hora y Categoría).');
+        return;
+      }
+      if (p.capacidad_minima > p.capacidad_maxima) {
+        await this.presentAlert('Error de Capacidad', 'La capacidad mínima no puede ser mayor que la máxima.');
         return;
       }
     }
 
+    this.isSaving = true;
+
     // Prepare Loading
     const loading = await this.loadingCtrl.create({
-      message: this.nuevoPack.id ? 'Guardando cambios...' : 'Creando pack...',
+      message: p.id ? 'Guardando cambios...' : 'Creando pack...',
       spinner: 'crescent'
     });
     await loading.present();
 
-    if (this.nuevoPack.id) {
-      // EDITAR
-      this.packsService.editarPack(this.nuevoPack).subscribe({
-        next: (resp) => {
-          loading.dismiss();
-          this.cerrarModal();
-          this.resetFormulario();
-          this.cargarPacks();
-        },
-        error: (err) => {
-          loading.dismiss();
-          console.error('Error al editar pack', err);
-          this.presentAlert('Error', 'No se pudo actualizar el pack. ' + (err.error?.error || err.message || ''));
-        }
-      });
-    } else {
-      // CREAR
-      this.packsService.crearPack(this.nuevoPack).subscribe({
-        next: (resp) => {
-          loading.dismiss();
-          this.cerrarModal();
-          this.resetFormulario();
-          this.cargarPacks();
-        },
-        error: (err) => {
-          loading.dismiss();
-          console.error('Error al crear pack', err);
-          this.presentAlert('Error', 'No se pudo crear el pack. ' + (err.error?.error || err.message || ''));
-        }
-      });
-    }
+    const request = p.id
+      ? this.packsService.editarPack(p)
+      : this.packsService.crearPack(p);
+
+    request.subscribe({
+      next: (resp) => {
+        loading.dismiss();
+        this.isSaving = false;
+        this.cerrarModal();
+        this.resetFormulario();
+        this.cargarPacks();
+      },
+      error: async (err) => {
+        loading.dismiss();
+        this.isSaving = false;
+        console.error('Error en operación de pack:', err);
+        const errMsg = err.error?.error || err.message || 'Error de conexión';
+        await this.presentAlert('Error', 'No se pudo completar la operación. ' + errMsg);
+      }
+    });
   }
 
   async presentAlert(header: string, message: string) {
@@ -248,7 +259,7 @@ export class EntrenadorPacksPage implements OnInit {
   editarPack(pack: any) {
     // Abrir modal con formulario y precargar los datos del pack
     this.nuevoPack = { ...pack };
-    this.abrirModal();
+    this.modalOpen = true; // No llamar a abrirModal() para no resetear el formulario
   }
 
   async eliminarPack(packId: number) {
