@@ -159,20 +159,9 @@ export class EntrenadorPacksPage implements OnInit {
         return;
       }
 
-      // Helper para extraer HH:mm de strings ISO o strings con segundos
-      const sanitizeTime = (val: any) => {
-        if (!val) return null;
-        // Si es un ISO de ion-datetime (ej: 2023-10-10T14:30:00...)
-        if (typeof val === 'string' && val.includes('T')) {
-          return val.split('T')[1].substring(0, 5);
-        }
-        // Si ya es un string corto o largo (ej: 14:30:00)
-        return val.toString().substring(0, 5);
-      };
-
-      p.hora_inicio = sanitizeTime(p.hora_inicio);
-      p.rango_horario_inicio = sanitizeTime(p.rango_horario_inicio);
-      p.rango_horario_fin = sanitizeTime(p.rango_horario_fin);
+      p.hora_inicio = this.sanitizeTimeFormat(p.hora_inicio);
+      p.rango_horario_inicio = this.sanitizeTimeFormat(p.rango_horario_inicio);
+      p.rango_horario_fin = this.sanitizeTimeFormat(p.rango_horario_fin);
 
       if (p.tipo === 'individual') {
         if (!p.sesiones_totales || Number(p.sesiones_totales) <= 0) {
@@ -290,15 +279,40 @@ export class EntrenadorPacksPage implements OnInit {
     return dias[d] || '';
   }
 
+  sanitizeTimeFormat(val: any): string | null {
+    if (!val) return null;
+    const s = val.toString();
+    // Case 1: ISO string from ion-datetime (e.g. 2023-10-11T14:30:00...)
+    if (s.includes('T')) {
+      return s.split('T')[1].substring(0, 5);
+    }
+    // Case 2: DB string (e.g. 14:30:00)
+    if (s.includes(':')) {
+      const parts = s.split(':');
+      if (parts.length >= 2) {
+        const hh = parts[0].padStart(2, '0');
+        const mm = parts[1].padStart(2, '0');
+        return `${hh}:${mm}`;
+      }
+    }
+    return s.substring(0, 5);
+  }
+
   formatTime24(time: string): string {
-    if (!time) return '';
-    return time.substring(0, 5);
+    const formatted = this.sanitizeTimeFormat(time);
+    return formatted || '--:--';
   }
 
   editarPack(pack: any) {
     // Abrir modal con formulario y precargar los datos del pack
-    this.nuevoPack = { ...pack };
-    this.modalOpen = true; // No llamar a abrirModal() para no resetear el formulario
+    // IMPORTANTE: Sanitizar tiempos para que ion-datetime los reconozca en iOS
+    this.nuevoPack = {
+      ...pack,
+      hora_inicio: this.sanitizeTimeFormat(pack.hora_inicio),
+      rango_horario_inicio: this.sanitizeTimeFormat(pack.rango_horario_inicio),
+      rango_horario_fin: this.sanitizeTimeFormat(pack.rango_horario_fin)
+    };
+    this.modalOpen = true;
   }
 
   async eliminarPack(packId: number) {
