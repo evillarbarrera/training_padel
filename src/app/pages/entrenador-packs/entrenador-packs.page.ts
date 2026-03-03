@@ -52,6 +52,9 @@ export class EntrenadorPacksPage implements OnInit {
 
   modalOpen = false;
 
+  horas: string[] = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+  minutos: string[] = ['00', '15', '30', '45'];
+
   constructor(
     private location: Location,
     private packsService: PacksService,
@@ -159,6 +162,11 @@ export class EntrenadorPacksPage implements OnInit {
         return;
       }
 
+      // Unificar horas genéricas antes de guardar
+      p.hora_inicio = (p.hora_inicio_h && p.hora_inicio_m) ? `${p.hora_inicio_h}:${p.hora_inicio_m}` : null;
+      p.rango_horario_inicio = (p.rango_inicio_h && p.rango_inicio_m) ? `${p.rango_inicio_h}:${p.rango_inicio_m}` : null;
+      p.rango_horario_fin = (p.rango_fin_h && p.rango_fin_m) ? `${p.rango_fin_h}:${p.rango_fin_m}` : null;
+
       p.hora_inicio = this.sanitizeTimeFormat(p.hora_inicio);
       p.rango_horario_inicio = this.sanitizeTimeFormat(p.rango_horario_inicio);
       p.rango_horario_fin = this.sanitizeTimeFormat(p.rango_horario_fin);
@@ -265,11 +273,15 @@ export class EntrenadorPacksPage implements OnInit {
       capacidad_minima: 2,
       capacidad_maxima: 4,
       dia_semana: 1, // Lunes por defecto
-      hora_inicio: '10:00',
+      hora_inicio: null,
       categoria: '',
-      rango_horario_inicio: null,
-      rango_horario_fin: null,
-      cantidad_personas: 1
+      cantidad_personas: 1,
+      hora_inicio_h: '10',
+      hora_inicio_m: '00',
+      rango_inicio_h: null,
+      rango_inicio_m: null,
+      rango_fin_h: null,
+      rango_fin_m: null
     };
   }
 
@@ -305,12 +317,18 @@ export class EntrenadorPacksPage implements OnInit {
 
   editarPack(pack: any) {
     // Abrir modal con formulario y precargar los datos del pack
-    // IMPORTANTE: Sanitizar tiempos para que ion-datetime los reconozca en iOS
+    const h_inicio = this.sanitizeTimeFormat(pack.hora_inicio) || '';
+    const r_inicio = this.sanitizeTimeFormat(pack.rango_horario_inicio) || '';
+    const r_fin = this.sanitizeTimeFormat(pack.rango_horario_fin) || '';
+
     this.nuevoPack = {
       ...pack,
-      hora_inicio: this.sanitizeTimeFormat(pack.hora_inicio),
-      rango_horario_inicio: this.sanitizeTimeFormat(pack.rango_horario_inicio),
-      rango_horario_fin: this.sanitizeTimeFormat(pack.rango_horario_fin)
+      hora_inicio_h: h_inicio.split(':')[0] || '10',
+      hora_inicio_m: h_inicio.split(':')[1] || '00',
+      rango_inicio_h: r_inicio.split(':')[0] || null,
+      rango_inicio_m: r_inicio.split(':')[1] || null,
+      rango_fin_h: r_fin.split(':')[0] || null,
+      rango_fin_m: r_fin.split(':')[1] || null
     };
     this.modalOpen = true;
   }

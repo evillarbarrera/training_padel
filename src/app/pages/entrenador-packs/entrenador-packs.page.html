@@ -302,11 +302,19 @@
               </div>
               <div class="nike-field">
                 <label>Hora Inicio (24h)</label>
-                <ion-item lines="none" class="nike-item datetime-item">
-                  <ion-datetime presentation="time" hourCycle="h23" [(ngModel)]="nuevoPack.hora_inicio" size="cover"
-                    prefer-wheel="true">
-                  </ion-datetime>
-                </ion-item>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <ion-item lines="none" class="nike-item compact" style="flex:1;">
+                    <ion-select [(ngModel)]="nuevoPack.hora_inicio_h" interface="popover" placeholder="HH">
+                      <ion-select-option *ngFor="let h of horas" [value]="h">{{h}}</ion-select-option>
+                    </ion-select>
+                  </ion-item>
+                  <span style="font-weight: bold; padding-bottom: 5px;">:</span>
+                  <ion-item lines="none" class="nike-item compact" style="flex:1;">
+                    <ion-select [(ngModel)]="nuevoPack.hora_inicio_m" interface="popover" placeholder="MM">
+                      <ion-select-option *ngFor="let m of minutos" [value]="m">{{m}}</ion-select-option>
+                    </ion-select>
+                  </ion-item>
+                </div>
               </div>
             </div>
 
@@ -336,16 +344,38 @@
             <label>HORARIO PERMITIDO (24H)</label>
             <p class="helper-text-mobile">Opcional: Solo permite reservas en este bloque.</p>
             <div class="form-grid">
-              <ion-item lines="none" class="nike-item datetime-item">
-                <ion-label position="stacked" style="margin-bottom:4px; font-size:10px;">Desde</ion-label>
-                <ion-datetime presentation="time" hourCycle="h23" [(ngModel)]="nuevoPack.rango_horario_inicio"
-                  prefer-wheel="true"></ion-datetime>
-              </ion-item>
-              <ion-item lines="none" class="nike-item datetime-item">
-                <ion-label position="stacked" style="margin-bottom:4px; font-size:10px;">Hasta</ion-label>
-                <ion-datetime presentation="time" hourCycle="h23" [(ngModel)]="nuevoPack.rango_horario_fin"
-                  prefer-wheel="true"></ion-datetime>
-              </ion-item>
+              <div class="nike-field">
+                <label>Desde (HH:MM)</label>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                  <ion-item lines="none" class="nike-item compact" style="flex:1; --padding-start: 8px;">
+                    <ion-select [(ngModel)]="nuevoPack.rango_inicio_h" interface="popover" placeholder="HH">
+                      <ion-select-option *ngFor="let h of horas" [value]="h">{{h}}</ion-select-option>
+                    </ion-select>
+                  </ion-item>
+                  <span style="font-weight: bold;">:</span>
+                  <ion-item lines="none" class="nike-item compact" style="flex:1; --padding-start: 8px;">
+                    <ion-select [(ngModel)]="nuevoPack.rango_inicio_m" interface="popover" placeholder="MM">
+                      <ion-select-option *ngFor="let m of minutos" [value]="m">{{m}}</ion-select-option>
+                    </ion-select>
+                  </ion-item>
+                </div>
+              </div>
+              <div class="nike-field">
+                <label>Hasta (HH:MM)</label>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                  <ion-item lines="none" class="nike-item compact" style="flex:1; --padding-start: 8px;">
+                    <ion-select [(ngModel)]="nuevoPack.rango_fin_h" interface="popover" placeholder="HH">
+                      <ion-select-option *ngFor="let h of horas" [value]="h">{{h}}</ion-select-option>
+                    </ion-select>
+                  </ion-item>
+                  <span style="font-weight: bold;">:</span>
+                  <ion-item lines="none" class="nike-item compact" style="flex:1; --padding-start: 8px;">
+                    <ion-select [(ngModel)]="nuevoPack.rango_fin_m" interface="popover" placeholder="MM">
+                      <ion-select-option *ngFor="let m of minutos" [value]="m">{{m}}</ion-select-option>
+                    </ion-select>
+                  </ion-item>
+                </div>
+              </div>
             </div>
           </div>
         </div>
