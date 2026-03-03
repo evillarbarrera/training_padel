@@ -99,8 +99,8 @@ export class EntrenadorPacksPage implements OnInit {
     this.paginaActual = 1;
 
     this.packsFiltrados = this.packs.filter(p => {
-      // SOLO PACKS ACTIVOS
-      const isActivo = p.activo == 1 || p.activo === true || p.activo === '1';
+      // SOLO PACKS ACTIVOS (Resiliente a tipos string/number)
+      const isActivo = Number(p.activo) === 1;
       if (!isActivo) return false;
 
       const matchesName = p.nombre.toLowerCase().includes(this.filtro.toLowerCase());
@@ -146,69 +146,89 @@ export class EntrenadorPacksPage implements OnInit {
   isSaving = false;
 
   async crearPack() {
-    if (this.isSaving) return;
-
-    const p = this.nuevoPack;
-
-    // Validaciones básicas
-    if (!p.nombre || p.nombre.trim().length === 0) {
-      await this.presentAlert('Campo Requerido', 'Por favor ingresa un nombre para el pack.');
+    if (this.isSaving) {
+      console.warn('Ya se está guardando un pack...');
       return;
     }
 
-    if (p.tipo === 'individual' && (!p.sesiones_totales || p.sesiones_totales <= 0)) {
-      await this.presentAlert('Clases Requeridas', 'Debes indicar un número de clases mayor a 0.');
-      return;
-    }
+    try {
+      const p = this.nuevoPack || {};
 
-    if (!p.precio || p.precio < 0) {
-      await this.presentAlert('Precio Requerido', 'Por favor ingresa un precio válido.');
-      return;
-    }
-
-    if (p.tipo === 'grupal') {
-      // dia_semana puede ser 0 (Domingo), así que chequeamos null/undefined
-      if (!p.capacidad_minima || !p.capacidad_maxima ||
-        p.dia_semana === null || p.dia_semana === undefined ||
-        !p.hora_inicio || !p.categoria) {
-        await this.presentAlert('Datos Incompletos', 'Para packs grupales todos los campos son obligatorios (Capacidad, Día, Hora y Categoría).');
+      // 1. Validaciones de UI robustas
+      const nombreVal = (p.nombre || '').toString().trim();
+      if (nombreVal.length === 0) {
+        await this.presentAlert('Campo Requerido', 'Por favor ingresa un nombre para el pack.');
         return;
       }
-      if (p.capacidad_minima > p.capacidad_maxima) {
-        await this.presentAlert('Error de Capacidad', 'La capacidad mínima no puede ser mayor que la máxima.');
+
+      if (p.tipo === 'individual') {
+        if (!p.sesiones_totales || Number(p.sesiones_totales) <= 0) {
+          await this.presentAlert('Clases Requeridas', 'Debes indicar un número de clases mayor a 0 para packs individuales.');
+          return;
+        }
+      }
+
+      if (p.tipo === 'grupal') {
+        const diaInvalido = (p.dia_semana === null || p.dia_semana === undefined || p.dia_semana === '');
+        if (!p.capacidad_minima || !p.capacidad_maxima || diaInvalido || !p.hora_inicio || !p.categoria) {
+          await this.presentAlert('Datos Incompletos', 'Para packs grupales todos los campos son obligatorios (Capacidad, Día, Hora y Categoría).');
+          return;
+        }
+        if (Number(p.capacidad_minima) > Number(p.capacidad_maxima)) {
+          await this.presentAlert('Error de Capacidad', 'La capacidad mínima no puede ser mayor que la máxima.');
+          return;
+        }
+      }
+
+      const precioVal = Number(p.precio);
+      if (isNaN(precioVal) || precioVal < 0 || p.precio === null || p.precio === '') {
+        await this.presentAlert('Precio Requerido', 'Por favor ingresa un precio válido.');
         return;
       }
-    }
 
-    this.isSaving = true;
-
-    // Prepare Loading
-    const loading = await this.loadingCtrl.create({
-      message: p.id ? 'Guardando cambios...' : 'Creando pack...',
-      spinner: 'crescent'
-    });
-    await loading.present();
-
-    const request = p.id
-      ? this.packsService.editarPack(p)
-      : this.packsService.crearPack(p);
-
-    request.subscribe({
-      next: (resp) => {
-        loading.dismiss();
-        this.isSaving = false;
-        this.cerrarModal();
-        this.resetFormulario();
-        this.cargarPacks();
-      },
-      error: async (err) => {
-        loading.dismiss();
-        this.isSaving = false;
-        console.error('Error en operación de pack:', err);
-        const errMsg = err.error?.error || err.message || 'Error de conexión';
-        await this.presentAlert('Error', 'No se pudo completar la operación. ' + errMsg);
+      const userId = localStorage.getItem('userId');
+      if (!userId || userId === '0') {
+        await this.presentAlert('Sesión Expirada', 'Por favor vuelve a iniciar sesión para crear packs.');
+        this.router.navigate(['/login']);
+        return;
       }
-    });
+
+      // 2. Iniciamos proceso de guardado
+      this.isSaving = true;
+
+      const loading = await this.loadingCtrl.create({
+        message: p.id ? 'Guardando cambios...' : 'Creando pack...',
+        spinner: 'crescent',
+        duration: 10000
+      });
+      await loading.present();
+
+      const request = p.id
+        ? this.packsService.editarPack(p)
+        : this.packsService.crearPack(p);
+
+      request.subscribe({
+        next: (resp) => {
+          loading.dismiss();
+          this.isSaving = false;
+          this.cerrarModal();
+          this.resetFormulario();
+          this.cargarPacks();
+        },
+        error: async (err) => {
+          loading.dismiss();
+          this.isSaving = false;
+          console.error('Error en operación:', err);
+          const errMsg = err.error?.error || err.message || 'Error de conexión';
+          await this.presentAlert('Error del Servidor', 'No se pudo guardar: ' + errMsg);
+        }
+      });
+
+    } catch (err: any) {
+      this.isSaving = false;
+      console.error('Crash en crearPack:', err);
+      alert('Error inesperado: ' + err.message);
+    }
   }
 
   async presentAlert(header: string, message: string) {
@@ -264,8 +284,8 @@ export class EntrenadorPacksPage implements OnInit {
 
   async eliminarPack(packId: number) {
     const alert = await this.alertController.create({
-      header: 'Confirmar',
-      message: '¿Seguro quieres eliminar este pack?',
+      header: 'Confirmar Eliminación',
+      message: '¿Estás seguro de que deseas eliminar este pack?',
       buttons: [
         {
           text: 'Cancelar',
@@ -273,18 +293,27 @@ export class EntrenadorPacksPage implements OnInit {
         },
         {
           text: 'Eliminar',
-          role: 'confirm',
-          handler: () => {
-            // Aquí se llama al servicio para "eliminar" (actualizar activo a 0)
+          handler: async () => {
+            const loading = await this.loadingCtrl.create({
+              message: 'Eliminando pack...',
+              spinner: 'crescent'
+            });
+            await loading.present();
+
             this.packsService.eliminarPack(packId).subscribe({
               next: () => {
+                loading.dismiss();
                 // Actualizar la lista local
                 this.packs = this.packs.map(p =>
-                  p.id === packId ? { ...p, activo: 0 } : p
+                  p.id == packId ? { ...p, activo: 0 } : p
                 );
                 this.filtrarPacks();
               },
-              error: (err) => console.error("Error eliminando pack:", err)
+              error: async (err) => {
+                loading.dismiss();
+                console.error("Error eliminando pack:", err);
+                await this.presentAlert('Error', 'No se pudo eliminar el pack. Revisa tu conexión.');
+              }
             });
           }
         }
