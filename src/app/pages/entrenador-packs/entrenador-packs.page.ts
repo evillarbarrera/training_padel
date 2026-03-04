@@ -21,7 +21,7 @@ import { chevronBackOutline, createOutline, trashOutline, chevronForwardOutline 
     FormsModule,
     IonicModule
   ],
-  providers: [AlertController, LoadingController]
+  providers: []
 })
 export class EntrenadorPacksPage implements OnInit {
   packs: any[] = [];
@@ -29,7 +29,6 @@ export class EntrenadorPacksPage implements OnInit {
   filtro: string = '';
   mostrarFormulario = false;
 
-  // Filters & Pagination
   segmentoSeleccionado: 'individual' | 'multijugador' | 'grupal' = 'individual';
   paginaActual: number = 1;
   elementosPorPagina: number = 3;
@@ -51,6 +50,7 @@ export class EntrenadorPacksPage implements OnInit {
   };
 
   modalOpen = false;
+  isSaving = false;
 
   horas: string[] = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
   minutos: string[] = ['00', '15', '30', '45'];
@@ -63,21 +63,9 @@ export class EntrenadorPacksPage implements OnInit {
     private loadingCtrl: LoadingController
   ) {
     addIcons({
-      settingsOutline,
-      homeOutline,
-      calendarOutline,
-      chevronBackOutline,
-      chevronForwardOutline,
-      createOutline,
-      trashOutline,
-      logOutOutline,
-      searchOutline,
-      addOutline,
-      timeOutline,
-      peopleOutline,
-      trophyOutline,
-      cubeOutline,
-      closeOutline
+      settingsOutline, homeOutline, calendarOutline, chevronBackOutline, chevronForwardOutline,
+      createOutline, trashOutline, logOutOutline, searchOutline, addOutline,
+      timeOutline, peopleOutline, trophyOutline, cubeOutline, closeOutline
     });
   }
 
@@ -91,22 +79,24 @@ export class EntrenadorPacksPage implements OnInit {
   }
 
   cargarPacks() {
-    this.packsService.getMisPacks().subscribe(resp => {
-      this.packs = resp;
-      this.filtrarPacks();
+    this.packsService.getMisPacks().subscribe({
+      next: (resp) => {
+        this.packs = resp;
+        this.filtrarPacks();
+      },
+      error: (err) => {
+        console.error('Error cargando packs:', err);
+      }
     });
   }
 
   filtrarPacks() {
-    // Reset pagination on filter change
     this.paginaActual = 1;
-
     this.packsFiltrados = this.packs.filter(p => {
-      // SOLO PACKS ACTIVOS (Resiliente a tipos string/number)
       const isActivo = Number(p.activo) === 1;
       if (!isActivo) return false;
 
-      const matchesName = p.nombre.toLowerCase().includes(this.filtro.toLowerCase());
+      const matchesName = (p.nombre || '').toLowerCase().includes(this.filtro.toLowerCase());
 
       let matchesSegment = false;
       if (this.segmentoSeleccionado === 'individual') {
@@ -142,27 +132,20 @@ export class EntrenadorPacksPage implements OnInit {
     }
   }
 
-  toggleFormulario() {
-    this.mostrarFormulario = !this.mostrarFormulario;
-  }
-
-  isSaving = false;
-
   async crearPack() {
+    console.log('Iniciando crearPack...');
     if (this.isSaving) return;
 
+    let loading: any;
     try {
-      // Clonamos para no modificar el objeto de la UI directamente mientras se guarda
       const p = { ...this.nuevoPack };
 
-      // 1. Validaciones básicas
       const nombreVal = (p.nombre || '').toString().trim();
       if (nombreVal.length === 0) {
-        await this.presentAlert('Campo Requerido', 'Por favor ingresa un nombre para el pack.');
+        await this.presentAlert('Campo Requerido', 'Ingresa un nombre.');
         return;
       }
 
-      // Unificar horas genéricas antes de guardar
       p.hora_inicio = (p.hora_inicio_h && p.hora_inicio_m) ? `${p.hora_inicio_h}:${p.hora_inicio_m}` : null;
       p.rango_horario_inicio = (p.rango_inicio_h && p.rango_inicio_m) ? `${p.rango_inicio_h}:${p.rango_inicio_m}` : null;
       p.rango_horario_fin = (p.rango_fin_h && p.rango_fin_m) ? `${p.rango_fin_h}:${p.rango_fin_m}` : null;
@@ -173,7 +156,7 @@ export class EntrenadorPacksPage implements OnInit {
 
       if (p.tipo === 'individual') {
         if (!p.sesiones_totales || Number(p.sesiones_totales) <= 0) {
-          await this.presentAlert('Clases Requeridas', 'Debes indicar un número de clases mayor a 0.');
+          await this.presentAlert('Clases Requeridas', 'Número de clases > 0.');
           return;
         }
       }
@@ -181,39 +164,28 @@ export class EntrenadorPacksPage implements OnInit {
       if (p.tipo === 'grupal') {
         const diaInvalido = (p.dia_semana === null || p.dia_semana === undefined || p.dia_semana === '');
         if (!p.capacidad_minima || !p.capacidad_maxima || diaInvalido || !p.hora_inicio || !p.categoria) {
-
-          let camposFaltantes = [];
-          if (!p.capacidad_minima) camposFaltantes.push('Capacidad Mínima');
-          if (!p.capacidad_maxima) camposFaltantes.push('Capacidad Máxima');
-          if (diaInvalido) camposFaltantes.push('Día Semana');
-          if (!p.hora_inicio) camposFaltantes.push('Hora Inicio');
-          if (!p.categoria) camposFaltantes.push('Categoría');
-
-          await this.presentAlert('Datos Incompletos', `Para packs grupales todos los campos son obligatorios. Falta: ${camposFaltantes.join(', ')}.`);
-          return;
-        }
-        if (Number(p.capacidad_minima) > Number(p.capacidad_maxima)) {
-          await this.presentAlert('Error de Capacidad', 'La capacidad mínima no puede ser mayor que la máxima.');
+          await this.presentAlert('Datos Incompletos', 'Faltan campos obligatorios para pack grupal.');
           return;
         }
       }
 
       if (!p.precio || Number(p.precio) < 0) {
-        await this.presentAlert('Precio Requerido', 'Por favor ingresa un precio válido.');
+        await this.presentAlert('Precio Requerido', 'Ingresa un precio válido.');
         return;
       }
 
       const userId = localStorage.getItem('userId');
       if (!userId || userId === '0') {
-        await this.presentAlert('Sesión Expirada', 'Vuelve a iniciar sesión.');
+        await this.presentAlert('Sesión Expirada', 'Reinicia sesión.');
         this.router.navigate(['/login']);
         return;
       }
 
       this.isSaving = true;
-      const loading = await this.loadingCtrl.create({
+      loading = await this.loadingCtrl.create({
         message: p.id ? 'Actualizando...' : 'Creando...',
-        spinner: 'crescent'
+        spinner: 'crescent',
+        duration: 10000 // Failsafe
       });
       await loading.present();
 
@@ -223,24 +195,25 @@ export class EntrenadorPacksPage implements OnInit {
 
       request.subscribe({
         next: (resp) => {
-          loading.dismiss();
+          if (loading) loading.dismiss();
           this.isSaving = false;
           this.cerrarModal();
           this.cargarPacks();
         },
         error: async (err) => {
-          loading.dismiss();
+          if (loading) loading.dismiss();
           this.isSaving = false;
-          console.error('Error al guardar pack:', JSON.stringify(err));
-          const msg = err.error?.error || 'Error de servidor';
+          console.error('Error API:', err);
+          const msg = err.error?.error || err.message || 'Error de conexión';
           await this.presentAlert('Error', msg);
         }
       });
 
     } catch (e: any) {
+      if (loading) loading.dismiss();
       this.isSaving = false;
-      console.error(e);
-      alert('Error: ' + e.message);
+      console.error('Crash UI:', e);
+      await this.presentAlert('Error Inesperado', e.message);
     }
   }
 
@@ -252,9 +225,6 @@ export class EntrenadorPacksPage implements OnInit {
     });
     await alert.present();
   }
-
-
-
 
   goBack() {
     this.router.navigate(['/entrenador-home']);
@@ -280,7 +250,7 @@ export class EntrenadorPacksPage implements OnInit {
       descripcion: '',
       capacidad_minima: 2,
       capacidad_maxima: 4,
-      dia_semana: 1, // Lunes por defecto
+      dia_semana: 1,
       hora_inicio: null,
       categoria: '',
       cantidad_personas: 1,
@@ -302,17 +272,11 @@ export class EntrenadorPacksPage implements OnInit {
   sanitizeTimeFormat(val: any): string | null {
     if (!val) return null;
     const s = val.toString();
-    // Case 1: ISO string from ion-datetime (e.g. 2023-10-11T14:30:00...)
-    if (s.includes('T')) {
-      return s.split('T')[1].substring(0, 5);
-    }
-    // Case 2: DB string (e.g. 14:30:00)
+    if (s.includes('T')) return s.split('T')[1].substring(0, 5);
     if (s.includes(':')) {
       const parts = s.split(':');
       if (parts.length >= 2) {
-        const hh = parts[0].padStart(2, '0');
-        const mm = parts[1].padStart(2, '0');
-        return `${hh}:${mm}`;
+        return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
       }
     }
     return s.substring(0, 5);
@@ -324,7 +288,6 @@ export class EntrenadorPacksPage implements OnInit {
   }
 
   editarPack(pack: any) {
-    // Abrir modal con formulario y precargar los datos del pack
     const h_inicio = this.sanitizeTimeFormat(pack.hora_inicio) || '';
     const r_inicio = this.sanitizeTimeFormat(pack.rango_horario_inicio) || '';
     const r_fin = this.sanitizeTimeFormat(pack.rango_horario_fin) || '';
@@ -343,57 +306,30 @@ export class EntrenadorPacksPage implements OnInit {
 
   async eliminarPack(packId: number) {
     const alert = await this.alertController.create({
-      header: 'Confirmar Eliminación',
-      message: '¿Estás seguro de que deseas eliminar este pack?',
+      header: 'Confirmar',
+      message: '¿Eliminar este pack?',
       buttons: [
+        { text: 'No', role: 'cancel' },
         {
-          text: 'Cancelar',
-          role: 'cancel',
-        },
-        {
-          text: 'Eliminar',
+          text: 'Sí, Eliminar',
           handler: async () => {
-            const loading = await this.loadingCtrl.create({
-              message: 'Eliminando pack...',
-              spinner: 'crescent'
-            });
+            const loading = await this.loadingCtrl.create({ message: 'Eliminando...' });
             await loading.present();
-
             this.packsService.eliminarPack(packId).subscribe({
               next: () => {
                 loading.dismiss();
-                // Actualizar la lista local
-                this.packs = this.packs.map(p =>
-                  p.id == packId ? { ...p, activo: 0 } : p
-                );
+                this.packs = this.packs.map(p => p.id == packId ? { ...p, activo: 0 } : p);
                 this.filtrarPacks();
               },
-              error: async (err) => {
+              error: (err) => {
                 loading.dismiss();
-                console.error("Error eliminando pack:", err);
-                await this.presentAlert('Error', 'No se pudo eliminar el pack. Revisa tu conexión.');
+                this.presentAlert('Error', 'No se pudo eliminar.');
               }
             });
           }
         }
       ]
     });
-
     await alert.present();
   }
-
-  guardarEdicion() {
-    this.packsService.editarPack(this.nuevoPack).subscribe({
-      next: (resp) => {
-        this.cerrarModal();
-        this.resetFormulario();
-        this.cargarPacks();
-      },
-      error: (err) => {
-        console.error("Error editando pack:", err);
-        this.presentAlert('Error', 'No se pudo guardar la edición.');
-      }
-    });
-  }
-
 }
