@@ -108,18 +108,26 @@ export class PackAlumnoPage implements OnInit {
   // ... existing code ...
 
   async confirmarCompra(pack: any) {
+    if (pack.transbank_active == 1 || pack.transbank_active == '1') {
+      this.iniciarPagoTransbank(pack);
+    } else {
+      this.comprarManual(pack);
+    }
+  }
+
+  async iniciarPagoTransbank(pack: any) {
     const jugadorId = Number(localStorage.getItem('userId'));
 
     const payload = {
       pack_id: Number(pack.id),
       jugador_id: jugadorId,
       amount: pack.precio,
-      origin: 'https://padelmanager.cl/pack-alumno'
+      origin: window.location.origin + window.location.pathname
     };
 
     const loading = await this.alertCtrl.create({
       header: 'Procesando...',
-      message: 'Redirigiendo a Webpay (Simulado)',
+      message: 'Redirigiendo a pasarela de pago...',
       backdropDismiss: false
     });
     await loading.present();
@@ -128,8 +136,6 @@ export class PackAlumnoPage implements OnInit {
       next: (res: any) => {
         loading.dismiss();
         if (res.token && res.url) {
-          // For Mobile Mock, we can use GET for simplicity or Form.
-          // Form is better but GET works with our Mock Bank.
           window.location.href = `${res.url}?token_ws=${res.token}`;
         } else {
           this.mostrarError();
@@ -138,6 +144,37 @@ export class PackAlumnoPage implements OnInit {
       error: err => {
         loading.dismiss();
         console.error(err);
+        this.mostrarError();
+      }
+    });
+  }
+
+  async comprarManual(pack: any) {
+    const loader = await this.alertCtrl.create({
+      header: 'Procesando...',
+      message: 'Activando pack...',
+      backdropDismiss: false
+    });
+    await loader.present();
+
+    const payload = {
+      pack_id: Number(pack.id),
+      jugador_id: Number(localStorage.getItem('userId'))
+    };
+
+    this.packsAlumno.insertPackAlumno(payload).subscribe({
+      next: (res: any) => {
+        loader.dismiss();
+        this.notificationService.notificarPackContratado(payload.jugador_id, pack.nombre);
+        this.alertCtrl.create({
+          header: '¡Éxito!',
+          message: 'Pack activado correctamente. Coordina el pago directamente con tu profesor.',
+          buttons: ['OK']
+        }).then(a => a.present());
+        this.cargarPacks();
+      },
+      error: (err) => {
+        loader.dismiss();
         this.mostrarError();
       }
     });

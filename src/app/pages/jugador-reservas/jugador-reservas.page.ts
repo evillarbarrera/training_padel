@@ -401,6 +401,74 @@ export class JugadorReservasPage implements OnInit {
   }
 
   async comprarPackYReservar(pack: any) {
+    if (pack.transbank_active == 1 || pack.transbank_active == '1') {
+      this.iniciarPagoPackTransbank(pack);
+    } else {
+      this.comprarPackYReservarManual(pack);
+    }
+  }
+
+  async iniciarPagoPackTransbank(pack: any) {
+    const loader = await this.loadingCtrl.create({ message: 'Preparando pago...' });
+    await loader.present();
+
+    const packId = Number(pack.id || pack.pack_id || pack.id_pack);
+
+    // 1. Crear reserva temporal en estado 'bloqueado'
+    let finalTipo = 'individual';
+    const packTypeStr = (pack.tipo || '').toLowerCase();
+    if (packTypeStr.includes('grupal') || packTypeStr.includes('multi')) {
+      finalTipo = 'grupal';
+    }
+
+    const payloadReserva = {
+      entrenador_id: Number(this.selectedEntrenador),
+      fecha: this.pendingHorario.fecha,
+      hora_inicio: this.pendingHorario.hora_inicio.toTimeString().slice(0, 5),
+      hora_fin: this.pendingHorario.hora_fin.toTimeString().slice(0, 5),
+      jugador_id: Number(this.jugadorId),
+      pack_id: packId,
+      estado: 'bloqueado', // Estado temporal hasta que pague
+      tipo: finalTipo,
+      cantidad_personas: 1
+    };
+
+    this.entrenamientoService.crearReserva(payloadReserva).subscribe({
+      next: (res: any) => {
+        const reservaId = res.reserva_ids ? res.reserva_ids[0] : null;
+
+        // 2. Iniciar Transacción
+        const paymentPayload = {
+          pack_id: packId,
+          jugador_id: Number(this.jugadorId),
+          amount: pack.precio,
+          reserva_id: reservaId,
+          origin: window.location.origin + window.location.pathname
+        };
+
+        this.packAlumnoService.initTransaction(paymentPayload).subscribe({
+          next: (payRes: any) => {
+            loader.dismiss();
+            if (payRes.token && payRes.url) {
+              window.location.href = `${payRes.url}?token_ws=${payRes.token}`;
+            } else {
+              this.mostrarToast('❌ Error al iniciar el pago');
+            }
+          },
+          error: () => {
+            loader.dismiss();
+            this.mostrarToast('❌ Error al conectar con el servidor de pagos');
+          }
+        });
+      },
+      error: () => {
+        loader.dismiss();
+        this.mostrarToast('❌ Error al reservar el horario');
+      }
+    });
+  }
+
+  async comprarPackYReservarManual(pack: any) {
     const loader = await this.loadingCtrl.create({ message: 'Activando pack...' });
     await loader.present();
 
@@ -445,7 +513,7 @@ export class JugadorReservasPage implements OnInit {
 
             this.alertCtrl.create({
               header: '¡Listo!',
-              message: 'Pack activado y clase agendada correctamente.',
+              message: 'Pack activado y clase agendada correctamente. Recuerda coordinar el pago con tu profesor.',
               buttons: ['OK']
             }).then(a => a.present());
             this.onEntrenadorChange(); // Reload slots
