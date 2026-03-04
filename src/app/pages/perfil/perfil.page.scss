@@ -176,7 +176,38 @@ ion-content {
             --padding-bottom: 12px;
         }
     }
+
+    .mp-explanation {
+        background: #f0f7ff;
+        padding: 15px;
+        border-radius: 15px;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        border: 1px solid #d0e7ff;
+        margin-bottom: 10px;
+
+        ion-icon {
+            color: #0084ff;
+            font-size: 20px;
+        }
+
+        p {
+            margin: 0;
+            font-size: 12px;
+            color: #333;
+            line-height: 1.4;
+        }
+    }
+
+    .mp-help-text {
+        font-size: 11px;
+        color: var(--nike-gray-medium);
+        margin: 5px 10px;
+        line-height: 1.4;
+    }
 }
+
 
 .save-btn {
     --background: black;

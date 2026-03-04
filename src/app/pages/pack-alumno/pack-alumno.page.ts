@@ -108,7 +108,7 @@ export class PackAlumnoPage implements OnInit {
   // ... existing code ...
 
   async confirmarCompra(pack: any) {
-    if (pack.transbank_active == 1 || pack.transbank_active == '1') {
+    if (pack.transbank_activo == 1 || pack.transbank_activo == '1') {
       this.iniciarPagoTransbank(pack);
     } else {
       this.comprarManual(pack);
@@ -136,8 +136,10 @@ export class PackAlumnoPage implements OnInit {
       next: (res: any) => {
         loading.dismiss();
         if (res.token && res.url) {
-          window.location.href = `${res.url}?token_ws=${res.token}`;
+          const separator = res.url.includes('?') ? '&' : '?';
+          window.location.href = `${res.url}${separator}token_ws=${res.token}`;
         } else {
+
           this.mostrarError();
         }
       },

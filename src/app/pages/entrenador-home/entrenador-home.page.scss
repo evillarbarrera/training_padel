@@ -92,7 +92,66 @@ ion-content {
   margin-top: -30px;
 }
 
+/* --- Mercado Pago Reminder Alert --- */
+.mp-reminder-alert {
+  background: #fff9e6;
+  border: 1px solid #ffeeba;
+  border-radius: 20px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+
+  .reminder-content {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+    margin-bottom: 15px;
+
+    ion-icon {
+      font-size: 28px;
+    }
+
+    .reminder-text {
+      h4 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 800;
+        color: #856404;
+      }
+
+      p {
+        margin: 5px 0 0;
+        font-size: 13px;
+        line-height: 1.4;
+        color: #856404;
+      }
+    }
+  }
+
+  .reminder-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+
+    ion-button {
+      --padding-start: 15px;
+      --padding-end: 15px;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    .action-btn {
+      --background: #000;
+      --color: #fff;
+      --border-radius: 12px;
+    }
+  }
+}
+
 /* Metrics Dashboard (Integrated Section) */
+
 .metrics-dashboard {
   display: flex;
   align-items: center;

@@ -401,7 +401,7 @@ export class JugadorReservasPage implements OnInit {
   }
 
   async comprarPackYReservar(pack: any) {
-    if (pack.transbank_active == 1 || pack.transbank_active == '1') {
+    if (pack.transbank_activo == 1 || pack.transbank_activo == '1') {
       this.iniciarPagoPackTransbank(pack);
     } else {
       this.comprarPackYReservarManual(pack);
@@ -450,8 +450,10 @@ export class JugadorReservasPage implements OnInit {
           next: (payRes: any) => {
             loader.dismiss();
             if (payRes.token && payRes.url) {
-              window.location.href = `${payRes.url}?token_ws=${payRes.token}`;
-            } else {
+              const separator = payRes.url.includes('?') ? '&' : '?';
+              window.location.href = `${payRes.url}${separator}token_ws=${payRes.token}`;
+            }
+            else {
               this.mostrarToast('❌ Error al iniciar el pago');
             }
           },

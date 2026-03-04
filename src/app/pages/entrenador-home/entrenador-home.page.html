@@ -19,6 +19,23 @@
   <!-- Main Content -->
   <div class="dashboard-container">
 
+    <!-- Mercado Pago Reminder -->
+    <div class="mp-reminder-alert animate-pop" *ngIf="showMPReminder">
+      <div class="reminder-content">
+        <ion-icon name="warning-outline" color="warning"></ion-icon>
+        <div class="reminder-text">
+          <h4>Configura tus Pagos</h4>
+          <p>Para recibir pagos automáticos, vincula tu cuenta de Mercado Pago en tu perfil.</p>
+        </div>
+      </div>
+      <div class="reminder-actions">
+        <ion-button fill="clear" color="dark" (click)="dismissMPReminder()">No mostrar</ion-button>
+        <ion-button fill="solid" color="dark" class="action-btn" (click)="goToPerfil()">Ir al
+          Perfil</ion-button>
+      </div>
+    </div>
+
+
     <!-- Performance Summary (Integrated Metrics) -->
     <div class="metrics-dashboard animate-up">
       <div class="metric-item">

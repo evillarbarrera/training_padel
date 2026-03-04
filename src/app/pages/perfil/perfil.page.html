@@ -107,39 +107,64 @@
       </div>
     </div>
 
-    <!-- Datos Bancarios (Solo Administradores) -->
-    <div class="section-card animate-up delay-4" *ngIf="profile.rol === 'administrador' || profile.rol === 'administrador_club' || profile.rol === 'entrenador'">
+    <!-- Pagos Mercado Pago (Solo Entrenadores / Admins) -->
+    <div class="section-card animate-up delay-4"
+      *ngIf="profile.rol === 'administrador' || profile.rol === 'administrador_club' || profile.rol === 'entrenador' || profile.rol === 'entrenador_padel'">
       <h3 class="section-title">
-        <ion-icon name="card-outline"></ion-icon>
-        Mis Datos Bancarios (Cobros)
+        <ion-icon name="wallet-outline"></ion-icon>
+        Vinculación Mercado Pago (Cobros)
       </h3>
       <div class="nike-input-group">
+
+        <!-- MP Connection Box (Full Width Style) -->
+        <div class="mp-connect-mobile-container"
+          style="background: #f8fafc; border: 1px solid #009ee3; border-left: 5px solid #009ee3; padding: 18px; border-radius: 12px; margin-bottom: 20px;">
+
+          <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 15px;">
+            <div
+              style="background: #009ee3; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 8px rgba(0, 158, 227, 0.2);">
+              <ion-icon name="flash-outline" style="font-size: 18px;"></ion-icon>
+            </div>
+            <div>
+              <h4
+                style="margin: 0; font-size: 13px; font-weight: 900; color: #111; text-transform: uppercase; letter-spacing: 0.5px;">
+                VINCULACIÓN RÁPIDA</h4>
+              <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b; line-height: 1.3; font-weight: 600;">Recibe
+                tus cobros automáticamente vinculando tu cuenta.</p>
+            </div>
+          </div>
+
+          <ion-button (click)="vincularMP()" mode="ios" expand="block"
+            style="--background: #009ee3; --border-radius: 10px; font-weight: 800; height: 50px; margin: 0; font-size: 13px; letter-spacing: 0.5px; --box-shadow: 0 4px 10px rgba(0, 158, 227, 0.2);">
+            <ion-icon name="link-outline" slot="start" style="font-size: 18px;"></ion-icon>
+            VINCULAR CUENTA OFICIAL
+          </ion-button>
+
+          <div
+            style="text-align: center; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 5px;">
+            <ion-icon name="shield-checkmark-outline" style="color: #10b981; font-size: 13px;"></ion-icon>
+            <span style="font-size: 10px; color: #94a3b8; font-weight: 800; text-transform: uppercase;">100% SEGURO Y
+              OFICIAL</span>
+          </div>
+        </div>
+
+
+        <div style="text-align: center; margin: 20px 0; position: relative;">
+          <span
+            style="background: #fff; padding: 0 10px; color: #94a3b8; font-size: 11px; font-weight: 600; position: relative; z-index: 1; text-transform: uppercase;">o
+            ingresar manualmente</span>
+          <div style="border-top: 1px dashed #e2e8f0; position: absolute; top: 8px; width: 100%; z-index: 0;"></div>
+        </div>
+
+
         <ion-item lines="none" class="nike-item">
-          <ion-label position="stacked">Titular de la Cuenta</ion-label>
-          <ion-input [(ngModel)]="profile.banco_titular" placeholder="Nombre completo del titular"></ion-input>
-        </ion-item>
-        <ion-item lines="none" class="nike-item">
-          <ion-label position="stacked">RUT</ion-label>
-          <ion-input [(ngModel)]="profile.banco_rut" placeholder="Ej: 11.222.333-4"></ion-input>
-        </ion-item>
-        <ion-item lines="none" class="nike-item">
-          <ion-label position="stacked">Banco</ion-label>
-          <ion-input [(ngModel)]="profile.banco_nombre" placeholder="Ej: Banco Santander"></ion-input>
-        </ion-item>
-        <ion-item lines="none" class="nike-item">
-          <ion-label position="stacked">Tipo de Cuenta</ion-label>
-          <ion-select [(ngModel)]="profile.banco_tipo_cuenta" interface="action-sheet" placeholder="Selecciona">
-            <ion-select-option value="Cuenta Corriente">Cuenta Corriente</ion-select-option>
-            <ion-select-option value="Cuenta Vista">Cuenta Vista</ion-select-option>
-            <ion-select-option value="Cuenta RUT">Cuenta RUT</ion-select-option>
-          </ion-select>
-        </ion-item>
-        <ion-item lines="none" class="nike-item">
-          <ion-label position="stacked">Número de Cuenta</ion-label>
-          <ion-input type="number" [(ngModel)]="profile.banco_numero_cuenta" placeholder="Número"></ion-input>
+          <ion-label position="stacked">Mercado Pago Collector ID</ion-label>
+          <ion-input [(ngModel)]="profile.mp_collector_id" placeholder="Ej: 123456789"></ion-input>
         </ion-item>
       </div>
     </div>
+
+
 
     <ion-button expand="block" class="save-btn animate-up delay-4" (click)="saveProfile()" [disabled]="loading">
       <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>

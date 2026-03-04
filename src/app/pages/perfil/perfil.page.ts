@@ -31,8 +31,14 @@ import {
   chevronBackOutline,
   mailOutline,
   callOutline,
-  cardOutline
+  cardOutline,
+  walletOutline,
+  informationCircleOutline,
+  flashOutline,
+  linkOutline,
+  shieldCheckmarkOutline
 } from 'ionicons/icons';
+
 
 @Component({
   selector: 'app-perfil',
@@ -71,8 +77,10 @@ export class PerfilPage implements OnInit {
     banco_rut: '',
     banco_nombre: '',
     banco_tipo_cuenta: '',
-    banco_numero_cuenta: ''
+    banco_numero_cuenta: '',
+    mp_collector_id: ''
   };
+
 
   direccion: any = {
     region: '',
@@ -138,8 +146,14 @@ export class PerfilPage implements OnInit {
       chevronBackOutline,
       mailOutline,
       callOutline,
-      cardOutline
+      cardOutline,
+      walletOutline,
+      informationCircleOutline,
+      flashOutline,
+      linkOutline,
+      shieldCheckmarkOutline
     });
+
   }
 
   ngOnInit() {
@@ -209,8 +223,10 @@ export class PerfilPage implements OnInit {
       banco_nombre: this.profile.banco_nombre || '',
       banco_tipo_cuenta: this.profile.banco_tipo_cuenta || '',
       banco_numero_cuenta: this.profile.banco_numero_cuenta || '',
+      mp_collector_id: this.profile.mp_collector_id || '',
       ...this.direccion
     };
+
 
     this.mysqlService.updatePerfil(payload).subscribe({
       next: async (res) => {
@@ -260,7 +276,15 @@ export class PerfilPage implements OnInit {
     });
   }
 
+  vincularMP() {
+    const clientId = '1989199016593068';
+    const redirectUri = encodeURIComponent('https://api.padelmanager.cl/pagos/mp_callback.php');
+    const authUrl = `https://auth.mercadopago.cl/authorization?client_id=${clientId}&response_type=code&platform_id=mp&redirect_uri=${redirectUri}&state=${this.userId}`;
+    window.open(authUrl, '_system');
+  }
+
   goBack() {
+
     this.navCtrl.back();
   }
 

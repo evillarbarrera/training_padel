@@ -49,10 +49,12 @@ export class EntrenadorHomePage {
     clases_grupales_mes: 0,
     clases_hoy: 0
   };
+  showMPReminder: boolean = false;
+
 
   constructor(
 
-    private router: Router,
+    public router: Router,
     private mysqlService: MysqlService,
     private authService: AuthService,
     private entrenamientoService: EntrenamientoService,
@@ -99,7 +101,16 @@ export class EntrenadorHomePage {
           } else {
             this.coachFoto = `https://ui-avatars.com/api/?name=${encodeURIComponent(this.coachNombre)}&background=ccff00&color=000`;
           }
+
+          // Check for Mercado Pago Collector ID
+          const hideReminder = localStorage.getItem('hideMPReminder');
+          if (!res.user.mp_collector_id && hideReminder !== 'true') {
+            this.showMPReminder = true;
+          } else {
+            this.showMPReminder = false;
+          }
         }
+
         this.loadDashboardStats(userId);
         this.loadAgenda();
       },
@@ -240,6 +251,10 @@ export class EntrenadorHomePage {
     this.router.navigate(['/entrenador-config']);
   }
 
+  goToPerfil() {
+    this.router.navigate(['/perfil']);
+  }
+
   async logout() {
     console.log('Logging out trainer...');
     localStorage.clear();
@@ -255,6 +270,12 @@ export class EntrenadorHomePage {
   goToHome() {
     this.router.navigate(['/entrenador-home']);
   }
+
+  dismissMPReminder() {
+    this.showMPReminder = false;
+    localStorage.setItem('hideMPReminder', 'true');
+  }
+
 
   async openSettings() {
     const actionSheet = await this.actionSheetCtrl.create({
