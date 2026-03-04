@@ -107,6 +107,40 @@
       </div>
     </div>
 
+    <!-- Datos Bancarios (Solo Administradores) -->
+    <div class="section-card animate-up delay-4" *ngIf="profile.rol === 'administrador' || profile.rol === 'administrador_club' || profile.rol === 'entrenador'">
+      <h3 class="section-title">
+        <ion-icon name="card-outline"></ion-icon>
+        Mis Datos Bancarios (Cobros)
+      </h3>
+      <div class="nike-input-group">
+        <ion-item lines="none" class="nike-item">
+          <ion-label position="stacked">Titular de la Cuenta</ion-label>
+          <ion-input [(ngModel)]="profile.banco_titular" placeholder="Nombre completo del titular"></ion-input>
+        </ion-item>
+        <ion-item lines="none" class="nike-item">
+          <ion-label position="stacked">RUT</ion-label>
+          <ion-input [(ngModel)]="profile.banco_rut" placeholder="Ej: 11.222.333-4"></ion-input>
+        </ion-item>
+        <ion-item lines="none" class="nike-item">
+          <ion-label position="stacked">Banco</ion-label>
+          <ion-input [(ngModel)]="profile.banco_nombre" placeholder="Ej: Banco Santander"></ion-input>
+        </ion-item>
+        <ion-item lines="none" class="nike-item">
+          <ion-label position="stacked">Tipo de Cuenta</ion-label>
+          <ion-select [(ngModel)]="profile.banco_tipo_cuenta" interface="action-sheet" placeholder="Selecciona">
+            <ion-select-option value="Cuenta Corriente">Cuenta Corriente</ion-select-option>
+            <ion-select-option value="Cuenta Vista">Cuenta Vista</ion-select-option>
+            <ion-select-option value="Cuenta RUT">Cuenta RUT</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item lines="none" class="nike-item">
+          <ion-label position="stacked">Número de Cuenta</ion-label>
+          <ion-input type="number" [(ngModel)]="profile.banco_numero_cuenta" placeholder="Número"></ion-input>
+        </ion-item>
+      </div>
+    </div>
+
     <ion-button expand="block" class="save-btn animate-up delay-4" (click)="saveProfile()" [disabled]="loading">
       <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
       <span *ngIf="!loading">Guardar Cambios</span>

@@ -30,7 +30,8 @@ import {
   locationOutline,
   chevronBackOutline,
   mailOutline,
-  callOutline
+  callOutline,
+  cardOutline
 } from 'ionicons/icons';
 
 @Component({
@@ -65,7 +66,12 @@ export class PerfilPage implements OnInit {
     telefono: '',
     instagram: '',
     facebook: '',
-    foto_perfil: ''
+    foto_perfil: '',
+    banco_titular: '',
+    banco_rut: '',
+    banco_nombre: '',
+    banco_tipo_cuenta: '',
+    banco_numero_cuenta: ''
   };
 
   direccion: any = {
@@ -131,7 +137,8 @@ export class PerfilPage implements OnInit {
       locationOutline,
       chevronBackOutline,
       mailOutline,
-      callOutline
+      callOutline,
+      cardOutline
     });
   }
 
@@ -197,6 +204,11 @@ export class PerfilPage implements OnInit {
       foto_perfil: this.profile.foto_perfil,
       categoria: this.profile.categoria || 'Cuarta',
       descripcion: this.profile.descripcion || '',
+      banco_titular: this.profile.banco_titular || '',
+      banco_rut: this.profile.banco_rut || '',
+      banco_nombre: this.profile.banco_nombre || '',
+      banco_tipo_cuenta: this.profile.banco_tipo_cuenta || '',
+      banco_numero_cuenta: this.profile.banco_numero_cuenta || '',
       ...this.direccion
     };
 
