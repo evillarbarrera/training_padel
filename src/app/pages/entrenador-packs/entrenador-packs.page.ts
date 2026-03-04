@@ -181,7 +181,15 @@ export class EntrenadorPacksPage implements OnInit {
       if (p.tipo === 'grupal') {
         const diaInvalido = (p.dia_semana === null || p.dia_semana === undefined || p.dia_semana === '');
         if (!p.capacidad_minima || !p.capacidad_maxima || diaInvalido || !p.hora_inicio || !p.categoria) {
-          await this.presentAlert('Datos Incompletos', 'Para packs grupales todos los campos son obligatorios (Capacidad, Día, Hora y Categoría).');
+
+          let camposFaltantes = [];
+          if (!p.capacidad_minima) camposFaltantes.push('Capacidad Mínima');
+          if (!p.capacidad_maxima) camposFaltantes.push('Capacidad Máxima');
+          if (diaInvalido) camposFaltantes.push('Día Semana');
+          if (!p.hora_inicio) camposFaltantes.push('Hora Inicio');
+          if (!p.categoria) camposFaltantes.push('Categoría');
+
+          await this.presentAlert('Datos Incompletos', `Para packs grupales todos los campos son obligatorios. Falta: ${camposFaltantes.join(', ')}.`);
           return;
         }
         if (Number(p.capacidad_minima) > Number(p.capacidad_maxima)) {
@@ -223,7 +231,7 @@ export class EntrenadorPacksPage implements OnInit {
         error: async (err) => {
           loading.dismiss();
           this.isSaving = false;
-          console.error('Error al guardar pack:', err);
+          console.error('Error al guardar pack:', JSON.stringify(err));
           const msg = err.error?.error || 'Error de servidor';
           await this.presentAlert('Error', msg);
         }
