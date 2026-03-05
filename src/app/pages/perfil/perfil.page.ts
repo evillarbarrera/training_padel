@@ -19,7 +19,8 @@ import {
   IonRefresher,
   IonRefresherContent,
   NavController,
-  ToastController
+  ToastController,
+  AlertController
 } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
 import { addIcons } from 'ionicons';
@@ -36,7 +37,9 @@ import {
   informationCircleOutline,
   flashOutline,
   linkOutline,
-  shieldCheckmarkOutline
+  shieldCheckmarkOutline,
+  trashOutline,
+  warningOutline
 } from 'ionicons/icons';
 
 
@@ -136,7 +139,8 @@ export class PerfilPage implements OnInit {
   constructor(
     private mysqlService: MysqlService,
     private navCtrl: NavController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private alertCtrl: AlertController
   ) {
     addIcons({
       personOutline,
@@ -151,7 +155,9 @@ export class PerfilPage implements OnInit {
       informationCircleOutline,
       flashOutline,
       linkOutline,
-      shieldCheckmarkOutline
+      shieldCheckmarkOutline,
+      trashOutline,
+      warningOutline
     });
 
   }
@@ -284,8 +290,31 @@ export class PerfilPage implements OnInit {
   }
 
   goBack() {
-
     this.navCtrl.back();
+  }
+
+  async eliminarCuenta() {
+    const alert = await this.alertCtrl.create({
+      header: '¿Eliminar Cuenta?',
+      subHeader: 'Esta acción es definitiva',
+      message: 'Se enviará una solicitud para borrar todos tus datos personales de nuestra base de datos. ¿Deseas continuar?',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          cssClass: 'secondary'
+        },
+        {
+          text: 'Sí, Eliminar',
+          role: 'destructive',
+          handler: () => {
+            window.location.href = `https://api.padelmanager.cl/delete-account?user_id=${this.userId}`;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 
 }

@@ -166,6 +166,22 @@
 
 
 
+    <!-- Zona de Peligro -->
+    <div class="section-card animate-up delay-4" style="border: 2px dashed #fee2e2; background: #fffcfc;">
+      <h3 class="section-title" style="color: #ef4444;">
+        <ion-icon name="warning-outline"></ion-icon>
+        Gestión de Cuenta
+      </h3>
+      <p style="font-size: 13px; color: #64748b; margin-bottom: 12px; line-height: 1.4;">
+        Puedes solicitar la eliminación definitiva de tu cuenta y todos tus datos personales.
+      </p>
+      <ion-button (click)="eliminarCuenta()" mode="ios" expand="block" color="danger" fill="outline"
+        style="--border-radius: 12px; font-weight: 700; height: 45px; font-size: 13px;">
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Eliminar mi Cuenta
+      </ion-button>
+    </div>
+
     <ion-button expand="block" class="save-btn animate-up delay-4" (click)="saveProfile()" [disabled]="loading">
       <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
       <span *ngIf="!loading">Guardar Cambios</span>
