@@ -18,7 +18,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-entrenador-home',
@@ -72,7 +72,8 @@ export class EntrenadorHomePage {
       addCircleOutline,
       checkmarkDoneCircleOutline,
       chevronDownOutline,
-      chevronUpOutline
+      chevronUpOutline,
+      giftOutline
     });
   }
 

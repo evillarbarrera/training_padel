@@ -19,6 +19,19 @@
   <!-- Main Content -->
   <div class="dashboard-container">
 
+    <!-- Promo Alert: 3 months free -->
+    <div class="mp-reminder-alert animate-pop promo-active" *ngIf="stats.promo_activa"
+      style="background: #e6ffef; border-color: #b2f2bb;">
+      <div class="reminder-content">
+        <ion-icon name="gift-outline" style="color: #2b8a3e;"></ion-icon>
+        <div class="reminder-text">
+          <h4 style="color: #2b8a3e;">¡Promoción Activa!</h4>
+          <p style="color: #2b8a3e;">Disfrutas de <strong>comisión 0%</strong>. Te quedan <strong>{{
+              stats.promo_dias_restantes }} días</strong>.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Mercado Pago Reminder -->
     <div class="mp-reminder-alert animate-pop" *ngIf="showMPReminder">
       <div class="reminder-content">
