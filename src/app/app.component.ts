@@ -10,6 +10,8 @@ import { NotificationService } from './services/notification.service';
   imports: [IonApp, IonRouterOutlet],
 })
 export class AppComponent {
+  showSplash = true;
+
   constructor(
     private platform: Platform,
     private notificationService: NotificationService
@@ -18,6 +20,11 @@ export class AppComponent {
   }
 
   initializeApp() {
+    // Timer para el Splash Screen
+    setTimeout(() => {
+      this.showSplash = false;
+    }, 3000);
+
     // Solo inicializar el plugin nativo si estamos en un dispositivo real (Android o iOS)
     // No inicializar en 'desktop' ni 'mobileweb' para evitar conflictos con GIS
     if (this.platform.is('capacitor') && (this.platform.is('android') || this.platform.is('ios'))) {

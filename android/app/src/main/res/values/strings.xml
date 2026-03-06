@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PadelManager</string>
+    <string name="title_activity_main">PadelManager</string>
+    <string name="package_name">cl.padelacademy.app</string>
+    <string name="custom_url_scheme">cl.padelacademy.app</string>
+</resources>
