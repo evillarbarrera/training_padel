@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -74,8 +74,28 @@ export class EntrenadorAgendarPage implements OnInit {
     paginaActual: number = 1;
     elementosPorPagina: number = 4; // logic to control modal
 
+    @HostListener('window:resize', ['$event'])
+    onResize(event: any) {
+        this.calcularElementosPorPagina();
+    }
+
+    private calcularElementosPorPagina() {
+        if (window.innerWidth >= 768) {
+            this.elementosPorPagina = 9999;
+            return;
+        }
+        // En móvil/tablet, restar altura de buscador, cabecera aprox 250px
+        const alturaDisponible = window.innerHeight - 250;
+        const filas = Math.max(2, Math.floor(alturaDisponible / 80)); // ion-item aprox 80px
+        this.elementosPorPagina = filas;
+    }
+
     // Paso 2: Recurrencia
     recurrencia: number = 1;
+
+    // Paso 2.5: Club
+    clubesDisponibles: any[] = [];
+    selectedClubId: number | null = null;
 
     // Paso 3: Horarios
     horariosDisponibles: any[] = [];
@@ -100,6 +120,7 @@ export class EntrenadorAgendarPage implements OnInit {
     }
 
     ngOnInit() {
+        this.calcularElementosPorPagina();
         this.cargarAlumnos();
     }
 
@@ -166,6 +187,14 @@ export class EntrenadorAgendarPage implements OnInit {
         this.diaSeleccionado = ''; // Reset state
         this.horariosPorDia = {};
         this.horariosDisponibles = [];
+        this.selectedClubId = null;
+        this.clubesDisponibles = [];
+    }
+
+    onClubChange() {
+        if (this.horariosDisponibles.length > 0) {
+            this.organizarHorarios(this.horariosDisponibles);
+        }
     }
 
     cargarDisponibilidadCoach(packId?: number) {
@@ -208,6 +237,23 @@ export class EntrenadorAgendarPage implements OnInit {
                         };
                     });
 
+                    // Extraer clubes únicos
+                    const clubMap = new Map();
+                    availabilityMapeada.forEach((slot: any) => {
+                        if (slot.club_id && !clubMap.has(slot.club_id)) {
+                            clubMap.set(slot.club_id, {
+                                id: slot.club_id,
+                                nombre: slot.club_nombre,
+                                direccion: slot.club_direccion
+                            });
+                        }
+                    });
+                    this.clubesDisponibles = Array.from(clubMap.values());
+
+                    if (this.clubesDisponibles.length > 0 && !this.selectedClubId) {
+                        this.selectedClubId = this.clubesDisponibles[0].id; // auto-select
+                    }
+
                     this.horariosDisponibles = availabilityMapeada;
                     this.organizarHorarios(availabilityMapeada);
                     this.cargandoHorarios = false;
@@ -234,6 +280,11 @@ export class EntrenadorAgendarPage implements OnInit {
         const diasSet = new Set<string>();
 
         horarios.forEach(h => {
+            // Filtrar por club si hay alguno seleccionado
+            if (this.selectedClubId && Number(h.club_id) !== Number(this.selectedClubId)) {
+                return;
+            }
+
             // Adapted for fecha_inicio and fecha_fin as seen in logs
             const startStr = h.fecha_inicio || h.hora_inicio;
             const endStr = h.fecha_fin || h.hora_fin;
@@ -241,7 +292,7 @@ export class EntrenadorAgendarPage implements OnInit {
             if (!startStr) return;
 
             try {
-                // Ensure date format compatibility
+                // Ensure date format compatibility (Standardizing to T separator for iOS/Safari)
                 const dateInicio = new Date(startStr.replace(' ', 'T'));
                 let dateFin: Date;
 
@@ -329,6 +380,7 @@ export class EntrenadorAgendarPage implements OnInit {
             entrenador_id: this.entrenadorId,
             pack_id: this.alumnoSeleccionado.pack_id,
             pack_jugador_id: this.alumnoSeleccionado.pack_jugador_id,
+            club_id: bloque.club_id || this.selectedClubId,
             fecha: bloque.fecha,
             hora_inicio: bloque.dateInicio.toTimeString().slice(0, 5),
             hora_fin: bloque.dateFin.toTimeString().slice(0, 5),
@@ -348,7 +400,8 @@ export class EntrenadorAgendarPage implements OnInit {
             error: (err) => {
                 loading.dismiss();
                 console.error('Error reserving:', err);
-                this.mostrarToast('❌ Error al agendar la clase');
+                const msg = err.error?.error || 'Error al agendar la clase';
+                this.alertCtrl.create({ header: 'Conflicto de Horario', message: msg, buttons: ['OK'] }).then(a => a.present());
             }
         });
     }

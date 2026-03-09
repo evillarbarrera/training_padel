@@ -245,7 +245,7 @@ export class DisponibilidadEntrenadorPage implements OnInit {
         nombre: nombresDias[fecha.getDay()],
         fecha: this.getLocalISODate(fecha),
         hora_inicio: '07:00',
-        hora_fin: '21:00',
+        hora_fin: '22:00',
         duracion: 60
       });
     }
@@ -507,7 +507,7 @@ export class DisponibilidadEntrenadorPage implements OnInit {
   initTemplateBlocks() {
     this.templateBlocks = {};
     const horas: string[] = [];
-    for (let h = 7; h <= 22; h++) {
+    for (let h = 7; h < 22; h++) {
       const hh = h < 10 ? '0' + h : h;
       horas.push(`${hh}:00`);
     }

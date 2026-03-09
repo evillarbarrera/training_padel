@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { PackAlumnoService } from '../../services/pack_alumno.service';
 import { PacksService } from '../../services/pack.service';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -57,6 +57,22 @@ export class PackAlumnoPage implements OnInit {
   searchRadius = 50; // Default 50km
   isLoadingLocation = false;
 
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.calcularPageSize();
+  }
+
+  private calcularPageSize() {
+    if (window.innerWidth >= 768) {
+      this.pageSize = 9999;
+      return;
+    }
+    // Restamos filtros, cabecera... aprox 350px
+    const alturaDisponible = window.innerHeight - 350;
+    const filas = Math.max(2, Math.floor(alturaDisponible / 160));
+    const columnas = window.innerWidth > 768 ? 2 : 1;
+    this.pageSize = filas * columnas;
+  }
 
 
   constructor(private modalCtrl: ModalController,
@@ -82,6 +98,7 @@ export class PackAlumnoPage implements OnInit {
   }
 
   ngOnInit() {
+    this.calcularPageSize();
     this.getCurrentLocation();
     this.checkPaymentStatus();
   }

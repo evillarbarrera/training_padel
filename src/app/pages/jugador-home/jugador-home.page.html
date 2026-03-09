@@ -41,6 +41,34 @@
       </div>
     </div>
 
+    <!-- Desglose de Packs por Entrenador -->
+    <div class="packs-breakdown animate-up" *ngIf="packsDetalle.length > 0" style="animation-delay: 0.05s;">
+      <div class="breakdown-header">
+        <span class="breakdown-title">MIS PACKS</span>
+      </div>
+      <div class="pack-item" *ngFor="let pack of packsDetalle">
+        <div class="pack-coach-row">
+          <div class="pack-avatar">
+            <img *ngIf="pack.entrenador_foto"
+              [src]="pack.entrenador_foto.startsWith('http') ? pack.entrenador_foto : 'https://api.padelmanager.cl/' + pack.entrenador_foto"
+              alt="Coach" />
+            <span *ngIf="!pack.entrenador_foto" class="avatar-fallback">🎾</span>
+          </div>
+          <div class="pack-text">
+            <span class="coach-name">{{ pack.entrenador_nombre }}</span>
+            <span class="pack-label">{{ pack.nombre }}</span>
+          </div>
+        </div>
+        <div class="pack-bar-group">
+          <div class="pack-bar">
+            <div class="pack-bar-fill" [style.width.%]="pack.total > 0 ? (pack.disponibles / pack.total) * 100 : 0">
+            </div>
+          </div>
+          <span class="pack-count">{{ pack.disponibles }}/{{ pack.total }}</span>
+        </div>
+      </div>
+    </div>
+
     <!-- PRÓXIMA CLASE: Minimalista, una sola fila -->
     <div class="next-session-row animate-up delay-1" *ngIf="proximaClase" (click)="goToMisClases()">
       <div class="row-main">
@@ -48,7 +76,8 @@
           <ion-icon name="calendar-outline"></ion-icon>
         </div>
         <div class="row-text">
-          <span class="label">SIGUIENTE SESIÓN:</span>
+          <span class="label">SIGUIENTE SESIÓN{{ proximaClase.entrenador ? ' — ' + proximaClase.entrenador : ''
+            }}:</span>
           <span class="value">{{ proximaClase.fecha | date:'d MMM' }} • {{ proximaClase.hora_inicio.slice(0,5) }}
             HRS</span>
         </div>

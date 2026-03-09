@@ -30,6 +30,10 @@ ion-content {
   bottom: 65px;
   /* Significant lift from the white container */
   left: 35px;
+  right: 35px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   color: white;
   z-index: 2;
 
@@ -78,6 +82,36 @@ ion-content {
         color: #fff;
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
       }
+    }
+  }
+
+  .notifications-btn {
+    position: relative;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+    ion-icon {
+      font-size: 24px;
+      color: white;
+    }
+
+    .notif-badge {
+      position: absolute;
+      top: 0px;
+      right: -2px;
+      font-size: 10px;
+      font-weight: 800;
+      border-radius: 50%;
+      padding: 4px 6px;
+      min-width: 20px;
+      line-height: 1;
     }
   }
 }
@@ -429,5 +463,176 @@ ion-content {
   ion-icon {
     font-size: 24px;
     color: white;
+  }
+}
+
+/* --- NOTIFICATIONS MODAL --- */
+ion-modal.custom-bottom-sheet {
+  --border-radius: 36px 36px 0 0;
+  --box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+
+  @media (min-width: 768px) {
+    --border-radius: 36px;
+    /* Let it round fully if centering on iPad */
+  }
+}
+
+.notifications-content {
+  --background: #fdfdfd;
+  --padding-bottom: 30px;
+
+  .drag-handle {
+    width: 45px;
+    height: 6px;
+    background: #e2e2e2;
+    border-radius: 10px;
+    margin: 12px auto 25px;
+
+    @media (min-width: 768px) {
+      display: none;
+    }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 20px;
+
+    h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 900;
+      color: #1a1a1a;
+      letter-spacing: -0.5px;
+    }
+
+    .close-btn {
+      --padding-start: 0;
+      --padding-end: 0;
+      margin: 0;
+      height: 40px;
+      width: 40px;
+      --border-radius: 50%;
+      background: #f2f2f5;
+      color: #555;
+    }
+  }
+
+  .notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0 15px 20px;
+  }
+
+  .notification-card {
+    background: #ffffff;
+    border-radius: 26px;
+    padding: 22px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+
+    .icon-box {
+      width: 50px;
+      height: 50px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 24px;
+    }
+
+    .card-text {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      h4 {
+        margin: 0 0 6px;
+        font-size: 16px;
+        font-weight: 800;
+      }
+
+      p {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.5;
+        color: #777;
+      }
+    }
+
+    .card-actions {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 10px;
+
+      ion-button {
+        --border-radius: 14px;
+        font-size: 13px;
+        font-weight: 800;
+        margin: 0;
+        height: 40px;
+        --padding-start: 16px;
+        --padding-end: 16px;
+      }
+
+      .action-btn {
+        --background: #111;
+        --color: #fff;
+      }
+    }
+  }
+
+  .success-card {
+    .icon-box {
+      background: rgba(52, 199, 89, 0.12);
+      color: #34c759;
+    }
+
+    h4 {
+      color: #248a3e;
+    }
+  }
+
+  .warning-card {
+    .icon-box {
+      background: rgba(255, 204, 0, 0.12);
+      color: #d4a000;
+    }
+
+    h4 {
+      color: #aa8000;
+    }
+  }
+
+  .empty-notifications {
+    text-align: center;
+    padding: 50px 20px;
+    color: #999;
+
+    ion-icon {
+      font-size: 54px;
+      opacity: 0.4;
+      margin-bottom: 20px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+    }
   }
 }

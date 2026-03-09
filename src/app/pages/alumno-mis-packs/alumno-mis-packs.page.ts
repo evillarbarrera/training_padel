@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ToastController, AlertController } from '@ionic/angular';
@@ -42,6 +42,23 @@ export class AlumnoMisPacksPage implements OnInit {
     paginaActual: number = 1;
     itemsPorPagina: number = 3;
 
+    @HostListener('window:resize', ['$event'])
+    onResize(event: any) {
+        this.calcularItemsPorPagina();
+    }
+
+    private calcularItemsPorPagina() {
+        if (window.innerWidth >= 768) {
+            this.itemsPorPagina = 9999;
+            return;
+        }
+        // En móvil/tablet, restar altura de tabs, nav, segmento
+        const alturaDisponible = window.innerHeight - 300;
+        const filas = Math.max(2, Math.floor(alturaDisponible / 160)); // Card height aprox 160
+        const columnas = window.innerWidth > 768 ? 2 : 1;
+        this.itemsPorPagina = filas * columnas;
+    }
+
     // Modal Invitación
     showModalInvitacion: boolean = false;
     selectedPack: any = null;
@@ -71,6 +88,7 @@ export class AlumnoMisPacksPage implements OnInit {
             this.router.navigate(['/login']);
             return;
         }
+        this.calcularItemsPorPagina();
         this.loadProfile();
         this.loadPacks();
     }

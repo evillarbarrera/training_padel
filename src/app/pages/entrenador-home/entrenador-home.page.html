@@ -13,41 +13,16 @@
           <h1 class="header-title">{{ coachNombre }}</h1>
         </div>
       </div>
+      <!-- Notifications Button -->
+      <div class="notifications-btn" (click)="openNotificaciones()" *ngIf="getNotificacionesCount() > 0">
+        <ion-icon name="notifications-outline"></ion-icon>
+        <ion-badge color="danger" class="notif-badge">{{ getNotificacionesCount() }}</ion-badge>
+      </div>
     </div>
   </div>
 
   <!-- Main Content -->
   <div class="dashboard-container">
-
-    <!-- Promo Alert: 3 months free -->
-    <div class="mp-reminder-alert animate-pop promo-active" *ngIf="stats.promo_activa"
-      style="background: #e6ffef; border-color: #b2f2bb;">
-      <div class="reminder-content">
-        <ion-icon name="gift-outline" style="color: #2b8a3e;"></ion-icon>
-        <div class="reminder-text">
-          <h4 style="color: #2b8a3e;">¡Promoción Activa!</h4>
-          <p style="color: #2b8a3e;">Disfrutas de <strong>comisión 0%</strong>. Te quedan <strong>{{
-              stats.promo_dias_restantes }} días</strong>.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Mercado Pago Reminder -->
-    <div class="mp-reminder-alert animate-pop" *ngIf="showMPReminder">
-      <div class="reminder-content">
-        <ion-icon name="warning-outline" color="warning"></ion-icon>
-        <div class="reminder-text">
-          <h4>Configura tus Pagos</h4>
-          <p>Para recibir pagos automáticos, vincula tu cuenta de Mercado Pago en tu perfil.</p>
-        </div>
-      </div>
-      <div class="reminder-actions">
-        <ion-button fill="clear" color="dark" (click)="dismissMPReminder()">No mostrar</ion-button>
-        <ion-button fill="solid" color="dark" class="action-btn" (click)="goToPerfil()">Ir al
-          Perfil</ion-button>
-      </div>
-    </div>
-
 
     <!-- Performance Summary (Integrated Metrics) -->
     <div class="metrics-dashboard animate-up">
@@ -110,7 +85,7 @@
 
       <!-- Agenda Card -->
       <div class="nike-card module-card" (click)="goToAgenda()">
-        <img src="/assets/mod-agenda.jpg" class="module-img" />
+        <img src="/assets/reserva-bg.jpg" class="module-img" />
         <div class="module-body">
           <div class="module-text">
             <h3>Mi Agenda</h3>
@@ -153,5 +128,57 @@
       <ion-icon name="person-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>
+
+  <!-- Notifications Modal -->
+  <ion-modal class="custom-bottom-sheet" [isOpen]="isNotificacionesOpen" (didDismiss)="isNotificacionesOpen = false"
+    initialBreakpoint="0.6" [breakpoints]="[0, 0.6, 0.9]">
+    <ng-template>
+      <ion-content class="notifications-content">
+        <div class="drag-handle"></div>
+        <div class="modal-header">
+          <h2>Notificaciones</h2>
+          <ion-button fill="clear" color="medium" (click)="isNotificacionesOpen = false" class="close-btn">
+            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+
+        <div class="notifications-list">
+          <!-- Promo Alert -->
+          <div class="notification-card success-card animate-pop" *ngIf="stats.promo_activa">
+            <div class="icon-box">
+              <ion-icon name="gift"></ion-icon>
+            </div>
+            <div class="card-text">
+              <h4>¡Promoción Activa!</h4>
+              <p>Disfrutas de <strong>comisión 0%</strong>. Te quedan <strong>{{ stats.promo_dias_restantes }}
+                  días</strong>.</p>
+            </div>
+          </div>
+
+          <!-- MP Reminder -->
+          <div class="notification-card warning-card animate-pop" *ngIf="showMPReminder">
+            <div class="icon-box">
+              <ion-icon name="wallet"></ion-icon>
+            </div>
+            <div class="card-text">
+              <h4>Configura tus Pagos</h4>
+              <p>Para recibir pagos automáticos, vincula tu cuenta de Mercado Pago en tu perfil.</p>
+            </div>
+            <div class="card-actions">
+              <ion-button fill="clear" color="medium" (click)="dismissMPReminder()">Ignorar</ion-button>
+              <ion-button fill="solid" class="action-btn" (click)="goToPerfil(); isNotificacionesOpen = false">Ir al
+                Perfil</ion-button>
+            </div>
+          </div>
+
+          <div class="empty-notifications" *ngIf="getNotificacionesCount() === 0">
+            <ion-icon name="notifications-off-outline"></ion-icon>
+            <p>No tienes notificaciones pendientes.</p>
+          </div>
+        </div>
+
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 
 </ion-content>

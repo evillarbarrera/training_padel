@@ -463,9 +463,10 @@ export class JugadorReservasPage implements OnInit {
           }
         });
       },
-      error: () => {
+      error: (err) => {
         loader.dismiss();
-        this.mostrarToast('❌ Error al reservar el horario');
+        const msg = err.error?.error || 'Error al reservar el horario';
+        this.alertCtrl.create({ header: 'Conflicto de Horario', message: msg, buttons: ['OK'] }).then(a => a.present());
       }
     });
   }
@@ -520,9 +521,10 @@ export class JugadorReservasPage implements OnInit {
             }).then(a => a.present());
             this.onEntrenadorChange(); // Reload slots
           },
-          error: () => {
+          error: (err) => {
             loader.dismiss();
-            this.mostrarToast('❌ Error al agendar la clase');
+            const msg = err.error?.error || 'Error al agendar la clase';
+            this.alertCtrl.create({ header: 'Conflicto de Horario', message: msg, buttons: ['OK'] }).then(a => a.present());
           }
         });
       },
@@ -568,8 +570,8 @@ export class JugadorReservasPage implements OnInit {
     this.horariosPorDia = {};
     this.dias = [];
 
-    // Pre-populate 10 days from today
-    for (let i = 0; i < 10; i++) {
+    // Pre-populate 30 days from today
+    for (let i = 0; i < 30; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
       const ds = d.toISOString().split('T')[0];
@@ -591,18 +593,24 @@ export class JugadorReservasPage implements OnInit {
         if (this.tipoEntrenamiento !== 'grupal' && slotTipo === 'grupal') return;
       }
 
-      let inicio = new Date(d.fecha_inicio || d.hora_inicio);
-      const fin = new Date(d.fecha_fin || d.hora_fin);
-      const ocupado = Boolean(d.ocupado);
+      // Standardized date parsing for mobile compatibility (iOS/Safari)
+      let inicioStr = d.fecha_inicio || d.hora_inicio;
+      let finStr = d.fecha_fin || d.hora_fin;
+
+      if (!inicioStr) return;
+
+      let inicio = new Date(inicioStr.replace(' ', 'T'));
+      const fin = new Date(finStr.replace(' ', 'T'));
+      const ocupado = d.ocupado == 1 || d.ocupado === '1' || d.ocupado === true;
 
       while (inicio < fin) {
         const bloqueInicio = new Date(inicio);
         const bloqueFin = new Date(inicio.getTime() + 60 * 60 * 1000);
 
-        if (bloqueInicio > ahora && bloqueFin <= fin) {
+        if (bloqueInicio >= ahora && bloqueFin <= fin) {
           const fecha = bloqueInicio.toISOString().split('T')[0];
 
-          // Only add to result if day falls within the 10 days we track
+          // Only add to result if day falls within the 30 days we track
           if (this.horariosPorDia[fecha]) {
             const horaInicio = bloqueInicio.toTimeString().slice(0, 5);
             const horaFin = bloqueFin.toTimeString().slice(0, 5);
@@ -727,7 +735,10 @@ export class JugadorReservasPage implements OnInit {
                   this.mostrarToast('✅ Reserva guardada correctamente');
                   this.onEntrenadorChange();
                 },
-                error: () => this.mostrarToast('❌ Error al guardar la reserva')
+                error: (err) => {
+                  const msg = err.error?.error || 'Error al guardar la reserva';
+                  this.alertCtrl.create({ header: 'Conflicto de Horario', message: msg, buttons: ['OK'] }).then(a => a.present());
+                }
               });
             }
           }

@@ -14,11 +14,16 @@ import {
   IonSpinner,
   IonBadge,
   IonRefresher,
-  IonRefresherContent
+  IonRefresherContent,
+  IonModal,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonButtons
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-entrenador-home',
@@ -31,7 +36,12 @@ import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOut
     IonSpinner,
     IonBadge,
     IonRefresher,
-    IonRefresherContent
+    IonRefresherContent,
+    IonModal,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonButtons
   ],
   templateUrl: './entrenador-home.page.html',
   styleUrls: ['./entrenador-home.page.scss']
@@ -50,6 +60,8 @@ export class EntrenadorHomePage {
     clases_hoy: 0
   };
   showMPReminder: boolean = false;
+
+  isNotificacionesOpen: boolean = false;
 
 
   constructor(
@@ -73,8 +85,21 @@ export class EntrenadorHomePage {
       checkmarkDoneCircleOutline,
       chevronDownOutline,
       chevronUpOutline,
-      giftOutline
+      giftOutline,
+      notificationsOutline,
+      warningOutline
     });
+  }
+
+  getNotificacionesCount(): number {
+    let count = 0;
+    if (this.stats && this.stats.promo_activa) count++;
+    if (this.showMPReminder) count++;
+    return count;
+  }
+
+  openNotificaciones() {
+    this.isNotificacionesOpen = true;
   }
 
   ionViewWillEnter() {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Location } from '@angular/common';
@@ -32,6 +32,23 @@ export class EntrenadorPacksPage implements OnInit {
   segmentoSeleccionado: 'individual' | 'multijugador' | 'grupal' = 'individual';
   paginaActual: number = 1;
   elementosPorPagina: number = 3;
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.calcularElementosPorPagina();
+  }
+
+  private calcularElementosPorPagina() {
+    if (window.innerWidth >= 768) {
+      this.elementosPorPagina = 9999;
+      return;
+    }
+    // Restamos cabecera, segmento
+    const alturaDisponible = window.innerHeight - 300;
+    const filas = Math.max(2, Math.floor(alturaDisponible / 160));
+    const columnas = window.innerWidth > 768 ? 2 : 1;
+    this.elementosPorPagina = filas * columnas;
+  }
 
   nuevoPack: any = {
     nombre: '',
@@ -75,6 +92,7 @@ export class EntrenadorPacksPage implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
+    this.calcularElementosPorPagina();
     this.cargarPacks();
   }
 

@@ -79,6 +79,17 @@
                             </div>
                         </div>
 
+                        <!-- CLUB SELECTOR -->
+                        <div class="club-selector-wrapper" *ngIf="clubesDisponibles.length > 0">
+                            <h3 class="section-title">Club</h3>
+                            <ion-segment [(ngModel)]="selectedClubId" (ionChange)="onClubChange()" mode="ios"
+                                class="club-segment">
+                                <ion-segment-button *ngFor="let club of clubesDisponibles" [value]="club.id">
+                                    <ion-label>{{ club.nombre }}</ion-label>
+                                </ion-segment-button>
+                            </ion-segment>
+                        </div>
+
                         <!-- RECURRENCE -->
                         <div class="nike-card recurrence-card">
                             <ion-item lines="none" style="--background: transparent;">

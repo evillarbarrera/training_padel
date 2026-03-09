@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -117,7 +117,38 @@ export class AlumnosPage implements OnInit {
   tramoSeleccionado: 'manana' | 'tarde' | 'noche' = 'manana';
   entrenadorId = Number(localStorage.getItem('userId'));
 
+  // Pagination
+  paginaActual: number = 1;
+  elementosPorPagina: number = 5; // Default
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.calcularElementosPorPagina();
+  }
+
+  private calcularElementosPorPagina() {
+    if (window.innerWidth >= 768) {
+      this.elementosPorPagina = 9999;
+      return;
+    }
+    // Restamos el header y filtros (aprox 200px)
+    const availableHeight = window.innerHeight - 200;
+
+    // Altura aprox de cada tarjeta (List Item) en Alumnos es 80-100px.
+    const cardHeight = 90;
+
+    // Cuántas caben en la pantalla
+    const filas = Math.max(3, Math.floor(availableHeight / cardHeight)); // min 3
+
+    // Si estamos en tablet portrait, puede que queramos más ancho pero sigamos con lista vertical
+    const columnas = 1; // En ionic list view suele ser 1 columna
+
+    this.elementosPorPagina = filas * columnas;
+    console.log(`Paginación dinámica: ${this.elementosPorPagina} items (${filas}x${columnas})`);
+  }
+
   ngOnInit() {
+    this.calcularElementosPorPagina();
     this.cargarAlumnos();
   }
 
@@ -141,12 +172,6 @@ export class AlumnosPage implements OnInit {
         }
 
         this.alumnos = res.map((a: any) => {
-          // Debugging - Remove after fixing
-          console.log(`Checking photo for ${a.jugador_nombre}:`, {
-            foto_perfil: a.foto_perfil,
-            foto: a.foto
-          });
-
           // Priority cleanup and validation of photo fields
           const p1 = a.foto_perfil && String(a.foto_perfil).length > 5 ? a.foto_perfil : null;
           const p2 = a.foto && String(a.foto).length > 5 ? a.foto : null;
@@ -164,8 +189,6 @@ export class AlumnosPage implements OnInit {
             fotoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(a.jugador_nombre)}&background=ccff00&color=000`;
           }
 
-          console.log(`Final URL for ${a.jugador_nombre}:`, fotoUrl);
-
           return {
             id: a.jugador_id,
             nombre: a.jugador_nombre,
@@ -181,11 +204,10 @@ export class AlumnosPage implements OnInit {
 
         // Fetch detailed profile for missing photos
         this.alumnos.forEach((alumno, index) => {
-          // Only fetch if fallback was used (contains ui-avatars) or force update
           if (alumno.foto.includes('ui-avatars')) {
             this.mysqlService.getPerfil(alumno.id).subscribe({
               next: (profile: any) => {
-                const p = profile.user || profile; // Handle potential wrapper
+                const p = profile.user || profile;
                 let updatedFoto = p.foto_perfil || p.link_foto;
 
                 if (updatedFoto && typeof updatedFoto === 'string' && !updatedFoto.includes('imagen_defecto') && updatedFoto.length > 0) {
@@ -193,7 +215,6 @@ export class AlumnosPage implements OnInit {
                     const cleanPath = updatedFoto.startsWith('/') ? updatedFoto.substring(1) : updatedFoto;
                     updatedFoto = `https://api.padelmanager.cl/${cleanPath}`;
                   }
-                  // Update view
                   this.alumnos[index].foto = updatedFoto;
                 }
               },
@@ -222,22 +243,13 @@ export class AlumnosPage implements OnInit {
     this.router.navigate(['/evaluar', alumnoId]);
   }
 
-  // Pagination
-  paginaActual: number = 1;
-  elementosPorPagina: number = 3;
-
   get alumnosFiltrados() {
     const cleanFilter = this.filtro.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
     return this.alumnos.filter(alumno => {
       const cleanNombre = (alumno.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
       const coincideNombre = cleanNombre.includes(cleanFilter);
-
-      const coincideActivo = this.mostrarSoloActivos
-        ? alumno.activo === 1
-        : true;
-
+      const coincideActivo = this.mostrarSoloActivos ? alumno.activo === 1 : true;
       return coincideNombre && coincideActivo;
     });
   }
@@ -291,7 +303,6 @@ export class AlumnosPage implements OnInit {
         this.horariosPorDia[fechaS] = { manana: [], tarde: [], noche: [] };
       }
 
-      // Parse hour from string "HH:MM:SS" or "HH:MM"
       const horaStr = String(h.hora_inicio);
       const hora = parseInt(horaStr.split(':')[0], 10);
 
@@ -308,19 +319,13 @@ export class AlumnosPage implements OnInit {
 
   async seleccionarHorario(bloque: any) {
     if (bloque.ocupado) return;
-
-    // Use string slicing directly
     const horaInicioFormatted = String(bloque.hora_inicio).slice(0, 5);
-
     const alert = await this.alertCtrl.create({
       header: 'Confirmar Agendamiento',
       message: `¿Agendar clase para ${this.selectedAlumno.nombre} el ${bloque.fecha} a las ${horaInicioFormatted}?`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Confirmar',
-          handler: () => this.ejecutarAgendamiento(bloque)
-        }
+        { text: 'Confirmar', handler: () => this.ejecutarAgendamiento(bloque) }
       ]
     });
     await alert.present();
@@ -330,15 +335,12 @@ export class AlumnosPage implements OnInit {
     const loading = await this.loadingCtrl.create({ message: 'Agendando...' });
     await loading.present();
 
-    // Necesitamos el pack_id del alumno. 
-    // Usaremos el getEntrenadorPorJugador para obtener sus packs activos con este coach
     this.entrenamientoService.getEntrenadorPorJugador(this.selectedAlumno.id).subscribe({
       next: (res: any[]) => {
         const packActivo = res.find(p => Number(p.sesiones_restantes) > 0);
-
         if (!packActivo) {
           loading.dismiss();
-          this.mostrarToast('❌ El alumno no tiene créditos disponibles para este entrenador');
+          this.mostrarToast('❌ El alumno no tiene créditos disponibles');
           return;
         }
 
@@ -358,25 +360,21 @@ export class AlumnosPage implements OnInit {
         this.entrenamientoService.crearReserva(payload).subscribe({
           next: () => {
             loading.dismiss();
-
-            // Notifications
             this.notificationService.notificarReservaCreada(this.selectedAlumno.id, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
-            this.notificationService.programarRecordatorio(this.selectedAlumno.id, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
-
             this.showBookingModal = false;
             this.mostrarToast('✅ Clase agendada exitosamente');
-            this.cargarAlumnos(); // Refresh stats
+            this.cargarAlumnos();
           },
           error: (err) => {
             loading.dismiss();
-            console.error('Error reserving:', err);
-            this.mostrarToast('❌ Error al agendar la clase');
+            const msg = err.error?.error || 'Error al agendar la clase';
+            this.alertCtrl.create({ header: 'Error', message: msg, buttons: ['OK'] }).then(a => a.present());
           }
         });
       },
       error: () => {
         loading.dismiss();
-        this.mostrarToast('❌ Error al verificar créditos del alumno');
+        this.mostrarToast('❌ Error al verificar créditos');
       }
     });
   }
@@ -389,8 +387,6 @@ export class AlumnosPage implements OnInit {
   goToHome() {
     this.router.navigate(['/entrenador-home']);
   }
-
-
 
   getInitials(name: string): string {
     if (!name) return '??';

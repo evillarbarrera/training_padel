@@ -507,3 +507,31 @@ ion-toolbar {
         }
     }
 }
+
+.club-selector-wrapper {
+    margin-bottom: 15px;
+
+    .club-segment {
+        --background: #f0f0f5;
+        border-radius: 16px;
+        padding: 5px;
+
+        ion-segment-button {
+            --indicator-color: #fff;
+            --color: #888;
+            --color-checked: #ccff00;
+            --border-radius: 12px;
+            font-weight: 800;
+            font-size: 13px;
+            height: 40px;
+            text-transform: capitalize;
+
+            &.segment-button-checked {
+                &::part(native) {
+                    background-color: #000;
+                    color: #ccff00;
+                }
+            }
+        }
+    }
+}
