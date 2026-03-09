@@ -43,6 +43,7 @@ export class JugadorReservasPage implements OnInit {
   selectedEntrenador: number | null = null;
   selectedPack: any = null;
   packsDelEntrenador: any[] = [];
+  totalTrainerPacks: any[] = [];
   jugadorId = Number(localStorage.getItem('userId'));
 
   // Discovery & Filtering
@@ -347,8 +348,18 @@ export class JugadorReservasPage implements OnInit {
             this.entrenadorTelefono = res[0].entrenador_telefono;
           }
 
-          this.generarBloquesHorarios(res);
-          this.cargando = false;
+          this.mysqlService.getAllPacks(this.selectedEntrenador!).subscribe({
+            next: (packsList: any[]) => {
+              this.totalTrainerPacks = packsList;
+              this.generarBloquesHorarios(res, packsList);
+              this.cargando = false;
+            },
+            error: () => {
+              this.totalTrainerPacks = [];
+              this.generarBloquesHorarios(res, []);
+              this.cargando = false;
+            }
+          });
         },
         error: err => {
           console.error(err);
@@ -364,22 +375,27 @@ export class JugadorReservasPage implements OnInit {
     // Determine filter type based on the slot selected
     let targetType = this.tipoEntrenamiento;
     if (targetType === 'todos') {
-      targetType = 'individual'; // default
+      targetType = horario.tipo === 'grupal' ? 'grupal' : 'individual';
     }
 
     this.mysqlService.getAllPacks(this.selectedEntrenador!).subscribe({
       next: (res) => {
         console.log('Packs recibidos:', res);
 
-        // Filter by type
-        let filtered = res.filter(p => this.isPackMatch(p, targetType));
+        // If it's a specific group slot, we should ideally only show THAT pack
+        if (horario.tipo === 'grupal' && horario.pack_id) {
+          this.availablePacks = res.filter((p: any) => Number(p.id || p.id_pack || p.pack_id) === Number(horario.pack_id));
+        } else {
+          // Filter by type
+          let filtered = res.filter((p: any) => this.isPackMatch(p, targetType));
 
-        // Fallback: If no packs match the specific type, show everything from this coach
-        if (filtered.length === 0) {
-          filtered = res;
+          // Fallback: If no packs match the specific type, show everything from this coach
+          if (filtered.length === 0) {
+            filtered = res;
+          }
+          this.availablePacks = filtered.sort((a: any, b: any) => Number(a.precio) - Number(b.precio));
         }
 
-        this.availablePacks = filtered.sort((a, b) => Number(a.precio) - Number(b.precio));
         this.showPackModal = true;
         this.cargando = false;
       },
@@ -546,7 +562,7 @@ export class JugadorReservasPage implements OnInit {
       .subscribe({
         next: res => {
           this.horarios = res;
-          this.generarBloquesHorarios(res);
+          this.generarBloquesHorarios(res, this.totalTrainerPacks);
         },
         error: err => console.error('Error loading availability after pack change:', err)
       });
@@ -555,7 +571,7 @@ export class JugadorReservasPage implements OnInit {
   setFilter(tipo: any): void {
     this.tipoEntrenamiento = tipo;
     // Don't reset diaSeleccionado to improve UX
-    this.generarBloquesHorarios(this.horarios);
+    this.generarBloquesHorarios(this.horarios, this.totalTrainerPacks);
   }
 
   getSelectedClub() {
@@ -566,80 +582,191 @@ export class JugadorReservasPage implements OnInit {
     this.onEntrenadorChange();
   }
 
-  generarBloquesHorarios(disponibilidades: any[]) {
+  generarBloquesHorarios(disponibilidades: any[], packsList: any[] = []) {
     this.horariosPorDia = {};
-    this.dias = [];
+    const nuevasFechas: string[] = [];
+    const ahora = new Date();
+    const limite = new Date();
+    limite.setDate(ahora.getDate() + 30);
 
-    // Pre-populate 30 days from today
+    // Initialize 30 days
     for (let i = 0; i < 30; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
       const ds = d.toISOString().split('T')[0];
-      this.dias.push(ds);
       this.horariosPorDia[ds] = { manana: [], tarde: [], noche: [] };
     }
 
-    const bloquesUnicos = new Set<string>();
-    const ahora = new Date();
+    const slotsMap = new Map<string, any>();
 
+    // 1. Process explicit availability from the 'disponibilidad' table
     disponibilidades.forEach(d => {
-      const slotTipo = (d.tipo || 'individual').toLowerCase();
+      const isBlockOcupado = d.ocupado == 1 || d.ocupado === '1' || d.ocupado === true || d.ocupado === 'true';
+      const isGrupal = d.tipo === 'grupal';
 
-      // Filter by club if selected
-      if (this.selectedClubId && Number(d.club_id) !== Number(this.selectedClubId)) return;
+      if (isGrupal) {
+        if (this.selectedClubId && Number(d.club_id) !== Number(this.selectedClubId)) return;
 
-      if (this.tipoEntrenamiento !== 'todos') {
-        if (this.tipoEntrenamiento === 'grupal' && slotTipo !== 'grupal') return;
-        if (this.tipoEntrenamiento !== 'grupal' && slotTipo === 'grupal') return;
-      }
+        let inicioStr = d.fecha_inicio || d.hora_inicio;
+        let finStr = d.fecha_fin || d.hora_fin;
+        if (!inicioStr) return;
 
-      // Standardized date parsing for mobile compatibility (iOS/Safari)
-      let inicioStr = d.fecha_inicio || d.hora_inicio;
-      let finStr = d.fecha_fin || d.hora_fin;
+        const bloqueInicio = new Date(inicioStr.replace(' ', 'T'));
+        const bloqueFin = new Date(finStr.replace(' ', 'T'));
+        if (bloqueInicio >= ahora && bloqueFin <= limite) {
+          const fechaStr = `${bloqueInicio.getFullYear()}-${(bloqueInicio.getMonth() + 1).toString().padStart(2, '0')}-${bloqueInicio.getDate().toString().padStart(2, '0')}`;
+          const horaStr = bloqueInicio.toTimeString().slice(0, 5);
+          const timeKey = `${fechaStr}_${horaStr}`;
 
-      if (!inicioStr) return;
+          slotsMap.set(timeKey, {
+            fecha: fechaStr,
+            hora_inicio: bloqueInicio,
+            hora_fin: bloqueFin,
+            ocupado: isBlockOcupado,
+            inscritos: Number(d.inscritos_count || 0),
+            capacidad: Number(d.cantidad_personas || 6),
+            tipo: 'grupal',
+            pack_id: d.pack_id,
+            club_id: d.club_id,
+            club_nombre: d.club_nombre,
+            club_maps: d.club_maps,
+            nombre_pack: d.nombre_pack || d.nombre || 'Clase Grupal',
+            categoria: d.categoria,
+            genero: this.detectarGenero(d.nombre_pack || d.nombre || '', d.categoria || '')
+          });
+          if (!nuevasFechas.includes(fechaStr)) nuevasFechas.push(fechaStr);
+        }
+      } else {
+        if (this.selectedClubId && Number(d.club_id) !== Number(this.selectedClubId)) return;
 
-      let inicio = new Date(inicioStr.replace(' ', 'T'));
-      const fin = new Date(finStr.replace(' ', 'T'));
-      const ocupado = d.ocupado == 1 || d.ocupado === '1' || d.ocupado === true;
+        let inicioStr = d.fecha_inicio || d.hora_inicio;
+        let finStr = d.fecha_fin || d.hora_fin;
+        if (!inicioStr) return;
 
-      while (inicio < fin) {
-        const bloqueInicio = new Date(inicio);
-        const bloqueFin = new Date(inicio.getTime() + 60 * 60 * 1000);
+        let inicio = new Date(inicioStr.replace(' ', 'T'));
+        const fin = new Date(finStr.replace(' ', 'T'));
 
-        if (bloqueInicio >= ahora && bloqueFin <= fin) {
-          const fecha = bloqueInicio.toISOString().split('T')[0];
+        while (inicio < fin) {
+          const bloqueInicio = new Date(inicio.getTime());
+          const bloqueFin = new Date(inicio.getTime());
+          bloqueFin.setHours(bloqueFin.getHours() + 1);
 
-          // Only add to result if day falls within the 30 days we track
-          if (this.horariosPorDia[fecha]) {
-            const horaInicio = bloqueInicio.toTimeString().slice(0, 5);
-            const horaFin = bloqueFin.toTimeString().slice(0, 5);
-            const key = `${fecha} ${horaInicio}-${horaFin}`;
+          if (bloqueInicio >= ahora && bloqueFin <= limite) {
+            const fechaStr = `${bloqueInicio.getFullYear()}-${(bloqueInicio.getMonth() + 1).toString().padStart(2, '0')}-${bloqueInicio.getDate().toString().padStart(2, '0')}`;
+            const horaStr = bloqueInicio.toTimeString().slice(0, 5);
+            const timeKey = `${fechaStr}_${horaStr}`;
 
-            if (!bloquesUnicos.has(key)) {
-              bloquesUnicos.add(key);
-              const hora = bloqueInicio.getHours();
-              let tramo: 'manana' | 'tarde' | 'noche' = 'noche';
-              if (hora >= 6 && hora < 12) tramo = 'manana';
-              else if (hora >= 12 && hora < 18) tramo = 'tarde';
-
-              this.horariosPorDia[fecha][tramo].push({
-                fecha,
+            const existing = slotsMap.get(timeKey);
+            // Don't overwrite an existing 'grupal' slot with 'individual'
+            if (!existing || (existing.tipo !== 'grupal' && (isBlockOcupado || !existing.ocupado))) {
+              slotsMap.set(timeKey, {
+                fecha: fechaStr,
                 hora_inicio: bloqueInicio,
                 hora_fin: bloqueFin,
-                ocupado: ocupado,
-                tipo: slotTipo,
-                pack_id: d.pack_id,
-                nombre_pack: d.nombre_pack,
-                categoria: d.categoria,
-                genero: this.detectarGenero(d.nombre_pack || '', d.categoria || '')
+                ocupado: existing ? (existing.ocupado || isBlockOcupado) : isBlockOcupado,
+                cantidad_personas: Number(d.cantidad_personas || 1),
+                club_id: d.club_id,
+                club_nombre: d.club_nombre,
+                club_maps: d.club_maps,
+                tipo: 'individual'
               });
+            }
+            if (!nuevasFechas.includes(fechaStr)) nuevasFechas.push(fechaStr);
+          }
+          inicio.setHours(inicio.getHours() + 1);
+        }
+      }
+    });
+
+    // 2. Project recurring group classes from the 'packs' table
+    packsList.forEach(p => {
+      if (p.tipo === 'grupal' && p.dia_semana && p.hora_inicio) {
+        const packDay = Number(p.dia_semana);
+        const [h, m] = p.hora_inicio.split(':');
+        const duration = Number(p.duracion_sesion_min || 60);
+
+        for (let i = 0; i <= 30; i++) {
+          const checkDate = new Date();
+          checkDate.setDate(ahora.getDate() + i);
+
+          let jsDay = checkDate.getDay();
+          if (jsDay === packDay || (jsDay === 0 && packDay === 7)) {
+            const start = new Date(checkDate.getTime());
+            start.setHours(Number(h), Number(m), 0, 0);
+
+            const end = new Date(start.getTime());
+            end.setMinutes(start.getMinutes() + duration);
+
+            if (start >= ahora) {
+              const fechaStr = `${start.getFullYear()}-${(start.getMonth() + 1).toString().padStart(2, '0')}-${start.getDate().toString().padStart(2, '0')}`;
+              const horaStr = start.toTimeString().slice(0, 5);
+              const timeKey = `${fechaStr}_${horaStr}`;
+
+              if (!slotsMap.has(timeKey) || slotsMap.get(timeKey).tipo !== 'grupal') {
+                slotsMap.set(timeKey, {
+                  fecha: fechaStr,
+                  hora_inicio: start,
+                  hora_fin: end,
+                  ocupado: Number(p.cupos_ocupados) >= Number(p.capacidad_maxima),
+                  inscritos: Number(p.cupos_ocupados || 0),
+                  capacidad: Number(p.capacidad_maxima || 8),
+                  cantidad_personas: Number(p.capacidad_maxima || 8),
+                  tipo: 'grupal',
+                  nombre_pack: p.nombre,
+                  categoria: p.categoria,
+                  pack_id: p.id,
+                  genero: this.detectarGenero(p.nombre || '', p.categoria || '')
+                });
+                if (!nuevasFechas.includes(fechaStr)) nuevasFechas.push(fechaStr);
+              }
             }
           }
         }
-        inicio.setHours(inicio.getHours() + 1);
       }
     });
+
+    // Clean up overlaps and build final arrays per tramo
+    const sortedSlots = Array.from(slotsMap.values()).sort((a, b) => a.hora_inicio.getTime() - b.hora_inicio.getTime());
+    const finalSlotsMap = new Map<string, any>();
+
+    sortedSlots.forEach(slot => {
+      const timeKey = `${slot.fecha}_${slot.hora_inicio.toTimeString().slice(0, 5)}`;
+      let isCovered = false;
+      finalSlotsMap.forEach(existing => {
+        if (existing.fecha === slot.fecha && slot.hora_inicio >= existing.hora_inicio && slot.hora_inicio < existing.hora_fin) {
+          isCovered = true;
+        }
+      });
+      if (!isCovered) {
+        finalSlotsMap.set(timeKey, slot);
+      }
+    });
+
+    // Populate horariosPorDia tramos
+    finalSlotsMap.forEach(slot => {
+      // Filter out slots based on the target type selector just like before
+      if (this.tipoEntrenamiento !== 'todos') {
+        if (this.tipoEntrenamiento === 'grupal') {
+          // Si el filtro es grupal, mostrar SOLO grupal
+          if (slot.tipo !== 'grupal') return;
+        } else {
+          if (slot.tipo === 'grupal') return;
+        }
+      }
+
+      if (!this.horariosPorDia[slot.fecha]) {
+        this.horariosPorDia[slot.fecha] = { manana: [], tarde: [], noche: [] };
+      }
+
+      const hora = slot.hora_inicio.getHours();
+      let tramo: 'manana' | 'tarde' | 'noche' = 'noche';
+      if (hora >= 6 && hora < 12) tramo = 'manana';
+      else if (hora >= 12 && hora < 18) tramo = 'tarde';
+
+      this.horariosPorDia[slot.fecha][tramo].push(slot);
+    });
+
+    this.dias = Object.keys(this.horariosPorDia).sort();
 
     // Auto-select first available day and tramo
     const currentFiltered = this.filteredDias;
@@ -668,41 +795,21 @@ export class JugadorReservasPage implements OnInit {
   reservarHorario(horario: any) {
     if (horario.ocupado) return;
 
-    let packActivo: any = null;
-    let finalType = this.tipoEntrenamiento;
-
-    // Logic Fix: If 'todos', first try to find any compatible pack
-    if (this.tipoEntrenamiento === 'todos') {
-      // Prefer individual packs, then multiplayer
-      packActivo = this.packs.find(p =>
-        Number(p.entrenador_id) === Number(this.selectedEntrenador) &&
-        Number(p.sesiones_restantes) > 0 &&
-        this.isPackMatch(p, 'individual')
-      );
-      if (packActivo) {
-        finalType = 'individual';
-      } else {
-        packActivo = this.packs.find(p =>
-          Number(p.entrenador_id) === Number(this.selectedEntrenador) &&
-          Number(p.sesiones_restantes) > 0 &&
-          this.isPackMatch(p, 'multiplayer')
-        );
-        if (packActivo) finalType = 'multiplayer';
-      }
-    } else {
-      // Use current filter
-      packActivo = this.packs.find(p => {
-        const basicMatch = Number(p.entrenador_id) === Number(this.selectedEntrenador) &&
-          Number(p.sesiones_restantes) > 0 &&
-          this.isPackMatch(p, this.tipoEntrenamiento);
-
-        if (horario.tipo === 'grupal' && horario.pack_id) {
-          return basicMatch && Number(p.pack_id) === Number(horario.pack_id);
-        }
-        return basicMatch;
-      });
-      finalType = this.tipoEntrenamiento;
+    let targetType = this.tipoEntrenamiento;
+    if (targetType === 'todos') {
+      targetType = horario.tipo === 'grupal' ? 'grupal' : 'individual';
     }
+
+    let packActivo = this.packs.find(p => {
+      const basicMatch = Number(p.entrenador_id) === Number(this.selectedEntrenador) &&
+        Number(p.sesiones_restantes) > 0 &&
+        this.isPackMatch(p, targetType);
+
+      if (horario.tipo === 'grupal' && horario.pack_id) {
+        return basicMatch && Number(p.pack_id) === Number(horario.pack_id);
+      }
+      return basicMatch;
+    });
 
     if (packActivo) {
       this.alertCtrl.create({
@@ -722,7 +829,7 @@ export class JugadorReservasPage implements OnInit {
                 hora_fin: horario.hora_fin.toTimeString().slice(0, 5),
                 jugador_id: this.jugadorId,
                 estado: 'reservado',
-                tipo: finalType,
+                tipo: targetType,
                 cantidad_personas: 1
               };
 
