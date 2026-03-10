@@ -446,7 +446,8 @@ export class JugadorReservasPage implements OnInit {
       pack_id: packId,
       estado: 'bloqueado', // Estado temporal hasta que pague
       tipo: finalTipo,
-      cantidad_personas: 1
+      cantidad_personas: 1,
+      club_id: this.pendingHorario.club_id
     };
 
     this.entrenamientoService.crearReserva(payloadReserva).subscribe({
@@ -473,9 +474,10 @@ export class JugadorReservasPage implements OnInit {
               this.mostrarToast('❌ Error al iniciar el pago');
             }
           },
-          error: () => {
+          error: (err) => {
             loader.dismiss();
-            this.mostrarToast('❌ Error al conectar con el servidor de pagos');
+            const msg = err.error?.error || 'Error al conectar con el servidor de pagos';
+            this.alertCtrl.create({ header: 'Atención', message: msg, buttons: ['OK'] }).then(a => a.present());
           }
         });
       },
@@ -519,7 +521,8 @@ export class JugadorReservasPage implements OnInit {
           pack_jugador_id: newPackJugadorId,
           estado: 'reservado',
           tipo: finalTipo,
-          cantidad_personas: 1
+          cantidad_personas: 1,
+          club_id: this.pendingHorario.club_id
         };
 
         this.entrenamientoService.crearReserva(payload).subscribe({
@@ -830,7 +833,8 @@ export class JugadorReservasPage implements OnInit {
                 jugador_id: this.jugadorId,
                 estado: 'reservado',
                 tipo: targetType,
-                cantidad_personas: 1
+                cantidad_personas: 1,
+                club_id: horario.club_id
               };
 
               this.entrenamientoService.crearReserva(payload).subscribe({

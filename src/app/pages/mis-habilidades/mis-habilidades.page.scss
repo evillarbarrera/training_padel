@@ -752,3 +752,167 @@ ion-content {
         color: #ddd;
     }
 }
+
+/* --- PREMIUM BOTTOM SHEET MODAL (Stroke Details) --- */
+ion-modal.bottom-sheet-modal {
+    --border-radius: 40px 40px 0 0;
+    --box-shadow: 0 -15px 50px rgba(0, 0, 0, 0.3);
+    --backdrop-opacity: 0.7;
+
+    &::part(content) {
+        background: #ffffff;
+    }
+
+    &::part(backdrop) {
+        background: #000;
+        backdrop-filter: blur(10px);
+    }
+}
+
+.modal-desglose-container {
+    padding: 15px 25px 50px;
+
+    .modal-desglose-header {
+        text-align: center;
+        margin-bottom: 25px;
+
+        .handle {
+            width: 45px;
+            height: 5px;
+            background: #e5e5ea;
+            border-radius: 10px;
+            margin: 0 auto 20px;
+        }
+
+        h3 {
+            font-size: 26px;
+            font-weight: 950;
+            color: #000;
+            text-transform: uppercase;
+            letter-spacing: -1.2px;
+            margin: 0;
+        }
+
+        p {
+            font-size: 13px;
+            color: #8e8e93;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+    }
+}
+
+/* Feedback Card inside Modal */
+.stroke-feedback-card {
+    display: flex;
+    gap: 15px;
+    background: #f8f8fa;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 30px;
+
+    .card-icon {
+        font-size: 24px;
+    }
+
+    .card-text {
+        h4 {
+            margin: 0 0 5px 0;
+            font-size: 11px;
+            font-weight: 950;
+            color: #000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        p {
+            margin: 0;
+            font-size: 14px;
+            color: #3e3e42;
+            line-height: 1.5;
+            font-weight: 500;
+            font-style: italic;
+        }
+    }
+}
+
+/* Metrics Grid Premium */
+.metrics-grid-premium {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+
+    .metric-row-modern {
+        .m-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+
+            .m-label {
+                font-size: 11px;
+                font-weight: 800;
+                color: #8e8e93;
+                text-transform: uppercase;
+            }
+
+            .m-val {
+                font-size: 14px;
+                font-weight: 950;
+                color: #000;
+            }
+        }
+
+        .m-bar-bg {
+            height: 10px;
+            background: #f2f2f7;
+            border-radius: 5px;
+            overflow: hidden;
+
+            .m-bar-fill {
+                height: 100%;
+                border-radius: 5px;
+                position: relative;
+                transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+
+                &.score-high {
+                    background: linear-gradient(90deg, #ccff00, #a8e600);
+                }
+
+                &.score-mid {
+                    background: linear-gradient(90deg, #ffcc00, #ffaa00);
+                }
+
+                &.score-low {
+                    background: linear-gradient(90deg, #ff3b30, #ff2d55);
+                }
+
+                .shimmer {
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+                    animation: bar-shine 2.5s infinite linear;
+                }
+            }
+        }
+    }
+}
+
+.nike-btn-black {
+    --background: #000;
+    --color: #fff;
+    --border-radius: 20px;
+    height: 55px;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+@keyframes bar-shine {
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(100%);
+    }
+}

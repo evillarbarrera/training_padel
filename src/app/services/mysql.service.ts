@@ -61,6 +61,10 @@ export class MysqlService {
     return this.http.get<any>(`${this.api}/alumno/get_home_stats.php?jugador_id=${jugadorId}`, { headers: this.headers });
   }
 
+  getDailyTipAI(): Observable<any> {
+    return this.http.get<any>(`${this.api}/ia/get_tip_frontend.php`, { headers: this.headers });
+  }
+
   getEntrenadorAgenda(entrenadorId: number): Observable<any> {
     return this.http.get<any>(`${this.api}/entrenador/get_agenda.php?entrenador_id=${entrenadorId}`, { headers: this.headers });
   }

@@ -8,6 +8,7 @@ import {
     IonFab, IonFabButton,
     IonList, IonItem, IonBadge, IonSpinner,
     IonRefresher, IonRefresherContent,
+    IonModal,
     AlertController, LoadingController
 } from '@ionic/angular/standalone';
 import { HttpClient } from '@angular/common/http';
@@ -33,7 +34,7 @@ Chart.register(...registerables);
         IonSegment, IonSegmentButton, IonLabel,
         IonFab, IonFabButton,
         IonList, IonItem, IonBadge, IonSpinner,
-        IonRefresher, IonRefresherContent
+        IonRefresher, IonRefresherContent, IonModal
     ]
 })
 
@@ -72,6 +73,11 @@ export class MisHabilidadesPage implements OnInit {
     availableCategories: string[] = ['Todos'];
     videoInputPersonal!: any;
 
+    // Premium Modal State
+    isStrokeModalOpen: boolean = false;
+    activeStroke: any = null;
+
+
     constructor(
         private evaluacionService: EvaluacionService,
         private mysqlService: MysqlService,
@@ -85,33 +91,29 @@ export class MisHabilidadesPage implements OnInit {
         addIcons({ arrowBackOutline, analyticsOutline, chevronBackOutline, informationCircleOutline, sparklesOutline, sparkles, videocamOutline, close, 'cloud-upload-outline': cloudUploadOutline, 'videocam-off-outline': videocamOffOutline, 'trash-outline': trashOutline, trash });
     }
 
-    async verDetalleGolpe(golpe: string) {
+    verDetallePremium(golpe: string) {
         const detail = this.detailedScores[golpe];
         if (!detail) return;
 
-        let message = '';
-
-        if (detail.comentario) {
-            message += `💡 FEEDBACK:\n"${detail.comentario}"\n\n`;
-        } else {
-            message += `💡 SIN COMENTARIOS ESPECÍFICOS\n\n`;
-        }
-
-        message += `📊 PUNTUACIONES:\n` +
-            `• Técnica: ${detail.tecnica || 0}/10\n` +
-            `• Control: ${detail.control || 0}/10\n` +
-            `• Dirección: ${detail.direccion || 0}/10\n` +
-            `• Decisión: ${detail.decision || 0}/10`;
-
-        const alert = await this.alertCtrl.create({
-            header: `Detalle: ${golpe}`,
-            message: message,
-            buttons: ['Cerrar'],
-            cssClass: 'nike-alert'
-        });
-
-        await alert.present();
+        this.activeStroke = {
+            name: golpe,
+            comentario: detail.comentario,
+            metrics: [
+                { name: 'Técnica', value: detail.tecnica || 0 },
+                { name: 'Control', value: detail.control || 0 },
+                { name: 'Dirección', value: detail.direccion || 0 },
+                { name: 'Decisión', value: detail.decision || 0 }
+            ]
+        };
+        this.isStrokeModalOpen = true;
     }
+
+    getScoreClass(val: number) {
+        if (val >= 8) return 'score-high';
+        if (val >= 5) return 'score-mid';
+        return 'score-low';
+    }
+
 
     ngOnInit() {
         // Check for route param 'id'

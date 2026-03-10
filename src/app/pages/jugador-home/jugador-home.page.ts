@@ -8,7 +8,8 @@ import {
   IonIcon,
   IonButton,
   IonRefresher,
-  IonRefresherContent
+  IonRefresherContent,
+  IonModal
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
@@ -16,7 +17,7 @@ import {
   settingsOutline, homeOutline, calendarOutline, logOutOutline,
   albumsOutline, barbellOutline, personOutline, close,
   calendarNumberOutline, trophyOutline, barChartOutline,
-  sparklesOutline, videocamOutline
+  sparklesOutline, videocamOutline, chevronDownOutline
 } from 'ionicons/icons';
 import { ActionSheetController, LoadingController } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
@@ -37,7 +38,8 @@ import { ViewChild, ElementRef } from '@angular/core';
     IonIcon,
     IonButton,
     IonRefresher,
-    IonRefresherContent
+    IonRefresherContent,
+    IonModal
   ]
 })
 export class JugadorHomePage implements OnInit {
@@ -57,6 +59,9 @@ export class JugadorHomePage implements OnInit {
   // AI Analysis states
   @ViewChild('videoInput') videoInput!: ElementRef;
   aiResult: any = null;
+  dailyTip: any = null;
+
+  modalPacksOpen = false;
 
   constructor(
     private router: Router,
@@ -80,7 +85,8 @@ export class JugadorHomePage implements OnInit {
       trophyOutline,
       barChartOutline,
       sparklesOutline,
-      videocamOutline
+      videocamOutline,
+      chevronDownOutline
     });
   }
 
@@ -139,6 +145,16 @@ export class JugadorHomePage implements OnInit {
         }
       }
     });
+
+    // Fetch Daily Tip from AI
+    this.mysqlService.getDailyTipAI().subscribe({
+      next: (res) => {
+        if (res.status === 'success') {
+          this.dailyTip = res;
+        }
+      },
+      error: (err) => console.error('Error loading AI tip:', err)
+    });
   }
 
   handleRefresh(event: any) {
@@ -164,6 +180,14 @@ export class JugadorHomePage implements OnInit {
 
   misHabilidades() {
     this.router.navigate(['/mis-habilidades']);
+  }
+
+  abrirModalPacks() {
+    this.modalPacksOpen = true;
+  }
+
+  cerrarModalPacks() {
+    this.modalPacksOpen = false;
   }
 
   analizarVideo() {

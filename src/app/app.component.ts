@@ -3,6 +3,8 @@ import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Platform } from '@ionic/angular';
 import { NotificationService } from './services/notification.service';
+import { HttpClient } from '@angular/common/http';
+
 
 @Component({
   selector: 'app-root',
@@ -14,10 +16,13 @@ export class AppComponent {
 
   constructor(
     private platform: Platform,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private http: HttpClient
   ) {
     this.initializeApp();
+    this.checkVersion();
   }
+
 
   initializeApp() {
     // Timer para el Splash Screen
@@ -40,4 +45,29 @@ export class AppComponent {
     // Initialize Notifications
     this.notificationService.initializeMessaging();
   }
+
+  checkVersion() {
+    // Evitamos problemas de caché agregando un timestamp al request
+    const timestamp = new Date().getTime();
+    this.http.get(`assets/version.json?t=${timestamp}`).subscribe({
+      next: (data: any) => {
+        const serverVersion = data.version;
+        const currentVersion = localStorage.getItem('app_version');
+
+        if (currentVersion && currentVersion !== serverVersion) {
+          console.log(`Nueva versión detectada: ${serverVersion}. Limpiando caché...`);
+          localStorage.setItem('app_version', serverVersion);
+
+          // Forzar recarga completa
+          if (data.forceReload) {
+            window.location.reload();
+          }
+        } else if (!currentVersion) {
+          localStorage.setItem('app_version', serverVersion);
+        }
+      },
+      error: (err) => console.log('Error al verificar versión', err)
+    });
+  }
 }
+

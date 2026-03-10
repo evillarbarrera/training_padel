@@ -51,7 +51,7 @@ export class PackAlumnoPage implements OnInit {
   totalPages: number[] = [];
 
   // Geolocation
-  useLocation = true;
+  useLocation = false;
   userLat: number | null = null;
   userLng: number | null = null;
   searchRadius = 50; // Default 50km
@@ -99,7 +99,7 @@ export class PackAlumnoPage implements OnInit {
 
   ngOnInit() {
     this.calcularPageSize();
-    this.getCurrentLocation();
+    // this.getCurrentLocation(); // Location disabled by request
     this.checkPaymentStatus();
   }
 
@@ -215,47 +215,13 @@ export class PackAlumnoPage implements OnInit {
   }
 
   toggleLocation() {
-    this.useLocation = !this.useLocation;
-    if (this.useLocation) {
-      this.getCurrentLocation();
-    } else {
-      this.userLat = null;
-      this.userLng = null;
-      this.cargarPacks(); // Reload all
-    }
+    this.useLocation = false;
+    this.userLat = null;
+    this.userLng = null;
+    this.cargarPacks();
   }
 
-  getCurrentLocation() {
-    if (!navigator.geolocation) {
-      this.alertCtrl.create({
-        header: 'Error',
-        message: 'Geolocalización no soportada.',
-        buttons: ['OK']
-      }).then(a => a.present());
-      this.useLocation = false;
-      return;
-    }
 
-    this.isLoadingLocation = true;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        this.userLat = pos.coords.latitude;
-        this.userLng = pos.coords.longitude;
-        this.isLoadingLocation = false;
-        this.cargarPacks();
-      },
-      (err) => {
-        console.error('Location error:', err);
-        this.alertCtrl.create({
-          header: 'Error',
-          message: 'No se pudo obtener ubicación. Verifica permisos.',
-          buttons: ['OK']
-        }).then(a => a.present());
-        this.isLoadingLocation = false;
-        this.useLocation = false;
-      }
-    );
-  }
 
   onRadiusChange(event: any) {
     this.searchRadius = Number(event.detail.value);

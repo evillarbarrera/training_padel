@@ -143,14 +143,14 @@ ion-content {
   }
 }
 
-/* Metrics Dashboard (Integrated Section) */
+/* --- DASHBOARD METRICS (Nike Performance Style) --- */
 .metrics-dashboard {
   display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 30px 10px;
-  /* More horizontal padding */
-  border-bottom: 1px solid #f2f2f7;
+  align-items: stretch;
+  justify-content: space-between;
+  padding: 30px 15px;
+  background: #ffffff;
+  border-bottom: 8px solid #f8f8fa;
   margin-bottom: 25px;
 
   .metric-item {
@@ -159,232 +159,168 @@ ion-content {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    min-width: 0;
-    /* Allow shrinking */
+    padding: 10px;
+    border-radius: 20px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
-    &.highlight {
-      .metric-value {
-        color: #ccff00; // Neon Padel
-        text-shadow: 0 0 10px rgba(204, 255, 0, 0.2);
+    &.clickable-metric {
+      background: #fdfdfd;
+      border: 1px solid #f2f2f7;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+      position: relative;
+      overflow: hidden;
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: #ccff00;
+        opacity: 0.8;
       }
-    }
 
-    &.highlight-alt {
-      .metric-value {
-        color: var(--ion-color-secondary);
+      &:active {
+        transform: scale(0.96);
+        background: #f8f8fa;
       }
-    }
 
-    &.circular-metric {
-      .circular-progress {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background: conic-gradient(#ccff00 calc(var(--percent) * 1%), #f2f2f7 0);
+      .metric-top {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        margin-bottom: 8px;
+        align-items: flex-start;
+        gap: 2px;
 
-        &::before {
-          content: "";
-          position: absolute;
-          width: 38px;
-          height: 38px;
-          background: white;
+        .btn-chevron {
+          font-size: 14px;
+          color: #ccff00;
+          background: #000;
           border-radius: 50%;
-        }
-
-        .metric-value {
-          position: relative;
-          z-index: 2;
-          font-size: 18px;
-          margin-bottom: 0;
+          padding: 2px;
+          margin-top: 2px;
         }
       }
     }
 
     .metric-value {
-      font-size: 24px;
-      /* Slightly smaller for 4 items */
+      font-size: 32px;
       font-weight: 950;
       color: #000;
       line-height: 1;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      letter-spacing: -1.2px;
     }
 
     .metric-label {
-      font-size: 8px;
-      /* Slightly smaller labels */
-      font-weight: 800;
+      font-size: 9px;
+      font-weight: 950;
       color: #8e8e93;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
       line-height: 1.2;
     }
   }
 
   .metric-divider {
     width: 1px;
-    height: 30px;
     background: #f2f2f7;
-    margin: 0 5px;
+    margin: 15px 5px;
   }
 }
 
-/* Packs Breakdown (Per-Coach) */
-.packs-breakdown {
-  margin-bottom: 25px;
+/* --- AI DAILY TIP (Dark Glassmorphism) --- */
+.daily-tip-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  background: linear-gradient(135deg, #111 0%, #222 100%);
+  border-radius: 28px;
+  padding: 22px;
+  margin-bottom: 30px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
 
-  .breakdown-header {
-    margin-bottom: 14px;
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(204, 255, 0, 0.2) 0%, transparent 70%);
+    filter: blur(15px);
   }
 
-  .breakdown-title {
-    font-size: 10px;
-    font-weight: 950;
-    color: #8e8e93;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-  }
-
-  .pack-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 0;
-    border-bottom: 1px solid #f2f2f7;
-
-    &:last-child {
-      border-bottom: none;
-    }
-  }
-
-  .pack-coach-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .pack-avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    overflow: hidden;
+  .tip-icon {
     flex-shrink: 0;
-    background: #f2f2f7;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: rgba(204, 255, 0, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
 
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .avatar-fallback {
-      font-size: 18px;
+    ion-icon {
+      font-size: 24px;
+      color: #ccff00;
+      animation: pulse-ai 2s infinite;
     }
   }
 
-  .pack-text {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
+  .tip-content {
+    flex: 1;
 
-    .coach-name {
-      font-size: 14px;
-      font-weight: 800;
-      color: #000;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .pack-label {
-      font-size: 10px;
-      font-weight: 700;
-      color: #8e8e93;
+    h4 {
+      margin: 0 0 5px 0;
+      color: #ccff00;
+      font-size: 13px;
+      font-weight: 950;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      letter-spacing: 1px;
     }
-  }
 
-  .pack-bar-group {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
-    flex-shrink: 0;
-  }
-
-  .pack-bar {
-    width: 70px;
-    height: 5px;
-    background: #f2f2f7;
-    border-radius: 3px;
-    overflow: hidden;
-  }
-
-  .pack-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #ccff00, #a8e600);
-    border-radius: 3px;
-    transition: width 0.6s ease;
-  }
-
-  .pack-count {
-    font-size: 11px;
-    font-weight: 800;
-    color: #3a3a3c;
-    letter-spacing: -0.3px;
+    p {
+      margin: 0;
+      color: #fff;
+      font-size: 13.5px;
+      line-height: 1.4;
+      font-weight: 500;
+    }
   }
 }
 
-/* Modules Section */
+/* --- MODULES GRID --- */
 .modules-column {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 25px;
 }
 
 .module-card {
   position: relative;
-  height: 220px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding: 0;
-  overflow: hidden;
-  margin-bottom: 20px;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+  background: white;
   border-radius: 35px;
+  overflow: hidden;
+  margin-bottom: 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 
   &:active {
-    transform: scale(0.96) translateY(4px);
+    transform: scale(0.97);
   }
 
   .module-img {
     width: 100%;
     height: 160px;
     object-fit: cover;
-    border-radius: 0;
-    transition: transform 0.6s ease;
-  }
-
-  &:hover .module-img {
-    transform: scale(1.08);
   }
 
   .module-body {
-    padding: 25px;
+    padding: 20px 25px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -395,182 +331,268 @@ ion-content {
     h3 {
       margin: 0;
       font-size: 18px;
-      font-weight: 800;
-      color: #111;
+      font-weight: 900;
+      color: #000;
       text-transform: uppercase;
     }
 
     p {
-      margin: 4px 0 0;
+      margin: 2px 0 0;
       font-size: 13px;
-      color: #777;
+      color: #8e8e93;
+      font-weight: 600;
     }
   }
 
   .module-arrow {
-    font-size: 24px;
-    color: #111;
-    transition: transform 0.3s ease;
-  }
-
-  &:hover .module-arrow {
-    transform: translateX(5px);
+    font-size: 22px;
+    color: #000;
   }
 }
 
-/* FAB Styling */
-.nike-fab {
-  --background: var(--nike-black);
-  --box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+/* --- BOTTOM SHEET MODAL PREMIUM --- */
+ion-modal.bottom-sheet-modal {
+  --border-radius: 45px 45px 0 0;
+  --box-shadow: 0 -15px 50px rgba(0, 0, 0, 0.3);
+  --backdrop-opacity: 0.7;
 
-  ion-icon {
-    font-size: 26px;
-    color: var(--ion-color-tertiary);
+  &::part(content) {
+    background: #ffffff;
   }
-}
 
-/* --- EXPERIMENTAL SOCIAL FEATURES (DEV ONLY) --- */
-.social-dev-section {
-  .section-badge-dev {
-    display: inline-block;
+  &::part(backdrop) {
     background: #000;
-    color: #ccff00;
-    font-size: 9px;
-    font-weight: 950;
-    padding: 6px 14px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    letter-spacing: 1px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
   }
+}
 
-  /* Gemini AI AI Feature Card */
-  .ai-feature-card {
-    background: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
+.modal-desglose-container {
+  padding: 15px 25px 50px;
+
+  .modal-desglose-header {
+    text-align: center;
+    margin-bottom: 35px;
+
+    .handle {
+      width: 45px;
+      height: 5px;
+      background: #e5e5ea;
+      border-radius: 10px;
+      margin: 0 auto 25px;
+    }
+
+    h3 {
+      font-size: 28px;
+      font-weight: 950;
+      color: #000;
+      text-transform: uppercase;
+      letter-spacing: -1.5px;
+      margin: 0;
+    }
+
+    p {
+      font-size: 14px;
+      color: #8e8e93;
+      font-weight: 600;
+      margin-top: 5px;
+    }
+  }
+}
+
+.packs-breakdown.modal-view {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  .pack-styled-card {
+    background: #ffffff;
+    border-radius: 30px;
     padding: 25px;
-    border-radius: 35px;
-    position: relative;
-    overflow: hidden;
-    margin-bottom: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border: 1px solid #f2f2f7;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
 
-    .ai-header {
+    .pack-coach-row {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      gap: 15px;
 
-      .gemini-badge {
+      .pack-avatar {
+        width: 55px;
+        height: 55px;
+        border-radius: 20px;
+        background: #000;
+        overflow: hidden;
+        border: 2px solid #fff;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         display: flex;
         align-items: center;
-        gap: 8px;
-        background: rgba(204, 255, 0, 0.1);
-        padding: 5px 12px;
-        border-radius: 20px;
-        border: 1px solid rgba(204, 255, 0, 0.2);
+        justify-content: center;
 
-        ion-icon {
-          color: #ccff00;
-          font-size: 16px;
-          animation: pulse-ai 2s infinite;
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
 
-        span {
+        .avatar-fallback {
+          font-size: 28px;
+        }
+      }
+
+      .pack-text {
+        .coach-name {
+          font-size: 17px;
+          font-weight: 950;
+          color: #000;
+          letter-spacing: -0.3px;
+        }
+
+        .pack-label {
+          font-size: 11px;
+          font-weight: 700;
+          color: #8e8e93;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+      }
+    }
+
+    .pack-bar-group {
+      .pack-bar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 8px;
+
+        .bar-label {
           font-size: 10px;
           font-weight: 900;
-          color: #ccff00;
-          letter-spacing: 1px;
+          color: #8e8e93;
+          text-transform: uppercase;
         }
-      }
 
-      .ai-status {
-        font-size: 9px;
-        font-weight: 950;
-        color: rgba(255, 255, 255, 0.4);
-        background: rgba(255, 255, 255, 0.05);
-        padding: 4px 10px;
-        border-radius: 10px;
-      }
-    }
-
-    .ai-body {
-      position: relative;
-      z-index: 2;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-
-      .ai-main-text {
-        flex: 1;
-        padding-right: 20px;
-
-        h3 {
-          margin: 0;
-          font-size: 20px;
+        .pack-count {
+          font-size: 16px;
           font-weight: 950;
-          color: white;
-          letter-spacing: -0.5px;
-          text-transform: uppercase;
-        }
+          color: #000;
 
-        p {
-          margin: 8px 0 0;
-          font-size: 13px;
-          color: rgba(255, 255, 255, 0.6);
-          line-height: 1.4;
-          font-weight: 500;
+          .total {
+            font-size: 12px;
+            color: #aeaeb2;
+            font-weight: 700;
+            margin-left: 2px;
+          }
         }
       }
 
-      .ai-action {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
+      .pack-bar {
+        height: 12px;
+        background: #f2f2f7;
+        border-radius: 6px;
+        overflow: hidden;
 
-        ion-icon {
-          font-size: 32px;
-          color: white;
-        }
+        .pack-bar-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #ccff00, #a8e600);
+          border-radius: 6px;
+          position: relative;
 
-        span {
-          font-size: 9px;
-          font-weight: 900;
-          color: #ccff00;
-          text-transform: uppercase;
+          &::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            animation: bar-shine 2.5s infinite linear;
+          }
         }
       }
-    }
-
-    .ai-visual-effect {
-      position: absolute;
-      top: -50%;
-      right: -20%;
-      width: 250px;
-      height: 250px;
-      background: radial-gradient(circle, rgba(204, 255, 0, 0.15) 0%, transparent 70%);
-      filter: blur(30px);
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    &:active {
-      transform: scale(0.97);
-      background: #000;
     }
   }
 }
 
+.empty-state-modal {
+  text-align: center;
+  padding: 60px 0;
+
+  ion-icon {
+    font-size: 64px;
+    color: #d1d1d6;
+    margin-bottom: 15px;
+  }
+
+  p {
+    font-size: 15px;
+    font-weight: 700;
+    color: #aeaeb2;
+  }
+}
+
+/* --- ANIMATIONS & KEYFRAMES --- */
 @keyframes pulse-ai {
-  0% {
+
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
 
   50% {
-    transform: scale(1.2);
-    opacity: 0.7;
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+@keyframes bar-shine {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.animate-up {
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.nike-fab {
+  --background: #000;
+
+  ion-icon {
+    color: #ccff00;
+  }
+}
+
+/* --- NIKE CARD & ANIMATIONS --- */
+.nike-card {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.animate-pop {
+  animation: popIn 0.5s cubic-bezier(0.26, 1.36, 0.74, 1.1) both;
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
   }
 
   100% {
@@ -579,319 +601,18 @@ ion-content {
   }
 }
 
-.video-card-dev {
-  background: white;
-  border-radius: 35px;
-  overflow: hidden;
-  border: 1px solid var(--nike-gray-soft);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-
-  .video-placeholder {
-    height: 400px;
-    background: #1a1a1a;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    ion-icon {
-      font-size: 60px;
-      color: white;
-      opacity: 0.3;
-    }
-
-    .video-overlay-text {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      color: white;
-
-      .coach-tag {
-        display: block;
-        font-size: 11px;
-        font-weight: 900;
-        color: #ccff00;
-        text-transform: uppercase;
-      }
-
-      .video-title {
-        font-size: 18px;
-        font-weight: 800;
-      }
-    }
-  }
-
-  .video-actions-dev {
-    padding: 15px 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    .nike-btn-mini {
-      margin-left: auto;
-      --background: #000;
-      --color: #fff;
-      --border-radius: 20px;
-      font-weight: 950;
-      font-size: 11px;
-      height: 36px;
-    }
-  }
+.delay-1 {
+  animation-delay: 0.1s;
 }
 
-.challenge-card-dev {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 20px;
-
-  .challenge-icon {
-    width: 50px;
-    height: 50px;
-    background: var(--nike-gray-light);
-    border-radius: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: #ccff00;
-    background: black;
-  }
-
-  .challenge-info {
-    flex: 1;
-
-    h3 {
-      margin: 0;
-      font-size: 15px;
-      font-weight: 800;
-    }
-
-    p {
-      margin: 2px 0 8px;
-      font-size: 11px;
-      color: var(--nike-gray-medium);
-    }
-
-    .progress-bar-dev {
-      width: 100%;
-      height: 6px;
-      background: var(--nike-gray-light);
-      border-radius: 3px;
-
-      .progress-fill-dev {
-        width: 40%;
-        height: 100%;
-        background: #ccff00;
-        border-radius: 3px;
-      }
-    }
-  }
-
-  ion-button {
-    --border-radius: 15px;
-    font-weight: 800;
-    font-size: 10px;
-  }
+.delay-2 {
+  animation-delay: 0.2s;
 }
 
-/* --- AI RESULTS OVERLAY --- */
-.ai-results-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(10px);
-  z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  visibility: hidden;
-  opacity: 0;
-  transition: all 0.4s ease;
+.delay-3 {
+  animation-delay: 0.3s;
+}
 
-  &.show {
-    visibility: visible;
-    opacity: 1;
-  }
-
-  .ai-results-card {
-    background: white;
-    width: 100%;
-    max-width: 450px;
-    border-radius: 40px;
-    overflow: hidden;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
-
-    .results-header {
-      background: #000;
-      padding: 25px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      .header-main {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-
-        ion-icon {
-          color: #ccff00;
-          font-size: 24px;
-        }
-
-        h3 {
-          margin: 0;
-          color: white;
-          font-size: 20px;
-          font-weight: 950;
-          text-transform: uppercase;
-        }
-      }
-    }
-
-    .results-body {
-      padding: 30px;
-
-      .score-section {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-bottom: 30px;
-
-        .score-circle {
-          width: 100px;
-          height: 100px;
-          border: 4px solid #f2f2f7;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          background: #fafafa;
-          margin-bottom: 10px;
-
-          .score-val {
-            font-size: 38px;
-            font-weight: 950;
-            color: #000;
-          }
-
-          .score-pct {
-            font-size: 14px;
-            font-weight: 800;
-            color: #8e8e93;
-            margin-top: 10px;
-            margin-left: 2px;
-          }
-        }
-
-        .score-label {
-          font-size: 10px;
-          font-weight: 950;
-          color: #8e8e93;
-          letter-spacing: 2px;
-        }
-      }
-
-      .feedback-text {
-        background: #f8f8fa;
-        padding: 20px;
-        border-radius: 20px;
-        margin-bottom: 25px;
-
-        p {
-          margin: 0;
-          font-size: 14px;
-          color: #3a3a3c;
-          line-height: 1.5;
-          font-weight: 500;
-        }
-      }
-
-      .metrics-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        margin-bottom: 30px;
-
-        .metric-progress {
-          .metric-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-
-            span {
-              font-size: 11px;
-              font-weight: 900;
-              text-transform: uppercase;
-              color: #000;
-            }
-          }
-
-          .progress-bg {
-            height: 6px;
-            background: #f2f2f7;
-            border-radius: 3px;
-            overflow: hidden;
-
-            .progress-fill {
-              height: 100%;
-              background: #000;
-              border-radius: 3px;
-              transition: width 1s ease-out;
-            }
-          }
-        }
-      }
-
-      .tips-section {
-        margin-bottom: 30px;
-
-        h4 {
-          font-size: 11px;
-          font-weight: 950;
-          color: #ccff00;
-          background: black;
-          display: inline-block;
-          padding: 4px 12px;
-          border-radius: 8px;
-          margin: 0 0 15px;
-          letter-spacing: 1px;
-        }
-
-        ul {
-          margin: 0;
-          padding-left: 20px;
-
-          li {
-            font-size: 13px;
-            color: #3a3a3c;
-            margin-bottom: 10px;
-            font-weight: 500;
-          }
-        }
-      }
-
-      .nike-btn-black {
-        --background: #000;
-        --color: #fff;
-        --border-radius: 20px;
-        height: 54px;
-        font-weight: 950;
-        letter-spacing: 1px;
-        margin-top: 10px;
-      }
-    }
-
-    /* AI Loading Custom Styling */
-    .ai-loading-custom {
-      --background: #000;
-      --color: #ccff00;
-      --spinner-color: #ccff00;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
-  }
+.delay-4 {
+  animation-delay: 0.4s;
 }

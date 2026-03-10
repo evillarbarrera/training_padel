@@ -57,7 +57,7 @@
                         [color]="storedRadarData[i] >= 8 ? 'success' : storedRadarData[i] >= 5 ? 'warning' : 'danger'">
                         {{ storedRadarData[i] | number:'1.1-1' }}
                     </ion-badge>
-                    <ion-button fill="clear" slot="end" (click)="verDetalleGolpe(label)">
+                    <ion-button fill="clear" slot="end" (click)="verDetallePremium(label)">
                         <ion-icon name="information-circle-outline" slot="icon-only"></ion-icon>
                     </ion-button>
                 </ion-item>
@@ -185,56 +185,43 @@
 
 </ion-content>
 
-<!-- Gemini Analysis Results Modal (Semi-overlay) -->
-<div class="ai-results-overlay" *ngIf="aiActiveResult" [class.show]="aiActiveResult">
-    <div class="ai-results-card animate-up">
-        <div class="results-header">
-            <div class="header-main">
-                <ion-icon name="sparkles"></ion-icon>
-                <h3>{{ aiActiveResult.title }}</h3>
+<!-- Stroke Details Modal (Premium) -->
+<ion-modal [isOpen]="isStrokeModalOpen" (didDismiss)="isStrokeModalOpen = false" initialBreakpoint="0.65"
+    [breakpoints]="[0, 0.45, 0.65, 0.85]" handleBehavior="cycle" cssClass="bottom-sheet-modal">
+    <ng-template>
+        <div class="modal-desglose-container" *ngIf="activeStroke">
+            <div class="modal-desglose-header">
+                <div class="handle"></div>
+                <h3 class="stroke-title">{{ activeStroke.name }}</h3>
+                <p>Análisis de Rendimiento Técnica</p>
             </div>
-            <ion-button fill="clear" color="light" (click)="aiActiveResult = null">
-                <ion-icon name="close"></ion-icon>
-            </ion-button>
-        </div>
 
-        <div class="results-body">
-            <div class="ai-badge-header">POWERED BY GEMINI IA</div>
-
-            <div class="score-section">
-                <div class="score-circle">
-                    <span class="score-val">{{ aiActiveResult.score }}</span>
-                    <span class="score-pct">%</span>
+            <div class="stroke-feedback-card animate-up">
+                <div class="card-icon">💡</div>
+                <div class="card-text">
+                    <h4>Feedback del Coach</h4>
+                    <p>{{ activeStroke.comentario || 'Sigue practicando para recibir feedback específico.' }}</p>
                 </div>
-                <p class="score-label">MATCH TÉCNICO</p>
             </div>
 
-            <div class="feedback-text">
-                <p>{{ aiActiveResult.feedback }}</p>
-            </div>
-
-            <div class="metrics-grid">
-                <div class="metric-progress" *ngFor="let m of aiActiveResult.metrics">
-                    <div class="metric-info">
-                        <span>{{ m.label }}</span>
-                        <span>{{ m.value }}/10</span>
+            <div class="metrics-grid-premium animate-up" style="animation-delay: 0.1s;">
+                <div class="metric-row-modern" *ngFor="let m of activeStroke.metrics">
+                    <div class="m-header">
+                        <span class="m-label">{{ m.name }}</span>
+                        <span class="m-val">{{ m.value }}/10</span>
                     </div>
-                    <div class="progress-bg">
-                        <div class="progress-fill" [style.width]="(m.value * 10) + '%'"></div>
+                    <div class="m-bar-bg">
+                        <div class="m-bar-fill" [style.width.%]="m.value * 10" [class]="getScoreClass(m.value)">
+                            <div class="shimmer"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="tips-section">
-                <h4>TIPS DE MEJORA</h4>
-                <ul>
-                    <li *ngFor="let tip of aiActiveResult.tips">{{ tip }}</li>
-                </ul>
-            </div>
-
-            <ion-button expand="block" class="nike-btn-black" (click)="aiActiveResult = null">
+            <ion-button expand="block" class="nike-btn-black" (click)="isStrokeModalOpen = false"
+                style="margin-top: 30px;">
                 ENTENDIDO
             </ion-button>
         </div>
-    </div>
-</div>
+    </ng-template>
+</ion-modal>
