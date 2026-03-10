@@ -35,13 +35,7 @@ import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOut
     IonButton,
     IonSpinner,
     IonBadge,
-    IonRefresher,
-    IonRefresherContent,
-    IonModal,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons
+    IonModal
   ],
   templateUrl: './entrenador-home.page.html',
   styleUrls: ['./entrenador-home.page.scss']
@@ -87,7 +81,8 @@ export class EntrenadorHomePage {
       chevronUpOutline,
       giftOutline,
       notificationsOutline,
-      warningOutline
+      warningOutline,
+      gift
     });
   }
 
@@ -271,6 +266,10 @@ export class EntrenadorHomePage {
 
   goToAgendar() {
     this.router.navigate(['/entrenador-agendar']);
+  }
+
+  goToCupones() {
+    this.router.navigate(['/entrenador-cupones']);
   }
 
   goToConfig() {

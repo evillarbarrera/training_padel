@@ -376,12 +376,40 @@
         </ion-button>
       </div>
 
+      <!-- Coupon Section -->
+      <div class="coupon-promo-section">
+        <div class="nike-input-group-promo">
+          <div class="promo-header">
+            <ion-icon name="ticket-outline"></ion-icon>
+            <ion-label>CUPÓN DE DESCUENTO</ion-label>
+          </div>
+          <div class="coupon-row">
+            <ion-input [(ngModel)]="couponCode" placeholder="CÓDIGO" class="coupon-input" mode="md"></ion-input>
+            <ion-button (click)="applyCoupon()" [color]="couponApplied ? 'success' : 'dark'" class="apply-btn"
+              fill="solid" mode="ios">
+              {{ couponApplied ? 'VALIDADO' : 'APLICAR' }}
+            </ion-button>
+          </div>
+          <div class="coupon-feedback" *ngIf="couponMessage" [class.success]="couponApplied">
+            <ion-icon [name]="couponApplied ? 'checkmark-circle-outline' : 'alert-circle-outline'"></ion-icon>
+            <span>{{ couponMessage }}</span>
+          </div>
+        </div>
+      </div>
+
       <div class="pack-scroll">
         <div class="pack-card-mobile" *ngFor="let pack of availablePacks" (click)="comprarPackYReservar(pack)">
           <div class="pack-bits">
             <span class="credits">{{ pack.sesiones_totales }} SESIONES</span>
             <h3 class="name">{{ pack.nombre }}</h3>
-            <p class="price">{{ pack.precio | currency:'CLP':'$':'1.0-0' }}</p>
+            <div class="price-container">
+              <p class="price" [class.discounted]="couponApplied">
+                {{ pack.precio | currency:'CLP':'$':'1.0-0' }}
+              </p>
+              <p class="price final" *ngIf="couponApplied">
+                {{ getDiscountedPrice(pack.precio) | currency:'CLP':'$':'1.0-0' }}
+              </p>
+            </div>
           </div>
           <ion-icon name="chevron-forward-outline"></ion-icon>
         </div>

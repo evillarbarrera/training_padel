@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { addIcons } from 'ionicons';
 import { settingsOutline, homeOutline, calendarOutline, logOutOutline, peopleOutline, locationOutline, searchOutline, closeOutline, checkmarkCircleOutline, personOutline, mailOutline, addOutline, callOutline, mapOutline, warningOutline } from 'ionicons/icons';
-import { chevronBackOutline } from 'ionicons/icons';
+import { chevronBackOutline, ticketOutline } from 'ionicons/icons';
 import { NotificationService } from '../../services/notification.service';
 
 @Component({
@@ -113,6 +113,12 @@ export class JugadorReservasPage implements OnInit {
   entrenadorTelefono: string = '';
   coachSelectedData: any = null;
 
+  // Coupon State
+  couponCode: string = '';
+  couponApplied: boolean = false;
+  appliedCouponData: any = null;
+  couponMessage: string = '';
+
   constructor(
     private entrenamientoService: EntrenamientoService,
     private mysqlService: MysqlService,
@@ -141,7 +147,8 @@ export class JugadorReservasPage implements OnInit {
       addOutline,
       callOutline,
       mapOutline,
-      warningOutline
+      warningOutline,
+      ticketOutline
     });
   }
 
@@ -397,6 +404,10 @@ export class JugadorReservasPage implements OnInit {
         }
 
         this.showPackModal = true;
+        this.couponCode = '';
+        this.couponApplied = false;
+        this.appliedCouponData = null;
+        this.couponMessage = '';
         this.cargando = false;
       },
       error: (err) => {
@@ -414,6 +425,40 @@ export class JugadorReservasPage implements OnInit {
     if (type === 'multiplayer') return cant > 1 && pTipo !== 'grupal';
     if (type === 'grupal') return pTipo === 'grupal';
     return false;
+  }
+
+  applyCoupon() {
+    if (!this.couponCode) return;
+
+    this.entrenamientoService.validateCupon(this.couponCode, this.selectedEntrenador!, this.jugadorId, this.pendingHorario?.pack_id).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.couponApplied = true;
+          this.appliedCouponData = res.cupon;
+          this.couponMessage = `¡Cupón aplicado! Descuento de ${res.cupon.valor}${res.cupon.tipo_descuento === 'porcentaje' ? '%' : '$'}`;
+        } else {
+          this.couponApplied = false;
+          this.appliedCouponData = null;
+          this.couponMessage = res.error || 'Cupón no válido';
+        }
+      },
+      error: (err) => {
+        this.couponApplied = false;
+        this.appliedCouponData = null;
+        this.couponMessage = err.error?.error || 'Error al validar el cupón';
+      }
+    });
+  }
+
+  getDiscountedPrice(price: number): number {
+    if (!this.couponApplied || !this.appliedCouponData) return price;
+
+    const val = Number(this.appliedCouponData.valor);
+    if (this.appliedCouponData.tipo_descuento === 'porcentaje') {
+      return price * (1 - (val / 100));
+    } else {
+      return Math.max(0, price - val);
+    }
   }
 
   async comprarPackYReservar(pack: any) {
@@ -458,8 +503,9 @@ export class JugadorReservasPage implements OnInit {
         const paymentPayload = {
           pack_id: packId,
           jugador_id: Number(this.jugadorId),
-          amount: pack.precio,
+          amount: this.getDiscountedPrice(pack.precio),
           reserva_id: reservaId,
+          cupon_id: this.appliedCouponData?.id,
           origin: window.location.origin + window.location.pathname
         };
 
@@ -498,7 +544,9 @@ export class JugadorReservasPage implements OnInit {
 
     const packPayload = {
       pack_id: packId,
-      jugador_id: Number(this.jugadorId)
+      jugador_id: Number(this.jugadorId),
+      cupon_id: this.appliedCouponData?.id,
+      precio_pagado: this.getDiscountedPrice(pack.precio)
     };
 
     this.packAlumnoService.insertPackAlumno(packPayload).subscribe({

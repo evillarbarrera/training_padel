@@ -17,9 +17,39 @@
       <h2 class="pack-title">{{ pack.nombre }}</h2>
       <p class="coach-name">Coach {{ pack.entrenador_nombre }}</p>
 
-      <div class="price-badge">
-        <span class="currency">$</span>
-        <span class="amount">{{ pack.precio | number }}</span>
+      <div class="price-container">
+        <div class="price-badge" [class.has-discount]="cuponValidado">
+          <span class="currency">$</span>
+          <span class="amount">{{ precioFinal | number }}</span>
+        </div>
+        <div class="original-price" *ngIf="cuponValidado">
+          Antes: ${{ pack.precio | number }}
+        </div>
+      </div>
+
+      <!-- Coupon Section -->
+      <div class="coupon-section">
+        <div class="coupon-input-wrapper" *ngIf="!cuponValidado">
+          <div class="input-container">
+            <ion-icon name="ticket-outline" class="coupon-icon"></ion-icon>
+            <input type="text" [(ngModel)]="codigoCupon" placeholder="Código de descuento"
+              (keyup.enter)="validarCupon()" [disabled]="aplicandoCupon">
+            <button class="apply-btn" (click)="validarCupon()" [disabled]="aplicandoCupon || !codigoCupon">
+              <ion-spinner name="crescent" *ngIf="aplicandoCupon"></ion-spinner>
+              <span *ngIf="!aplicandoCupon">Aplicar</span>
+            </button>
+          </div>
+          <p class="error-msg" *ngIf="mensajeError">{{ mensajeError }}</p>
+        </div>
+
+        <div class="coupon-applied" *ngIf="cuponValidado">
+          <div class="applied-info">
+            <ion-icon name="ticket-outline"></ion-icon>
+            <span>Cupón <strong>{{ cuponValidado.codigo }}</strong> aplicado</span>
+            <span class="discount-amount">- ${{ ahorro | number }}</span>
+          </div>
+          <button class="remove-btn" (click)="removerCupon()">Remover</button>
+        </div>
       </div>
 
       <div class="details-grid">
@@ -126,14 +156,126 @@
     margin: 5px 0 20px;
   }
 
+  .price-container {
+    margin-bottom: 25px;
+  }
+
   .price-badge {
     background: #f2f2f7;
     padding: 10px 25px;
     border-radius: 20px;
-    margin-bottom: 25px;
     display: inline-flex;
     align-items: baseline;
     gap: 4px;
+    transition: all 0.3s ease;
+  }
+
+  .price-badge.has-discount {
+    background: #e1f5fe;
+    color: #0288d1;
+    transform: scale(1.05);
+  }
+
+  .original-price {
+    font-size: 14px;
+    color: #999;
+    text-decoration: line-through;
+    margin-top: 5px;
+    font-weight: 500;
+  }
+
+  .coupon-section {
+    width: 100%;
+    margin-bottom: 25px;
+  }
+
+  .coupon-input-wrapper {
+    width: 100%;
+  }
+
+  .input-container {
+    display: flex;
+    align-items: center;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    padding: 8px 12px;
+    border-radius: 12px;
+    gap: 10px;
+  }
+
+  .coupon-icon {
+    font-size: 20px;
+    color: #888;
+  }
+
+  .input-container input {
+    border: none;
+    background: transparent;
+    flex-grow: 1;
+    font-size: 14px;
+    outline: none;
+    width: 100px;
+  }
+
+  .apply-btn {
+    background: #111;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .apply-btn:disabled {
+    opacity: 0.5;
+  }
+
+  .error-msg {
+    color: #ef5350;
+    font-size: 12px;
+    margin: 5px 0 0;
+    text-align: left;
+    padding-left: 5px;
+  }
+
+  .coupon-applied {
+    background: #f1f8e9;
+    border: 1px solid #c5e1a5;
+    padding: 10px 15px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .applied-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #33691e;
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+
+  .discount-amount {
+    margin-left: 5px;
+    font-weight: 800;
+  }
+
+  .remove-btn {
+    background: transparent;
+    border: none;
+    color: #c62828;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px;
+    cursor: pointer;
   }
 
   .currency {

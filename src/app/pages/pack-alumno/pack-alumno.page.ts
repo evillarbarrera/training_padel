@@ -122,23 +122,22 @@ export class PackAlumnoPage implements OnInit {
 
   }
 
-  // ... existing code ...
-
-  async confirmarCompra(pack: any) {
+  async confirmarCompra(pack: any, cuponId: number | null = null, precioFinal: number | null = null) {
     if (pack.transbank_activo == 1 || pack.transbank_activo == '1') {
-      this.iniciarPagoTransbank(pack);
+      this.iniciarPagoTransbank(pack, cuponId, precioFinal);
     } else {
-      this.comprarManual(pack);
+      this.comprarManual(pack, cuponId, precioFinal);
     }
   }
 
-  async iniciarPagoTransbank(pack: any) {
+  async iniciarPagoTransbank(pack: any, cuponId: number | null = null, precioFinal: number | null = null) {
     const jugadorId = Number(localStorage.getItem('userId'));
 
     const payload = {
       pack_id: Number(pack.id),
       jugador_id: jugadorId,
-      amount: pack.precio,
+      amount: precioFinal || pack.precio,
+      cupon_id: cuponId,
       origin: window.location.origin + window.location.pathname
     };
 
@@ -168,7 +167,7 @@ export class PackAlumnoPage implements OnInit {
     });
   }
 
-  async comprarManual(pack: any) {
+  async comprarManual(pack: any, cuponId: number | null = null, precioFinal: number | null = null) {
     const loader = await this.alertCtrl.create({
       header: 'Procesando...',
       message: 'Activando pack...',
@@ -178,7 +177,9 @@ export class PackAlumnoPage implements OnInit {
 
     const payload = {
       pack_id: Number(pack.id),
-      jugador_id: Number(localStorage.getItem('userId'))
+      jugador_id: Number(localStorage.getItem('userId')),
+      cupon_id: cuponId,
+      precio_pagado: precioFinal || pack.precio
     };
 
     this.packsAlumno.insertPackAlumno(payload).subscribe({
@@ -355,7 +356,7 @@ export class PackAlumnoPage implements OnInit {
     const { data } = await modal.onDidDismiss();
 
     if (data?.confirmar) {
-      this.confirmarCompra(pack);
+      this.confirmarCompra(pack, data.cupon_id || null, data.precio_final || null);
     }
   }
 

@@ -1,0 +1,248 @@
+<ion-content>
+    <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+        <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
+
+    <!-- Hero Header -->
+    <div class="header-nike">
+        <div class="header-overlay"></div>
+        <div class="header-content">
+            <h1 class="header-title">Cupones Descuento</h1>
+            <p class="header-sub">Gestiona ofertas y promociones</p>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Actions Bar -->
+        <div class="actions-section animate-up">
+            <ion-button expand="block" class="nike-btn-primary" (click)="abrirModal()">
+                <ion-icon name="add-outline" slot="start"></ion-icon>
+                CREAR NUEVO CUPÓN
+            </ion-button>
+        </div>
+
+        <!-- Coupons List Grid -->
+        <div class="coupons-grid-wrapper" *ngIf="!isLoading; else loading">
+            <div class="coupons-grid">
+                <div class="nike-card coupon-card animate-up" *ngFor="let cupon of paginatedCupones; let i = index"
+                    [style.animation-delay]="(i * 0.05) + 's'" [class.expired]="isExpired(cupon.fecha_fin)">
+
+                    <div class="card-edge"></div>
+
+                    <div class="coupon-main">
+                        <div class="coupon-header">
+                            <div class="code-badge">
+                                <ion-icon name="gift-outline"></ion-icon>
+                                <span>{{ cupon.codigo }}</span>
+                            </div>
+                            <div class="discount-value" [class.percent]="cupon.tipo_descuento === 'porcentaje'">
+                                {{ cupon.tipo_descuento === 'porcentaje' ? cupon.valor + '%' : '$' + (cupon.valor |
+                                number:'1.0-0':'es') }}
+                            </div>
+                        </div>
+
+                        <div class="coupon-details">
+                            <div class="detail-row" *ngIf="cupon.jugador_nombre">
+                                <ion-icon name="person-outline"></ion-icon>
+                                <span>Para: <strong>{{ cupon.jugador_nombre }}</strong></span>
+                            </div>
+                            <div class="detail-row" *ngIf="cupon.pack_nombre">
+                                <ion-icon name="cube-outline"></ion-icon>
+                                <span>Pack: <strong>{{ cupon.pack_nombre }}</strong></span>
+                            </div>
+                            <div class="detail-row">
+                                <ion-icon name="calendar-outline"></ion-icon>
+                                <span>Fin: <strong>{{ (cupon.fecha_fin | date:'dd/MM/yyyy') || 'Sin fecha'
+                                        }}</strong></span>
+                            </div>
+                            <div class="detail-row">
+                                <ion-icon name="checkmark-circle-outline"></ion-icon>
+                                <span>Usos: <strong>{{ cupon.uso_actual }} / {{ cupon.uso_maximo || '∞'
+                                        }}</strong></span>
+                            </div>
+                        </div>
+
+                        <div class="coupon-actions">
+                            <ion-button fill="clear" color="primary" class="edit-btn" (click)="abrirModal(cupon)">
+                                <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+                            </ion-button>
+                            <ion-button fill="clear" color="danger" class="delete-btn"
+                                (click)="eliminarCupon(cupon.id)">
+                                <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                            </ion-button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div class="pagination-nike" *ngIf="totalPages > 1">
+                <ion-button fill="clear" [disabled]="currentPage === 1" (click)="setPage(currentPage - 1)">
+                    <ion-icon name="chevron-back-outline"></ion-icon>
+                </ion-button>
+
+                <div class="pages-wrapper">
+                    <span class="page-num" *ngFor="let p of pages" [class.active]="p === currentPage"
+                        (click)="setPage(p)">
+                        {{ p }}
+                    </span>
+                </div>
+
+                <ion-button fill="clear" [disabled]="currentPage === totalPages" (click)="setPage(currentPage + 1)">
+                    <ion-icon name="chevron-forward-outline"></ion-icon>
+                </ion-button>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state animate-fade" *ngIf="cupones.length === 0">
+                <ion-icon name="gift-outline"></ion-icon>
+                <p>Aún no has creado cupones.</p>
+                <ion-button fill="clear" (click)="abrirModal()">Empezar ahora</ion-button>
+            </div>
+        </div>
+
+        <ng-template #loading>
+            <div class="loading-container">
+                <ion-spinner name="crescent"></ion-spinner>
+                <p>Cargando promociones...</p>
+            </div>
+        </ng-template>
+    </div>
+
+    <!-- Back FAB -->
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button class="nike-fab back-fab" (click)="goBack()">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+
+    <!-- CUpon Modal -->
+    <ion-modal [isOpen]="modalOpen" (didDismiss)="cerrarModal()" class="nike-modal">
+        <ng-template>
+            <ion-header class="ion-no-border">
+                <ion-toolbar>
+                    <ion-buttons slot="start">
+                        <ion-button (click)="cerrarModal()">
+                            <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+                        </ion-button>
+                    </ion-buttons>
+                    <ion-title>{{ nuevoCupon.id ? 'Editar Cupón' : 'Nuevo Cupón' }}</ion-title>
+                    <ion-buttons slot="end">
+                        <ion-button (click)="cerrarModal()">
+                            <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+                        </ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+            </ion-header>
+
+            <ion-content class="ion-padding">
+                <div class="modal-form">
+                    <div class="input-group">
+                        <label>Código del Cupón</label>
+                        <ion-item lines="none" class="nike-item">
+                            <ion-input [(ngModel)]="nuevoCupon.codigo" placeholder="Ej: VERANO2024"
+                                class="caps-input"></ion-input>
+                        </ion-item>
+                    </div>
+
+                    <div class="row">
+                        <div class="input-group half">
+                            <label>Tipo</label>
+                            <ion-item lines="none" class="nike-item">
+                                <ion-select [(ngModel)]="nuevoCupon.tipo_descuento" interface="popover"
+                                    toggleIcon="chevron-down-outline">
+                                    <ion-select-option value="porcentaje">Porcentaje (%)</ion-select-option>
+                                    <ion-select-option value="monto">Fijo ($)</ion-select-option>
+                                </ion-select>
+                            </ion-item>
+                        </div>
+                        <div class="input-group half">
+                            <label>Valor</label>
+                            <ion-item lines="none" class="nike-item">
+                                <ion-input type="number" [(ngModel)]="nuevoCupon.valor" placeholder="10"></ion-input>
+                            </ion-item>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="input-group half">
+                            <label>Inicio</label>
+                            <ion-item lines="none" class="nike-item">
+                                <ion-input type="date" [(ngModel)]="nuevoCupon.fecha_inicio"></ion-input>
+                            </ion-item>
+                        </div>
+                        <div class="input-group half">
+                            <label>Fin</label>
+                            <ion-item lines="none" class="nike-item">
+                                <ion-input type="date" [(ngModel)]="nuevoCupon.fecha_fin"></ion-input>
+                            </ion-item>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Uso Máximo (Opcional)</label>
+                        <ion-item lines="none" class="nike-item">
+                            <ion-input type="number" [(ngModel)]="nuevoCupon.uso_maximo"
+                                placeholder="Ej: 100 usuarios"></ion-input>
+                        </ion-item>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Pack Específico (Opcional)</label>
+                        <ion-item lines="none" class="nike-item">
+                            <ion-select [(ngModel)]="nuevoCupon.pack_id" interface="action-sheet"
+                                placeholder="Todos los packs">
+                                <ion-select-option [value]="null">Todos los packs</ion-select-option>
+                                <ion-select-option *ngFor="let p of packs" [value]="p.id">{{ p.nombre
+                                    }}</ion-select-option>
+                            </ion-select>
+                        </ion-item>
+                    </div>
+
+                    <!-- Search Real-time (Global Database) -->
+                    <div class="input-group">
+                        <label>Restringir a Jugador (Opcional)</label>
+                        <div class="nike-search-box search-modal">
+                            <ion-icon name="search-outline"></ion-icon>
+                            <ion-input placeholder="Buscar jugador en App..." [(ngModel)]="searchTermAlumno"
+                                (ionInput)="filterAlumnos($event)">
+                            </ion-input>
+                        </div>
+
+                        <div class="autocomplete-results-mobile"
+                            *ngIf="searchTermAlumno && (isSearchingAlumno || alumnosFiltrados.length > 0)">
+
+                            <!-- Loading State -->
+                            <div class="result-item loading" *ngIf="isSearchingAlumno">
+                                <ion-spinner name="dots"></ion-spinner>
+                                <span>Buscando...</span>
+                            </div>
+
+                            <!-- Results -->
+                            <ng-container *ngIf="!isSearchingAlumno">
+                                <div class="result-item" *ngFor="let alu of alumnosFiltrados"
+                                    (click)="seleccionarAlumno(alu)">
+                                    <div class="alu-text">
+                                        <span class="name">{{ alu.nombre || alu.jugador_nombre }}</span>
+                                        <span class="mail">{{ alu.usuario }}</span>
+                                    </div>
+                                    <ion-icon name="add-circle-outline"></ion-icon>
+                                </div>
+
+                                <!-- No Results -->
+                                <div class="result-item empty"
+                                    *ngIf="alumnosFiltrados.length === 0 && searchTermAlumno.length > 1">
+                                    <span>No se encontraron resultados</span>
+                                </div>
+                            </ng-container>
+                        </div>
+                    </div>
+                </div>
+
+                <ion-button expand="block" class="nike-btn-save" (click)="guardarCupon()" [disabled]="isSaving">
+                    {{ isSaving ? 'GUARDANDO...' : (nuevoCupon.id ? 'ACTUALIZAR' : 'CREAR CUPÓN') }}
+                </ion-button>
+            </ion-content>
+        </ng-template>
+    </ion-modal>
+</ion-content>

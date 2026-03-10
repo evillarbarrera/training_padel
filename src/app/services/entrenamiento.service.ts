@@ -125,4 +125,50 @@ export class EntrenamientoService {
     const payload = { entrenador_id: entrenadorId, club_id: clubId };
     return this.http.post<any>(`${this.api}/disponibilidad/migrate_to_club.php`, payload, { headers: this.headers });
   }
+
+  // --- CUPONES ---
+  getCupones(entrenadorId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.api}/entrenador/get_cupones.php?entrenador_id=${entrenadorId}`,
+      { headers: this.headers }
+    );
+  }
+
+  saveCupon(payload: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.api}/entrenador/save_cupon.php`,
+      payload,
+      { headers: this.headers }
+    );
+  }
+
+  deleteCupon(payload: { id: number; entrenador_id: number }): Observable<any> {
+    return this.http.post<any>(
+      `${this.api}/entrenador/delete_cupon.php`,
+      payload,
+      { headers: this.headers }
+    );
+  }
+
+  validateCupon(codigo: string, entrenadorId: number, jugadorId?: number, packId?: number): Observable<any> {
+    let url = `${this.api}/packs/validate_cupon.php?codigo=${codigo}&entrenador_id=${entrenadorId}`;
+    if (jugadorId) url += `&jugador_id=${jugadorId}`;
+    if (packId) url += `&pack_id=${packId}`;
+    return this.http.get<any>(url, { headers: this.headers });
+  }
+
+  getMisPacks(entrenadorId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.api}/packs/get_mis_packs.php?entrenador_id=${entrenadorId}`,
+      { headers: this.headers }
+    );
+  }
+
+  searchAlumnos(term: string): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.api}/user/get_users.php?rol=jugador&search=${term}&limit=10`,
+      { headers: this.headers }
+    );
+  }
 }
+
