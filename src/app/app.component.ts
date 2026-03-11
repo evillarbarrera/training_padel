@@ -30,14 +30,17 @@ export class AppComponent {
       this.showSplash = false;
     }, 3000);
 
-    // Inicializamos Google Auth una sola vez a nivel global
-    // El clientId (Web) es necesario para la comunicación con el servidor
-    // El iosClientId es obligatorio para evitar crashes en iOS nativo
-    (GoogleAuth as any).initialize({
-      clientId: '786145270372-liov6hu5v7lcmf2028s9ihi600rp3353.apps.googleusercontent.com',
-      iosClientId: '786145270372-1pilhghaglafm9l0vihjhagcugovtvh8.apps.googleusercontent.com',
-      scopes: ['profile', 'email']
-    });
+    if (this.platform.is('capacitor')) {
+      // En dispositivos nativos, inicializar sin argumentos 
+      // para que tome iosClientId o androidClientId desde capacitor.config.ts
+      GoogleAuth.initialize();
+    } else {
+      // En Web, pasamos el clientId directamente
+      GoogleAuth.initialize({
+        clientId: '786145270372-liov6hu5v7lcmf2028s9ihi600rp3353.apps.googleusercontent.com',
+        scopes: ['profile', 'email']
+      });
+    }
 
     // Initialize Notifications
     this.notificationService.initializeMessaging();
