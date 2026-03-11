@@ -25,4 +25,16 @@ end
 
 post_install do |installer|
   assertDeploymentTarget(installer)
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      config.build_settings['LIBRARY_SEARCH_PATHS'] = ['$(inherited)', '$(SDKROOT)/usr/lib/swift']
+    end
+  end
+  # Special fix for Aggregate Targets (Pods-App) xcconfigs
+  installer.aggregate_targets.each do |target|
+    target.xcconfigs.each do |name, config|
+      config.attributes['LIBRARY_SEARCH_PATHS'] = '$(inherited) $(SDKROOT)/usr/lib/swift'
+    end
+  end
 end
