@@ -40,6 +40,12 @@
           <ion-spinner name="crescent" *ngIf="isLoading"></ion-spinner>
           <span *ngIf="!isLoading">Entrar</span>
         </ion-button>
+
+        <!-- Error Message Display -->
+        <div *ngIf="error" class="error-msg-container">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>{{ error }}</span>
+        </div>
       </div>
 
       <!-- Footer -->

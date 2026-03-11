@@ -196,6 +196,24 @@
   }
 }
 
+.error-msg-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 59, 48, 0.1);
+  color: #ff3b30;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  animation: cardSlideUp 0.3s ease-out;
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
 // ─── Footer Link ───
 .register-link {
   margin-top: 24px;

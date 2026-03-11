@@ -22,6 +22,7 @@ export class LoginPage implements OnInit {
   password: string = '';
   recordar: boolean = false;
   isLoading: boolean = false;
+  error: string = '';
 
   constructor(
     private mysql: MysqlService,
@@ -56,6 +57,7 @@ export class LoginPage implements OnInit {
     if (this.isLoading) return;
 
     this.isLoading = true;
+    this.error = '';
 
     try {
       this.mysql.login(this.usuario, this.password)
@@ -111,6 +113,7 @@ export class LoginPage implements OnInit {
   }
 
   async showError(message: string) {
+    this.error = message;
     const toast = await this.toastCtrl.create({
       message,
       duration: 2500,
