@@ -128,17 +128,19 @@ export class EntrenadorAgendarPage implements OnInit {
         this.isLoading = true;
         this.entrenamientoService.getMisAlumnos(this.entrenadorId).subscribe({
             next: (res: any[]) => {
-                this.alumnos = res.map(a => {
-                    let foto = a.jugador_foto;
-                    // Logic from AlumnosPage
-                    if (!foto || foto.includes('placeholder') || foto.includes('imagen_defecto')) {
-                        foto = `https://ui-avatars.com/api/?name=${encodeURIComponent(a.jugador_nombre)}&background=ccff00&color=000&length=2&rounded=true&bold=true&size=128`;
-                    }
-                    return {
-                        ...a,
-                        jugador_foto: foto
-                    };
-                });
+                this.alumnos = res
+                    .filter(a => (a.sesiones_restantes || 0) > 0)
+                    .map(a => {
+                        let foto = a.jugador_foto;
+                        // Logic from AlumnosPage
+                        if (!foto || foto.includes('placeholder') || foto.includes('imagen_defecto')) {
+                            foto = `https://ui-avatars.com/api/?name=${encodeURIComponent(a.jugador_nombre)}&background=ccff00&color=000&length=2&rounded=true&bold=true&size=128`;
+                        }
+                        return {
+                            ...a,
+                            jugador_foto: foto
+                        };
+                    });
                 this.isLoading = false;
             },
             error: (err) => {
