@@ -214,6 +214,40 @@
   }
 }
 
+.social-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0;
+  color: #999;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  gap: 12px;
+
+  &::before,
+  &::after {
+    content: "";
+    height: 1px;
+    background: #e0e0e0;
+    flex: 1;
+  }
+}
+
+.google-login-btn {
+  --border-radius: 16px;
+  --border-color: #e0e0e0;
+  --color: #1a1a1a;
+  height: 56px;
+  font-weight: 700;
+  margin: 0;
+
+  ion-icon {
+    color: #4285f4;
+    font-size: 20px;
+  }
+}
+
 // ─── Footer Link ───
 .register-link {
   margin-top: 24px;

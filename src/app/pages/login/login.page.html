@@ -41,6 +41,16 @@
           <span *ngIf="!isLoading">Entrar</span>
         </ion-button>
 
+        <div class="social-divider">
+          <span>o</span>
+        </div>
+
+        <ion-button expand="block" fill="outline" class="google-login-btn" (click)="loginWithGoogle()"
+          [disabled]="isLoading">
+          <ion-icon name="logo-google" slot="start"></ion-icon>
+          Google
+        </ion-button>
+
         <!-- Error Message Display -->
         <div *ngIf="error" class="error-msg-container">
           <ion-icon name="alert-circle-outline"></ion-icon>

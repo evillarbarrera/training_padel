@@ -7,7 +7,8 @@ import { Router } from '@angular/router';
 import { MysqlService } from 'src/app/services/mysql.service';
 import { ToastController, AlertController, Platform, LoadingController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { mailOutline, lockClosedOutline } from 'ionicons/icons';
+import { mailOutline, lockClosedOutline, logoGoogle } from 'ionicons/icons';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { timeout } from 'rxjs/operators';
 
 @Component({
@@ -32,10 +33,15 @@ export class LoginPage implements OnInit {
     private platform: Platform,
     private loadingCtrl: LoadingController
   ) {
-    addIcons({ mailOutline, lockClosedOutline });
+    addIcons({ mailOutline, lockClosedOutline, logoGoogle });
   }
 
   ngOnInit() {
+    GoogleAuth.initialize({
+      clientId: '786145270372-liov6hu5v7lcmf2028s9ihi600rp3353.apps.googleusercontent.com',
+      scopes: ['profile', 'email'],
+      grantOfflineAccess: true
+    });
     const savedUser = localStorage.getItem('savedUser');
     const savedPass = localStorage.getItem('savedPass');
     if (savedUser && savedPass) {
@@ -100,6 +106,46 @@ export class LoginPage implements OnInit {
       this.isLoading = false;
       console.error('Critical Error in login flow:', e);
       this.showError('Error inesperado al iniciar sesión');
+    }
+  }
+
+  async loginWithGoogle() {
+    if (this.isLoading) return;
+    this.isLoading = true;
+    this.error = '';
+
+    try {
+      const googleUser = await GoogleAuth.signIn();
+      console.log('Google user:', googleUser);
+
+      if (googleUser && googleUser.email) {
+        this.mysql.googleCheck(googleUser.email).subscribe({
+          next: (res) => {
+            this.isLoading = false;
+            if (res.exists) {
+              // Usuario existe, loguear
+              localStorage.setItem('userId', res.id.toString());
+              this.redirectBasedOnRole(res.rol);
+            } else {
+              // Usuario no existe, mostrar error o redirigir a registro
+              this.showError('Usuario no registrado. Regístrate con este email primero.');
+            }
+          },
+          error: (err) => {
+            this.isLoading = false;
+            console.error('Google check error:', err);
+            this.showError('Error al verificar cuenta Google.');
+          }
+        });
+      } else {
+        this.isLoading = false;
+      }
+    } catch (err: any) {
+      this.isLoading = false;
+      console.error('Google sign in error:', err);
+      if (err.error !== 'popup_closed_by_user') {
+        this.showError('Error al iniciar sesión con Google.');
+      }
     }
   }
 

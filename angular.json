@@ -30,6 +30,11 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               {
+                "glob": "firebase-messaging-sw.js",
+                "input": "src/assets",
+                "output": "./"
+              },
+              {
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
@@ -91,9 +96,7 @@
             "development": {
               "buildTarget": "app:build:development"
             },
-            "ci": {
-              "progress": false
-            }
+            "ci": {}
           },
           "defaultConfiguration": "development"
         },
@@ -126,7 +129,6 @@
           },
           "configurations": {
             "ci": {
-              "progress": false,
               "watch": false
             }
           }

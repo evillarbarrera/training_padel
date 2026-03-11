@@ -20,16 +20,32 @@ export class NotificationService {
    */
   async initializeMessaging(): Promise<void> {
     try {
-      // Inicializar Firebase (si no está inicializado)
+      if (!('serviceWorker' in navigator)) {
+        console.warn('Service Workers no soportados en este navegador');
+        return;
+      }
+
+      // Inicializar Firebase
       const app = initializeApp(firebaseConfig);
       this.messaging = getMessaging(app);
+
+      // Registro explícito del Service Worker
+      const swUrl = '/firebase-messaging-sw.js';
+      const registration = await navigator.serviceWorker.register(swUrl)
+        .catch(err => {
+          console.error('Error registrando FCM Service Worker:', err);
+          return null;
+        });
 
       // Solicitar permiso al usuario
       const permission = await Notification.requestPermission();
 
       if (permission === 'granted') {
-
-        await this.getAndSaveToken();
+        if (registration) {
+          await this.getAndSaveToken(registration);
+        } else {
+          await this.getAndSaveToken();
+        }
         this.setupMessageListener();
       } else {
         console.warn('⚠️ Permiso de notificaciones denegado');
@@ -42,12 +58,13 @@ export class NotificationService {
   /**
    * Obtener token FCM y guardarlo en la BD
    */
-  private async getAndSaveToken(): Promise<void> {
+  private async getAndSaveToken(registration?: ServiceWorkerRegistration): Promise<void> {
     try {
       if (!this.messaging) return;
 
       const token = await getToken(this.messaging, {
-        vapidKey: 'BHGt5ww035AaE8Yer4vyb524SsWaHw4jRknCklBseWef73jIxb3heN17_hsm4uOi_jceYrBiyQyWefkix-IL0kY'
+        vapidKey: 'BHGt5ww035AaE8Yer4vyb524SsWaHw4jRknCklBseWef73jIxb3heN17_hsm4uOi_jceYrBiyQyWefkix-IL0kY',
+        serviceWorkerRegistration: registration
       });
 
       if (token) {
