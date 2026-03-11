@@ -37,14 +37,6 @@ export class LoginPage implements OnInit {
   }
 
   ngOnInit() {
-    if (!this.platform.is('capacitor')) {
-      GoogleAuth.initialize({
-        clientId: '786145270372-liov6hu5v7lcmf2028s9ihi600rp3353.apps.googleusercontent.com', // Web ID
-        scopes: ['profile', 'email']
-      });
-    } else {
-      GoogleAuth.initialize(); // Native platforms pick from config
-    }
     const savedUser = localStorage.getItem('savedUser');
     const savedPass = localStorage.getItem('savedPass');
     if (savedUser && savedPass) {

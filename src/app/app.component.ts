@@ -30,17 +30,14 @@ export class AppComponent {
       this.showSplash = false;
     }, 3000);
 
-    // Solo inicializar el plugin nativo si estamos en un dispositivo real (Android o iOS)
-    // No inicializar en 'desktop' ni 'mobileweb' para evitar conflictos con GIS
-    if (this.platform.is('capacitor') && (this.platform.is('android') || this.platform.is('ios'))) {
-      console.log('AppComponent: Initializing Capacitor GoogleAuth for Native');
-      GoogleAuth.initialize({
-        clientId: '786145270372-liov6hu5v7lcmf2028s9ihi600rp3353.apps.googleusercontent.com',
-        scopes: ['profile', 'email'],
-      });
-    } else {
-      console.log('AppComponent: Skipping Capacitor GoogleAuth (running in web mode)');
-    }
+    // Inicializamos Google Auth una sola vez a nivel global
+    // El clientId (Web) es necesario para la comunicación con el servidor
+    // El iosClientId es obligatorio para evitar crashes en iOS nativo
+    (GoogleAuth as any).initialize({
+      clientId: '786145270372-liov6hu5v7lcmf2028s9ihi600rp3353.apps.googleusercontent.com',
+      iosClientId: '786145270372-1pilhghaglafm9l0vihjhagcugovtvh8.apps.googleusercontent.com',
+      scopes: ['profile', 'email']
+    });
 
     // Initialize Notifications
     this.notificationService.initializeMessaging();
