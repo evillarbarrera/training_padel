@@ -60,6 +60,8 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>GIDClientID</key>
+	<string>786145270372-1pilhghaglafm9l0vihjhagcugovtvh8.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
