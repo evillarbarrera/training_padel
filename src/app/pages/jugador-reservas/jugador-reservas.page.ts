@@ -976,7 +976,7 @@ export class JugadorReservasPage implements OnInit {
             text: 'Sí, cancelar',
             role: 'destructive',
             handler: () => {
-              this.cancelarReserva(reserva_id);
+              this.cancelarReserva(reserva);
             }
           }
         ]
@@ -989,10 +989,12 @@ export class JugadorReservasPage implements OnInit {
     }).then(alert => alert.present());
   }
 
-  cancelarReserva(reserva_id: number) {
+  cancelarReserva(reserva: any) {
+    const id = reserva.reserva_id || reserva.id || reserva.inscripcion_id;
+
     // Validar datos
-    if (!reserva_id || reserva_id <= 0) {
-      console.error('Error: reserva_id inválido', reserva_id);
+    if (!id || id <= 0) {
+      console.error('Error: ID inválido', id);
       return;
     }
 
@@ -1001,30 +1003,55 @@ export class JugadorReservasPage implements OnInit {
       return;
     }
 
-    this.mysqlService.cancelarReservaJugador(reserva_id, this.jugadorId).subscribe({
-      next: async (res: any) => {
-        const toast = await this.toastCtrl.create({
-          message: '✓ Reserva cancelada correctamente',
-          duration: 2000,
-          color: 'success',
-          position: 'top'
-        });
-        await toast.present();
-
-        // Recargar entrenamientos
-        this.cargarMisEntrenamientos();
-      },
-      error: async (err: any) => {
-        const errorMsg = err.error?.error || 'Error al cancelar la reserva';
-        const toast = await this.toastCtrl.create({
-          message: `✗ ${errorMsg}`,
-          duration: 2500,
-          color: 'danger',
-          position: 'top'
-        });
-        await toast.present();
-      }
-    });
+    if (reserva.inscripcion_id) {
+      // Group enrollment
+      this.mysqlService.cancelarInscripcionGrupal(reserva.inscripcion_id, this.jugadorId).subscribe({
+        next: async (res: any) => {
+          const toast = await this.toastCtrl.create({
+            message: '✓ Cupo liberado correctamente',
+            duration: 2000,
+            color: 'success',
+            position: 'top'
+          });
+          await toast.present();
+          this.cargarMisEntrenamientos();
+        },
+        error: async (err: any) => {
+          const errorMsg = err.error?.error || 'Error al liberar el cupo';
+          const toast = await this.toastCtrl.create({
+            message: `✗ ${errorMsg}`,
+            duration: 2500,
+            color: 'danger',
+            position: 'top'
+          });
+          await toast.present();
+        }
+      });
+    } else {
+      // Normal reservation
+      this.mysqlService.cancelarReservaJugador(id, this.jugadorId).subscribe({
+        next: async (res: any) => {
+          const toast = await this.toastCtrl.create({
+            message: '✓ Reserva cancelada correctamente',
+            duration: 2000,
+            color: 'success',
+            position: 'top'
+          });
+          await toast.present();
+          this.cargarMisEntrenamientos();
+        },
+        error: async (err: any) => {
+          const errorMsg = err.error?.error || 'Error al cancelar la reserva';
+          const toast = await this.toastCtrl.create({
+            message: `✗ ${errorMsg}`,
+            duration: 2500,
+            color: 'danger',
+            position: 'top'
+          });
+          await toast.present();
+        }
+      });
+    }
   }
 
   // --- Invitation Methods ---
