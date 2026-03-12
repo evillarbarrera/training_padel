@@ -396,6 +396,7 @@ export class EntrenadorAgendarPage implements OnInit {
         this.entrenamientoService.crearReserva(payload).subscribe({
             next: () => {
                 loading.dismiss();
+                this.cerrarModal(); // Cerrar modal antes de navegar
                 this.mostrarToast('✅ Clase agendada exitosamente');
                 this.router.navigate(['/entrenador-entrenamientos']);
             },

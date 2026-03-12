@@ -176,6 +176,61 @@
     </div>
 
 
+
+    <!-- AI Results Overlay -->
+    <div class="ai-results-overlay" [class.show]="aiActiveResult">
+        <div class="ai-results-card" *ngIf="aiActiveResult">
+            <div class="results-header">
+                <div class="header-main">
+                    <ion-icon name="sparkles"></ion-icon>
+                    <h3>Análisis de Técnica</h3>
+                </div>
+                <ion-button fill="clear" (click)="aiActiveResult = null">
+                    <ion-icon name="close" color="light" size="large"></ion-icon>
+                </ion-button>
+            </div>
+
+            <div class="results-body">
+                <div class="ai-badge-header">GEMINI 1.5 PRO VISION</div>
+
+                <div class="score-section">
+                    <div class="score-circle">
+                        <span class="score-val">{{ aiActiveResult.score }}</span>
+                        <span class="score-pct">/10</span>
+                    </div>
+                    <div class="score-label">PUNTUACIÓN TÉCNICA</div>
+                </div>
+
+                <div class="feedback-text">
+                    <p>{{ aiActiveResult.feedback }}</p>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-progress" *ngFor="let metric of aiActiveResult.metrics">
+                        <div class="metric-info">
+                            <span>{{ metric.name }}</span>
+                            <span>{{ metric.value }}/10</span>
+                        </div>
+                        <div class="progress-bg">
+                            <div class="progress-fill" [style.width.%]="metric.value * 10"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tips-section" *ngIf="aiActiveResult.tips && aiActiveResult.tips.length > 0">
+                    <h4>CONSEJOS PRO</h4>
+                    <ul>
+                        <li *ngFor="let tip of aiActiveResult.tips">{{ tip }}</li>
+                    </ul>
+                </div>
+
+                <ion-button expand="block" class="nike-btn-black" (click)="aiActiveResult = null">
+                    ENTENDIDO
+                </ion-button>
+            </div>
+        </div>
+    </div>
+
     <!-- Back FAB -->
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button class="nike-fab back-fab" (click)="goBack()">

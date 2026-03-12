@@ -30,6 +30,7 @@
     "@capacitor/haptics": "7.0.2",
     "@capacitor/ios": "^7.4.4",
     "@capacitor/keyboard": "7.0.3",
+    "@capacitor/push-notifications": "^7.0.6",
     "@capacitor/status-bar": "7.0.3",
     "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
     "@ionic/angular": "^8.0.0",

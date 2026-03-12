@@ -3,7 +3,8 @@ import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging';
 import { firebaseConfig } from '../../firebase.config';
 import { MysqlService } from './mysql.service';
-
+import { Capacitor } from '@capacitor/core';
+import { PushNotifications } from '@capacitor/push-notifications';
 @Injectable({
   providedIn: 'root'
 })
@@ -20,35 +21,80 @@ export class NotificationService {
    */
   async initializeMessaging(): Promise<void> {
     try {
-      if (!('serviceWorker' in navigator)) {
-        console.warn('Service Workers no soportados en este navegador');
-        return;
-      }
+      if (Capacitor.isNativePlatform()) {
+        // --- LÓGICA PARA CELULARES (iOS/Android Módulos Nativos) ---
+        let permStatus = await PushNotifications.checkPermissions();
 
-      // Inicializar Firebase
-      const app = initializeApp(firebaseConfig);
-      this.messaging = getMessaging(app);
-
-      // Registro explícito del Service Worker
-      const swUrl = '/firebase-messaging-sw.js';
-      const registration = await navigator.serviceWorker.register(swUrl)
-        .catch(err => {
-          console.error('Error registrando FCM Service Worker:', err);
-          return null;
-        });
-
-      // Solicitar permiso al usuario
-      const permission = await Notification.requestPermission();
-
-      if (permission === 'granted') {
-        if (registration) {
-          await this.getAndSaveToken(registration);
-        } else {
-          await this.getAndSaveToken();
+        if (permStatus.receive === 'prompt') {
+          permStatus = await PushNotifications.requestPermissions();
         }
-        this.setupMessageListener();
+
+        if (permStatus.receive === 'granted') {
+          await PushNotifications.register();
+
+          // Escuchar cuando el celular nos da el Token Físico FCM / APNs
+          PushNotifications.addListener('registration', (token) => {
+            console.log('Push registration success, token: ' + token.value);
+            if (this.userId) {
+              this.mysqlService.guardarTokenFCM(this.userId, token.value).subscribe({
+                next: () => console.log('Token guardado en BD'),
+                error: (err) => console.error('Error guardando token nativo:', err)
+              });
+            }
+          });
+
+          // Manejar errores de registro
+          PushNotifications.addListener('registrationError', (error: any) => {
+            console.error('Error on push registration: ' + JSON.stringify(error));
+          });
+
+          // Escuchar cuando llega la notificación y la app está abierta (foreground)
+          PushNotifications.addListener('pushNotificationReceived', (notification) => {
+            // Capacitor Push (depende configuración plugin) suele ponerla en la barra superior automáticamente,
+            // o aquí podemos disparar un evento si queremos un modal en pantalla
+            console.log('Push received: ', notification);
+          });
+
+          // Acción al tocar la notificación en la barra
+          PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+            console.log('Push action performed: ', notification);
+          });
+
+        } else {
+          console.warn('⚠️ Permiso de notificaciones nativas denegado');
+        }
       } else {
-        console.warn('⚠️ Permiso de notificaciones denegado');
+        // --- LÓGICA ORIGINAL PARA NAVEGADORES WEB (Service Worker) ---
+        if (!('serviceWorker' in navigator)) {
+          console.warn('Service Workers no soportados en este navegador');
+          return;
+        }
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        this.messaging = getMessaging(app);
+
+        // Registro explícito del Service Worker
+        const swUrl = '/firebase-messaging-sw.js';
+        const registration = await navigator.serviceWorker.register(swUrl)
+          .catch(err => {
+            console.error('Error registrando FCM Service Worker:', err);
+            return null;
+          });
+
+        // Solicitar permiso al usuario
+        const permission = await Notification.requestPermission();
+
+        if (permission === 'granted') {
+          if (registration) {
+            await this.getAndSaveToken(registration);
+          } else {
+            await this.getAndSaveToken();
+          }
+          this.setupMessageListener();
+        } else {
+          console.warn('⚠️ Permiso de notificaciones denegado en Web');
+        }
       }
     } catch (error) {
       console.error('Error inicializando messaging:', error);
