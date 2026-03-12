@@ -1,10 +1,9 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
     IonContent,
     IonButton,
-    IonInput,
     IonItem,
     IonLabel,
     IonIcon,
@@ -42,7 +41,6 @@ import { AlertController, LoadingController, ToastController } from '@ionic/angu
         FormsModule,
         IonContent,
         IonButton,
-        IonInput,
         IonItem,
         IonLabel,
         IonIcon,
@@ -63,6 +61,7 @@ import { AlertController, LoadingController, ToastController } from '@ionic/angu
 })
 export class EntrenadorAgendarPage implements OnInit {
 
+    @ViewChild('agendarModal') agendarModal!: IonModal;
     entrenadorId = Number(localStorage.getItem('userId'));
     isLoading = false;
 
@@ -185,6 +184,9 @@ export class EntrenadorAgendarPage implements OnInit {
 
     cerrarModal() {
         this.isModalOpen = false;
+        if (this.agendarModal) {
+            this.agendarModal.dismiss();
+        }
         this.alumnoSeleccionado = null;
         this.diaSeleccionado = ''; // Reset state
         this.horariosPorDia = {};

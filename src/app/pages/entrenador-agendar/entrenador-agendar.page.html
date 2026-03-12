@@ -52,7 +52,7 @@
         </section>
 
         <!-- AGENDAR MODAL -->
-        <ion-modal [isOpen]="isModalOpen" (didDismiss)="cerrarModal()">
+        <ion-modal #agendarModal [isOpen]="isModalOpen" (didDismiss)="cerrarModal()">
             <ng-template>
                 <ion-header class="ion-no-border">
                     <ion-toolbar>

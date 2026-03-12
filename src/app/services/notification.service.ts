@@ -35,8 +35,11 @@ export class NotificationService {
           // Escuchar cuando el celular nos da el Token Físico FCM / APNs
           PushNotifications.addListener('registration', (token) => {
             console.log('Push registration success, token: ' + token.value);
-            if (this.userId) {
-              this.mysqlService.guardarTokenFCM(this.userId, token.value).subscribe({
+            localStorage.setItem('fcm_token', token.value);
+
+            const currentUserId = this.userId || Number(localStorage.getItem('userId'));
+            if (currentUserId) {
+              this.mysqlService.guardarTokenFCM(currentUserId, token.value).subscribe({
                 next: () => console.log('Token guardado en BD'),
                 error: (err) => console.error('Error guardando token nativo:', err)
               });
@@ -285,6 +288,21 @@ export class NotificationService {
       }).subscribe({
         next: () => { },
         error: (err) => console.error('Error enviando notificación:', err)
+      });
+    }
+  }
+
+  /**
+   * Forzar la actualización del token para el usuario actual (usado tras login)
+   */
+  async updateTokenForUser(): Promise<void> {
+    const userId = Number(localStorage.getItem('userId'));
+    const token = localStorage.getItem('fcm_token');
+
+    if (userId && token) {
+      this.mysqlService.guardarTokenFCM(userId, token).subscribe({
+        next: () => console.log('Token vinculado al usuario correctamente'),
+        error: (err) => console.error('Error vinculando token:', err)
       });
     }
   }

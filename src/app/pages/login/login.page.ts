@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { MysqlService } from 'src/app/services/mysql.service';
+import { NotificationService } from 'src/app/services/notification.service';
 import { ToastController, AlertController, Platform, LoadingController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { mailOutline, lockClosedOutline, logoGoogle } from 'ionicons/icons';
@@ -31,7 +32,8 @@ export class LoginPage implements OnInit {
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
     private platform: Platform,
-    private loadingCtrl: LoadingController
+    private loadingCtrl: LoadingController,
+    private notificationService: NotificationService
   ) {
     addIcons({ mailOutline, lockClosedOutline, logoGoogle });
   }
@@ -70,6 +72,7 @@ export class LoginPage implements OnInit {
             if (res && res.token && res.id) {
               localStorage.setItem('token', res.token);
               localStorage.setItem('userId', res.id.toString());
+              this.notificationService.updateTokenForUser();
 
               if (this.recordar) {
                 localStorage.setItem('savedUser', this.usuario);
@@ -120,6 +123,7 @@ export class LoginPage implements OnInit {
             if (res.exists) {
               // Usuario existe, loguear
               localStorage.setItem('userId', res.id.toString());
+              this.notificationService.updateTokenForUser();
               this.redirectBasedOnRole(res.rol);
             } else {
               // Usuario no existe, mostrar error o redirigir a registro

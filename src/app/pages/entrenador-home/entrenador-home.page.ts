@@ -54,7 +54,7 @@ export class EntrenadorHomePage {
     clases_hoy: 0
   };
   showMPReminder: boolean = false;
-
+  dailyTip: any = null;
   isNotificacionesOpen: boolean = false;
 
 
@@ -134,6 +134,16 @@ export class EntrenadorHomePage {
 
         this.loadDashboardStats(userId);
         this.loadAgenda();
+
+        // Fetch Daily Tip from AI
+        this.mysqlService.getDailyTipAI().subscribe({
+          next: (res) => {
+            if (res.status === 'success') {
+              this.dailyTip = res;
+            }
+          },
+          error: (err) => console.error('Error loading AI tip:', err)
+        });
       },
       error: (err) => {
         console.error('Error loading profile:', err);

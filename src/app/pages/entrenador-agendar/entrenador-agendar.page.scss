@@ -531,6 +531,12 @@ ion-toolbar {
                     background-color: #000;
                     color: #ccff00;
                 }
+                ion-label {
+                    color: #ccff00 !important;
+                }
+            }
+            ion-label {
+                color: inherit;
             }
         }
     }
