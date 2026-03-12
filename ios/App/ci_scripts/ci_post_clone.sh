@@ -5,30 +5,42 @@ set -e
 
 echo "--- Starting CI Post-Clone Script ---"
 
-# Ir a la carpeta del proyecto
-cd "$CI_PRIMARY_REPOSITORY_PATH/training"
+# El repo raiz de Xcode Cloud YA ES la carpeta 'training'
+# NO hacer cd a training/training
+cd "$CI_PRIMARY_REPOSITORY_PATH"
 echo "--- Current directory: $(pwd) ---"
+echo "--- Listing files ---"
+ls -la
 
-# 1. Verificar herramientas (Node y CocoaPods suelen estar pre-instalados)
+# 1. Instalar Node.js si no está disponible
+export HOMEBREW_NO_AUTO_UPDATE=1
+if ! command -v node >/dev/null 2>&1; then
+    echo "--- Installing Node.js via Homebrew ---"
+    brew install node
+fi
 node -v
 npm -v
+
+# 2. Instalar CocoaPods si no está disponible
+if ! command -v pod >/dev/null 2>&1; then
+    echo "--- Installing CocoaPods via Homebrew ---"
+    brew install cocoapods
+fi
 pod --version
 
-# 2. Instalar dependencias de Node
+# 3. Instalar dependencias de Node
 echo "--- Running npm install ---"
-# Usamos --legacy-peer-deps para evitar conflictos de versiones en Angular 20
 npm install --legacy-peer-deps
 
-# 3. CONSTRUIR EL PROYECTO WEB (Genera la carpeta 'www')
-# Esto es obligatorio para que Capacitor pueda sincronizar
+# 4. Construir el proyecto Angular (genera carpeta www)
 echo "--- Running npm run build ---"
 npm run build -- --configuration production
 
-# 4. Sincronizar Capacitor
+# 5. Sincronizar Capacitor con iOS
 echo "--- Running npx cap sync ios ---"
 npx cap sync ios
 
-# 5. Moverse a la carpeta de iOS y ejecutar pod install
+# 6. Pod install en la carpeta de iOS
 cd ios/App
 echo "--- Running pod install in $(pwd) ---"
 pod install
