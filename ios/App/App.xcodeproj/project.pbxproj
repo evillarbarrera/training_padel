@@ -16,6 +16,7 @@
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		F9426DF055215AA0B4C579A1 /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F78AE358694E4E715D671BB9 /* Pods_App.framework */; };
 		F9B000010000000000000002 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F9B000010000000000000001 /* PrivacyInfo.xcprivacy */; };
+		D3A1B2C3D4E5F6A7B8C9D1E2 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3A1B2C3D4E5F6A7B8C9D0E1 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
 		F78AE358694E4E715D671BB9 /* Pods_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F9B000010000000000000001 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D3A1B2C3D4E5F6A7B8C9D0E1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,6 +96,7 @@
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
 				F9B000010000000000000001 /* PrivacyInfo.xcprivacy */,
+				D3A1B2C3D4E5F6A7B8C9D0E1 /* GoogleService-Info.plist */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -167,6 +170,7 @@
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
 				F9B000010000000000000002 /* PrivacyInfo.xcprivacy in Resources */,
+				D3A1B2C3D4E5F6A7B8C9D1E2 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

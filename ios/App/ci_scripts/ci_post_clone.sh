@@ -5,8 +5,8 @@ set -e
 
 echo "--- Starting CI Post-Clone Script ---"
 
-# Ir a la raíz del repositorio
-cd "$CI_PRIMARY_REPOSITORY_PATH"
+# Ir a la carpeta del proyecto (donde esta package.json)
+cd "$CI_PRIMARY_REPOSITORY_PATH/training"
 echo "--- Current directory: $(pwd) ---"
 
 # 1. Instalar Node.js y CocoaPods si no están (Xcode Cloud suele tener brew)
