@@ -8,7 +8,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // Build 14 - Fixed Firebase and Proxy initialization
         FirebaseApp.configure()
         return ApplicationDelegateProxy.shared.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
