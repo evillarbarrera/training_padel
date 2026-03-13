@@ -8,9 +8,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Build 14 - Fixed Firebase and Proxy initialization
+        // Build 16 - Fixed compilation error
         FirebaseApp.configure()
-        return ApplicationDelegateProxy.shared.application(application, didFinishLaunchingWithOptions: launchOptions)
+        return true
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
