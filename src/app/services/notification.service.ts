@@ -34,12 +34,32 @@ export class NotificationService {
 
           // Escuchar cuando el celular nos da el Token Físico FCM / APNs
           PushNotifications.addListener('registration', (token) => {
-            console.log('Push registration success, token: ' + token.value);
-            localStorage.setItem('fcm_token', token.value);
+            let finalToken = token.value;
+
+            // En iOS, el plugin de Capacitor devuelve el token como Hex.
+            // Si el token es mucho más largo de 64 caracteres, es el token de Firebase (FCM) 
+            // que hemos "trucado" desde el AppDelegate.swift para que llegue aquí.
+            if (Capacitor.getPlatform() === 'ios' && finalToken.length > 64) {
+              try {
+                let str = '';
+                for (let i = 0; i < finalToken.length; i += 2) {
+                  str += String.fromCharCode(parseInt(finalToken.substring(i, i + 2), 16));
+                }
+                if (str.length > 10) { // Validación mínima
+                  finalToken = str;
+                  console.log('FCM Token de-hexificado con éxito');
+                }
+              } catch (e) {
+                console.error('Error de-hexificando token:', e);
+              }
+            }
+
+            console.log('Push registration success, token: ' + finalToken);
+            localStorage.setItem('fcm_token', finalToken);
 
             const currentUserId = this.userId || Number(localStorage.getItem('userId'));
             if (currentUserId) {
-              this.mysqlService.guardarTokenFCM(currentUserId, token.value).subscribe({
+              this.mysqlService.guardarTokenFCM(currentUserId, finalToken).subscribe({
                 next: () => console.log('Token guardado en BD'),
                 error: (err) => console.error('Error guardando token nativo:', err)
               });

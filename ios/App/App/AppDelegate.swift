@@ -17,8 +17,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         // Vincula el token de Apple (APNs) con Firebase Messaging
         Messaging.messaging().apnsToken = deviceToken
-        // En iOS con Firebase, no enviamos el deviceToken (APNs) a Capacitor aquí, 
-        // sino que esperamos al token de FCM en el método messaging(_:didReceiveRegistrationToken:)
+        // Notificamos a Capacitor con el token de Apple original
+        NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
@@ -30,10 +30,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
         if let token = fcmToken {
             print("Firebase registration token: \(token)")
             
-            // Enviamos el token de Firebase al bridge de Capacitor para que el plugin lo reciba
-            NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: token)
+            // Enviamos el token de Firebase al bridge de Capacitor.
+            // Lo enviamos como Data para que el plugin de Capacitor lo procese correctamente.
+            // El plugin lo convertirá a hex en JS, por lo que en JS deberemos de-hexificarlo.
+            if let fcmData = token.data(using: .utf8) {
+                NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: fcmData)
+            }
             
-            // También enviamos el evento personalizado por compatibilidad
+            // También enviamos el evento personalizado por si acaso
             let data = ["token": token]
             NotificationCenter.default.post(name: Notification.Name("messaging_token"), object: nil, userInfo: data)
         }
