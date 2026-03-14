@@ -183,7 +183,7 @@
 </ion-content>
 
 <!-- Modal Premium -->
-<ion-modal [isOpen]="modalOpen" (didDismiss)="cerrarModal()" class="nike-modal">
+<ion-modal #modal [isOpen]="modalOpen" (didDismiss)="cerrarModal()" class="nike-modal">
   <ng-template>
     <ion-header mode="ios" class="ion-no-border">
       <ion-toolbar>
@@ -381,8 +381,9 @@
         </div>
 
         <div class="footer-actions">
-          <ion-button expand="block" class="nike-button save-btn" (click)="crearPack()">
-            {{ nuevoPack.id ? 'Actualizar Pack' : 'Crear Pack Premium' }}
+          <ion-button expand="block" class="nike-button save-btn" (click)="crearPack()" [disabled]="isSaving">
+            <ion-spinner slot="start" *ngIf="isSaving" name="crescent"></ion-spinner>
+            {{ nuevoPack.id ? (isSaving ? 'Actualizando...' : 'Actualizar Pack') : (isSaving ? 'Creando...' : 'Crear Pack Premium') }}
           </ion-button>
         </div>
 

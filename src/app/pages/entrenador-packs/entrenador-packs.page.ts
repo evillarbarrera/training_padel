@@ -1,15 +1,24 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Location } from '@angular/common';
 import { PacksService } from '../../services/pack.service';
 import { Router } from '@angular/router';
-import { AlertController, LoadingController } from '@ionic/angular';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonContent, IonSegment, IonSegmentButton, IonLabel,
+  IonIcon, IonInput, IonButton, IonFab, IonFabButton,
+  IonHeader, IonToolbar, IonTitle, IonButtons,
+  IonModal, IonItem, IonSelect, IonSelectOption, IonTextarea, IonSpinner
+} from '@ionic/angular/standalone';
+import { AlertController, LoadingController } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, searchOutline, addOutline, timeOutline, peopleOutline, trophyOutline, cubeOutline, closeOutline } from 'ionicons/icons';
-import { chevronBackOutline, createOutline, trashOutline, chevronForwardOutline } from 'ionicons/icons';
+import {
+  settingsOutline, homeOutline, calendarOutline, logOutOutline,
+  searchOutline, addOutline, timeOutline, peopleOutline,
+  trophyOutline, cubeOutline, closeOutline, clipboardOutline,
+  chevronBackOutline, createOutline, trashOutline, chevronForwardOutline
+} from 'ionicons/icons';
 
 @Component({
   selector: 'app-entrenador-packs',
@@ -19,11 +28,15 @@ import { chevronBackOutline, createOutline, trashOutline, chevronForwardOutline 
   imports: [
     CommonModule,
     FormsModule,
-    IonicModule
+    IonContent, IonSegment, IonSegmentButton, IonLabel,
+    IonIcon, IonInput, IonButton, IonFab, IonFabButton,
+    IonHeader, IonToolbar, IonTitle, IonButtons,
+    IonModal, IonItem, IonSelect, IonSelectOption, IonTextarea, IonSpinner
   ],
   providers: []
 })
 export class EntrenadorPacksPage implements OnInit {
+  @ViewChild(IonModal) modal!: IonModal;
   packs: any[] = [];
   packsFiltrados: any[] = [];
   filtro: string = '';
@@ -43,7 +56,6 @@ export class EntrenadorPacksPage implements OnInit {
       this.elementosPorPagina = 9999;
       return;
     }
-    // Restamos cabecera, segmento
     const alturaDisponible = window.innerHeight - 300;
     const filas = Math.max(2, Math.floor(alturaDisponible / 160));
     const columnas = window.innerWidth > 768 ? 2 : 1;
@@ -82,7 +94,8 @@ export class EntrenadorPacksPage implements OnInit {
     addIcons({
       settingsOutline, homeOutline, calendarOutline, chevronBackOutline, chevronForwardOutline,
       createOutline, trashOutline, logOutOutline, searchOutline, addOutline,
-      timeOutline, peopleOutline, trophyOutline, cubeOutline, closeOutline
+      timeOutline, peopleOutline, trophyOutline, cubeOutline, closeOutline,
+      clipboardOutline
     });
   }
 
@@ -203,7 +216,7 @@ export class EntrenadorPacksPage implements OnInit {
       loading = await this.loadingCtrl.create({
         message: p.id ? 'Actualizando...' : 'Creando...',
         spinner: 'crescent',
-        duration: 10000 // Failsafe
+        duration: 10000
       });
       await loading.present();
 
@@ -249,12 +262,17 @@ export class EntrenadorPacksPage implements OnInit {
   }
 
   abrirModal() {
+    this.isSaving = false;
     this.resetFormulario();
     this.modalOpen = true;
   }
 
   cerrarModal() {
     this.modalOpen = false;
+    this.isSaving = false;
+    if (this.modal) {
+      this.modal.dismiss();
+    }
   }
 
   resetFormulario() {
