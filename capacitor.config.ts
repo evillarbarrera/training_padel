@@ -18,6 +18,9 @@ const config: CapacitorConfig = {
       resize: 'body',
       style: 'dark',
       resizeOnFullScreen: true
+    },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"]
     }
   },
   server: {
