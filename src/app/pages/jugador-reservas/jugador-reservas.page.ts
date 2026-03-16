@@ -115,6 +115,11 @@ export class JugadorReservasPage implements OnInit {
   entrenadorTelefono: string = '';
   coachSelectedData: any = null;
 
+  // Business Logic Scenarios
+  creditosDisponibles: number = 0;
+  reservasFuturas: number = 0;
+  escenarioReserva: 'A' | 'B' | 'C' | null = null;
+
   // Coupon State
   couponCode: string = '';
   couponApplied: boolean = false;
@@ -263,6 +268,7 @@ export class JugadorReservasPage implements OnInit {
       // Descubrimiento en segundo plano si es necesario
       if (this.vistaActual === 'agendar' || !this.entrenadores || this.entrenadores.length === 0) {
         this.cargarEntrenadores();
+        this.checkBookingRestriction();
       }
     });
   }
@@ -365,15 +371,21 @@ export class JugadorReservasPage implements OnInit {
     console.log('Entrenador seleccionado:', entrenadorId);
   }
 
+  getPackRealCredits(pack: any): number {
+    if (!pack) return 0;
+    // El backend ya descuenta las reservas futuras/activas en 'sesiones_restantes'
+    return Number(pack.sesiones_restantes || 0);
+  }
+
   onEntrenadorChange() {
     this.showCoachPicker = false;
     if (!this.selectedEntrenador) return;
 
     this.cargando = true;
 
-    // Filter packs for this trainer that have remaining sessions
+    // Filter packs for this trainer that have real remaining sessions
     this.packsDelEntrenador = this.packs.filter(p => {
-      return Number(p.entrenador_id) === Number(this.selectedEntrenador) && Number(p.sesiones_restantes) > 0;
+      return Number(p.entrenador_id) === Number(this.selectedEntrenador) && this.getPackRealCredits(p) > 0;
     });
 
     this.entrenamientoService
@@ -434,7 +446,11 @@ export class JugadorReservasPage implements OnInit {
     // Determine filter type based on the slot selected
     let targetType = this.tipoEntrenamiento;
     if (targetType === 'todos') {
-      targetType = horario.tipo === 'grupal' ? 'grupal' : 'individual';
+      if (horario) {
+        targetType = horario.tipo === 'grupal' ? 'grupal' : 'individual';
+      } else {
+        targetType = 'individual';
+      }
     }
 
     this.mysqlService.getAllPacks(this.selectedEntrenador!).subscribe({
@@ -442,7 +458,7 @@ export class JugadorReservasPage implements OnInit {
         console.log('Packs recibidos:', res);
 
         // If it's a specific group slot, we should ideally only show THAT pack
-        if (horario.tipo === 'grupal' && horario.pack_id) {
+        if (horario && horario.tipo === 'grupal' && horario.pack_id) {
           this.availablePacks = res.filter((p: any) => Number(p.id || p.id_pack || p.pack_id) === Number(horario.pack_id));
         } else {
           // Filter by type
@@ -527,7 +543,37 @@ export class JugadorReservasPage implements OnInit {
 
     const packId = Number(pack.id || pack.pack_id || pack.id_pack);
 
-    // 1. Crear reserva temporal en estado 'bloqueado'
+    if (!this.pendingHorario) {
+      // Caso 1: Compra directa de pack sin horario seleccionado
+      const paymentPayload = {
+        pack_id: packId,
+        jugador_id: Number(this.jugadorId),
+        amount: this.getDiscountedPrice(pack.precio),
+        reserva_id: null,
+        cupon_id: this.appliedCouponData?.id,
+        origin: window.location.origin + window.location.pathname
+      };
+
+      this.packAlumnoService.initTransaction(paymentPayload).subscribe({
+        next: (payRes: any) => {
+          loader.dismiss();
+          if (payRes.token && payRes.url) {
+            const separator = payRes.url.includes('?') ? '&' : '?';
+            window.location.href = `${payRes.url}${separator}token_ws=${payRes.token}`;
+          } else {
+            this.mostrarToast('❌ Error al iniciar el pago');
+          }
+        },
+        error: (err) => {
+          loader.dismiss();
+          const msg = err.error?.error || 'Error al conectar con el servidor de pagos';
+          this.alertCtrl.create({ header: 'Atención', message: msg, buttons: ['OK'] }).then(a => a.present());
+        }
+      });
+      return;
+    }
+
+    // Caso 2: Compra y Reserva (lógica original)
     let finalTipo = 'individual';
     const packTypeStr = (pack.tipo || '').toLowerCase();
     if (packTypeStr.includes('grupal') || packTypeStr.includes('multi')) {
@@ -581,8 +627,16 @@ export class JugadorReservasPage implements OnInit {
       },
       error: (err) => {
         loader.dismiss();
-        const msg = err.error?.error || 'Error al reservar el horario';
-        this.alertCtrl.create({ header: 'Conflicto de Horario', message: msg, buttons: ['OK'] }).then(a => a.present());
+        const msg = err.error?.error || '';
+        if (msg.toLowerCase().includes('créditos') || msg.toLowerCase().includes('sesiones')) {
+          this.handleNoCreditsFlow();
+        } else {
+          this.alertCtrl.create({
+            header: 'Atención',
+            message: msg || 'Error al reservar el horario',
+            buttons: ['OK']
+          }).then(a => a.present());
+        }
       }
     });
   }
@@ -601,6 +655,29 @@ export class JugadorReservasPage implements OnInit {
       precio_pagado: this.getDiscountedPrice(pack.precio)
     };
 
+    if (!this.pendingHorario) {
+      // Caso 1: Solo activar pack
+      this.packAlumnoService.insertPackAlumno(packPayload).subscribe({
+        next: () => {
+          loader.dismiss();
+          this.notificationService.notificarPackContratado(this.jugadorId, pack.nombre);
+          this.alertCtrl.create({
+            header: '¡Pack Activado!',
+            message: 'Ya tienes tus créditos disponibles. Ahora puedes seleccionar un horario para agendar.',
+            buttons: ['OK']
+          }).then(a => a.present());
+          this.showPackModal = false;
+          this.onEntrenadorChange(); // Recargar estados
+        },
+        error: () => {
+          loader.dismiss();
+          this.mostrarToast('❌ Error al procesar el pack');
+        }
+      });
+      return;
+    }
+
+    // Caso 2: Activar y Reservar (lógica original)
     this.packAlumnoService.insertPackAlumno(packPayload).subscribe({
       next: (packRes: any) => {
         const newPackJugadorId = packRes.pack_jugador_id;
@@ -638,12 +715,21 @@ export class JugadorReservasPage implements OnInit {
               message: 'Pack activado y clase agendada correctamente. Recuerda coordinar el pago con tu profesor.',
               buttons: ['OK']
             }).then(a => a.present());
+            this.showPackModal = false;
             this.onEntrenadorChange(); // Reload slots
           },
           error: (err) => {
             loader.dismiss();
-            const msg = err.error?.error || 'Error al agendar la clase';
-            this.alertCtrl.create({ header: 'Conflicto de Horario', message: msg, buttons: ['OK'] }).then(a => a.present());
+            const msg = err.error?.error || '';
+            if (msg.toLowerCase().includes('créditos') || msg.toLowerCase().includes('sesiones')) {
+              this.handleNoCreditsFlow();
+            } else {
+              this.alertCtrl.create({
+                header: 'Atención',
+                message: msg || 'Error al agendar la clase',
+                buttons: ['OK']
+              }).then(a => a.present());
+            }
           }
         });
       },
@@ -894,6 +980,37 @@ export class JugadorReservasPage implements OnInit {
     }
   }
 
+  onDiaSeleccionadoChange() {
+    if (!this.selectedEntrenador || !this.diaSeleccionado) return;
+    if (this.vistaActual !== 'agendar') return;
+
+    // Verificar créditos reales para el entrenador seleccionado
+    const hasCredits = this.packsDelEntrenador.some(p => this.getPackRealCredits(p) > 0);
+    if (!hasCredits) {
+      this.handleNoCreditsFlow();
+    }
+  }
+
+  handleNoCreditsFlow() {
+    // Validar si tiene pendientes (reservas futuras/bloqueadas) para este entrenador
+    const hasPending = this.reservasIndividuales.some(r =>
+      Number(r.entrenador_id) === Number(this.selectedEntrenador) &&
+      (r.estado === 'reservado' || r.estado === 'activo' || r.estado === 'confirmado' || r.estado === 'bloqueado')
+    ) || this.entrenamientosGrupales.some(eg =>
+      Number(eg.entrenador_id) === Number(this.selectedEntrenador)
+    );
+
+    if (hasPending) {
+      this.alertCtrl.create({
+        header: 'Clases Pendientes',
+        message: 'Cuando termines tus entrenamientos del pack actual podrás reservar un nuevo pack.',
+        buttons: ['OK']
+      }).then(a => a.present());
+    } else {
+      // No tiene créditos ni pendientes -> Mostrar packs para comprar
+      this.mostrarPacksDisponibles(null);
+    }
+  }
 
   reservarHorario(horario: any) {
     if (horario.ocupado) return;
@@ -905,7 +1022,7 @@ export class JugadorReservasPage implements OnInit {
 
     let packActivo = this.packs.find(p => {
       const basicMatch = Number(p.entrenador_id) === Number(this.selectedEntrenador) &&
-        Number(p.sesiones_restantes) > 0 &&
+        this.getPackRealCredits(p) > 0 &&
         this.isPackMatch(p, targetType);
 
       if (horario.tipo === 'grupal' && horario.pack_id) {
@@ -923,7 +1040,10 @@ export class JugadorReservasPage implements OnInit {
           { text: 'Cancelar', role: 'cancel' },
           {
             text: 'Reservar',
-            handler: () => {
+            handler: async () => {
+              const loader = await this.loadingCtrl.create({ message: 'Procesando reserva...' });
+              await loader.present();
+
               const payload = {
                 entrenador_id: this.selectedEntrenador,
                 pack_id: packActivo.pack_id,
@@ -940,14 +1060,25 @@ export class JugadorReservasPage implements OnInit {
 
               this.entrenamientoService.crearReserva(payload).subscribe({
                 next: () => {
+                  loader.dismiss();
                   this.notificationService.notificarReservaCreada(this.jugadorId, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
                   this.notificationService.programarRecordatorio(this.jugadorId, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
                   this.mostrarToast('✅ Reserva guardada correctamente');
                   this.onEntrenadorChange();
                 },
                 error: (err) => {
-                  const msg = err.error?.error || 'Error al guardar la reserva';
-                  this.alertCtrl.create({ header: 'Conflicto de Horario', message: msg, buttons: ['OK'] }).then(a => a.present());
+                  loader.dismiss();
+                  this.cargando = false;
+                  const msg = err.error?.error || '';
+                  if (msg.toLowerCase().includes('créditos') || msg.toLowerCase().includes('sesiones')) {
+                    this.handleNoCreditsFlow();
+                  } else {
+                    this.alertCtrl.create({
+                      header: 'Atención',
+                      message: msg || 'Error al guardar la reserva',
+                      buttons: ['OK']
+                    }).then(a => a.present());
+                  }
                 }
               });
             }
@@ -955,23 +1086,12 @@ export class JugadorReservasPage implements OnInit {
         ]
       }).then(a => a.present());
     } else {
-      // NO PACK: Check if they have PENDING classes before letting them buy
-      this.mysqlService.getHomeStats(this.jugadorId).subscribe({
-        next: (res: any) => {
-          const stats = res.estadisticas?.packs;
-          if (stats && stats.pendientes > 0) {
-            this.alertCtrl.create({
-              header: 'Atención',
-              message: 'Aún tienes clases reservadas por asistir. Cuando las completes todas, podrás comprar un nuevo pack.',
-              buttons: ['OK']
-            }).then(a => a.present());
-          } else {
-            this.mostrarPacksDisponibles(horario);
-          }
-        },
-        error: () => this.mostrarPacksDisponibles(horario)
-      });
+      this.handleNoCreditsFlow();
     }
+  }
+
+  fetchAllPacks() {
+    this.mostrarPacksDisponibles(null);
   }
 
   async mostrarToast(mensaje: string) {
@@ -998,15 +1118,20 @@ export class JugadorReservasPage implements OnInit {
       next: (res: any) => {
         const stats = res.estadisticas?.packs;
         if (stats) {
-          const creditos = stats.disponibles;
-          const pendientes = stats.pendientes;
+          this.creditosDisponibles = stats.disponibles; // Fórmula: Clases Compradas - (Pasadas + Futuras)
+          this.reservasFuturas = stats.futuras;
 
-          if (creditos <= 0 && pendientes > 0) {
-            this.alertCtrl.create({
-              header: 'Atención',
-              message: 'Aún tienes clases reservadas por asistir. Podrás comprar un nuevo pack una vez que hayas completado tus reservas actuales.',
-              buttons: ['OK']
-            }).then(a => a.present());
+          // ESCENARIO A: Tiene Créditos (Créditos > 0)
+          if (this.creditosDisponibles > 0) {
+            this.escenarioReserva = 'A';
+          }
+          // ESCENARIO B: No tiene Créditos Y NO tiene Reservas Futuras
+          else if (this.reservasFuturas === 0) {
+            this.escenarioReserva = 'B';
+          }
+          // ESCENARIO C: No tiene Créditos PERO TIENE Reservas Futuras
+          else {
+            this.escenarioReserva = 'C';
           }
         }
       },

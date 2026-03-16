@@ -209,37 +209,65 @@
       </div>
     </div>
 
-    <!-- 2. Coach Discovery -->
-    <div class="discovery-scroll-container animate-fade-in" *ngIf="!isLoadingDiscovery">
-      <div class="discovery-header">
-        <h3>Coach Discovery</h3>
-        <span>Entrenadores de élite en tu zona</span>
-      </div>
-      <div class="trainers-horizontal-scroll">
-        <div class="trainer-mobile-card" *ngFor="let coach of entrenadores"
-          [class.active]="selectedEntrenador === coach.id"
-          (click)="selectedEntrenador = coach.id; onEntrenadorChange()">
-          <div class="trainer-photo-box">
-            <img [src]="coach.foto || 'assets/avatar.png'" class="trainer-img">
-            <ion-icon name="checkmark-circle" class="active-check" *ngIf="selectedEntrenador === coach.id"></ion-icon>
+    <!-- 2. Coach Discovery (Only Scenario A) -->
+    <div *ngIf="escenarioReserva === 'A'">
+      <div class="discovery-scroll-container animate-fade-in" *ngIf="!isLoadingDiscovery">
+        <div class="discovery-header">
+          <h3>Coach Discovery</h3>
+          <span>Entrenadores de élite en tu zona</span>
+        </div>
+        <div class="trainers-horizontal-scroll">
+          <div class="trainer-mobile-card" *ngFor="let coach of entrenadores"
+            [class.active]="selectedEntrenador === coach.id"
+            (click)="selectedEntrenador = coach.id; onEntrenadorChange()">
+            <div class="trainer-photo-box">
+              <img [src]="coach.foto || 'assets/avatar.png'" class="trainer-img">
+              <ion-icon name="checkmark-circle" class="active-check" *ngIf="selectedEntrenador === coach.id"></ion-icon>
+            </div>
+            <div class="trainer-brief">
+              <span class="name">{{ coach.nombre }}</span>
+              <span class="location">{{ coach.comuna || 'Club Local' }}</span>
+            </div>
           </div>
-          <div class="trainer-brief">
-            <span class="name">{{ coach.nombre }}</span>
-            <span class="location">{{ coach.comuna || 'Club Local' }}</span>
-          </div>
+        </div>
+
+        <div *ngIf="entrenadores.length === 0" class="empty-trainers-mobile">
+          <ion-icon name="alert-circle-outline" style="font-size: 32px; opacity: 0.5;"></ion-icon>
+          <p>No hay entrenadores disponibles en esta zona.</p>
         </div>
       </div>
 
-      <div *ngIf="entrenadores.length === 0" class="empty-trainers-mobile">
-        <ion-icon name="alert-circle-outline" style="font-size: 32px; opacity: 0.5;"></ion-icon>
-        <p>No hay entrenadores disponibles en esta zona.</p>
+      <!-- Loading Coaches -->
+      <div class="discovery-loading" *ngIf="isLoadingDiscovery">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>BUSCANDO COACHES...</p>
       </div>
     </div>
 
-    <!-- Loading Coaches -->
-    <div class="discovery-loading" *ngIf="isLoadingDiscovery">
-      <ion-spinner name="crescent"></ion-spinner>
-      <p>BUSCANDO COACHES...</p>
+    <!-- ESCENARIO B: No tiene Créditos Y NO tiene Reservas Futuras -->
+    <div *ngIf="escenarioReserva === 'B'" class="scenario-restriction-box animate-up">
+      <div class="icon-circle warning">
+        <ion-icon name="cart-outline"></ion-icon>
+      </div>
+      <h3>CRÉDITOS AGOTADOS</h3>
+      <p>Has consumido todas tus sesiones y no tienes clases pendientes. ¡Adquiere un nuevo pack para seguir entrenando!
+      </p>
+      <ion-button (click)="showPackModal = true; fetchAllPacks()" class="nike-btn-neon">
+        COMPRAR NUEVO PACK
+      </ion-button>
+    </div>
+
+    <!-- ESCENARIO C: No tiene Créditos PERO TIENE Reservas Futuras -->
+    <div *ngIf="escenarioReserva === 'C'" class="scenario-restriction-box animate-up">
+      <div class="icon-circle info">
+        <ion-icon name="calendar-outline"></ion-icon>
+      </div>
+      <h3>CLASES PENDIENTES</h3>
+      <p>Aún tienes <strong>{{ reservasFuturas }}</strong> clases reservadas por asistir. Podrás comprar un nuevo pack
+        una vez que hayas completado tus reservas actuales.</p>
+      <ion-button (click)="cambiarVista('mis-entrenamientos')" fill="outline" color="dark" class="nike-btn-outline">
+        VER MIS CLASES
+      </ion-button>
     </div>
 
     <!-- 3. Session Filters & Selection (Visible only when Coach is selected) -->
@@ -306,7 +334,7 @@
       </div>
 
       <!-- Day Selector -->
-      <ion-segment [(ngModel)]="diaSeleccionado" scrollable class="nike-segment-days-light">
+      <ion-segment [(ngModel)]="diaSeleccionado" (ionChange)="onDiaSeleccionadoChange()" scrollable class="nike-segment-days-light">
         <ion-segment-button *ngFor="let d of filteredDias" [value]="d">
           <ion-label>
             <span class="day-label">{{ d | date:'EEE' | uppercase }}</span>
