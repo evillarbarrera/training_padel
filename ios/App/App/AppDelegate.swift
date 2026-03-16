@@ -17,8 +17,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         // Vincula el token de Apple (APNs) con Firebase Messaging
         Messaging.messaging().apnsToken = deviceToken
-        // Notificamos a Capacitor con el token de Apple original
-        NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
+        // NOTA: Comentamos esta línea para que Capacitor NO reciba el token APNs de 32 bytes.
+        // Solo queremos que reciba el token de Firebase (FCM) que enviamos en didReceiveRegistrationToken.
+        // NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {

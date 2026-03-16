@@ -36,32 +36,35 @@ export class NotificationService {
           PushNotifications.addListener('registration', (token) => {
             let finalToken = token.value;
 
-            // En iOS, el plugin de Capacitor devuelve el token como Hex.
-            // Si el token es mucho más largo de 64 caracteres, es el token de Firebase (FCM) 
-            // que hemos "trucado" desde el AppDelegate.swift para que llegue aquí.
-            if (Capacitor.getPlatform() === 'ios' && finalToken.length > 64) {
+            if (Capacitor.getPlatform() === 'ios') {
+              if (finalToken.length <= 64) {
+                console.log('Token APNs (64 chars) detectado, ignorando y esperando el FCM...');
+                return;
+              }
+
+              // De-hexificar el token que viene del AppDelegate.swift (FCM trucado)
               try {
                 let str = '';
                 for (let i = 0; i < finalToken.length; i += 2) {
                   str += String.fromCharCode(parseInt(finalToken.substring(i, i + 2), 16));
                 }
-                if (str.length > 10) { // Validación mínima
+                if (str.length > 30) { // Los tokens de Firebase son largos
                   finalToken = str;
-                  console.log('FCM Token de-hexificado con éxito');
+                  console.log('FCM Token de-hexificado con éxito:', finalToken.substring(0, 10) + '...');
                 }
               } catch (e) {
                 console.error('Error de-hexificando token:', e);
               }
             }
 
-            console.log('Push registration success, token: ' + finalToken);
+            console.log('Push registration success, token: ' + (finalToken.length > 50 ? finalToken.substring(0, 20) + '...' : finalToken));
             localStorage.setItem('fcm_token', finalToken);
 
             const currentUserId = this.userId || Number(localStorage.getItem('userId'));
             if (currentUserId) {
               this.mysqlService.guardarTokenFCM(currentUserId, finalToken).subscribe({
-                next: () => console.log('Token guardado en BD'),
-                error: (err) => console.error('Error guardando token nativo:', err)
+                next: () => console.log('Token guardado en BD con éxito'),
+                error: (err) => console.error('Error enviando token al servidor:', err)
               });
             }
           });
