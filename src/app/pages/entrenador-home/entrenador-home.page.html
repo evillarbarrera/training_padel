@@ -26,9 +26,16 @@
 
     <!-- Performance Summary (Integrated Metrics) -->
     <div class="metrics-dashboard animate-up">
+      <div class="metric-item highlight animate-pulse clickable-metric" (click)="goToAgenda()">
+        <div class="metric-top">
+          <span class="metric-value">{{ stats.clases_pendientes || 0 }}</span>
+        </div>
+        <span class="metric-label">CLASES<br>PENDIENTES</span>
+      </div>
+      <div class="metric-divider"></div>
       <div class="metric-item">
         <span class="metric-value">{{ stats.total_alumnos }}</span>
-        <span class="metric-label">Alumnos<br>Totales</span>
+        <span class="metric-label">Alumnos<br>Activos</span>
       </div>
       <div class="metric-divider"></div>
       <div class="metric-item">

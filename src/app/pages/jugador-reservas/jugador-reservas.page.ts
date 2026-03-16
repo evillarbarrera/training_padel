@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { forkJoin, of } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
 import { EntrenamientoService } from '../../services/entrenamiento.service';
 import { MysqlService } from '../../services/mysql.service';
 import { PacksService } from '../../services/pack.service';
@@ -163,12 +165,10 @@ export class JugadorReservasPage implements OnInit {
 
     this.route.queryParams.subscribe(params => {
       if (params['view']) {
-        this.vistaActual = params['view'];
+        this.vistaActual = params['view'] as any;
       }
-      this.cargarMisEntrenamientos();
+      this.fetchAllData();
     });
-
-    this.loadUserProfile();
   }
 
   loadUserProfile(event?: any) {
@@ -211,8 +211,60 @@ export class JugadorReservasPage implements OnInit {
   }
 
   handleRefresh(event: any) {
-    this.cargarMisEntrenamientos();
-    this.loadUserProfile(event);
+    this.fetchAllData(event);
+  }
+
+  fetchAllData(event?: any) {
+    this.cargando = true;
+
+    // Paralelizar Perfil y Reservas para máxima velocidad
+    forkJoin({
+      reservas: this.mysqlService.getReservasJugador(this.jugadorId).pipe(
+        catchError(err => {
+          console.error('Error refresh reservas:', err);
+          return of({ reservas_individuales: [], entrenamientos_grupales: [] });
+        })
+      ),
+      perfil: this.mysqlService.getPerfil(this.jugadorId).pipe(
+        catchError(err => {
+          console.error('Error refresh perfil:', err);
+          return of(null);
+        })
+      )
+    }).pipe(
+      finalize(() => {
+        this.cargando = false;
+        if (event) event.target.complete();
+      })
+    ).subscribe(({ reservas, perfil }) => {
+      if (reservas) {
+        this.reservasIndividuales = reservas.reservas_individuales || [];
+        this.entrenamientosGrupales = (reservas.entrenamientos_grupales || []).map((eg: any) => ({
+          ...eg,
+          genero: this.detectarGenero(eg.pack_nombre || '', eg.categoria || '')
+        }));
+      }
+
+      if (perfil) {
+        const userData = perfil.user || perfil;
+        if (userData.nombre) this.jugadorNombre = userData.nombre;
+        const fotoRaw = userData.foto_perfil || userData.foto || userData.link_foto;
+        if (fotoRaw && fotoRaw.length > 5) {
+          this.fotoPerfil = fotoRaw.startsWith('http') ? fotoRaw : `https://api.padelmanager.cl/${fotoRaw.startsWith('/') ? fotoRaw.substring(1) : fotoRaw}`;
+        }
+
+        if (perfil.direccion || userData.direccion) {
+          const dir = perfil.direccion || userData.direccion;
+          this.regionSeleccionada = dir.region || '';
+          this.comunaSeleccionada = dir.comuna || '';
+        }
+      }
+
+      // Descubrimiento en segundo plano si es necesario
+      if (this.vistaActual === 'agendar' || !this.entrenadores || this.entrenadores.length === 0) {
+        this.cargarEntrenadores();
+      }
+    });
   }
 
   updateComunas(keepComuna = false): void {
@@ -863,6 +915,7 @@ export class JugadorReservasPage implements OnInit {
     });
 
     if (packActivo) {
+      // ... (Confirm logic stays the same)
       this.alertCtrl.create({
         header: '¿Confirmar Reserva?',
         message: `Clase para el ${horario.fecha} a las ${horario.hora_inicio.toTimeString().slice(0, 5)}. Se descontará 1 crédito de tu pack.`,
@@ -887,10 +940,8 @@ export class JugadorReservasPage implements OnInit {
 
               this.entrenamientoService.crearReserva(payload).subscribe({
                 next: () => {
-                  // Notifications
                   this.notificationService.notificarReservaCreada(this.jugadorId, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
                   this.notificationService.programarRecordatorio(this.jugadorId, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
-
                   this.mostrarToast('✅ Reserva guardada correctamente');
                   this.onEntrenadorChange();
                 },
@@ -904,8 +955,22 @@ export class JugadorReservasPage implements OnInit {
         ]
       }).then(a => a.present());
     } else {
-      // NO PACK: Show available packs to buy
-      this.mostrarPacksDisponibles(horario);
+      // NO PACK: Check if they have PENDING classes before letting them buy
+      this.mysqlService.getHomeStats(this.jugadorId).subscribe({
+        next: (res: any) => {
+          const stats = res.estadisticas?.packs;
+          if (stats && stats.pendientes > 0) {
+            this.alertCtrl.create({
+              header: 'Atención',
+              message: 'Aún tienes clases reservadas por asistir. Cuando las completes todas, podrás comprar un nuevo pack.',
+              buttons: ['OK']
+            }).then(a => a.present());
+          } else {
+            this.mostrarPacksDisponibles(horario);
+          }
+        },
+        error: () => this.mostrarPacksDisponibles(horario)
+      });
     }
   }
 
@@ -923,7 +988,32 @@ export class JugadorReservasPage implements OnInit {
     this.vistaActual = vista;
     if (vista === 'mis-entrenamientos') {
       this.cargarMisEntrenamientos();
+    } else if (vista === 'agendar') {
+      this.checkBookingRestriction();
     }
+  }
+
+  checkBookingRestriction() {
+    this.mysqlService.getHomeStats(this.jugadorId).subscribe({
+      next: (res: any) => {
+        const stats = res.estadisticas?.packs;
+        if (stats) {
+          const creditos = stats.disponibles;
+          const pendientes = stats.pendientes;
+
+          if (creditos <= 0 && pendientes > 0) {
+            this.alertCtrl.create({
+              header: 'Atención',
+              message: 'Aún tienes clases reservadas por asistir. Podrás comprar un nuevo pack una vez que hayas completado tus reservas actuales.',
+              buttons: ['OK']
+            }).then(a => a.present());
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Error al validar restricciones de agendamiento:', err);
+      }
+    });
   }
 
   getEstadoBadgeColor(estado: string): string {
@@ -1004,19 +1094,23 @@ export class JugadorReservasPage implements OnInit {
     }
 
     if (reserva.inscripcion_id) {
-      // Group enrollment
+      // Optimistic update
+      this.entrenamientosGrupales = this.entrenamientosGrupales.filter(eg => eg.inscripcion_id !== reserva.inscripcion_id);
+
       this.mysqlService.cancelarInscripcionGrupal(reserva.inscripcion_id, this.jugadorId).subscribe({
-        next: async (res: any) => {
+        next: async () => {
           const toast = await this.toastCtrl.create({
             message: '✓ Cupo liberado correctamente',
-            duration: 2000,
+            duration: 1500,
             color: 'success',
             position: 'top'
           });
-          await toast.present();
-          this.cargarMisEntrenamientos();
+          toast.present();
+          // Silently refresh in background
+          this.fetchAllData();
         },
         error: async (err: any) => {
+          this.fetchAllData(); // Revert on error
           const errorMsg = err.error?.error || 'Error al liberar el cupo';
           const toast = await this.toastCtrl.create({
             message: `✗ ${errorMsg}`,
@@ -1024,23 +1118,26 @@ export class JugadorReservasPage implements OnInit {
             color: 'danger',
             position: 'top'
           });
-          await toast.present();
+          toast.present();
         }
       });
     } else {
-      // Normal reservation
+      // Optimistic update
+      this.reservasIndividuales = this.reservasIndividuales.filter(r => r.reserva_id !== id);
+
       this.mysqlService.cancelarReservaJugador(id, this.jugadorId).subscribe({
-        next: async (res: any) => {
+        next: async () => {
           const toast = await this.toastCtrl.create({
             message: '✓ Reserva cancelada correctamente',
-            duration: 2000,
+            duration: 1500,
             color: 'success',
             position: 'top'
           });
-          await toast.present();
-          this.cargarMisEntrenamientos();
+          toast.present();
+          this.fetchAllData();
         },
         error: async (err: any) => {
+          this.fetchAllData(); // Revert
           const errorMsg = err.error?.error || 'Error al cancelar la reserva';
           const toast = await this.toastCtrl.create({
             message: `✗ ${errorMsg}`,
@@ -1048,7 +1145,7 @@ export class JugadorReservasPage implements OnInit {
             color: 'danger',
             position: 'top'
           });
-          await toast.present();
+          toast.present();
         }
       });
     }

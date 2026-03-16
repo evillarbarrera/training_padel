@@ -19,7 +19,7 @@ import {
   calendarNumberOutline, trophyOutline, barChartOutline,
   sparklesOutline, videocamOutline, chevronDownOutline
 } from 'ionicons/icons';
-import { ActionSheetController, LoadingController } from '@ionic/angular/standalone';
+import { ActionSheetController, LoadingController, AlertController } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
@@ -51,6 +51,7 @@ export class JugadorHomePage implements OnInit {
   clasesPagadas = 0;
   clasesReservadas = 0;
   clasesDisponibles = 0;
+  clasesPendientes = 0;
   clasesGrupales = 0;
   packsDetalle: any[] = [];
   proximaClase: any = null;
@@ -67,6 +68,7 @@ export class JugadorHomePage implements OnInit {
     private router: Router,
     private actionSheetCtrl: ActionSheetController,
     private loadingCtrl: LoadingController,
+    private alertCtrl: AlertController,
     private ngZone: NgZone,
     private mysqlService: MysqlService,
 
@@ -121,6 +123,7 @@ export class JugadorHomePage implements OnInit {
           this.clasesPagadas = res.estadisticas.packs.pagadas;
           this.clasesReservadas = res.estadisticas.packs.reservadas;
           this.clasesDisponibles = res.estadisticas.packs.disponibles;
+          this.clasesPendientes = res.estadisticas.packs.pendientes || 0;
           this.clasesGrupales = res.estadisticas.packs.grupales || 0;
           this.packsDetalle = res.estadisticas.packs.detalle || [];
         }
@@ -175,7 +178,11 @@ export class JugadorHomePage implements OnInit {
   }
 
   comprarPack() {
-    this.router.navigate(['/pack-alumno']);
+    this.alertCtrl.create({
+      header: 'Información',
+      message: 'Para adquirir un nuevo pack, debes seleccionar un horario en "Agendar Clase" una vez hayas completado tus clases actuales.',
+      buttons: ['OK']
+    }).then(a => a.present());
   }
 
   misHabilidades() {

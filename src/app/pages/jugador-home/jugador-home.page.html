@@ -27,20 +27,20 @@
       *ngIf="clasesPagadas > 0 || clasesReservadas > 0 || clasesDisponibles > 0">
       <div class="metric-item highlight animate-pulse clickable-metric" (click)="abrirModalPacks()">
         <div class="metric-top">
-          <span class="metric-value">{{ clasesDisponibles }}</span>
+          <span class="metric-value">{{ clasesPendientes }}</span>
           <ion-icon name="chevron-down-outline" class="btn-chevron"></ion-icon>
         </div>
-        <span class="metric-label">CLASES<br>DISPONIBLES</span>
+        <span class="metric-label">CLASES<br>PENDIENTES</span>
       </div>
       <div class="metric-divider"></div>
       <div class="metric-item">
-        <span class="metric-value">{{ clasesPagadas }}</span>
-        <span class="metric-label">Compradas<br>Totales</span>
+        <span class="metric-value">{{ clasesDisponibles }}</span>
+        <span class="metric-label">Créditos<br>Disponibles</span>
       </div>
       <div class="metric-divider"></div>
       <div class="metric-item">
         <span class="metric-value">{{ clasesReservadas }}</span>
-        <span class="metric-label">Clases<br>Reservadas</span>
+        <span class="metric-label">Próximas<br>Reservas</span>
       </div>
     </div>
 
@@ -99,6 +99,7 @@
           <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
         </div>
       </div>
+
 
       <!-- Skills Card -->
       <div class="nike-card module-card animate-pop delay-4" (click)="misHabilidades()">
@@ -266,13 +267,13 @@
             </div>
             <div class="pack-bar-group">
               <div class="pack-bar-header">
-                <span class="bar-label">Progreso del Pack</span>
+                <span class="bar-label">Sesiones Pendientes</span>
                 <span class="pack-count">
-                  {{ pack.disponibles }} <span class="total">/ {{ pack.total }}</span>
+                  {{ pack.pendientes }} <span class="total">/ {{ pack.total }}</span>
                 </span>
               </div>
               <div class="pack-bar">
-                <div class="pack-bar-fill" [style.width.%]="pack.total > 0 ? (pack.disponibles / pack.total) * 100 : 0">
+                <div class="pack-bar-fill" [style.width.%]="pack.total > 0 ? (pack.pendientes / pack.total) * 100 : 0">
                 </div>
               </div>
             </div>

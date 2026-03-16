@@ -11,6 +11,20 @@
 
   <!-- Coach Filter (Premium) -->
   <div class="filter-section animate-up">
+    <!-- Restricting Purchase message -->
+    <div class="restriction-banner animate-up" *ngIf="hasCredits">
+      <div class="banner-icon">
+        <ion-icon name="ticket-outline"></ion-icon>
+      </div>
+      <div class="banner-text">
+        <h4>Pack Activo</h4>
+        <p>Ya tienes créditos disponibles. Úsalos antes de comprar un nuevo pack.</p>
+      </div>
+      <ion-button fill="clear" color="dark" (click)="goToAgenda()">
+        <ion-icon name="chevron-forward"></ion-icon>
+      </ion-button>
+    </div>
+
     <div class="nike-card-filter">
       <ion-icon name="funnel-outline" slot="start"></ion-icon>
       <ion-select placeholder="Filtrar por Coach" [(ngModel)]="selectedEntrenador" (ionChange)="filtrarPacks()"
@@ -103,7 +117,7 @@
               <span>{{ pack.entrenador_nombre }}</span>
             </div>
 
-            <ion-button class="buy-button" (click)="comprarPack(pack)" [disabled]="isPackCompleto(pack)">
+            <ion-button class="buy-button" (click)="comprarPack(pack)" [disabled]="isPackCompleto(pack) || hasCredits">
               {{ isPackCompleto(pack) ? 'Lleno' : 'Elegir' }}
             </ion-button>
           </div>

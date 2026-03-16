@@ -60,10 +60,10 @@ export class NuevaEvaluacionPage implements OnInit {
         // Inicializar con valores por defecto
         this.golpes.forEach(golpe => {
             this.evaluationData[golpe] = {
-                tecnica: 5,
-                control: 5,
-                direccion: 5,
-                decision: 5,
+                tecnica: 1,
+                control: 1,
+                direccion: 1,
+                decision: 1,
                 comentario: ''
             };
         });
@@ -99,10 +99,10 @@ export class NuevaEvaluacionPage implements OnInit {
                                 const prevScore = scores[golpe] || scores[golpe.toLowerCase()]; // Fallback por si acaso
                                 if (prevScore) {
                                     this.evaluationData[golpe] = {
-                                        tecnica: Number(prevScore.tecnica) || 5,
-                                        control: Number(prevScore.control) || 5,
-                                        direccion: Number(prevScore.direccion) || 5,
-                                        decision: Number(prevScore.decision) || 5,
+                                        tecnica: Number(prevScore.tecnica) || 1,
+                                        control: Number(prevScore.control) || 1,
+                                        direccion: Number(prevScore.direccion) || 1,
+                                        decision: Number(prevScore.decision) || 1,
                                         comentario: ''
                                     };
                                 }

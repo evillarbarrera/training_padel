@@ -24,6 +24,7 @@ import { addIcons } from 'ionicons';
 import { settingsOutline, homeOutline, calendarOutline, logOutOutline, locationOutline, mapOutline, globeOutline, funnelOutline, personCircleOutline } from 'ionicons/icons';
 import { chevronBackOutline } from 'ionicons/icons';
 import { NotificationService } from '../../services/notification.service';
+import { MysqlService } from '../../services/mysql.service';
 
 @Component({
   selector: 'app-pack-alumno',
@@ -57,6 +58,8 @@ export class PackAlumnoPage implements OnInit {
   searchRadius = 50; // Default 50km
   isLoadingLocation = false;
 
+  hasCredits = false;
+
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
     this.calcularPageSize();
@@ -81,7 +84,8 @@ export class PackAlumnoPage implements OnInit {
     private router: Router,
     private alertCtrl: AlertController,
     private route: ActivatedRoute,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private mysqlService: MysqlService
   ) {
     addIcons({
       settingsOutline,
@@ -101,6 +105,20 @@ export class PackAlumnoPage implements OnInit {
     this.calcularPageSize();
     // this.getCurrentLocation(); // Location disabled by request
     this.checkPaymentStatus();
+    this.validarCreditosDisponibles();
+  }
+
+  validarCreditosDisponibles() {
+    const userId = Number(localStorage.getItem('userId'));
+    if (!userId) return;
+
+    this.mysqlService.getHomeStats(userId).subscribe({
+      next: (res: any) => {
+        if (res.estadisticas && res.estadisticas.packs) {
+          this.hasCredits = Number(res.estadisticas.packs.disponibles) > 0;
+        }
+      }
+    });
   }
 
   checkPaymentStatus() {
@@ -340,6 +358,15 @@ export class PackAlumnoPage implements OnInit {
 
 
   async comprarPack(pack: any) {
+    if (this.hasCredits) {
+      this.alertCtrl.create({
+        header: 'Acción restringida',
+        message: 'Ya tienes créditos disponibles. Debes usarlos antes de adquirir un nuevo pack.',
+        buttons: ['OK']
+      }).then(a => a.present());
+      return;
+    }
+
     // Si es pack grupal, usar inscripción grupal
     if (pack.tipo === 'grupal') {
       return this.inscribirseGrupal(pack);
@@ -361,6 +388,15 @@ export class PackAlumnoPage implements OnInit {
   }
 
   async inscribirseGrupal(pack: any) {
+    if (this.hasCredits) {
+      this.alertCtrl.create({
+        header: 'Acción restringida',
+        message: 'Ya tienes créditos disponibles. Debes usarlos antes de adquirir un nuevo pack.',
+        buttons: ['OK']
+      }).then(a => a.present());
+      return;
+    }
+
     const jugadorId = Number(localStorage.getItem('userId'));
 
     try {
