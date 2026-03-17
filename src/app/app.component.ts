@@ -37,7 +37,7 @@ export class AppComponent {
     } else {
       // En Web, pasamos el clientId directamente
       GoogleAuth.initialize({
-        clientId: '786145270372-liov6hu5v7lcmf2028s9ihi600rp3353.apps.googleusercontent.com',
+        clientId: '786145270372-e637i46g6uu1kekcr1ioqdka901acud7.apps.googleusercontent.com',
         scopes: ['profile', 'email']
       });
     }

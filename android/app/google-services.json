@@ -14,7 +14,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "786145270372-liov6hu5v7lcmf2028s9ihi600rp3353.apps.googleusercontent.com",
+          "client_id": "786145270372-adl884i5fl5qr1q2eudhl5g0n9mahal5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "cl.padelacademy.app",
+            "certificate_hash": "d0a30281d599cae8d4f389ad71affcc0528503cf"
+          }
+        },
+        {
+          "client_id": "786145270372-e637i46g6uu1kekcr1ioqdka901acud7.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -27,7 +35,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "786145270372-liov6hu5v7lcmf2028s9ihi600rp3353.apps.googleusercontent.com",
+              "client_id": "786145270372-e637i46g6uu1kekcr1ioqdka901acud7.apps.googleusercontent.com",
               "client_type": 3
             },
             {
