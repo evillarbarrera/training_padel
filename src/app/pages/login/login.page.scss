@@ -263,22 +263,35 @@
 
 // ─── Footer Link ───
 .register-link {
-  margin-top: 24px;
-  font-size: 14px;
-  color: #aaa;
   text-align: center;
+  margin-top: 15px;
+  font-size: 14px;
+  color: #666;
 
   span {
-    color: #7cb342;
-    font-weight: 700;
+    color: #111;
+    font-weight: 800;
+    text-decoration: underline;
     cursor: pointer;
+  }
+}
+
+.legal-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 30px;
+  opacity: 0.6;
+  font-size: 11px;
+  font-weight: 600;
+
+  a {
+    color: #666;
     text-decoration: none;
-    border-bottom: 2px solid transparent;
-    transition: border-color 0.3s ease;
-    padding-bottom: 2px;
 
     &:hover {
-      border-color: #7cb342;
+      text-decoration: underline;
     }
   }
 }
