@@ -8,7 +8,7 @@ import {
     IonFab, IonFabButton,
     IonList, IonItem, IonBadge, IonSpinner,
     IonRefresher, IonRefresherContent,
-    IonModal,
+    IonModal, IonSelect, IonSelectOption,
     AlertController, LoadingController
 } from '@ionic/angular/standalone';
 import { HttpClient } from '@angular/common/http';
@@ -34,7 +34,8 @@ Chart.register(...registerables);
         IonSegment, IonSegmentButton, IonLabel,
         IonFab, IonFabButton,
         IonList, IonItem, IonBadge, IonSpinner,
-        IonRefresher, IonRefresherContent, IonModal
+        IonRefresher, IonRefresherContent, IonModal,
+        IonSelect, IonSelectOption
     ]
 })
 
@@ -66,6 +67,10 @@ export class MisHabilidadesPage implements OnInit {
 
     isEntrenadorView: boolean = false;
     entrenadorId: number | null = null;
+
+    // Player Coach Selector
+    coaches: { id: number, nombre: string }[] = [];
+    selectedCoachId: number | 'all' = 'all';
 
     // Video Tab State
     selectedVideoTab: string = 'clases';
@@ -145,8 +150,8 @@ export class MisHabilidadesPage implements OnInit {
     handleRefresh(event: any) {
         if (this.userId) {
             this.loadUserProfile();
-            this.loadEvaluaciones(event);
-            this.loadVideos();
+            this.loadEvaluaciones(this.entrenadorId || undefined, event);
+            this.loadVideos(this.entrenadorId || undefined);
         }
     }
 
@@ -186,9 +191,9 @@ export class MisHabilidadesPage implements OnInit {
         });
     }
 
-    loadEvaluaciones(event?: any) {
-        console.log('Loading evaluaciones for user:', this.userId);
-        this.evaluacionService.getEvaluaciones(this.userId!).subscribe({
+    loadEvaluaciones(entrenadorId?: number, event?: any) {
+        console.log('Loading evaluaciones for user:', this.userId, 'filtered by coach:', entrenadorId);
+        this.evaluacionService.getEvaluaciones(this.userId!, entrenadorId).subscribe({
             next: (data) => {
                 console.log('Evaluaciones received:', data);
                 if (data && data.length > 0) {
@@ -231,6 +236,11 @@ export class MisHabilidadesPage implements OnInit {
                         this.hasData = true;
                         this.cdr.detectChanges(); // Force DOM update
 
+                        // Extraer entrenadores únicos si es vista de jugador y cargamos "Todos"
+                        if (!this.isEntrenadorView && this.selectedCoachId === 'all') {
+                            this.extractCoaches(data);
+                        }
+
                         // Initial Render with retry
                         setTimeout(() => this.renderCurrentTab(), 100);
                     } else {
@@ -251,6 +261,24 @@ export class MisHabilidadesPage implements OnInit {
                 this.cdr.detectChanges();
             }
         });
+    }
+
+    extractCoaches(evaluaciones: any[]) {
+        const coachMap = new Map<number, string>();
+        evaluaciones.forEach(e => {
+            if (e.entrenador_id && e.entrenador) {
+                coachMap.set(Number(e.entrenador_id), e.entrenador);
+            }
+        });
+        this.coaches = Array.from(coachMap.entries()).map(([id, nombre]) => ({ id, nombre }));
+    }
+
+    onCoachChange(ev: any) {
+        this.selectedCoachId = ev.detail.value;
+        const filterId = this.selectedCoachId === 'all' ? undefined : Number(this.selectedCoachId);
+        this.isLoading = true;
+        this.loadEvaluaciones(filterId);
+        this.loadVideos(filterId);
     }
 
     segmentChanged(ev: any) {
@@ -606,9 +634,9 @@ export class MisHabilidadesPage implements OnInit {
         });
     }
 
-    loadVideos() {
+    loadVideos(entrenadorId?: number) {
         if (!this.userId) return;
-        this.evaluacionService.getVideos(this.userId).subscribe({
+        this.evaluacionService.getVideos(this.userId, entrenadorId).subscribe({
             next: (vids) => {
                 console.log('VIDEOS FROM API:', vids);
                 this.videos = (vids || []).map((v: any) => {

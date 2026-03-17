@@ -181,4 +181,8 @@ export class MysqlService {
     }
     return this.http.get<any[]>(url, { headers: this.headers });
   }
+
+  recoverPassword(email: string): Observable<any> {
+    return this.http.post<any>(`${this.api}/auth/recover-password.php`, { email }, { headers: this.headers });
+  }
 }

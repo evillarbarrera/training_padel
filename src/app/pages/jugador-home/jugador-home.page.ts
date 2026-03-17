@@ -9,7 +9,8 @@ import {
   IonButton,
   IonRefresher,
   IonRefresherContent,
-  IonModal
+  IonModal,
+  IonBadge
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
@@ -17,7 +18,8 @@ import {
   settingsOutline, homeOutline, calendarOutline, logOutOutline,
   albumsOutline, barbellOutline, personOutline, close,
   calendarNumberOutline, trophyOutline, barChartOutline,
-  sparklesOutline, videocamOutline, chevronDownOutline
+  sparklesOutline, videocamOutline, chevronDownOutline, locationOutline,
+  notificationsOutline, closeOutline
 } from 'ionicons/icons';
 import { ActionSheetController, LoadingController, AlertController } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
@@ -39,7 +41,8 @@ import { ViewChild, ElementRef } from '@angular/core';
     IonButton,
     IonRefresher,
     IonRefresherContent,
-    IonModal
+    IonModal,
+    IonBadge
   ]
 })
 export class JugadorHomePage implements OnInit {
@@ -61,6 +64,9 @@ export class JugadorHomePage implements OnInit {
   @ViewChild('videoInput') videoInput!: ElementRef;
   aiResult: any = null;
   dailyTip: any = null;
+  sinDireccion = false;
+  showTipsInfo = true;
+  isNotificacionesOpen = false;
 
   modalPacksOpen = false;
 
@@ -88,7 +94,10 @@ export class JugadorHomePage implements OnInit {
       barChartOutline,
       sparklesOutline,
       videocamOutline,
-      chevronDownOutline
+      chevronDownOutline,
+      locationOutline,
+      notificationsOutline,
+      closeOutline
     });
   }
 
@@ -142,9 +151,15 @@ export class JugadorHomePage implements OnInit {
     // Double check with profile endpoint
     this.mysqlService.getPerfil(userId).subscribe({
       next: (res) => {
-        if (res.success && res.user.foto_perfil) {
-          const foto = res.user.foto_perfil;
-          this.fotoPerfil = foto.startsWith('http') ? foto : `https://api.padelmanager.cl/${foto}`;
+        if (res.success && res.user) {
+          const user = res.user;
+          // Perfil photo
+          if (user.foto_perfil) {
+            const foto = user.foto_perfil;
+            this.fotoPerfil = foto.startsWith('http') ? foto : `https://api.padelmanager.cl/${foto}`;
+          }
+          // Check for address
+          this.sinDireccion = !user.direccion || user.direccion.trim().length < 3;
         }
       }
     });
@@ -285,5 +300,40 @@ export class JugadorHomePage implements OnInit {
     });
 
     await actionSheet.present();
+  }
+
+  goToPerfil() {
+    this.isNotificacionesOpen = false;
+    setTimeout(() => {
+      this.router.navigate(['/perfil']);
+    }, 100);
+  }
+
+  onNotifClick(type: string) {
+    if (type === 'perfil') {
+      this.goToPerfil();
+    } else if (type === 'tips') {
+      this.dismissTipsInfo();
+    }
+  }
+
+  dismissTipsInfo() {
+    this.showTipsInfo = false;
+    this.isNotificacionesOpen = false;
+  }
+
+  getNotificacionesCount(): number {
+    let count = 0;
+    if (this.sinDireccion) count++;
+    if (this.showTipsInfo) count++;
+    return count;
+  }
+
+  openNotificaciones() {
+    this.isNotificacionesOpen = true;
+  }
+
+  closeNotificaciones() {
+    this.isNotificacionesOpen = false;
   }
 }

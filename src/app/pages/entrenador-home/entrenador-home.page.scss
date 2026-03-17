@@ -369,6 +369,21 @@ ion-content {
         color: #888;
         font-weight: 500;
       }
+
+      .location-mini {
+        font-size: 10px;
+        color: #555;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 2px;
+
+        ion-icon {
+          font-size: 11px;
+          color: #111;
+        }
+      }
     }
 
     .type-col {

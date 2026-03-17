@@ -51,16 +51,22 @@
         [ngClass]="item.tipo === 'grupal' ? 'pack-grupal' : 'reserva-individual'">
 
         <div class="card-header">
-          <div class="time-badge">
-            <ion-icon name="time-outline"></ion-icon>
-            <ng-container *ngIf="item.tipo === 'grupal'">
-              <span>{{ item.hora_inicio | slice:0:5 }}</span>
-            </ng-container>
-            <ng-container *ngIf="item.tipo !== 'grupal'">
-              <span>{{ item.hora_inicio | slice:0:5 }} - {{ item.hora_fin | slice:0:5 }}</span>
-            </ng-container>
+          <div class="info-badges">
+            <div class="time-badge">
+              <ion-icon name="time-outline"></ion-icon>
+              <ng-container *ngIf="item.tipo === 'grupal'">
+                <span>{{ item.hora_inicio | slice:0:5 }}</span>
+              </ng-container>
+              <ng-container *ngIf="item.tipo !== 'grupal'">
+                <span>{{ item.hora_inicio | slice:0:5 }} - {{ item.hora_fin | slice:0:5 }}</span>
+              </ng-container>
+            </div>
+            <div class="location-badge" *ngIf="item.club_nombre">
+              <ion-icon name="location-outline"></ion-icon>
+              <span>{{ item.club_nombre }}</span>
+            </div>
           </div>
-          <div class="status-tag" [ngClass]="getEstadoText(item)?.toLowerCase()">
+          <div class="status-tag" [ngClass]="getEstadoText(item).toLowerCase()">
             {{ getEstadoText(item) }}
           </div>
         </div>
@@ -107,6 +113,9 @@
 
           <div class="pack-row">
             <span class="pack-label">{{ item.pack_nombre }}</span>
+            <span class="club-tag" *ngIf="item.club_nombre">
+              <ion-icon name="location-outline"></ion-icon> {{ item.club_nombre }}
+            </span>
           </div>
         </div>
 

@@ -159,6 +159,46 @@ ion-content {
     z-index: 10;
 }
 
+/* --- COACH FILTER --- */
+.coach-filter-container {
+    margin-bottom: 24px;
+    padding: 0 10px;
+
+    .filter-label {
+        font-size: 10px;
+        font-weight: 950;
+        color: #8e8e93;
+        letter-spacing: 1.5px;
+        margin-bottom: 8px;
+        margin-left: 10px;
+    }
+
+    .coach-select-item {
+        --background: #ffffff;
+        --border-radius: 20px;
+        --padding-start: 16px;
+        --inner-padding-end: 16px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        --min-height: 54px;
+
+        ion-icon {
+            color: #111;
+            font-size: 20px;
+            margin-right: 12px;
+        }
+
+        ion-select {
+            --placeholder-color: #111;
+            --placeholder-opacity: 1;
+            font-weight: 800;
+            font-size: 15px;
+            color: #111;
+            width: 100%;
+        }
+    }
+}
+
 .segment-container {
     margin-bottom: 24px;
     padding: 0 10px;

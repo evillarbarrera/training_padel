@@ -67,6 +67,9 @@
           <div class="info-col">
             <span class="title">{{ clase.titulo }}</span>
             <span class="subtitle">{{ clase.subtitulo }}</span>
+            <span class="location-mini" *ngIf="clase.lugar">
+              <ion-icon name="location-outline"></ion-icon> {{ clase.lugar }}
+            </span>
           </div>
           <div class="type-col">
             <ion-badge
@@ -149,15 +152,15 @@
   </ion-fab>
 
   <!-- Notifications Modal -->
-  <ion-modal class="custom-bottom-sheet" [isOpen]="isNotificacionesOpen" (didDismiss)="isNotificacionesOpen = false"
+  <ion-modal class="custom-bottom-sheet" [isOpen]="isNotificacionesOpen" (didDismiss)="closeNotificaciones()"
     initialBreakpoint="0.6" [breakpoints]="[0, 0.6, 0.9]">
     <ng-template>
       <ion-content class="notifications-content">
         <div class="drag-handle"></div>
         <div class="modal-header">
-          <h2>Notificaciones</h2>
-          <ion-button fill="clear" color="medium" (click)="isNotificacionesOpen = false" class="close-btn">
-            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+          <h2>NOTIFICACIONES</h2>
+          <ion-button fill="clear" (click)="closeNotificaciones()" class="close-btn">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
           </ion-button>
         </div>
 
@@ -175,7 +178,8 @@
           </div>
 
           <!-- MP Reminder -->
-          <div class="notification-card warning-card animate-pop" *ngIf="showMPReminder">
+          <div class="notification-card warning-card animate-pop" *ngIf="showMPReminder"
+            (click)="onNotifClick('perfil')">
             <div class="icon-box">
               <ion-icon name="wallet"></ion-icon>
             </div>
@@ -184,9 +188,9 @@
               <p>Para recibir pagos automáticos, vincula tu cuenta de Mercado Pago en tu perfil.</p>
             </div>
             <div class="card-actions">
-              <ion-button fill="clear" color="medium" (click)="dismissMPReminder()">Ignorar</ion-button>
-              <ion-button fill="solid" class="action-btn" (click)="goToPerfil(); isNotificacionesOpen = false">Ir al
-                Perfil</ion-button>
+              <ion-button fill="clear" color="medium"
+                (click)="dismissMPReminder(); $event.stopPropagation()">Ignorar</ion-button>
+              <ion-button fill="solid" class="action-btn">Ir al Perfil</ion-button>
             </div>
           </div>
 

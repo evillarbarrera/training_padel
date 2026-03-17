@@ -34,6 +34,7 @@
 
         <div class="options-row">
           <ion-checkbox [(ngModel)]="recordar" justify="start" labelPlacement="end">Recordar</ion-checkbox>
+          <span class="forgot-link" (click)="recoverPassword()">¿Olvidaste tu contraseña?</span>
         </div>
 
         <ion-button expand="block" class="login-btn" (click)="login()" [disabled]="isLoading">
@@ -64,4 +65,30 @@
       </p>
     </div>
   </div>
+
+  <ion-modal [isOpen]="isRecoverModalOpen" (didDismiss)="closeRecoverModal()" class="recover-modal">
+    <ng-template>
+      <div class="recover-container">
+        <div class="logo-container small">
+          <div class="logo-ring">
+            <img src="assets/logo-circular.png" class="brand-logo" alt="PadelManager" />
+          </div>
+        </div>
+        <h2 class="recover-title">Recuperar Contraseña</h2>
+        <p class="recover-desc">Ingresa tu correo para recibir instrucciones</p>
+
+        <div class="input-field">
+          <ion-icon name="mail-outline"></ion-icon>
+          <ion-input type="email" placeholder="nombre@ejemplo.com" [(ngModel)]="recoverEmail" mode="md"></ion-input>
+        </div>
+
+        <ion-button expand="block" class="recover-btn" (click)="sendRecoverEmail()" [disabled]="isRecovering">
+          <ion-spinner name="crescent" *ngIf="isRecovering"></ion-spinner>
+          <span *ngIf="!isRecovering">Enviar Instrucciones</span>
+        </ion-button>
+
+        <p class="back-login" (click)="closeRecoverModal()">Volver a Iniciar Sesión</p>
+      </div>
+    </ng-template>
+  </ion-modal>
 </ion-content>

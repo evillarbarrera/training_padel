@@ -157,7 +157,8 @@
 // ─── Options ───
 .options-row {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
   padding: 0 4px;
 
@@ -172,6 +173,18 @@
 
     &::part(label) {
       margin-inline-start: 8px;
+    }
+  }
+
+  .forgot-link {
+    font-size: 13px;
+    color: #7cb342;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+
+    &:active {
+      opacity: 0.7;
     }
   }
 }
@@ -292,5 +305,92 @@
   100% {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+// ─── Recover Modal ───
+.recover-modal {
+  --height: auto;
+  --max-height: 500px;
+  --border-radius: 32px;
+  --background: #ffffff;
+  --box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+
+  &::part(content) {
+    bottom: 0;
+    position: absolute;
+    width: 100%;
+  }
+
+  /* When using sheet-like display */
+  &.custom-bottom-sheet {
+    --background: #ffffff;
+  }
+
+  .recover-container {
+    padding: 40px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #ffffff;
+
+    .logo-container.small {
+      margin-top: 0;
+      margin-bottom: 10px;
+      animation: none;
+      opacity: 1;
+      transform: scale(0.7);
+
+      .logo-ring {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    .recover-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #1a1a1a;
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
+
+    .recover-desc {
+      font-size: 14px;
+      color: #888;
+      margin: 8px 0 24px;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .input-field {
+      width: 100%;
+      background: #f5f5f7;
+      margin-bottom: 20px;
+    }
+
+    .recover-btn {
+      width: 100%;
+      height: 56px;
+      --background: #1a1a1a;
+      --background-activated: #333;
+      --color: #fff;
+      --border-radius: 16px;
+      font-weight: 800;
+      margin-top: 10px;
+      --box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .back-login {
+      margin-top: 24px;
+      color: #888;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 10px;
+
+      &:hover {
+        color: #7cb342;
+      }
+    }
   }
 }

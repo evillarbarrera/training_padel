@@ -1104,6 +1104,35 @@
   }
 }
 
+/* SELECTED DATE DISPLAY */
+.selected-date-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #000;
+  color: #fff;
+  margin: 0 25px 15px;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--nike-neon, #ccff00);
+  }
+
+  span {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+
+    strong {
+      color: var(--nike-neon, #ccff00);
+    }
+  }
+}
+
 .nike-segment-periods {
   --background: #f1f5f9;
   padding: 6px;

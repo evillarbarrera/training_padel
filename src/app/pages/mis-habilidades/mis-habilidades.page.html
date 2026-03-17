@@ -19,6 +19,20 @@
     <!-- Main Content -->
     <div class="dashboard-container">
 
+        <!-- Coach Selector (Only if player and has multiple coaches) -->
+        <div class="coach-filter-container animate-up" *ngIf="!isEntrenadorView && coaches.length > 1">
+            <div class="filter-label">FILTRAR POR ENTRENADOR</div>
+            <ion-item lines="none" class="coach-select-item">
+                <ion-icon name="person-outline" slot="start"></ion-icon>
+                <ion-select [value]="selectedCoachId" (ionChange)="onCoachChange($event)" interface="popover"
+                    mode="ios">
+                    <ion-select-option value="all">Todos los Entrenadores</ion-select-option>
+                    <ion-select-option *ngFor="let coach of coaches" [value]="coach.id">{{ coach.nombre
+                        }}</ion-select-option>
+                </ion-select>
+            </ion-item>
+        </div>
+
         <!-- Tabs -->
         <div class="segment-container">
             <ion-segment [value]="selectedTab" (ionChange)="segmentChanged($event)" mode="ios">

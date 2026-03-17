@@ -981,14 +981,8 @@ export class JugadorReservasPage implements OnInit {
   }
 
   onDiaSeleccionadoChange() {
-    if (!this.selectedEntrenador || !this.diaSeleccionado) return;
-    if (this.vistaActual !== 'agendar') return;
-
-    // Verificar créditos reales para el entrenador seleccionado
-    const hasCredits = this.packsDelEntrenador.some(p => this.getPackRealCredits(p) > 0);
-    if (!hasCredits) {
-      this.handleNoCreditsFlow();
-    }
+    // Eliminada la validación automática al cambiar de día para evitar falsos positivos
+    // y dejar que el usuario explore la disponibilidad sin interrupciones.
   }
 
   handleNoCreditsFlow() {
@@ -1015,6 +1009,13 @@ export class JugadorReservasPage implements OnInit {
 
   reservarHorario(horario: any) {
     if (horario.ocupado) return;
+
+    // Validar créditos justo antes de reservar
+    const hasCredits = this.packsDelEntrenador.some(p => this.getPackRealCredits(p) > 0);
+    if (!hasCredits) {
+      this.handleNoCreditsFlow();
+      return;
+    }
 
     let targetType = this.tipoEntrenamiento;
     if (targetType === 'todos') {

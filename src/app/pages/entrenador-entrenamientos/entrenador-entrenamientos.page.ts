@@ -8,12 +8,9 @@ import {
   IonLabel,
   IonIcon,
   IonFabButton,
-  IonBadge,
   IonSpinner,
   IonButton,
   IonFab,
-  IonFooter,
-  IonAlert,
   IonRefresher,
   IonRefresherContent
 } from '@ionic/angular/standalone';
@@ -26,7 +23,8 @@ import {
   timeOutline,
   personOutline,
   fitnessOutline,
-  closeCircleOutline
+  closeCircleOutline,
+  locationOutline
 } from 'ionicons/icons';
 import { AlertController, ToastController } from '@ionic/angular/standalone';
 
@@ -51,7 +49,6 @@ interface DiaAgenda {
     IonLabel,
     IonIcon,
     IonFabButton,
-    IonBadge,
     IonSpinner,
     IonButton,
     IonRefresher,
@@ -78,7 +75,8 @@ export class EntrenadorEntrenamientosPage implements OnInit {
       timeOutline,
       personOutline,
       fitnessOutline,
-      closeCircleOutline
+      closeCircleOutline,
+      locationOutline
     });
 
   }

@@ -23,7 +23,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline, close, locationOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-entrenador-home',
@@ -81,7 +81,10 @@ export class EntrenadorHomePage {
       giftOutline,
       notificationsOutline,
       warningOutline,
-      gift
+      gift,
+      close,
+      closeOutline,
+      locationOutline
     });
   }
 
@@ -94,6 +97,19 @@ export class EntrenadorHomePage {
 
   openNotificaciones() {
     this.isNotificacionesOpen = true;
+  }
+
+  closeNotificaciones() {
+    this.isNotificacionesOpen = false;
+  }
+
+  onNotifClick(type: string) {
+    if (type === 'perfil') {
+      this.closeNotificaciones();
+      setTimeout(() => {
+        this.router.navigate(['/perfil']);
+      }, 100);
+    }
   }
 
   ionViewWillEnter() {
@@ -192,6 +208,7 @@ export class EntrenadorHomePage {
               ) ? 'Multijugador' : 'Individual',
             titulo: r.jugador_nombre || 'Clase Grupal',
             subtitulo: r.pack_nombre,
+            lugar: r.club_nombre,
             estado: r.estado
           })));
         }
@@ -214,6 +231,7 @@ export class EntrenadorHomePage {
             tipo: 'Grupal',
             titulo: g.pack_nombre,
             subtitulo: `${g.inscritos_confirmados || 0} inscritos`,
+            lugar: g.club_nombre,
             estado: 'activo'
           })));
 
@@ -224,6 +242,7 @@ export class EntrenadorHomePage {
             tipo: 'Grupal',
             titulo: g.pack_nombre,
             subtitulo: `${g.inscritos_confirmados || 0} inscritos`,
+            lugar: g.club_nombre,
             estado: 'activo'
           })));
         }

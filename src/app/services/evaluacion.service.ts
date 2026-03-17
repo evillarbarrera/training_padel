@@ -23,12 +23,16 @@ export class EvaluacionService {
         return this.http.post(`${this.apiUrl}/create_evaluacion.php`, data, { headers: this.getHeaders() });
     }
 
-    getEvaluaciones(jugadorId: number): Observable<any[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/get_evaluaciones.php?jugador_id=${jugadorId}`, { headers: this.getHeaders() });
+    getEvaluaciones(jugadorId: number, entrenadorId?: number): Observable<any[]> {
+        let url = `${this.apiUrl}/get_evaluaciones.php?jugador_id=${jugadorId}`;
+        if (entrenadorId) url += `&entrenador_id=${entrenadorId}`;
+        return this.http.get<any[]>(url, { headers: this.getHeaders() });
     }
 
-    getVideos(jugadorId: number): Observable<any[]> {
-        return this.http.get<any[]>(`https://api.padelmanager.cl/entrenador/get_videos.php?jugador_id=${jugadorId}`, { headers: this.getHeaders() });
+    getVideos(jugadorId: number, entrenadorId?: number): Observable<any[]> {
+        let url = `https://api.padelmanager.cl/entrenador/get_videos.php?jugador_id=${jugadorId}`;
+        if (entrenadorId) url += `&entrenador_id=${entrenadorId}`;
+        return this.http.get<any[]>(url, { headers: this.getHeaders() });
     }
 
     uploadVideo(formData: FormData): Observable<any> {

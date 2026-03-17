@@ -26,6 +26,11 @@ export class LoginPage implements OnInit {
   isLoading: boolean = false;
   error: string = '';
 
+  // Password Recovery
+  isRecoverModalOpen: boolean = false;
+  recoverEmail: string = '';
+  isRecovering: boolean = false;
+
   constructor(
     private mysql: MysqlService,
     private router: Router,
@@ -181,5 +186,39 @@ export class LoginPage implements OnInit {
 
   goToRegister() {
     this.router.navigate(['/register']);
+  }
+
+  recoverPassword() {
+    this.isRecoverModalOpen = true;
+  }
+
+  closeRecoverModal() {
+    this.isRecoverModalOpen = false;
+    this.recoverEmail = '';
+  }
+
+  sendRecoverEmail() {
+    if (!this.recoverEmail) {
+      this.showError('Por favor ingrese su correo electrónico');
+      return;
+    }
+
+    this.isRecovering = true;
+    this.mysql.recoverPassword(this.recoverEmail).subscribe({
+      next: (res) => {
+        this.isRecovering = false;
+        if (res.success) {
+          this.presentAlert('Solicitud Enviada', 'Si el correo está registrado, recibirás instrucciones en unos minutos para restablecer tu contraseña.');
+          this.closeRecoverModal();
+        } else {
+          this.showError(res.message || 'Error al procesar la solicitud');
+        }
+      },
+      error: (err) => {
+        this.isRecovering = false;
+        console.error('Recover error:', err);
+        this.showError('Ocurrió un error. Intenta de nuevo más tarde.');
+      }
+    });
   }
 }

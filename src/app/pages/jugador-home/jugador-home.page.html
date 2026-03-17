@@ -9,12 +9,20 @@
   <div class="header-nike">
     <div class="header-overlay"></div>
     <div class="header-content-wrapper">
-      <div class="avatar-circle">
-        <img [src]="fotoPerfil || 'assets/avatar.png'" alt="Avatar" />
+      <div class="header-left-info">
+        <div class="avatar-circle">
+          <img [src]="fotoPerfil || 'assets/avatar.png'" alt="Avatar" />
+        </div>
+        <div class="header-text">
+          <p class="welcome-pre">CONTINUAR ENTRENANDO,</p>
+          <h1 class="header-title">{{ jugadorNombre }}</h1>
+        </div>
       </div>
-      <div class="header-text">
-        <p class="welcome-pre">CONTINUAR ENTRENANDO,</p>
-        <h1 class="header-title">{{ jugadorNombre }}</h1>
+
+      <!-- Notifications Button -->
+      <div class="notifications-btn" (click)="openNotificaciones()" *ngIf="getNotificacionesCount() > 0">
+        <ion-icon name="notifications-outline"></ion-icon>
+        <ion-badge color="danger" class="notif-badge">{{ getNotificacionesCount() }}</ion-badge>
       </div>
     </div>
   </div>
@@ -286,6 +294,57 @@
         </div>
 
       </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Notifications Modal -->
+  <ion-modal class="custom-bottom-sheet" [isOpen]="isNotificacionesOpen" (didDismiss)="closeNotificaciones()"
+    initialBreakpoint="0.6" [breakpoints]="[0, 0.6, 0.9]">
+    <ng-template>
+      <ion-content class="notifications-content">
+        <div class="drag-handle"></div>
+        <div class="modal-header-notit">
+          <h2>NOTIFICACIONES</h2>
+          <ion-button fill="clear" (click)="closeNotificaciones()" class="close-btn">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+
+        <div class="notifications-list">
+          <!-- Missing Address Alert -->
+          <div class="notification-card-home warning animate-pop" *ngIf="sinDireccion" (click)="onNotifClick('perfil')">
+            <div class="card-icon">
+              <ion-icon name="location-outline"></ion-icon>
+            </div>
+            <div class="card-body">
+              <h4>Configura tu Ubicación</h4>
+              <p>Agrega tu dirección en tu perfil para encontrar entrenadores cerca de ti.</p>
+              <div class="card-actions">
+                <ion-button fill="solid" class="action-btn-notit">Ir al Perfil</ion-button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Daily Tips Announcement -->
+          <div class="notification-card-home success animate-pop" *ngIf="showTipsInfo" (click)="onNotifClick('tips')">
+            <div class="card-icon">
+              <ion-icon name="sparkles-outline"></ion-icon>
+            </div>
+            <div class="card-body">
+              <h4>¡Consejos Diarios!</h4>
+              <p>Cada día recibirás nuevos consejos de pádel impulsados por IA para mejorar tu técnica.</p>
+              <div class="card-actions">
+                <ion-button fill="clear" color="medium">Entendido</ion-button>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-notifications" *ngIf="getNotificacionesCount() === 0">
+            <ion-icon name="notifications-off-outline"></ion-icon>
+            <p>No tienes notificaciones pendientes.</p>
+          </div>
+        </div>
+      </ion-content>
     </ng-template>
   </ion-modal>
 
