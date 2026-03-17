@@ -21,7 +21,7 @@
           <span class="venue-label">Lugar de Entrenamiento</span>
           <div class="venue-selector-row">
             <ion-select [(ngModel)]="selectedClubId" (ionChange)="onClubChange()" interface="popover"
-              toggleIcon="chevron-down-outline" mode="md" class="premium-select">
+              toggleIcon="chevron-down-outline" mode="md" class="premium-select" placeholder="Selecciona un club...">
               <ion-select-option *ngFor="let club of clubes" [value]="club.id">
                 {{ club.nombre }}
               </ion-select-option>

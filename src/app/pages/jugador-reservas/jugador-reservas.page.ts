@@ -992,24 +992,25 @@ export class JugadorReservasPage implements OnInit {
   }
 
   handleNoCreditsFlow() {
-    // Validar si tiene pendientes (reservas futuras/bloqueadas) para este entrenador
-    const hasPending = this.reservasIndividuales.some(r =>
-      Number(r.entrenador_id) === Number(this.selectedEntrenador) &&
-      (r.estado === 'reservado' || r.estado === 'activo' || r.estado === 'confirmado' || r.estado === 'bloqueado')
-    ) || this.entrenamientosGrupales.some(eg =>
-      Number(eg.entrenador_id) === Number(this.selectedEntrenador)
-    );
-
-    if (hasPending) {
-      this.alertCtrl.create({
-        header: 'Clases Pendientes',
-        message: 'Cuando termines tus entrenamientos del pack actual podrás reservar un nuevo pack.',
-        buttons: ['OK']
-      }).then(a => a.present());
-    } else {
-      // No tiene créditos ni pendientes -> Mostrar packs para comprar
+    if (!this.selectedEntrenador) {
       this.mostrarPacksDisponibles(null);
+      return;
     }
+
+    this.mysqlService.checkPendientesEntrenador(this.jugadorId, this.selectedEntrenador).subscribe({
+      next: (res: any) => {
+        if (res.success && res.pendientes > 0 && res.disponibles <= 0) {
+          this.alertCtrl.create({
+            header: 'Clases Pendientes',
+            message: 'Aún tienes clases reservadas por asistir con este entrenador. Cuando las completes todas, podrás comprar un nuevo pack.',
+            buttons: ['OK']
+          }).then(a => a.present());
+        } else {
+          this.mostrarPacksDisponibles(null);
+        }
+      },
+      error: () => this.mostrarPacksDisponibles(null)
+    });
   }
 
   reservarHorario(horario: any) {

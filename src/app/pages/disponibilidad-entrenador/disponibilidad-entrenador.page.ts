@@ -81,9 +81,8 @@ interface DiaSemana {
 export class DisponibilidadEntrenadorPage implements OnInit {
 
   entrenador_id = Number(localStorage.getItem('userId'));
-  club_id = 1;
   clubes: any[] = [];
-  selectedClubId: number = 1;
+  selectedClubId: number | null = null;
 
   // Default Week Config
   showDefaultModal = false;
@@ -401,6 +400,11 @@ export class DisponibilidadEntrenadorPage implements OnInit {
      GUARDAR
   ============================== */
   guardarDisponibilidad() {
+    if (!this.selectedClubId) {
+      this.mostrarToast('❌ Debes seleccionar un club antes de guardar');
+      return;
+    }
+
     const crear: any[] = [];
     const eliminar: any[] = [];
 
@@ -451,6 +455,10 @@ export class DisponibilidadEntrenadorPage implements OnInit {
     });
   }
   async migrateSlots() {
+    if (!this.selectedClubId) {
+      this.mostrarToast('❌ Selecciona un club para vincular');
+      return;
+    }
     const alert = await this.alertController.create({
       header: 'Vincular Horarios',
       message: 'Tienes horarios guardados que no están asociados a ningún club. ¿Deseas vincularlos todos al club seleccionado actualmente?',
@@ -460,7 +468,7 @@ export class DisponibilidadEntrenadorPage implements OnInit {
           text: 'Vincular ahora',
           handler: () => {
             this.isLoading = true;
-            this.entrenamientoService.migrateAvailability(this.entrenador_id, this.selectedClubId).subscribe({
+            this.entrenamientoService.migrateAvailability(this.entrenador_id, this.selectedClubId!).subscribe({
               next: (res) => {
                 this.mostrarToast(res.message || 'Horarios vinculados correctamente');
                 this.cargarDisponibilidadExistente();
@@ -529,6 +537,10 @@ export class DisponibilidadEntrenadorPage implements OnInit {
   }
 
   saveDefaultConfig() {
+    if (!this.selectedClubId) {
+      this.mostrarToast('❌ Selecciona un club antes de guardar la plantilla');
+      return;
+    }
     this.isLoading = true;
     const config: any[] = [];
 
