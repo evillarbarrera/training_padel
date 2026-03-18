@@ -22,6 +22,22 @@
           }
         },
         {
+          "client_id": "786145270372-asd73mhjaibabgpl821r6cf353k4osu0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "cl.padelacademy.app",
+            "certificate_hash": "6f73209cd49a590a48a26b1ca77bd38ce0a9d963"
+          }
+        },
+        {
+          "client_id": "786145270372-ui1u1cm7blhbs15ndbbcpf8id9bq1nog.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "cl.padelacademy.app",
+            "certificate_hash": "967127cfda45dd3b5ba7ea57f4c597a79a5055b7"
+          }
+        },
+        {
           "client_id": "786145270372-e637i46g6uu1kekcr1ioqdka901acud7.apps.googleusercontent.com",
           "client_type": 3
         }

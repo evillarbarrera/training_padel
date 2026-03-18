@@ -18,7 +18,7 @@ export interface GoogleWebUser {
  */
 @Injectable({ providedIn: 'root' })
 export class GoogleWebAuthService {
-    private clientId = '786145270372-liov6hu5v7lcmf2028s9ihi600rp3353.apps.googleusercontent.com';
+    private clientId = '786145270372-e637i46g6uu1kekcr1ioqdka901acud7.apps.googleusercontent.com';
 
     constructor(private platform: Platform) { }
 
