@@ -449,6 +449,64 @@
     </div>
   </div>
 
+  <!-- Confirmation Bottom Sheet (UX Senior) -->
+  <ion-modal [isOpen]="showConfirmationModal" (didDismiss)="showConfirmationModal = false" [initialBreakpoint]="0.6"
+    [breakpoints]="[0, 0.6, 0.9]" handleBehavior="cycle" class="confirmation-modal-nike">
+    <ng-template>
+      <div class="confirmation-sheet-content">
+        <div class="sheet-header">
+          <div class="pull-bar"></div>
+          <h3>CONFIRMAR PACK</h3>
+        </div>
+
+        <div class="summary-body" *ngIf="selectedPackToConfirm">
+          <div class="pack-mini-card">
+            <div class="pack-type-icon">
+              <ion-icon name="flash"></ion-icon>
+            </div>
+            <div class="pack-text">
+              <h4>{{selectedPackToConfirm.nombre}}</h4>
+              <span>{{selectedPackToConfirm.sesiones_totales}} SESIONES DE ENTRENAMIENTO</span>
+            </div>
+          </div>
+
+          <div class="price-breakdown">
+            <div class="breakdown-item">
+              <span>Precio Base</span>
+              <span>{{selectedPackToConfirm.precio | currency:'CLP':'$':'1.0-0'}}</span>
+            </div>
+            <div class="breakdown-item discount" *ngIf="couponApplied">
+              <span>Cupón Descuento</span>
+              <span>-{{(selectedPackToConfirm.precio - getDiscountedPrice(selectedPackToConfirm.precio)) |
+                currency:'CLP':'$':'1.0-0'}}</span>
+            </div>
+            <div class="breakdown-total">
+              <span>Monto Final</span>
+              <span class="final-amount">{{getDiscountedPrice(selectedPackToConfirm.precio) |
+                currency:'CLP':'$':'1.0-0'}}</span>
+            </div>
+          </div>
+
+          <div class="payment-note">
+            <ion-icon [name]="selectedPackToConfirm.transbank_activo == 1 ? 'shield-checkmark' : 'information-circle'">
+            </ion-icon>
+            <span>{{selectedPackToConfirm.transbank_activo == 1 ? 'Pago Seguro vía Webpay' : 'Pago directo con el
+              Profesor'}}</span>
+          </div>
+
+          <div class="sheet-actions">
+            <ion-button expand="block" (click)="confirmarCompra()" class="confirm-purchase-btn">
+              CONFIRMAR Y PROCEDER
+            </ion-button>
+            <ion-button fill="clear" (click)="showConfirmationModal = false" class="cancel-purchase-btn" color="medium">
+              CANCELAR
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
   <!-- Back FAB -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button class="nike-fab back-fab" (click)="goToHome()">

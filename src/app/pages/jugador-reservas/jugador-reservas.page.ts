@@ -126,6 +126,10 @@ export class JugadorReservasPage implements OnInit {
   appliedCouponData: any = null;
   couponMessage: string = '';
 
+  // New: Confirmation Bottom Sheet
+  showConfirmationModal = false;
+  selectedPackToConfirm: any = null;
+
   constructor(
     private entrenamientoService: EntrenamientoService,
     private mysqlService: MysqlService,
@@ -530,6 +534,15 @@ export class JugadorReservasPage implements OnInit {
   }
 
   async comprarPackYReservar(pack: any) {
+    this.selectedPackToConfirm = pack;
+    this.showConfirmationModal = true;
+  }
+
+  async confirmarCompra() {
+    this.showConfirmationModal = false;
+    const pack = this.selectedPackToConfirm;
+    if (!pack) return;
+
     if (pack.transbank_activo == 1 || pack.transbank_activo == '1') {
       this.iniciarPagoPackTransbank(pack);
     } else {
@@ -1120,14 +1133,17 @@ export class JugadorReservasPage implements OnInit {
       next: (res: any) => {
         const stats = res.estadisticas?.packs;
         if (stats) {
-          this.creditosDisponibles = stats.disponibles; // Fórmula: Clases Compradas - (Pasadas + Futuras)
-          this.reservasFuturas = stats.futuras;
+          this.creditosDisponibles = Number(stats.disponibles || 0); 
+          this.reservasFuturas = Number(stats.futuras || 0);
 
-          // ESCENARIO A: Tiene Créditos (Créditos > 0)
-          if (this.creditosDisponibles > 0) {
+          // ESCENARIO A: Tiene Créditos (Créditos > 0) OR is a new user (0 credits, 0 future bookings)
+          // This allows new users to see coaches and then be prompted to buy a pack when selecting a slot.
+          if (this.creditosDisponibles > 0 || (this.creditosDisponibles === 0 && this.reservasFuturas === 0)) {
             this.escenarioReserva = 'A';
           }
-          // ESCENARIO B: No tiene Créditos Y NO tiene Reservas Futuras
+          // ESCENARIO B: This case is now effectively subset of A or C, but we keep it for logic completeness if needed.
+          // However, with the change above, Scenario B will only happen if we explicitly want to block booking 
+          // even with 0 futures (which we don't for new users anymore).
           else if (this.reservasFuturas === 0) {
             this.escenarioReserva = 'B';
           }

@@ -453,7 +453,10 @@ export class MisHabilidadesPage implements OnInit {
     }
 
     async subirVideoPersonal() {
-        const categories = ['General', 'Drive', 'Revés', 'Volea', 'Smash', 'Bandeja', 'Saque', 'Globo', 'Bajada de Pared'];
+        const categories = [
+            'General', 'Derecha', 'Reves', 'Volea de Derecha', 'Volea de Reves', 'Bandeja', 'Vibora',
+            'Rulo', 'Remate', 'Salida de Pared', 'Globo', 'Saque', 'Resto'
+        ];
 
         const catAlert = await this.alertCtrl.create({
             header: '¿Qué golpe es?',
@@ -478,7 +481,10 @@ export class MisHabilidadesPage implements OnInit {
     }
 
     async subirVideoCoach() {
-        const categories = ['General', 'Drive', 'Revés', 'Volea', 'Smash', 'Bandeja', 'Saque', 'Globo', 'Bajada de Pared'];
+        const categories = [
+            'General', 'Derecha', 'Reves', 'Volea de Derecha', 'Volea de Reves', 'Bandeja', 'Vibora',
+            'Rulo', 'Remate', 'Salida de Pared', 'Globo', 'Saque', 'Resto'
+        ];
 
         const catAlert = await this.alertCtrl.create({
             header: 'Categoría / Golpe',

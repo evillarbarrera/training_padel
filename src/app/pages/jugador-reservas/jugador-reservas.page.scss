@@ -1346,3 +1346,162 @@
     }
   }
 }
+/* --- CONFIRMATION BOTTOM SHEET NIKE --- */
+.confirmation-modal-nike {
+  --border-radius: 32px 32px 0 0;
+  --box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+  
+  &::part(content) {
+    background: #fff;
+  }
+}
+
+.confirmation-sheet-content {
+  padding: 10px 25px 40px;
+  background: white;
+  
+  .sheet-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 25px;
+
+    .pull-bar {
+      width: 40px;
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      font-size: 20px;
+      font-weight: 950;
+      letter-spacing: -0.5px;
+      margin: 0;
+      text-transform: uppercase;
+      color: #000;
+    }
+  }
+
+  .pack-mini-card {
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    border: 1.5px solid #f1f5f9;
+
+    .pack-type-icon {
+      width: 50px;
+      height: 50px;
+      background: #000;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--nike-neon);
+      font-size: 24px;
+    }
+
+    .pack-text {
+      h4 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 900;
+        color: #000;
+      }
+      span {
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+
+  .price-breakdown {
+    margin-bottom: 30px;
+    
+    .breakdown-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #64748b;
+
+      &.discount {
+        color: #10b981;
+      }
+    }
+
+    .breakdown-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 2px solid #f1f5f9;
+      
+      span {
+        font-size: 16px;
+        font-weight: 900;
+        color: #000;
+      }
+
+      .final-amount {
+        font-size: 24px;
+        font-weight: 950;
+        color: #000;
+      }
+    }
+  }
+
+  .payment-note {
+    background: #f1f5f9;
+    padding: 12px 15px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 30px;
+
+    ion-icon {
+      font-size: 18px;
+      color: #64748b;
+    }
+
+    span {
+      font-size: 12px;
+      font-weight: 800;
+      color: #64748b;
+    }
+  }
+
+  .sheet-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .confirm-purchase-btn {
+      --background: #000;
+      --color: #fff;
+      --border-radius: 16px;
+      --font-weight: 900;
+      height: 60px;
+      font-size: 15px;
+      letter-spacing: 1px;
+      margin: 0;
+    }
+
+    .cancel-purchase-btn {
+      --font-weight: 800;
+      font-size: 13px;
+      margin: 0;
+    }
+  }
+}
