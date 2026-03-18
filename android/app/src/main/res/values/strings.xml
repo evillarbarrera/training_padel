@@ -4,6 +4,6 @@
     <string name="title_activity_main">PadelManager</string>
     <string name="package_name">cl.padelacademy.app</string>
     <string name="custom_url_scheme">cl.padelacademy.app</string>
-    <string name="google_client_id">786145270372-adl884i5fl5qr1q2eudhl5g0n9mahal5.apps.googleusercontent.com</string>
+    <string name="google_client_id">786145270372-asd73mhjaibabgpl821r6cf353k4osu0.apps.googleusercontent.com</string>
     <string name="server_client_id">786145270372-e637i46g6uu1kekcr1ioqdka901acud7.apps.googleusercontent.com</string>
 </resources>

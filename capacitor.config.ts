@@ -12,7 +12,7 @@ const config: CapacitorConfig = {
       // El iOS Client ID DEBE ser de tipo "iOS" creado en Google Cloud Console para evitar el Error 400
       iosClientId: '786145270372-1pilhghaglafm9l0vihjhagcugovtvh8.apps.googleusercontent.com',
       // El Android Client ID DEBE ser de tipo "Android" creado en Google Cloud Console
-      androidClientId: '786145270372-adl884i5fl5qr1q2eudhl5g0n9mahal5.apps.googleusercontent.com',
+      androidClientId: '786145270372-asd73mhjaibabgpl821r6cf353k4osu0.apps.googleusercontent.com',
     },
     Keyboard: {
       resize: 'body',
