@@ -86,4 +86,8 @@ export const routes: Routes = [
     path: 'entrenador-cupones',
     loadComponent: () => import('./pages/entrenador-cupones/entrenador-cupones.page').then(m => m.EntrenadorCuponesPage)
   },
+  {
+    path: 'entrenador-mi-plan',
+    loadComponent: () => import('./pages/entrenador-mi-plan/entrenador-mi-plan.page').then(m => m.EntrenadorMiPlanPage)
+  },
 ];

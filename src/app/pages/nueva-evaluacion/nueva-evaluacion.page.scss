@@ -280,3 +280,66 @@ ion-textarea {
         transform: translateY(0);
     }
 }
+
+/* SEGMENT TABS */
+.eval-segment {
+    margin-bottom: 20px;
+    --background: #f2f2f7;
+    border-radius: 12px;
+
+    ion-segment-button {
+        --indicator-color: #000;
+        --color: #8e8e93;
+        --color-checked: #fff;
+        font-weight: 800;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        min-height: 40px;
+        --border-radius: 10px;
+    }
+}
+
+/* SIMPLE EVAL GRID (Táctico, Físico, Mental) */
+.simple-eval-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.eval-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f2f2f7;
+
+    h4 {
+        margin: 0 0 15px;
+        font-size: 16px;
+        font-weight: 800;
+        color: #111;
+        letter-spacing: -0.3px;
+    }
+
+    .score-display {
+        font-size: 28px;
+        font-weight: 900;
+        color: #111;
+        min-width: 50px;
+        text-align: center;
+    }
+
+    .stepper-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 5px;
+    }
+
+    .visual-range {
+        margin-top: 5px;
+    }
+}

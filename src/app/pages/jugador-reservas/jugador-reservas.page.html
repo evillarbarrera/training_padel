@@ -391,63 +391,62 @@
 
   </div>
 
-  <div class="pack-buy-modal" *ngIf="showPackModal">
-    <div class="modal-backdrop" (click)="showPackModal = false"></div>
-    <div class="modal-panel animate-pop">
-      <div class="modal-header">
-        <div class="title-wrap">
-          <span class="subtitle">Agendar Clase</span>
-          <h2>ELEGIR PACK</h2>
-        </div>
-        <ion-button fill="clear" (click)="showPackModal = false">
-          <ion-icon name="close-outline"></ion-icon>
-        </ion-button>
-      </div>
+</ion-content>
 
-      <!-- Coupon Section -->
-      <div class="coupon-promo-section">
-        <div class="nike-input-group-promo">
-          <div class="promo-header">
-            <ion-icon name="ticket-outline"></ion-icon>
-            <ion-label>CUPÓN DE DESCUENTO</ion-label>
-          </div>
-          <div class="coupon-row">
-            <ion-input [(ngModel)]="couponCode" placeholder="CÓDIGO" class="coupon-input" mode="md"></ion-input>
-            <ion-button (click)="applyCoupon()" [color]="couponApplied ? 'success' : 'dark'" class="apply-btn"
-              fill="solid" mode="ios">
-              {{ couponApplied ? 'VALIDADO' : 'APLICAR' }}
-            </ion-button>
-          </div>
-          <div class="coupon-feedback" *ngIf="couponMessage" [class.success]="couponApplied">
-            <ion-icon [name]="couponApplied ? 'checkmark-circle-outline' : 'alert-circle-outline'"></ion-icon>
-            <span>{{ couponMessage }}</span>
-          </div>
+  <ion-modal [isOpen]="showPackModal" (didDismiss)="showPackModal = false" [initialBreakpoint]="0.75" [breakpoints]="[0, 0.5, 0.75, 0.9]" handleBehavior="cycle" class="confirmation-modal-nike">
+    <ng-template>
+      <div class="confirmation-sheet-content" style="padding-top: 20px;">
+        <div class="sheet-header" style="margin-bottom: 15px;">
+          <div class="pull-bar"></div>
+          <span style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px;">Agendar Clase</span>
+          <h3 style="margin-top: 0;">ELEGIR PACK</h3>
         </div>
-      </div>
 
-      <div class="pack-scroll">
-        <div class="pack-card-mobile" *ngFor="let pack of availablePacks" (click)="comprarPackYReservar(pack)">
-          <div class="pack-bits">
-            <span class="credits">{{ pack.sesiones_totales }} SESIONES</span>
-            <h3 class="name">{{ pack.nombre }}</h3>
-            <div class="price-container">
-              <p class="price" [class.discounted]="couponApplied">
-                {{ pack.precio | currency:'CLP':'$':'1.0-0' }}
-              </p>
-              <p class="price final" *ngIf="couponApplied">
-                {{ getDiscountedPrice(pack.precio) | currency:'CLP':'$':'1.0-0' }}
-              </p>
+        <!-- Coupon Section -->
+        <div class="coupon-promo-section" style="margin-bottom: 15px;">
+          <div class="nike-input-group-promo">
+            <div class="promo-header">
+              <ion-icon name="ticket-outline"></ion-icon>
+              <ion-label>CUPÓN DE DESCUENTO</ion-label>
+            </div>
+            <div class="coupon-row">
+              <ion-input [(ngModel)]="couponCode" placeholder="CÓDIGO" class="coupon-input" mode="md"></ion-input>
+              <ion-button (click)="applyCoupon()" [color]="couponApplied ? 'success' : 'dark'" class="apply-btn"
+                fill="solid" mode="ios">
+                {{ couponApplied ? 'VALIDADO' : 'APLICAR' }}
+              </ion-button>
+            </div>
+            <div class="coupon-feedback" *ngIf="couponMessage" [class.success]="couponApplied">
+              <ion-icon [name]="couponApplied ? 'checkmark-circle-outline' : 'alert-circle-outline'"></ion-icon>
+              <span>{{ couponMessage }}</span>
             </div>
           </div>
-          <ion-icon name="chevron-forward-outline"></ion-icon>
         </div>
 
-        <div *ngIf="availablePacks.length === 0" class="empty-packs">
-          <p>No hay packs disponibles para este tipo de sesión.</p>
+        <div class="pack-scroll" style="max-height: 50vh; overflow-y: auto;">
+          <div class="pack-card-mobile" *ngFor="let pack of availablePacks" (click)="comprarPackYReservar(pack)" style="background: #f8fafc; border-radius: 20px; padding: 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; cursor: pointer;">
+            <div class="pack-bits">
+              <span class="credits" style="font-size: 10px; font-weight: 800; color: #22c55e;">{{ pack.sesiones_totales }} SESIONES</span>
+              <h3 class="name" style="margin: 4px 0; font-size: 16px; font-weight: 800;">{{ pack.nombre }}</h3>
+              <div class="price-container">
+                <p class="price" [class.discounted]="couponApplied" style="margin: 0; font-size: 14px; font-weight: 600; color: #64748b;">
+                  {{ pack.precio | currency:'CLP':'$':'1.0-0' }}
+                </p>
+                <p class="price final" *ngIf="couponApplied" style="margin: 0; font-size: 16px; font-weight: 800; color: #000;">
+                  {{ getDiscountedPrice(pack.precio) | currency:'CLP':'$':'1.0-0' }}
+                </p>
+              </div>
+            </div>
+            <ion-icon name="chevron-forward-outline" style="font-size: 20px; color: #cbd5e1;"></ion-icon>
+          </div>
+
+          <div *ngIf="availablePacks.length === 0" class="empty-packs" style="text-align: center; padding: 30px; color: #888;">
+            <p style="margin: 0;">No hay packs disponibles para este tipo de sesión.</p>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
+    </ng-template>
+  </ion-modal>
 
   <!-- Confirmation Bottom Sheet (UX Senior) -->
   <ion-modal [isOpen]="showConfirmationModal" (didDismiss)="showConfirmationModal = false" [initialBreakpoint]="0.6"
@@ -547,5 +546,3 @@
       </div>
     </div>
   </div>
-
-</ion-content>

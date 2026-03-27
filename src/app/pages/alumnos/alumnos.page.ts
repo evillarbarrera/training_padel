@@ -155,14 +155,7 @@ export class AlumnosPage implements OnInit {
   cargarAlumnos(event?: any) {
     const profesorId = localStorage.getItem('userId');
 
-    this.http.get<any[]>(
-      `https://api.padelmanager.cl/alumno/get_alumno.php?entrenador_id=${profesorId}`,
-      {
-        headers: {
-          Authorization: 'Bearer ' + btoa('1|padel_academy')
-        }
-      }
-    ).subscribe({
+    this.mysqlService.getAlumnos(Number(profesorId)).subscribe({
       next: (res: any[]) => {
         console.log('API Response Alumnos:', res); // Log entire response
         if (!res) {

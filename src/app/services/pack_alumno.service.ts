@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
@@ -7,63 +8,65 @@ import { Observable } from 'rxjs';
 })
 export class PackAlumnoService {
 
-  private apiUrl = 'https://api.padelmanager.cl/alumno';
-
-  private token = btoa('1|padel_academy');
-
-  private headers = new HttpHeaders({
-    'Authorization': `Bearer ${this.token}`,
-    'Content-Type': 'application/json'
-  });
+  private apiUrl = `${environment.apiUrl}/alumno`;
 
   constructor(private http: HttpClient) { }
+
+  private getHeaders() {
+    const token = localStorage.getItem('token');
+    return new HttpHeaders({
+      'Authorization': token ? `Bearer ${token}` : '',
+      'Content-Type': 'application/json'
+    });
+  }
 
   insertPackAlumno(data: any) {
     return this.http.post(
       `${this.apiUrl}/insert_pack.php`,
       data,
-      { headers: this.headers }
+      { headers: this.getHeaders() }
     );
   }
 
   initTransaction(data: any): Observable<any> {
     const paymentUrl = this.apiUrl.replace('/alumno', '/pagos');
     return this.http.post(`${paymentUrl}/init_transaction.php`, data, {
-      headers: this.headers
+      headers: this.getHeaders()
     });
   }
 
   getAlumnosProfesor(entrenador_id: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/get_alumno.php?entrenador_id=${entrenador_id}`, { headers: this.headers });
+    return this.http.get<any[]>(`${this.apiUrl}/get_alumno.php?entrenador_id=${entrenador_id}`, { headers: this.getHeaders() });
   }
 
   inscribirseGrupal(packId: number, jugadorId: number): Observable<any> {
     return this.http.post<any>(
-      `${this.apiUrl.replace('/alumno', '')}/packs/inscribir_grupal.php`,
+      `${this.apiUrl}/inscribir_grupal.php`,
       { pack_id: packId, jugador_id: jugadorId },
-      { headers: this.headers }
+      { headers: this.getHeaders() }
     );
   }
 
-  cancelarInscripcionGrupal(inscripcionId: number): Observable<any> {
+  // --- CORRECCIÓN SEGURIDAD: Usar ruta /alumno/ y enviar jugador_id ---
+  cancelarInscripcionGrupal(inscripcionId: number, jugadorId: number): Observable<any> {
     return this.http.post<any>(
-      `${this.apiUrl.replace('/alumno', '')}/packs/cancelar_inscripcion_grupal.php`,
-      { inscripcion_id: inscripcionId },
-      { headers: this.headers }
+      `${this.apiUrl}/cancelar_inscripcion_grupal.php`,
+      { inscripcion_id: inscripcionId, jugador_id: jugadorId },
+      { headers: this.getHeaders() }
     );
   }
 
   getInscripcionesGrupales(packId: number): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.apiUrl.replace('/alumno', '')}/packs/get_inscripciones_grupales.php?pack_id=${packId}`,
-      { headers: this.headers }
+      { headers: this.getHeaders() }
     );
   }
 
   getMisPacks(jugadorId: number): Observable<any> {
     return this.http.get(
       `${this.apiUrl}/get_mis_packs_alumno.php?jugador_id=${jugadorId}`,
-      { headers: this.headers }
+      { headers: this.getHeaders() }
     );
   }
 
@@ -71,7 +74,7 @@ export class PackAlumnoService {
     return this.http.post(
       `${this.apiUrl}/invitar_jugador_pack.php`,
       { pack_jugadores_id: packJugadoresId, email_invitado: emailInvitado },
-      { headers: this.headers }
+      { headers: this.getHeaders() }
     );
   }
 

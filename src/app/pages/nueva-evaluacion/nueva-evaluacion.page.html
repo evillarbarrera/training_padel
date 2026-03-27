@@ -13,7 +13,7 @@
                 </div>
                 <div>
                     <h1 class="header-title">Evaluar</h1>
-                    <p class="header-sub">Nueva evaluación para {{ alumnoNombre }}</p>
+                    <p class="header-sub">Evaluación para {{ alumnoNombre }}</p>
                 </div>
             </div>
         </div>
@@ -22,57 +22,135 @@
     <!-- Main Content -->
     <div class="dashboard-container">
 
-        <p class="subtitle animate-up">Desliza para puntuar del 1 al 10</p>
+        <!-- Tab Selector -->
+        <ion-segment [value]="selectedTab" (ionChange)="tabChanged($event)" mode="ios" class="eval-segment animate-up">
+            <ion-segment-button value="tecnico">
+                <ion-label>Técnico</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="tactico">
+                <ion-label>Táctico</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="fisico">
+                <ion-label>Físico</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="mental">
+                <ion-label>Mental</ion-label>
+            </ion-segment-button>
+        </ion-segment>
 
-        <ion-accordion-group class="animate-up" style="animation-delay: 0.1s;">
-            <ion-accordion *ngFor="let golpe of golpes" [value]="golpe" toggleIcon="caret-down-circle"
-                class="nike-accordion">
-                <ion-item slot="header" lines="none">
-                    <ion-label>
-                        {{ golpe }}
-                        <span class="avg-score">Promedio: {{ (evaluationData[golpe].tecnica +
-                            evaluationData[golpe].control
-                            + evaluationData[golpe].direccion + evaluationData[golpe].decision) / 4 }}</span>
-                    </ion-label>
-                </ion-item>
+        <!-- ==================== TAB: TÉCNICO ==================== -->
+        <div *ngIf="selectedTab === 'tecnico'">
+            <p class="subtitle animate-up">Desliza para puntuar del 1 al 10</p>
 
-                <div class="ion-padding" slot="content" style="background: white;">
+            <ion-accordion-group class="animate-up" style="animation-delay: 0.1s;">
+                <ion-accordion *ngFor="let golpe of golpes" [value]="golpe" toggleIcon="caret-down-circle"
+                    class="nike-accordion">
+                    <ion-item slot="header" lines="none">
+                        <ion-label>
+                            {{ golpe }}
+                            <span class="avg-score">Promedio: {{ getGolpeAvg(golpe) }}</span>
+                        </ion-label>
+                    </ion-item>
 
-                    <!-- Loops for metrics -->
-                    <div class="metric-container"
-                        *ngFor="let metric of ['tecnica', 'control', 'direccion', 'decision']">
-                        <div class="metric-label">{{ metric | titlecase }}</div>
+                    <div class="ion-padding" slot="content" style="background: white;">
+                        <div class="metric-container"
+                            *ngFor="let metric of ['tecnica', 'control', 'direccion', 'decision']">
+                            <div class="metric-label">{{ metric | titlecase }}</div>
 
-                        <div class="stepper-row">
-                            <ion-button fill="outline" class="step-btn" (click)="decrement(golpe, metric)">
-                                <ion-icon name="remove" slot="icon-only"></ion-icon>
-                            </ion-button>
+                            <div class="stepper-row">
+                                <ion-button fill="outline" class="step-btn" (click)="decrement(golpe, metric)">
+                                    <ion-icon name="remove" slot="icon-only"></ion-icon>
+                                </ion-button>
+                                <ion-input type="number" class="score-input"
+                                    [(ngModel)]="evaluationData[golpe][metric]" min="1" max="10"></ion-input>
+                                <ion-button fill="solid" class="step-btn" (click)="increment(golpe, metric)">
+                                    <ion-icon name="add" slot="icon-only"></ion-icon>
+                                </ion-button>
+                            </div>
 
-                            <ion-input type="number" class="score-input" [(ngModel)]="evaluationData[golpe][metric]"
-                                min="1" max="10"></ion-input>
-
-                            <ion-button fill="solid" class="step-btn" (click)="increment(golpe, metric)">
-                                <ion-icon name="add" slot="icon-only"></ion-icon>
-                            </ion-button>
+                            <ion-range min="1" max="10" step="1" snaps="true"
+                                [(ngModel)]="evaluationData[golpe][metric]"
+                                [color]="metric === 'tecnica' ? 'success' : metric === 'control' ? 'primary' : metric === 'direccion' ? 'warning' : 'danger'"
+                                class="visual-range">
+                            </ion-range>
                         </div>
 
-                        <ion-range min="1" max="10" step="1" snaps="true" [(ngModel)]="evaluationData[golpe][metric]"
-                            [color]="metric === 'tecnica' ? 'success' : metric === 'control' ? 'primary' : metric === 'direccion' ? 'warning' : 'danger'"
-                            class="visual-range">
-                        </ion-range>
+                        <div class="stroke-comment-container">
+                            <div class="metric-label">Comentario para {{ golpe }}</div>
+                            <ion-textarea [(ngModel)]="evaluationData[golpe].comentario" rows="2"
+                                placeholder="Detalles sobre la ejecución de {{ golpe }}..."
+                                class="nike-textarea-small"></ion-textarea>
+                        </div>
                     </div>
+                </ion-accordion>
+            </ion-accordion-group>
+        </div>
 
-                    <!-- New Commentary for this stroke -->
-                    <div class="stroke-comment-container">
-                        <div class="metric-label">Comentario para {{ golpe }}</div>
-                        <ion-textarea [(ngModel)]="evaluationData[golpe].comentario" rows="2"
-                            placeholder="Detalles sobre la ejecución de {{ golpe }}..."
-                            class="nike-textarea-small"></ion-textarea>
+        <!-- ==================== TAB: TÁCTICO ==================== -->
+        <div *ngIf="selectedTab === 'tactico'">
+            <p class="subtitle animate-up">Evalúa las capacidades tácticas</p>
+            <div class="simple-eval-grid animate-up">
+                <div class="eval-card" *ngFor="let item of tacticoIndicadores">
+                    <h4>{{ item.nombre }}</h4>
+                    <div class="stepper-row">
+                        <ion-button fill="outline" class="step-btn" (click)="decrementSimple(tacticoData, item.key)">
+                            <ion-icon name="remove" slot="icon-only"></ion-icon>
+                        </ion-button>
+                        <span class="score-display">{{ tacticoData[item.key]?.valor || 0 }}</span>
+                        <ion-button fill="solid" class="step-btn" (click)="incrementSimple(tacticoData, item.key)">
+                            <ion-icon name="add" slot="icon-only"></ion-icon>
+                        </ion-button>
                     </div>
-
+                    <ion-range min="1" max="10" step="1" snaps="true"
+                        [(ngModel)]="tacticoData[item.key].valor" color="warning" class="visual-range">
+                    </ion-range>
                 </div>
-            </ion-accordion>
-        </ion-accordion-group>
+            </div>
+        </div>
+
+        <!-- ==================== TAB: FÍSICO ==================== -->
+        <div *ngIf="selectedTab === 'fisico'">
+            <p class="subtitle animate-up">Evalúa las capacidades físicas</p>
+            <div class="simple-eval-grid animate-up">
+                <div class="eval-card" *ngFor="let item of fisicoIndicadores">
+                    <h4>{{ item.nombre }}</h4>
+                    <div class="stepper-row">
+                        <ion-button fill="outline" class="step-btn" (click)="decrementSimple(fisicoData, item.key)">
+                            <ion-icon name="remove" slot="icon-only"></ion-icon>
+                        </ion-button>
+                        <span class="score-display">{{ fisicoData[item.key]?.valor || 0 }}</span>
+                        <ion-button fill="solid" class="step-btn" (click)="incrementSimple(fisicoData, item.key)">
+                            <ion-icon name="add" slot="icon-only"></ion-icon>
+                        </ion-button>
+                    </div>
+                    <ion-range min="1" max="10" step="1" snaps="true"
+                        [(ngModel)]="fisicoData[item.key].valor" color="success" class="visual-range">
+                    </ion-range>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== TAB: MENTAL ==================== -->
+        <div *ngIf="selectedTab === 'mental'">
+            <p class="subtitle animate-up">Evalúa las capacidades mentales</p>
+            <div class="simple-eval-grid animate-up">
+                <div class="eval-card" *ngFor="let item of mentalIndicadores">
+                    <h4>{{ item.nombre }}</h4>
+                    <div class="stepper-row">
+                        <ion-button fill="outline" class="step-btn" (click)="decrementSimple(mentalData, item.key)">
+                            <ion-icon name="remove" slot="icon-only"></ion-icon>
+                        </ion-button>
+                        <span class="score-display">{{ mentalData[item.key]?.valor || 0 }}</span>
+                        <ion-button fill="solid" class="step-btn" (click)="incrementSimple(mentalData, item.key)">
+                            <ion-icon name="add" slot="icon-only"></ion-icon>
+                        </ion-button>
+                    </div>
+                    <ion-range min="1" max="10" step="1" snaps="true"
+                        [(ngModel)]="mentalData[item.key].valor" color="danger" class="visual-range">
+                    </ion-range>
+                </div>
+            </div>
+        </div>
 
         <!-- Comments -->
         <div class="nike-card comments-card animate-up" style="animation-delay: 0.2s;">

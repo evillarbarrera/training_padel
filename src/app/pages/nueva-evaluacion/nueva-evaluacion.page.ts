@@ -5,7 +5,8 @@ import { NavController, AlertController, LoadingController } from '@ionic/angula
 import {
     IonContent, IonFab, IonFabButton, IonIcon,
     IonAccordionGroup, IonAccordion, IonItem, IonLabel,
-    IonRange, IonTextarea, IonInput, IonButton
+    IonRange, IonTextarea, IonInput, IonButton,
+    IonSegment, IonSegmentButton
 } from '@ionic/angular/standalone';
 import { ActivatedRoute } from '@angular/router';
 import { EvaluacionService } from '../../services/evaluacion.service';
@@ -24,7 +25,8 @@ import { NotificationService } from '../../services/notification.service';
         FormsModule,
         IonContent, IonFab, IonFabButton, IonIcon,
         IonAccordionGroup, IonAccordion, IonItem, IonLabel,
-        IonRange, IonTextarea, IonInput, IonButton
+        IonRange, IonTextarea, IonInput, IonButton,
+        IonSegment, IonSegmentButton
     ]
 })
 export class NuevaEvaluacionPage implements OnInit {
@@ -34,18 +36,49 @@ export class NuevaEvaluacionPage implements OnInit {
     alumnoNombre: string = 'Alumno';
     alumnoFoto: string | null = null;
 
+    selectedTab: string = 'tecnico';
+
+    // ========== TÉCNICO ==========
     golpes = [
         'Derecha', 'Reves', 'Volea de Derecha', 'Volea de Reves', 'Bandeja', 'Vibora',
         'Rulo', 'Remate', 'Salida de Pared', 'Globo', 'Saque', 'Resto'
     ];
-
     evaluationData: any = {};
+
+    // ========== TÁCTICO ==========
+    tacticoIndicadores = [
+        { key: 'Posición', nombre: 'Posición en cancha' },
+        { key: 'Estrategia', nombre: 'Estrategia de juego' },
+        { key: 'Lectura', nombre: 'Lectura de la bola' },
+        { key: 'Ritmo', nombre: 'Control de ritmo' },
+        { key: 'Anticipación', nombre: 'Anticipación' },
+        { key: 'Consistencia', nombre: 'Consistencia táctica' }
+    ];
+    tacticoData: any = {};
+
+    // ========== FÍSICO ==========
+    fisicoIndicadores = [
+        { key: 'Fuerza', nombre: 'Fuerza' },
+        { key: 'Velocidad', nombre: 'Velocidad' },
+        { key: 'Resistencia', nombre: 'Resistencia' },
+        { key: 'Movilidad', nombre: 'Movilidad' }
+    ];
+    fisicoData: any = {};
+
+    // ========== MENTAL ==========
+    mentalIndicadores = [
+        { key: 'Concentración', nombre: 'Concentración' },
+        { key: 'Actitud', nombre: 'Actitud' },
+        { key: 'Confianza', nombre: 'Confianza' },
+        { key: 'Resiliencia', nombre: 'Resiliencia' }
+    ];
+    mentalData: any = {};
 
     constructor(
         private route: ActivatedRoute,
         private navCtrl: NavController,
         private alertCtrl: AlertController,
-        private loadingCtrl: LoadingController, // Injected
+        private loadingCtrl: LoadingController,
         private evaluacionService: EvaluacionService,
         private mysqlService: MysqlService,
         private notificationService: NotificationService
@@ -57,7 +90,7 @@ export class NuevaEvaluacionPage implements OnInit {
         this.jugadorId = Number(this.route.snapshot.paramMap.get('id'));
         this.entrenadorId = Number(localStorage.getItem('userId'));
 
-        // Inicializar con valores por defecto
+        // Init Técnico
         this.golpes.forEach(golpe => {
             this.evaluationData[golpe] = {
                 tecnica: 1,
@@ -68,35 +101,65 @@ export class NuevaEvaluacionPage implements OnInit {
             };
         });
 
+        // Init Táctico
+        this.tacticoIndicadores.forEach(i => {
+            this.tacticoData[i.key] = { valor: 1 };
+        });
+
+        // Init Físico
+        this.fisicoIndicadores.forEach(i => {
+            this.fisicoData[i.key] = { valor: 1 };
+        });
+
+        // Init Mental
+        this.mentalIndicadores.forEach(i => {
+            this.mentalData[i.key] = { valor: 1 };
+        });
+
         this.cargarAlumno();
         this.cargarUltimaEvaluacion();
     }
 
+    tabChanged(ev: any) {
+        this.selectedTab = ev.detail.value;
+    }
+
+    // ========== Helpers for simple indicators ==========
+    incrementSimple(dataObj: any, key: string) {
+        if (dataObj[key].valor < 10) dataObj[key].valor++;
+    }
+
+    decrementSimple(dataObj: any, key: string) {
+        if (dataObj[key].valor > 1) dataObj[key].valor--;
+    }
+
+    getGolpeAvg(golpe: string): string {
+        const d = this.evaluationData[golpe];
+        const avg = (d.tecnica + d.control + d.direccion + d.decision) / 4;
+        return avg.toFixed(1);
+    }
+
+    // ========== Load Previous ==========
     cargarUltimaEvaluacion() {
         if (!this.jugadorId) return;
 
         this.evaluacionService.getEvaluaciones(this.jugadorId).subscribe({
             next: (data) => {
                 if (data && data.length > 0) {
-                    // Ordenar por ID descendente para obtener la última evaluación absoluta
                     const sorted = data.sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
                     const latest = sorted[0];
 
                     if (latest && latest.scores) {
                         let scores = latest.scores;
                         if (typeof scores === 'string') {
-                            try {
-                                scores = JSON.parse(scores);
-                            } catch (e) {
-                                console.error('Error parseando scores previo:', e);
-                                scores = null;
-                            }
+                            try { scores = JSON.parse(scores); } catch (e) { scores = null; }
                         }
 
                         if (scores) {
-                            // Fusionar puntajes previos en la estructura actual
+                            // Técnico (can be scores.tecnico or directly at root level)
+                            const tecnico = scores.tecnico || scores;
                             this.golpes.forEach(golpe => {
-                                const prevScore = scores[golpe] || scores[golpe.toLowerCase()]; // Fallback por si acaso
+                                const prevScore = tecnico[golpe] || tecnico[golpe.toLowerCase()];
                                 if (prevScore) {
                                     this.evaluationData[golpe] = {
                                         tecnica: Number(prevScore.tecnica) || 1,
@@ -107,6 +170,40 @@ export class NuevaEvaluacionPage implements OnInit {
                                     };
                                 }
                             });
+
+                            // Táctico
+                            const tactico = scores.tactico || {};
+                            this.tacticoIndicadores.forEach(i => {
+                                const val = tactico[i.key];
+                                if (val) {
+                                    this.tacticoData[i.key] = {
+                                        valor: typeof val === 'object' ? Number(val.valor || 1) : Number(val || 1)
+                                    };
+                                }
+                            });
+
+                            // Físico
+                            const fisico = scores.fisico || {};
+                            this.fisicoIndicadores.forEach(i => {
+                                const val = fisico[i.key];
+                                if (val) {
+                                    this.fisicoData[i.key] = {
+                                        valor: typeof val === 'object' ? Number(val.valor || 1) : Number(val || 1)
+                                    };
+                                }
+                            });
+
+                            // Mental
+                            const mental = scores.mental || {};
+                            this.mentalIndicadores.forEach(i => {
+                                const val = mental[i.key];
+                                if (val) {
+                                    this.mentalData[i.key] = {
+                                        valor: typeof val === 'object' ? Number(val.valor || 1) : Number(val || 1)
+                                    };
+                                }
+                            });
+
                             console.log('Evaluación previa cargada (ID ' + latest.id + ')');
                         }
                     }
@@ -124,7 +221,7 @@ export class NuevaEvaluacionPage implements OnInit {
                     this.alumnoNombre = userData.nombre || 'Alumno';
 
                     let foto = userData.foto_perfil || userData.link_foto || userData.foto;
-                    let fotoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(this.alumnoNombre)}&background=ccff00&color=000`; // Default fallback
+                    let fotoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(this.alumnoNombre)}&background=ccff00&color=000`;
 
                     if (foto && typeof foto === 'string' && foto.trim().length > 0 && !foto.includes('imagen_defecto')) {
                         if (!foto.startsWith('http')) {
@@ -176,21 +273,25 @@ export class NuevaEvaluacionPage implements OnInit {
         const loading = await this.loadingCtrl.create({
             message: 'Guardando evaluación...',
             spinner: 'crescent',
-            duration: 5000 // Timeout safety
+            duration: 5000
         });
         await loading.present();
 
         const payload = {
             jugador_id: this.jugadorId,
             entrenador_id: this.entrenadorId,
-            scores: this.evaluationData,
+            scores: {
+                tecnico: this.evaluationData,
+                tactico: this.tacticoData,
+                fisico: this.fisicoData,
+                mental: this.mentalData
+            },
             comentarios: this.comentarios
         };
 
         this.evaluacionService.crearEvaluacion(payload).subscribe({
             next: async () => {
                 await loading.dismiss();
-                // Send Notification
                 this.notificationService.notificarEvaluacionGenerada(this.jugadorId);
 
                 const alert = await this.alertCtrl.create({ header: 'Éxito', message: 'Evaluación guardada', buttons: ['OK'] });

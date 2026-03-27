@@ -12,7 +12,7 @@ import { HttpClient } from '@angular/common/http';
   imports: [IonApp, IonRouterOutlet],
 })
 export class AppComponent {
-  showSplash = true;
+  showSplash = false;
 
   constructor(
     private platform: Platform,
@@ -25,22 +25,21 @@ export class AppComponent {
 
 
   initializeApp() {
-    // Timer para el Splash Screen
-    setTimeout(() => {
-      this.showSplash = false;
-    }, 3000);
-
-    if (this.platform.is('capacitor')) {
-      // En dispositivos nativos, inicializar sin argumentos 
-      // para que tome iosClientId o androidClientId desde capacitor.config.ts
-      GoogleAuth.initialize();
+    // Only show Splash Screen on mobile devices
+    if (this.platform.is('capacitor') || this.platform.is('mobile') || this.platform.is('ios') || this.platform.is('android')) {
+      this.showSplash = true;
+      setTimeout(() => {
+        this.showSplash = false;
+      }, 3000);
     } else {
-      // En Web, pasamos el clientId directamente
-      GoogleAuth.initialize({
-        clientId: '786145270372-e637i46g6uu1kekcr1ioqdka901acud7.apps.googleusercontent.com',
-        scopes: ['profile', 'email']
-      });
+      this.showSplash = false;
     }
+
+    // Inicialización Unificada (Segura para Google Play)
+    GoogleAuth.initialize({
+      clientId: '786145270372-e637i46g6uu1kekcr1ioqdka901acud7.apps.googleusercontent.com',
+      scopes: ['profile', 'email']
+    });
 
     // Initialize Notifications
     this.notificationService.initializeMessaging();

@@ -152,8 +152,8 @@
   </ion-fab>
 
   <!-- Notifications Modal -->
-  <ion-modal class="custom-bottom-sheet" [isOpen]="isNotificacionesOpen" (didDismiss)="closeNotificaciones()"
-    initialBreakpoint="0.6" [breakpoints]="[0, 0.6, 0.9]">
+  <ion-modal [isOpen]="isNotificacionesOpen" (didDismiss)="closeNotificaciones()"
+    initialBreakpoint="0.9" [breakpoints]="[0, 0.9]" class="notifications-modal">
     <ng-template>
       <ion-content class="notifications-content">
         <div class="drag-handle"></div>
@@ -164,16 +164,32 @@
           </ion-button>
         </div>
 
-        <div class="notifications-list">
-          <!-- Promo Alert -->
-          <div class="notification-card success-card animate-pop" *ngIf="stats.promo_activa">
+        <div class="notifications-list" style="padding-bottom: 30px;">
+          <!-- Missing Address Alert -->
+          <div class="notification-card warning-card animate-pop" *ngIf="sinDireccion" (click)="onNotifClick('perfil')">
+            <div class="icon-box">
+              <ion-icon name="location-outline"></ion-icon>
+            </div>
+            <div class="card-text">
+              <h4>Configura tu Ubicación</h4>
+              <p>Agrega tu dirección en tu perfil para que tus alumnos te encuentren más fácil.</p>
+            </div>
+            <div class="card-actions">
+              <ion-button fill="solid" class="action-btn">Ir al Perfil</ion-button>
+            </div>
+          </div>
+
+          <!-- Plan Trial Alert -->
+          <div class="notification-card success-card animate-pop" *ngIf="planTrialActivo" (click)="onNotifClick('plan')">
             <div class="icon-box">
               <ion-icon name="gift"></ion-icon>
             </div>
             <div class="card-text">
-              <h4>¡Promoción Activa!</h4>
-              <p>Disfrutas de <strong>comisión 0%</strong>. Te quedan <strong>{{ stats.promo_dias_restantes }}
-                  días</strong>.</p>
+              <h4>Periodo de Prueba Activo</h4>
+              <p>Tu plan gratuito está activo. Te quedan <strong>{{ planTrialDays }} días</strong> de prueba.</p>
+            </div>
+            <div class="card-actions">
+              <ion-button fill="solid" class="action-btn">Ver Mi Plan</ion-button>
             </div>
           </div>
 

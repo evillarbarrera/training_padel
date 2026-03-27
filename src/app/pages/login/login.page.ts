@@ -118,7 +118,7 @@ export class LoginPage implements OnInit {
     this.error = '';
 
     try {
-      const googleUser = await GoogleAuth.signIn();
+      const googleUser = await GoogleAuth.signIn(); 
       console.log('Google user:', googleUser);
 
       if (googleUser && googleUser.email) {
@@ -127,6 +127,7 @@ export class LoginPage implements OnInit {
             this.isLoading = false;
             if (res.exists) {
               // Usuario existe, loguear
+              if (res.token) localStorage.setItem('token', res.token);
               localStorage.setItem('userId', res.id.toString());
               this.notificationService.updateTokenForUser();
               this.redirectBasedOnRole(res.rol);

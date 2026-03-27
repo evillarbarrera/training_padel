@@ -23,7 +23,9 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline, close, locationOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline, close, locationOutline, cardOutline } from 'ionicons/icons';
+
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-entrenador-home',
@@ -55,6 +57,9 @@ export class EntrenadorHomePage {
   };
   showMPReminder: boolean = false;
   isNotificacionesOpen: boolean = false;
+  sinDireccion: boolean = false;
+  planTrialDays: number = 0;
+  planTrialActivo: boolean = false;
 
 
   constructor(
@@ -84,14 +89,16 @@ export class EntrenadorHomePage {
       gift,
       close,
       closeOutline,
-      locationOutline
+      locationOutline,
+      cardOutline
     });
   }
 
   getNotificacionesCount(): number {
     let count = 0;
-    if (this.stats && this.stats.promo_activa) count++;
+    if (this.planTrialActivo) count++;
     if (this.showMPReminder) count++;
+    if (this.sinDireccion) count++;
     return count;
   }
 
@@ -110,6 +117,12 @@ export class EntrenadorHomePage {
         this.router.navigate(['/perfil']);
       }, 100);
     }
+    if (type === 'plan') {
+      this.closeNotificaciones();
+      setTimeout(() => {
+        this.router.navigate(['/entrenador-mi-plan']);
+      }, 100);
+    }
   }
 
   ionViewWillEnter() {
@@ -120,6 +133,58 @@ export class EntrenadorHomePage {
     const userId = Number(localStorage.getItem('userId'));
     if (!userId) return;
 
+    // Check subscription plan validity first
+    const token = localStorage.getItem('token');
+    fetch(`${environment.apiUrl}/subscriptions/get_subscription_status.php?coach_id=${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'X-Authorization': `Bearer ${token}`
+      }
+    })
+      .then(res => res.json())
+      .then((subRes: any) => {
+        // Store trial info for notifications
+        if (subRes.days_remaining && subRes.days_remaining > 0) {
+          this.planTrialActivo = true;
+          this.planTrialDays = subRes.days_remaining;
+        } else {
+          this.planTrialActivo = false;
+          this.planTrialDays = 0;
+        }
+
+        if (subRes.status === 'inactive' || subRes.status === 'past_due') {
+          this.actionSheetCtrl.create({
+            header: 'Plan Inactivo',
+            subHeader: 'Tu suscripción no se encuentra activa.',
+            buttons: [
+              {
+                text: 'Ver Mi Plan',
+                icon: 'card-outline',
+                handler: () => {
+                  this.ngZone.run(() => this.router.navigate(['/entrenador-mi-plan']));
+                }
+              },
+              {
+                text: 'Cerrar sesión',
+                icon: 'log-out-outline',
+                handler: () => {
+                  this.logout();
+                }
+              }
+            ],
+            backdropDismiss: false
+          }).then(a => a.present());
+          return;
+        }
+        this.fetchProfileData(userId);
+      })
+      .catch((err) => {
+        console.error('Error checking subscription', err);
+        this.fetchProfileData(userId);
+      });
+  }
+
+  fetchProfileData(userId: number) {
     this.isLoading = true;
     this.mysqlService.getPerfil(userId).subscribe({
       next: (res) => {
@@ -144,6 +209,14 @@ export class EntrenadorHomePage {
             this.showMPReminder = true;
           } else {
             this.showMPReminder = false;
+          }
+
+          // Check for Address — use res.direccion object (calle, comuna, region)
+          const dir = res.direccion;
+          if (dir && dir.calle && dir.calle.trim().length > 2 && dir.comuna && dir.comuna.trim().length > 2) {
+            this.sinDireccion = false;
+          } else {
+            this.sinDireccion = true;
           }
         }
 
@@ -332,10 +405,10 @@ export class EntrenadorHomePage {
           }
         },
         {
-          text: 'Agendar Clase',
-          icon: 'add-circle-outline',
+          text: 'Mi Plan',
+          icon: 'card-outline',
           handler: () => {
-            this.router.navigate(['/entrenador-agendar']);
+             this.router.navigate(['/entrenador-mi-plan']);
           }
         },
         {

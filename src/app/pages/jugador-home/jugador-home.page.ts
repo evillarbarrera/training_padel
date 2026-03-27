@@ -156,7 +156,7 @@ export class JugadorHomePage implements OnInit {
           // Perfil photo
           if (user.foto_perfil) {
             const foto = user.foto_perfil;
-            this.fotoPerfil = foto.startsWith('http') ? foto : `https://api.padelmanager.cl/${foto}`;
+            this.fotoPerfil = foto.startsWith('http') ? foto : `${environment.apiUrl.replace('/api_training_dev','')}/${foto.startsWith('/') ? foto.substring(1) : foto}`;
           }
           // Check for address
           this.sinDireccion = !user.direccion || user.direccion.trim().length < 3;
@@ -233,7 +233,7 @@ export class JugadorHomePage implements OnInit {
     formData.append('video', file);
 
     // Call our new backend proxy
-    this.http.post<any>('https://api.padelmanager.cl/ia/gemini_analyze.php', formData)
+    this.http.post<any>(`${environment.apiUrl}/ia/gemini_analyze.php`, formData)
       .subscribe({
         next: (res) => {
           loading.dismiss();

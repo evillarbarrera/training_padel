@@ -1,0 +1,151 @@
+<ion-header class="ion-no-border header-nike-light">
+  <ion-toolbar>
+    <ion-title class="ion-text-center">Mi Plan y Facturación</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="page-container">
+
+    <!-- Page Header Info -->
+    <div class="page-header-flex">
+      <h1 class="section-title">Gestión Centralizada</h1>
+      <p class="section-subtitle">Administración de tu academia en PadelManager</p>
+    </div>
+
+    <div *ngIf="loading" class="loading-state">
+      <ion-spinner name="crescent" color="dark"></ion-spinner>
+      <p>Cargando información del plan...</p>
+    </div>
+
+    <!-- SELECCIÓN DE PLANES (CUANDO NO HAY PLAN ACTIVO) -->
+    <section class="plan-selection animate-up" *ngIf="!loading && (!sub || sub.status === 'inactive' || sub.status === 'canceled' || sub.status === 'past_due' || sub.status === 'unpaid')">
+      <div class="empty-state-card mb-4" style="flex-direction: column; text-align: center; padding: 40px 20px;">
+        <div class="icon-box" style="margin: 0 auto 20px;">
+          <ion-icon name="diamond-outline"></ion-icon>
+        </div>
+        <div class="txt">
+          <h3 style="font-size: 20px;">Activa tu Periodo de Prueba</h3>
+          <p style="font-size: 14px; margin-top: 10px;">Selecciona tu plan para empezar tus <b>3 meses de regalo ($0 CLP)</b>.</p>
+        </div>
+        
+        <ion-button expand="block" (click)="gestionarPlan()" class="mt-4 nike-btn-black" style="width: 100%;">
+          ELEGIR MI PLAN AHORA
+        </ion-button>
+      </div>
+    </section>
+
+    <!-- SUSCRIPCION ACTIVA -->
+    <div class="billing-content animate-up" *ngIf="!loading && sub && sub.status !== 'inactive' && sub.status !== 'canceled' && sub.status !== 'past_due' && sub.status !== 'unpaid'">
+      
+      <div class="overview-row">
+        <div class="stat-widget highlight-yellow">
+          <ion-icon name="trending-up-outline"></ion-icon>
+          <div class="widget-data">
+            <div class="widget-val">${{ sub.pending_commission | number:'1.0-0' }}</div>
+            <div class="widget-label">Comisión Mes (Por Cobrar)</div>
+          </div>
+        </div>
+        <div class="stat-widget">
+          <ion-icon name="diamond-outline"></ion-icon>
+          <div class="widget-data">
+            <div class="widget-val">${{ sub.price_clp | number:'1.0-0' }}</div>
+            <div class="widget-label">Costo Plan</div>
+          </div>
+        </div>
+        <div class="stat-widget">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <div class="widget-data">
+            <div class="widget-val">{{ sub.next_billing_date | date:'dd MMM' }}</div>
+            <div class="widget-label">Próximo Cobro Consolidad</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="billing-card trial-card mt-3" [class.no-trial]="sub.days_remaining === 0">
+        <span class="card-label">Días Disponibles Gratis</span>
+        <div class="countdown-row">
+          <span class="num">{{ sub.days_remaining }}</span>
+          <span class="txt">DÍAS RESTANTES</span>
+        </div>
+        <div class="progress-box">
+          <div class="bar-bg">
+            <div class="bar-fill" [style.width.%]="(sub.days_remaining / 90) * 100"></div>
+          </div>
+        </div>
+        <p class="footer-note">Al terminar, se cobrará el plan + comisiones acumuladas del mes.</p>
+      </div>
+
+      <div class="billing-card mt-3 border-dark">
+        <div class="plan-status-row">
+          <div class="plan-meta">
+            <h3 class="plan-title">{{ sub.plan_name }}</h3>
+            <div class="status-indicator">
+              <span class="dot"></span>
+              <span class="status-txt">Suscripción Activa</span>
+            </div>
+          </div>
+          <ion-button fill="outline" color="dark" size="small" style="font-weight: 800;" (click)="gestionarPlan()">
+            Cambiar Plan
+          </ion-button>
+        </div>
+      </div>
+
+      <div class="billing-card mt-3">
+        <span class="card-label">Configuración MP</span>
+        <div class="d-flex justify-between align-center mt-2">
+          <div>
+            <h3 style="margin: 0; font-size: 15px; font-weight: 900;">Recaudar con Mercado Pago</h3>
+            <p style="font-size: 12px; color: #888; margin: 4px 0 0 0;">Si se desactiva, pasa a saldo pendiente.</p>
+          </div>
+          <div class="toggle-switch-pm" [class.active]="sub.recaudo_mp_activo" (click)="sub.recaudo_mp_activo = !sub.recaudo_mp_activo">
+            <div class="thumb"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="billing-card mt-3">
+        <span class="card-label">Tarjeta para Pago de Comisiones</span>
+        <div class="payment-method-box mt-2">
+          <div class="card-brand"><ion-icon name="card-outline"></ion-icon></div>
+          <div class="card-info">
+            <b>Visa Facturación Interna</b>
+            <span *ngIf="sub.card_last_four" class="success-txt">Finalizada en **** {{ sub.card_last_four }}</span>
+            <span *ngIf="!sub.card_last_four" class="error-txt">Sin tarjeta registrada</span>
+          </div>
+        </div>
+        <ion-button expand="block" fill="solid" (click)="cambiarTarjeta()" class="mt-4 nike-btn-black">
+          REGISTRAR TARJETA 
+        </ion-button>
+      </div>
+
+      <div class="billing-card mt-3 mb-5">
+        <span class="card-label">Últimas Facturas (Consolidadas)</span>
+        <div class="history-list mt-3">
+          <div class="history-item" *ngFor="let h of sub.billing_history">
+            <div class="h-main">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+              <div>
+                <strong>{{ h.date | date:'dd/MM/yy' }}</strong>
+                <p>Pack/Suscripción</p>
+              </div>
+            </div>
+            <div class="h-status success">OK</div>
+          </div>
+          <div *ngIf="!sub.billing_history || sub.billing_history.length === 0" style="color: #888; font-size:12px;">
+             No hay facturas previas.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Back FAB -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+      <ion-fab-button class="nike-fab back-fab" (click)="goBack()" style="--background: #000; --color: #fff;">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+      </ion-fab-button>
+  </ion-fab>
+</ion-content>

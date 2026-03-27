@@ -464,6 +464,14 @@ export class JugadorReservasPage implements OnInit {
         // If it's a specific group slot, we should ideally only show THAT pack
         if (horario && horario.tipo === 'grupal' && horario.pack_id) {
           this.availablePacks = res.filter((p: any) => Number(p.id || p.id_pack || p.pack_id) === Number(horario.pack_id));
+          
+          // Fallback: If no exact pack ID match is found, show all group packs instead of an empty list
+          if (this.availablePacks.length === 0) {
+            this.availablePacks = res.filter((p: any) => this.isPackMatch(p, 'grupal'));
+            if (this.availablePacks.length === 0) {
+              this.availablePacks = res;
+            }
+          }
         } else {
           // Filter by type
           let filtered = res.filter((p: any) => this.isPackMatch(p, targetType));

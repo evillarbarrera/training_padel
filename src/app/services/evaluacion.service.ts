@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -6,15 +7,14 @@ import { Observable } from 'rxjs';
     providedIn: 'root'
 })
 export class EvaluacionService {
-    private apiUrl = 'https://api.padelmanager.cl/evaluaciones';
-
-    private token = btoa('1|padel_academy');
+    private apiUrl = `${environment.apiUrl}/evaluaciones`;
 
     constructor(private http: HttpClient) { }
 
     private getHeaders() {
+        const token = localStorage.getItem('token');
         return new HttpHeaders({
-            'Authorization': `Bearer ${this.token}`,
+            'Authorization': token ? `Bearer ${token}` : '',
             'Content-Type': 'application/json'
         });
     }
@@ -30,7 +30,7 @@ export class EvaluacionService {
     }
 
     getVideos(jugadorId: number, entrenadorId?: number): Observable<any[]> {
-        let url = `https://api.padelmanager.cl/entrenador/get_videos.php?jugador_id=${jugadorId}`;
+        let url = `${environment.apiUrl}/entrenador/get_videos.php?jugador_id=${jugadorId}`;
         if (entrenadorId) url += `&entrenador_id=${entrenadorId}`;
         return this.http.get<any[]>(url, { headers: this.getHeaders() });
     }
@@ -38,14 +38,15 @@ export class EvaluacionService {
     uploadVideo(formData: FormData): Observable<any> {
         // For file uploads, we SHOULD NOT set 'Content-Type': 'application/json'
         // HttpClient handles the boundary automatically for FormData
+        const token = localStorage.getItem('token');
         const headers = new HttpHeaders({
-            'Authorization': `Bearer ${this.token}`
+            'Authorization': token ? `Bearer ${token}` : ''
         });
-        return this.http.post(`https://api.padelmanager.cl/entrenador/add_video.php`, formData, { headers });
+        return this.http.post(`${environment.apiUrl}/entrenador/add_video.php`, formData, { headers });
     }
 
     deleteVideo(videoId: number): Observable<any> {
         const body = { video_id: videoId };
-        return this.http.post(`https://api.padelmanager.cl/entrenador/delete_video.php`, body, { headers: this.getHeaders() });
+        return this.http.post(`${environment.apiUrl}/entrenador/delete_video.php`, body, { headers: this.getHeaders() });
     }
 }

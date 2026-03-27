@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
@@ -7,21 +8,23 @@ import { Observable } from 'rxjs';
 })
 export class PacksService {
 
-  private apiUrl = 'https://api.padelmanager.cl/packs';
+  private apiUrl = `${environment.apiUrl}/packs`;
   // Token en Base64
-  private token = btoa('1|padel_academy');
-
-  private headers = new HttpHeaders({
-    'Authorization': `Bearer ${this.token}`,
-    'Content-Type': 'application/json'
-  });
   constructor(private http: HttpClient) { }
+
+  private getHeaders() {
+    const token = localStorage.getItem('token');
+    return new HttpHeaders({
+      'Authorization': token ? `Bearer ${token}` : '',
+      'Content-Type': 'application/json'
+    });
+  }
 
 
   getMisPacks(): Observable<any> {
     const userId = Number(localStorage.getItem('userId')); // recupera ID guardado
 
-    return this.http.get(`${this.apiUrl}/get_mis_packs.php?entrenador_id=${userId}`, { headers: this.headers });
+    return this.http.get(`${this.apiUrl}/get_mis_packs.php?entrenador_id=${userId}`, { headers: this.getHeaders() });
   }
 
   getAllPacks(lat?: number, lng?: number, rad?: number, region?: string, comuna?: string): Observable<any> {
@@ -37,7 +40,7 @@ export class PacksService {
       url += `?${params.join('&')}`;
     }
 
-    return this.http.get(url, { headers: this.headers });
+    return this.http.get(url, { headers: this.getHeaders() });
   }
 
 
@@ -45,7 +48,7 @@ export class PacksService {
     const userId = Number(localStorage.getItem('userId')); // recupera ID guardado
 
     const packConId = { ...pack, entrenador_id: userId };
-    return this.http.post<any>(`${this.apiUrl}/create_pack.php`, packConId, { headers: this.headers });
+    return this.http.post<any>(`${this.apiUrl}/create_pack.php`, packConId, { headers: this.getHeaders() });
   }
 
   // Editar pack
@@ -53,7 +56,7 @@ export class PacksService {
     const userId = Number(localStorage.getItem('userId')); // recupera ID guardado
 
     const packConId = { ...pack, entrenador_id: userId };
-    return this.http.post(`${this.apiUrl}/editar_pack.php`, packConId, { headers: this.headers });
+    return this.http.post(`${this.apiUrl}/editar_pack.php`, packConId, { headers: this.getHeaders() });
   }
 
   // Eliminar pack
@@ -61,7 +64,7 @@ export class PacksService {
     return this.http.post(
       `${this.apiUrl}/eliminar_pack.php`,
       { id },
-      { headers: this.headers }
+      { headers: this.getHeaders() }
     );
   }
 

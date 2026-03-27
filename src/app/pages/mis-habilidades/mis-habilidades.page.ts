@@ -16,6 +16,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { EvaluacionService } from '../../services/evaluacion.service';
 import { MysqlService } from '../../services/mysql.service';
+import { environment } from '../../../environments/environment';
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, analyticsOutline, chevronBackOutline, informationCircleOutline, sparklesOutline, sparkles, videocamOutline, close, cloudUploadOutline, videocamOffOutline, trashOutline, trash } from 'ionicons/icons';
 
@@ -43,21 +44,54 @@ Chart.register(...registerables);
 
 export class MisHabilidadesPage implements OnInit {
     radarChart: any;
-    lineChart: any;
-    isLoading = true;
-    userId: number | null = null;
     hasData = false;
+    isLoading = true;
     jugadorFoto: string | null = null;
     jugadorNombre: string = '';
+    userId: number | null = null;
+
+    // Averages calculation properties
+    avgTecnico: number = 0;
+    avgTactico: number = 0;
+    avgFisico: number = 0;
+    avgMental: number = 0;
+    finalScore: number = 0;
 
     // Segment State
     selectedTab: string = 'radar';
+    selectedGraphTab: string = 'resumen';
 
     // Stored Data for Re-rendering
     storedLineLabels: string[] = [];
     storedLineData: number[] = [];
+    
+    // Resumen
+    resumenChart: any;
+    
+    // Tecnico
     storedRadarLabels: string[] = [];
     storedRadarData: number[] = [];
+    tecnicoChart: any;
+
+    // Tactico
+    tacticoData: number[] = [];
+    tacticoLabels1: string[] = [];
+    tacticoData1: number[] = [];
+    tacticoChart1: any;
+    tacticoLabels2: string[] = [];
+    tacticoData2: number[] = [];
+    tacticoChart2: any;
+
+    // Fisico
+    fisicoLabels: string[] = [];
+    fisicoData: number[] = [];
+    fisicoChart: any;
+
+    // Mental
+    mentalLabels: string[] = [];
+    mentalData: number[] = [];
+    mentalChart: any;
+
     detailedScores: any = null;
 
     videos: any[] = [];
@@ -174,7 +208,7 @@ export class MisHabilidadesPage implements OnInit {
                         if (!foto.startsWith('http')) {
                             // Ensure no double slash if path starts with /
                             const cleanPath = foto.startsWith('/') ? foto.substring(1) : foto;
-                            this.jugadorFoto = `https://api.padelmanager.cl/${cleanPath}`;
+                            this.jugadorFoto = `${environment.apiUrl.replace('/api_training_dev','')}/${cleanPath}`;
                         } else {
                             this.jugadorFoto = foto;
                         }
@@ -220,26 +254,103 @@ export class MisHabilidadesPage implements OnInit {
                             scores = {};
                         }
                     }
-                    this.detailedScores = scores;
+                    if (scores && Object.keys(scores).length > 0) {
+                        this.detailedScores = scores;
+                        // Extract numeric scores for categories
+                        const tecnico = scores.tecnico || scores;
+                        const tactico = scores.tactico || {};
+                        const fisico = scores.fisico || {};
+                        const mental = scores.mental || {};
 
-                    if (scores && typeof scores === 'object') {
-                        this.storedRadarLabels = Object.keys(scores);
+                        this.storedRadarLabels = Object.keys(tecnico);
                         this.storedRadarData = this.storedRadarLabels.map(key => {
-                            const s = scores[key];
-                            // Check for nested structure or direct value
+                            const s = tecnico[key];
                             if (s && typeof s === 'object') {
                                 return (Number(s.tecnica || 0) + Number(s.control || 0) + Number(s.direccion || 0) + Number(s.decision || 0)) / 4;
                             }
                             return Number(s || 0);
                         });
 
+                        // Calculate averages for scoreboard
+                        const avg = (arr: number[]) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+                        
+                        // Technical AVG
+                        this.avgTecnico = avg(this.storedRadarData.filter(v => v > 0)) || 0;
+                        const tacticoKeys = Object.keys(tactico);
+                        if (tacticoKeys.length > 5) {
+                            const half = Math.ceil(tacticoKeys.length / 2);
+                            this.tacticoLabels1 = tacticoKeys.slice(0, half);
+                            this.tacticoData1 = this.tacticoLabels1.map(k => {
+                                const val = tactico[k];
+                                return typeof val === 'object' ? Number(val.valor || 0) : Number(val || 0);
+                            });
+                            
+                            this.tacticoLabels2 = tacticoKeys.slice(half);
+                            this.tacticoData2 = this.tacticoLabels2.map(k => {
+                                const val = tactico[k];
+                                return typeof val === 'object' ? Number(val.valor || 0) : Number(val || 0);
+                            });
+                            
+                            this.tacticoData = tacticoKeys.map(k => {
+                                const val = tactico[k];
+                                return typeof val === 'object' ? Number(val.valor || 0) : Number(val || 0);
+                            });
+                        } else if (tacticoKeys.length > 0) {
+                            // Si son pocos indicadores (menos de 6), no los dividimos para que Chart.js no falle 
+                            // intentando dibujar triángulos incompletos.
+                            this.tacticoLabels1 = tacticoKeys;
+                            this.tacticoData1 = tacticoKeys.map(k => {
+                                const val = tactico[k];
+                                return typeof val === 'object' ? Number(val.valor || 0) : Number(val || 0);
+                            });
+                            this.tacticoLabels2 = [];
+                            this.tacticoData2 = [];
+                            this.tacticoData = [...this.tacticoData1];
+
+                            // Pad with dummy labels if under 3 to prevent rendering crashes
+                            while (this.tacticoLabels1.length < 3) {
+                                this.tacticoLabels1.push('-');
+                                this.tacticoData1.push(0);
+                            }
+                        } else {
+                            this.tacticoLabels1 = ['Posición', 'Estrategia', 'Lectura'];
+                            this.tacticoData1 = [0, 0, 0];
+                            this.tacticoLabels2 = ['Ritmo', 'Anticipación', 'Consistencia'];
+                            this.tacticoData2 = [0, 0, 0];
+                            this.tacticoData = [0, 0, 0, 0, 0, 0];
+                        }
+                        this.avgTactico = avg(this.tacticoData.filter(v => v > 0)) || 0;
+
+                        // Physical AVG & Data
+                        const fisicoKeys = Object.keys(fisico);
+                        if (fisicoKeys.length > 0) {
+                            this.fisicoLabels = fisicoKeys;
+                            this.fisicoData = this.fisicoLabels.map(k => Number(fisico[k].valor || 0));
+                        } else {
+                            this.fisicoLabels = ['Fuerza', 'Velocidad', 'Resistencia', 'Movilidad'];
+                            this.fisicoData = [0, 0, 0, 0];
+                        }
+                        this.avgFisico = avg(this.fisicoData.filter(v => v > 0)) || 0;
+
+                        // Mental AVG & Data
+                        const mentalKeys = Object.keys(mental);
+                        if (mentalKeys.length > 0) {
+                            this.mentalLabels = mentalKeys;
+                            this.mentalData = this.mentalLabels.map(k => Number(mental[k].valor || 0));
+                        } else {
+                            this.mentalLabels = ['Concentración', 'Actitud', 'Confianza', 'Resiliencia'];
+                            this.mentalData = [0, 0, 0, 0];
+                        }
+                        this.avgMental = avg(this.mentalData.filter(v => v > 0)) || 0;
+
+                        // Final Score (Weighted average of the 4 categories)
+                        const activeCategories = [this.avgTecnico, this.avgTactico, this.avgFisico, this.avgMental].filter(v => v > 0);
+                        this.finalScore = activeCategories.length > 0 
+                            ? activeCategories.reduce((a, b) => a + b, 0) / activeCategories.length 
+                            : 0;
+
                         this.hasData = true;
                         this.cdr.detectChanges(); // Force DOM update
-
-                        // Extraer entrenadores únicos si es vista de jugador y cargamos "Todos"
-                        if (!this.isEntrenadorView && this.selectedCoachId === 'all') {
-                            this.extractCoaches(data);
-                        }
 
                         // Initial Render with retry
                         setTimeout(() => this.renderCurrentTab(), 100);
@@ -287,112 +398,97 @@ export class MisHabilidadesPage implements OnInit {
         setTimeout(() => this.renderCurrentTab(), 100);
     }
 
+    segmentGraphChanged(event: any) {
+        this.selectedGraphTab = event.detail.value;
+        this.cdr.detectChanges();
+        setTimeout(() => this.renderCurrentTab(), 100);
+    }
+
     renderCurrentTab() {
         if (!this.hasData) return;
 
         console.log('Rendering tab:', this.selectedTab);
         // Add a small delay/retry mechanism if canvas is not found immediately
         const attemptRender = (retries = 3) => {
-            let canvasId = this.selectedTab === 'radar' ? 'skillRadarChart' : 'progressLineChart';
-            const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-
-            if (!canvas) {
-                if (retries > 0) {
-                    console.log(`Canvas ${canvasId} not found, retrying... (${retries})`);
-                    setTimeout(() => attemptRender(retries - 1), 100);
-                } else {
-                    console.error(`Canvas ${canvasId} still not found after retries`);
-                }
-                return;
-            }
-
             if (this.selectedTab === 'radar') {
-                this.renderRadarChart(this.storedRadarLabels, this.storedRadarData);
-            } else {
-                this.renderLineChart(this.storedLineLabels, this.storedLineData);
+                const canvasId = this.selectedGraphTab === 'tactico' ? 'tacticoRadarChart1' : this.selectedGraphTab + 'RadarChart';
+                const canvas = document.getElementById(canvasId);
+
+                if (!canvas) {
+                    if (retries > 0) {
+                        setTimeout(() => attemptRender(retries - 1), 100);
+                    }
+                    return;
+                }
+
+                if (this.selectedGraphTab === 'resumen') {
+                    const resumenLabels = ['Técnico', 'Táctico', 'Físico', 'Mental'];
+                    const resumenData = [this.avgTecnico, this.avgTactico, this.avgFisico, this.avgMental];
+                    this.resumenChart = this.renderRadarChart('resumenRadarChart', this.resumenChart, resumenLabels, resumenData, '#ccff00');
+                } else if (this.selectedGraphTab === 'tecnico' && this.storedRadarLabels.length) {
+                    this.tecnicoChart = this.renderRadarChart('tecnicoRadarChart', this.tecnicoChart, this.storedRadarLabels, this.storedRadarData, '#ccff00');
+                } else if (this.selectedGraphTab === 'tactico' && (this.tacticoLabels1.length || this.tacticoLabels2.length)) {
+                    this.tacticoChart1 = this.renderRadarChart('tacticoRadarChart1', this.tacticoChart1, this.tacticoLabels1, this.tacticoData1, '#00e0ff');
+                    setTimeout(() => {
+                        this.tacticoChart2 = this.renderRadarChart('tacticoRadarChart2', this.tacticoChart2, this.tacticoLabels2, this.tacticoData2, '#00e0ff');
+                    }, 50);
+                } else if (this.selectedGraphTab === 'fisico' && this.fisicoLabels.length) {
+                    this.fisicoChart = this.renderRadarChart('fisicoRadarChart', this.fisicoChart, this.fisicoLabels, this.fisicoData, '#ff3366');
+                } else if (this.selectedGraphTab === 'mental' && this.mentalLabels.length) {
+                    this.mentalChart = this.renderRadarChart('mentalRadarChart', this.mentalChart, this.mentalLabels, this.mentalData, '#ffaa00');
+                }
             }
         };
 
         attemptRender();
     }
 
-    renderLineChart(labels: string[], data: number[]) {
-        const canvas = document.getElementById('progressLineChart') as HTMLCanvasElement;
-        if (!canvas) return;
-
-        if (this.lineChart) this.lineChart.destroy();
-
-        this.lineChart = new Chart(canvas, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Promedio General',
-                    data: data,
-                    borderColor: '#ccff00',
-                    backgroundColor: 'rgba(204, 255, 0, 0.1)',
-                    borderWidth: 3,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#111',
-                    pointBorderColor: '#ccff00',
-                    pointRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#111',
-                        titleColor: '#ccff00',
-                        bodyColor: '#fff',
-                        padding: 10,
-                        displayColors: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 10,
-                        grid: { color: '#f0f0f0' },
-                        ticks: { color: '#666', font: { weight: 'bold' } }
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: { color: '#666' }
-                    }
-                }
+    formatRadarLabels(labels: string[]): any[] {
+        return labels.map(label => {
+            if (label.length > 15 && label.includes(' ')) {
+                const words = label.split(' ');
+                const mid = Math.ceil(words.length / 2);
+                return [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
             }
+            return label;
         });
     }
 
-    renderRadarChart(labels: string[], data: number[]) {
-        const ctx = document.getElementById('skillRadarChart') as HTMLCanvasElement;
-        if (!ctx) return;
+    renderRadarChart(canvasId: string, chartInstance: any, labels: string[], data: number[], color: string) {
+        const ctx = document.getElementById(canvasId) as HTMLCanvasElement;
+        if (!ctx) return chartInstance;
 
-        if (this.radarChart) this.radarChart.destroy();
+        if (chartInstance) chartInstance.destroy();
 
-        this.radarChart = new Chart(ctx, {
+        // Convert HEX to RGBA for background
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        const rgba = `rgba(${r}, ${g}, ${b}, 0.2)`;
+
+        const formattedLabels = this.formatRadarLabels(labels);
+
+        return new Chart(ctx, {
             type: 'radar',
             data: {
-                labels: labels,
+                labels: formattedLabels,
                 datasets: [{
-                    label: 'Habilidades',
+                    label: 'Puntuación',
                     data: data,
                     fill: true,
-                    backgroundColor: 'rgba(204, 255, 0, 0.2)',
-                    borderColor: '#ccff00', // Neon Green border
+                    backgroundColor: rgba,
+                    borderColor: color,
                     borderWidth: 3,
-                    pointBackgroundColor: '#111', // Black points
+                    pointBackgroundColor: '#111',
                     pointBorderColor: '#fff',
                     pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: '#ccff00',
+                    pointHoverBorderColor: color,
                     pointRadius: 5
                 }]
             },
             options: {
+                layout: { padding: 25 },
                 responsive: true,
                 maintainAspectRatio: false,
                 elements: {
@@ -405,9 +501,9 @@ export class MisHabilidadesPage implements OnInit {
                         suggestedMin: 0,
                         suggestedMax: 10,
                         pointLabels: {
-                            font: { size: 12, weight: 'bold', family: "'Inter', sans-serif" },
+                            font: { size: 10, weight: 'bold', family: "'Inter', sans-serif" },
                             color: '#444', // Dark Text
-                            padding: 10
+                            padding: 8
                         },
                         ticks: {
                             backdropColor: 'transparent',
@@ -649,7 +745,7 @@ export class MisHabilidadesPage implements OnInit {
                     let url = v.video_url || '';
                     if (url && !url.startsWith('http')) {
                         const cleanPath = url.startsWith('/') ? url.substring(1) : url;
-                        url = `https://api.padelmanager.cl/${cleanPath}`;
+                        url = `${environment.apiUrl.replace('/api_training_dev','')}/${cleanPath}`;
                     }
 
                     // Cross-device sync: check if DB already has the report
@@ -707,7 +803,7 @@ export class MisHabilidadesPage implements OnInit {
         formData.append('video_id', vid.id);
         formData.append('video_url', vid.video_url);
 
-        this.http.post<any>('https://api.padelmanager.cl/ia/gemini_analyze.php', formData)
+        this.http.post<any>(`${environment.apiUrl}/ia/gemini_analyze.php`, formData)
             .subscribe({
                 next: (res) => {
                     this.isAnalyzing[vid.id] = false;
