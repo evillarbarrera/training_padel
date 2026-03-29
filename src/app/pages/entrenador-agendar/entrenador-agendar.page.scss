@@ -535,9 +535,204 @@ ion-toolbar {
                     color: #ccff00 !important;
                 }
             }
-            ion-label {
-                color: inherit;
+        }
+    }
+}
+
+/* NEW UI CLASSES */
+.slots-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.slot-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.slot-card-horizontal {
+    display: flex;
+    align-items: center;
+    padding: 18px 20px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    gap: 20px;
+    transition: all 0.2s;
+    
+    &:active {
+        transform: scale(0.96);
+        background: #fbfbfb;
+    }
+
+    &.ocupado {
+        background: #fcfcfc;
+        border: 1px dashed #e0e0e0;
+        box-shadow: none;
+    }
+
+    .time-badge {
+        background: #000;
+        color: #ccff00;
+        padding: 8px 14px;
+        border-radius: 12px;
+        font-weight: 900;
+        font-size: 16px;
+        letter-spacing: -0.5px;
+        flex-shrink: 0;
+    }
+
+    .slot-details {
+        flex: 1;
+
+        h4 {
+            margin: 0 0 4px;
+            font-size: 16px;
+            font-weight: 800;
+            color: #111;
+            
+            &.free-text {
+                color: #ccff00;
+                background: #000;
+                display: inline-block;
+                padding: 4px 10px;
+                border-radius: 8px;
+                font-size: 14px;
+                transform: rotate(-2deg);
             }
         }
+
+        .subtitle {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: #888;
+        }
+
+        .malla-badge {
+            margin: 8px 0 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0f0f5;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #000;
+            text-transform: uppercase;
+            
+            ion-icon {
+                color: #00f2ff;
+                font-size: 14px;
+            }
+        }
+    }
+}
+
+.horizontal-scroll-list {
+    display: flex;
+    overflow-x: auto;
+    padding: 10px 5px 20px;
+    gap: 15px;
+    margin: 0 -10px;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    .alumno-chip {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        min-width: 60px;
+        opacity: 0.5;
+        transition: all 0.2s;
+
+        &.selected {
+            opacity: 1;
+            transform: translateY(-5px);
+            
+            .chip-avatar {
+                border-color: #ccff00;
+                box-shadow: 0 8px 20px rgba(204,255,0,0.3);
+            }
+
+            .chip-name {
+                font-weight: 900;
+                color: #000;
+            }
+        }
+
+        .chip-avatar {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid transparent;
+        }
+
+        .chip-name {
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            max-width: 70px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+}
+
+.nike-card.dark {
+    background: #111;
+    border-color: #333;
+    padding: 15px 0;
+
+    h4 {
+        margin: 0 0 10px;
+        font-size: 15px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    p {
+        margin: 0;
+    }
+    
+    ion-item {
+        --padding-start: 16px;
+        --padding-end: 16px;
+    }
+    
+    ion-select {
+        background: #222;
+        border-radius: 12px;
+        padding: 10px 15px;
+        font-weight: 800;
+        font-size: 14px;
+        
+        &::part(icon) {
+            color: rgba(255,255,255,0.5);
+        }
+    }
+}
+
+.nike-btn {
+    --border-radius: 100px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    height: 56px;
+    margin: 20px 0;
+    
+    &.outline-success {
+        --background: #ccff00;
+        --color: #000;
+        --box-shadow: 0 8px 25px rgba(204,255,0,0.3);
     }
 }

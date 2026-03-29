@@ -90,7 +90,7 @@ export class EntrenadorEntrenamientosPage implements OnInit {
     const nombresDias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const hoy = new Date();
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 14; i++) {
       const fecha = new Date();
       fecha.setDate(hoy.getDate() + i);
 

@@ -9,6 +9,7 @@ import {
   IonContent,
   IonFab,
   IonFabButton,
+  IonFabList,
   IonIcon,
   IonButton,
   IonSpinner,
@@ -23,7 +24,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline, close, locationOutline, cardOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, add, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline, close, locationOutline, cardOutline } from 'ionicons/icons';
 
 import { environment } from 'src/environments/environment';
 
@@ -33,6 +34,7 @@ import { environment } from 'src/environments/environment';
   imports: [CommonModule, IonContent,
     IonFab,
     IonFabButton,
+    IonFabList,
     IonIcon,
     IonButton,
     IonSpinner,
@@ -80,6 +82,7 @@ export class EntrenadorHomePage {
       logOutOutline,
       personOutline,
       addCircleOutline,
+      add,
       checkmarkDoneCircleOutline,
       chevronDownOutline,
       chevronUpOutline,

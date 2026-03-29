@@ -172,5 +172,34 @@ export class EntrenamientoService {
       { headers: this.getHeaders() }
     );
   }
+
+  // --- MALLAS Y SEGUIMIENTO ---
+  getMallas(entrenadorId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/mallas/get_mallas.php?entrenador_id=${entrenadorId}`, { headers: this.getHeaders() });
+  }
+
+  asignarMalla(data: { jugador_id: number, malla_id: number, entrenador_id: number }): Observable<any> {
+    return this.http.post(`${this.api}/mallas/asignar_malla.php`, data, { headers: this.getHeaders() });
+  }
+
+  // --- PACKS DEL ENTRENADOR ---
+  getPacks(entrenadorId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/alumno/get_pack.php?entrenador_id=${entrenadorId}`, { headers: this.getHeaders() });
+  }
+
+  insertPack(data: any): Observable<any> {
+    return this.http.post(`${this.api}/alumno/insert_pack.php`, data, { headers: this.getHeaders() });
+  }
+
+  cancelarReserva(reservaId: number): Observable<any> {
+    return this.http.post(`${this.api}/disponibilidad/cancelar_reserva.php`, { id: reservaId }, { headers: this.getHeaders() });
+  }
+
+  updateReservaTecnica(payload: any): Observable<any> {
+    return this.http.post(`${this.api}/disponibilidad/update_reserva_tecnica.php`, payload, {
+      headers: this.getHeaders()
+    });
+  }
 }
+
 

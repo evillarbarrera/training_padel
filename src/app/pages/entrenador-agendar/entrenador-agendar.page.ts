@@ -1,35 +1,23 @@
-import { Component, OnInit, HostListener, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { CommonModule, registerLocaleData } from '@angular/common';
+import localeEs from '@angular/common/locales/es';
 import { FormsModule } from '@angular/forms';
-import {
-    IonContent,
-    IonButton,
-    IonItem,
-    IonLabel,
-    IonIcon,
-    IonFab,
-    IonFabButton,
-    IonSpinner,
-    IonSegment,
-    IonSegmentButton,
-    IonSearchbar,
-    IonSelect,
-    IonSelectOption,
-    IonModal,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons
-} from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
+import { forkJoin, Observable } from 'rxjs';
 import { EntrenamientoService } from '../../services/entrenamiento.service';
+import { AlertController, LoadingController, ToastController } from '@ionic/angular/standalone';
+import {
+    IonContent, IonButton, IonItem, IonLabel, IonIcon, IonFab, IonFabButton,
+    IonSpinner, IonSegment, IonSegmentButton, IonSelect, IonSelectOption,
+    IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonSearchbar
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-    searchOutline, peopleOutline, statsChartOutline, analyticsOutline,
-    chevronBackOutline, calendarOutline, addCircleOutline, timeOutline,
-    checkmarkCircleOutline, closeOutline, personCircleOutline, checkmarkCircle
+    chevronBackOutline, calendarOutline, timeOutline, checkmarkCircleOutline,
+    closeOutline, personCircleOutline, addCircleOutline, trashOutline, createOutline
 } from 'ionicons/icons';
-import { AlertController, LoadingController, ToastController } from '@ionic/angular/standalone';
+
+registerLocaleData(localeEs);
 
 @Component({
     selector: 'app-entrenador-agendar',
@@ -37,116 +25,62 @@ import { AlertController, LoadingController, ToastController } from '@ionic/angu
     styleUrls: ['./entrenador-agendar.page.scss'],
     standalone: true,
     imports: [
-        CommonModule,
-        FormsModule,
-        IonContent,
-        IonButton,
-        IonItem,
-        IonLabel,
-        IonIcon,
-        IonFab,
-        IonFabButton,
-        IonSpinner,
-        IonSegment,
-        IonSegmentButton,
-        IonSearchbar,
-        IonSelect,
-        IonSelectOption,
-        IonModal,
-        IonHeader,
-        IonToolbar,
-        IonTitle,
-        IonButtons
+        CommonModule, FormsModule, IonContent, IonButton, IonItem, IonLabel,
+        IonIcon, IonFab, IonFabButton, IonSpinner, IonSegment, IonSegmentButton,
+        IonSelect, IonSelectOption, IonModal, IonHeader, IonToolbar, IonTitle,
+        IonButtons, IonSearchbar
     ]
 })
 export class EntrenadorAgendarPage implements OnInit {
+    @ViewChild('bookingModal') bookingModal!: IonModal;
+    @ViewChild('detailModal') detailModal!: IonModal;
 
-    @ViewChild('agendarModal') agendarModal!: IonModal;
     entrenadorId = Number(localStorage.getItem('userId'));
     isLoading = false;
 
-    // Paso 1: Alumnos
-    alumnos: any[] = [];
-    filtroAlumnos: string = '';
-    alumnoSeleccionado: any = null;
-    isModalOpen: boolean = false;
-    paginaActual: number = 1;
-    elementosPorPagina: number = 4; // logic to control modal
-
-    @HostListener('window:resize', ['$event'])
-    onResize(event: any) {
-        this.calcularElementosPorPagina();
-    }
-
-    private calcularElementosPorPagina() {
-        if (window.innerWidth >= 768) {
-            this.elementosPorPagina = 9999;
-            return;
-        }
-        // En móvil/tablet, restar altura de buscador, cabecera aprox 250px
-        const alturaDisponible = window.innerHeight - 250;
-        const filas = Math.max(2, Math.floor(alturaDisponible / 80)); // ion-item aprox 80px
-        this.elementosPorPagina = filas;
-    }
-
-    // Paso 2: Recurrencia
-    recurrencia: number = 1;
-
-    // Paso 2.5: Club
+    // Calendar
+    diasAgenda: Date[] = [];
+    diaSeleccionado: string = '';
+    slotsDisponibles: any[] = [];
+    cargandoHorarios: boolean = false;
+    slotsPorDia: { [key: string]: any[] } = {};
+    
+    // Club Filter
     clubesDisponibles: any[] = [];
     selectedClubId: number | null = null;
+    
+    // Data
+    alumnos: any[] = [];
+    filtroAlumnos: string = '';
+    packsDisponibles: any[] = [];
+    mallas: any[] = [];
 
-    // Paso 3: Horarios
-    horariosDisponibles: any[] = [];
-    cargandoHorarios: boolean = false;
-    diasAgenda: string[] = [];
-    diaSeleccionado: string = '';
-    horariosPorDia: any = {};
-    tramoSeleccionado: 'manana' | 'tarde' | 'noche' = 'manana';
+    // Booking Modal
+    isBookingModalOpen = false;
+    selectedSlot: any = null;
+    recurrencia: number = 1;
 
-    constructor(
-        private router: Router,
-        private entrenamientoService: EntrenamientoService,
-        private alertCtrl: AlertController,
-        private loadingCtrl: LoadingController,
-        private toastCtrl: ToastController
-    ) {
-        addIcons({
-            searchOutline, peopleOutline, statsChartOutline, analyticsOutline,
-            chevronBackOutline, calendarOutline, addCircleOutline, timeOutline,
-            checkmarkCircleOutline, closeOutline, personCircleOutline
-        });
-    }
+    tipoClaseSeleccionado: 'individual' | 'multijugador' | 'grupal' = 'individual';
+    alumnosSeleccionados: any[] = [];
+    alumnoSeleccionado: any = null;
+    mostrarOpcionPack = false;
+    packAAsignar: any = null;
 
-    ngOnInit() {
-        this.calcularElementosPorPagina();
-        this.cargarAlumnos();
-    }
+    planificacionId: number | null = null;
+    claseMallaId: number | null = null;
+    categoriaFiltro: 'adulto' | 'menor' | 'todos' = 'todos';
+    mallasFiltradas: any[] = [];
+    clasesDisponibles: any[] = [];
+    contenidoClase: string = '';
 
-    cargarAlumnos() {
-        this.isLoading = true;
-        this.entrenamientoService.getMisAlumnos(this.entrenadorId).subscribe({
-            next: (res: any[]) => {
-                this.alumnos = res
-                    .filter(a => (a.sesiones_restantes || 0) > 0)
-                    .map(a => {
-                        let foto = a.jugador_foto;
-                        // Logic from AlumnosPage
-                        if (!foto || foto.includes('placeholder') || foto.includes('imagen_defecto')) {
-                            foto = `https://ui-avatars.com/api/?name=${encodeURIComponent(a.jugador_nombre)}&background=ccff00&color=000&length=2&rounded=true&bold=true&size=128`;
-                        }
-                        return {
-                            ...a,
-                            jugador_foto: foto
-                        };
-                    });
-                this.isLoading = false;
-            },
-            error: (err) => {
-                console.error('Error loading students:', err);
-                this.isLoading = false;
-            }
-        });
+    // Detail Modal
+    isDetailModalOpen = false;
+    isEditingDetail = false;
+
+    get maxAlumnos(): number {
+        if (this.tipoClaseSeleccionado === 'multijugador') return 4;
+        if (this.tipoClaseSeleccionado === 'grupal') return 6;
+        return 1;
     }
 
     get alumnosFiltrados() {
@@ -158,257 +92,416 @@ export class EntrenadorAgendarPage implements OnInit {
         );
     }
 
-    get alumnosPaginados() {
-        const inicio = (this.paginaActual - 1) * this.elementosPorPagina;
-        return this.alumnosFiltrados.slice(inicio, inicio + this.elementosPorPagina);
-    }
-
-    get totalPaginas() {
-        return Math.ceil(this.alumnosFiltrados.length / this.elementosPorPagina);
-    }
-
-    cambiarPagina(delta: number) {
-        const nuevaPagina = this.paginaActual + delta;
-        if (nuevaPagina >= 1 && nuevaPagina <= this.totalPaginas) {
-            this.paginaActual = nuevaPagina;
+    get packsParaTipo(): any[] {
+        const cant = this.alumnosSeleccionados.length || 1;
+        if (this.tipoClaseSeleccionado === 'individual') {
+            return this.packsDisponibles.filter(p => Number(p.cantidad_personas || 1) === 1);
         }
-    }
-
-    seleccionarAlumno(alumno: any) {
-        console.log('Selected student:', alumno);
-        this.alumnoSeleccionado = alumno;
-        this.isModalOpen = true; // Open modal
-        // Pass pack_id if the student data has it
-        this.cargarDisponibilidadCoach(alumno.pack_id);
-    }
-
-    cerrarModal() {
-        this.isModalOpen = false;
-        if (this.agendarModal) {
-            this.agendarModal.dismiss();
+        if (this.tipoClaseSeleccionado === 'multijugador') {
+            return this.packsDisponibles.filter(p => {
+                const pers = Number(p.cantidad_personas || 1);
+                return pers >= 2 && pers <= 4 && pers >= cant;
+            });
         }
-        this.alumnoSeleccionado = null;
-        this.diaSeleccionado = ''; // Reset state
-        this.horariosPorDia = {};
-        this.horariosDisponibles = [];
-        this.selectedClubId = null;
-        this.clubesDisponibles = [];
+        if (this.tipoClaseSeleccionado === 'grupal') {
+            return this.packsDisponibles.filter(p => {
+                const tipo = (p.tipo || '').toLowerCase();
+                const pers = Number(p.cantidad_personas || 1);
+                const cap = Number(p.capacidad_maxima || pers);
+                return tipo.includes('grupal') || cap >= 4 || pers >= 5;
+            });
+        }
+        return this.packsDisponibles;
+    }
+
+    constructor(
+        private router: Router,
+        private entrenamientoService: EntrenamientoService,
+        private alertCtrl: AlertController,
+        private loadingCtrl: LoadingController,
+        private toastCtrl: ToastController
+    ) {
+        addIcons({
+            chevronBackOutline, calendarOutline, timeOutline, checkmarkCircleOutline,
+            closeOutline, personCircleOutline, addCircleOutline, trashOutline, createOutline
+        });
+    }
+
+    ngOnInit() {
+        this.generarDias();
+        this.loadBasics();
+        this.loadDisponibilidad();
+    }
+
+    generarDias() {
+        const today = new Date();
+        this.diasAgenda = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(today);
+            d.setDate(today.getDate() + i);
+            this.diasAgenda.push(d);
+        }
+        this.diaSeleccionado = this.formatDate(this.diasAgenda[0]);
+    }
+
+    loadBasics() {
+        this.entrenamientoService.getMisAlumnos(this.entrenadorId).subscribe(res => {
+            this.alumnos = res.map(a => {
+                let foto = a.jugador_foto;
+                if (!foto || foto.includes('placeholder') || foto.includes('imagen_defecto')) {
+                    foto = `https://ui-avatars.com/api/?name=${encodeURIComponent(a.jugador_nombre)}&background=ccff00&color=000&length=2&rounded=true&bold=true&size=128`;
+                }
+                return { ...a, jugador_foto: foto, pack_nombre: a.pack_nombres || a.pack_nombre };
+            });
+        });
+
+        this.entrenamientoService.getPacks(this.entrenadorId).subscribe(res => this.packsDisponibles = res);
+        this.entrenamientoService.getMallas(this.entrenadorId).subscribe(res => {
+            this.mallas = res;
+            this.filtrarMallas();
+        });
+    }
+
+    loadDisponibilidad() {
+        this.cargandoHorarios = true;
+        forkJoin({
+            dispo: this.entrenamientoService.getDisponibilidadEntrenador(this.entrenadorId),
+            agenda: this.entrenamientoService.getReservasEntrenador(this.entrenadorId)
+        }).subscribe({
+            next: (res: any) => {
+                this.slotsPorDia = {};
+                this.clubesDisponibles = [];
+                const clubMap = new Map();
+
+                res.dispo.forEach((s: any) => {
+                    if (s.club_id && !clubMap.has(s.club_id)) {
+                        clubMap.set(s.club_id, { id: s.club_id, nombre: s.club_nombre });
+                    }
+                    const fecha = this.extractDate(s.fecha_inicio);
+                    if (!this.slotsPorDia[fecha]) this.slotsPorDia[fecha] = [];
+                    this.slotsPorDia[fecha].push({ ...s, time: this.extractTime(s.fecha_inicio) });
+                });
+
+                this.clubesDisponibles = Array.from(clubMap.values());
+                if (this.clubesDisponibles.length > 0 && !this.selectedClubId) {
+                    this.selectedClubId = this.clubesDisponibles[0].id;
+                }
+
+                this.mergeAgenda(res.agenda);
+                this.actualizarSlotsVisibles();
+                this.cargandoHorarios = false;
+            },
+            error: (err) => {
+                this.cargandoHorarios = false;
+                this.mostrarToast('Error al cargar agenda');
+            }
+        });
+    }
+
+    mergeAgenda(agendaData: any) {
+        if (!agendaData) return;
+        const all = Array.isArray(agendaData) ? agendaData : [
+            ...(agendaData.reservas_tradicionales || []),
+            ...(agendaData.packs_grupales || [])
+        ];
+        all.forEach((a: any) => {
+            const fecha = a.fecha || this.extractDate(a.fecha_inicio);
+            const hora = (a.hora_inicio || this.extractTime(a.fecha_inicio)).slice(0, 5);
+            if (!this.slotsPorDia[fecha]) this.slotsPorDia[fecha] = [];
+            let existing = this.slotsPorDia[fecha].find(s => s.time === hora);
+            
+            const ocupadoData = {
+                ocupado: true,
+                reserva_id: a.reserva_id || a.id,
+                jugador_nombre: a.jugador_nombre || a.nombre_jugador,
+                reserva_tipo: a.pack_nombre || a.tipo,
+                club_id: a.club_id,
+                club_nombre: a.club_nombre,
+                malla_id: a.malla_id,
+                clase_id: a.clase_id,
+                malla_nombre: a.malla_nombre,
+                clase_titulo: a.clase_titulo,
+                clase_objetivo: a.clase_objetivo,
+                clase_calentamiento: a.clase_calentamiento,
+                clase_drills: a.clase_drills
+            };
+
+            if (existing) {
+                Object.assign(existing, ocupadoData);
+            } else {
+                this.slotsPorDia[fecha].push({
+                    fecha_inicio: `${fecha} ${hora}:00`,
+                    time: hora,
+                    ...ocupadoData
+                });
+            }
+        });
+    }
+
+    onDiaChange(event: any) {
+        this.diaSeleccionado = event.detail.value;
+        this.actualizarSlotsVisibles();
     }
 
     onClubChange() {
-        if (this.horariosDisponibles.length > 0) {
-            this.organizarHorarios(this.horariosDisponibles);
+        this.actualizarSlotsVisibles();
+    }
+
+    actualizarSlotsVisibles() {
+        let slots = this.slotsPorDia[this.diaSeleccionado] || [];
+        if (this.selectedClubId) {
+            slots = slots.filter(s => Number(s.club_id) === Number(this.selectedClubId) || s.ocupado);
+        }
+        this.slotsDisponibles = slots.sort((a, b) => a.time.localeCompare(b.time));
+    }
+
+    seleccionarSlot(slot: any) {
+        this.selectedSlot = { slot, dateStr: this.diaSeleccionado, hour: slot.time };
+        if (slot.ocupado) {
+            this.isDetailModalOpen = true;
+            this.isEditingDetail = false;
+        } else {
+            this.resetBookingState();
+            this.isBookingModalOpen = true;
         }
     }
 
-    cargarDisponibilidadCoach(packId?: number) {
-        this.cargandoHorarios = true;
-        console.log('Fetching availability and agenda for trainer:', this.entrenadorId);
-
-        // Fetch both availability and actual reservations to cross-check occupancy
-        import('rxjs').then(({ forkJoin }) => {
-            forkJoin({
-                disponibilidad: this.entrenamientoService.getDisponibilidadEntrenador(this.entrenadorId, packId),
-                reservas: this.entrenamientoService.getReservasEntrenador(this.entrenadorId)
-            }).subscribe({
-                next: (res) => {
-                    console.log('Availability received:', res.disponibilidad);
-                    console.log('Reservations received:', res.reservas);
-
-                    const disponibilidad = res.disponibilidad;
-                    const resData: any = res.reservas;
-
-                    // The API returns { reservas_tradicionales: [], packs_grupales: [] }
-                    // Handle both the object format and a flat array format just in case
-                    const allReservas = Array.isArray(resData) ? resData : [
-                        ...(resData?.reservas_tradicionales || []),
-                        ...(resData?.packs_grupales || [])
-                    ];
-
-                    // Cross-check: Mark availability slots as occupied if there's a reservation
-                    const availabilityMapeada = disponibilidad.map((slot: any) => {
-                        const start = slot.fecha_inicio || slot.hora_inicio;
-                        if (!start) return slot;
-
-                        const isBooked = allReservas.some((r: any) => {
-                            const rStart = r.fecha_inicio || (r.fecha && r.hora_inicio ? `${r.fecha} ${r.hora_inicio}` : r.hora_inicio);
-                            return rStart === start;
-                        });
-
-                        return {
-                            ...slot,
-                            ocupado: slot.ocupado == 1 || isBooked ? 1 : 0
-                        };
-                    });
-
-                    // Extraer clubes únicos
-                    const clubMap = new Map();
-                    availabilityMapeada.forEach((slot: any) => {
-                        if (slot.club_id && !clubMap.has(slot.club_id)) {
-                            clubMap.set(slot.club_id, {
-                                id: slot.club_id,
-                                nombre: slot.club_nombre,
-                                direccion: slot.club_direccion
-                            });
-                        }
-                    });
-                    this.clubesDisponibles = Array.from(clubMap.values());
-
-                    if (this.clubesDisponibles.length > 0 && !this.selectedClubId) {
-                        this.selectedClubId = this.clubesDisponibles[0].id; // auto-select
-                    }
-
-                    this.horariosDisponibles = availabilityMapeada;
-                    this.organizarHorarios(availabilityMapeada);
-                    this.cargandoHorarios = false;
-                },
-                error: (err) => {
-                    console.error('Error loading agenda:', err);
-                    this.cargandoHorarios = false;
-                    this.mostrarToast('Error al sincronizar agenda');
-                }
-            });
-        });
+    resetBookingState() {
+        this.tipoClaseSeleccionado = 'individual';
+        this.alumnoSeleccionado = null;
+        this.alumnosSeleccionados = [];
+        this.planificacionId = null;
+        this.claseMallaId = null;
+        this.packAAsignar = null;
+        this.recurrencia = 1;
+        this.filtroAlumnos = '';
+        this.onCategoriaChange();
     }
 
-    organizarHorarios(horarios: any[]) {
-        if (!horarios || !Array.isArray(horarios)) {
-            console.warn('Invalid horarios format:', horarios);
-            this.horariosPorDia = {};
-            this.diasAgenda = [];
-            return;
-        }
+    cerrarModal() {
+        this.isBookingModalOpen = false;
+        this.isDetailModalOpen = false;
+    }
 
-        console.log('Starting to organize', horarios.length, 'slots');
-        this.horariosPorDia = {};
-        const diasSet = new Set<string>();
-
-        horarios.forEach(h => {
-            // Filtrar por club si hay alguno seleccionado
-            if (this.selectedClubId && Number(h.club_id) !== Number(this.selectedClubId)) {
-                return;
+    toggleAlumnoSeleccion(alumno: any) {
+        if (this.tipoClaseSeleccionado === 'individual') {
+            this.alumnoSeleccionado = alumno;
+            this.alumnosSeleccionados = [alumno];
+            this.mostrarOpcionPack = (alumno.sesiones_restantes || 0) <= 0;
+            this.packAAsignar = null;
+        } else {
+            const idx = this.alumnosSeleccionados.findIndex(a => a.jugador_id === alumno.jugador_id);
+            if (idx >= 0) {
+                this.alumnosSeleccionados.splice(idx, 1);
+            } else if (this.alumnosSeleccionados.length < this.maxAlumnos) {
+                this.alumnosSeleccionados.push(alumno);
             }
+            this.alumnoSeleccionado = this.alumnosSeleccionados[0] || null;
+            this.mostrarOpcionPack = true; // Always need pack for multijugador/grupal conceptually? 
+        }
+    }
 
-            // Adapted for fecha_inicio and fecha_fin as seen in logs
-            const startStr = h.fecha_inicio || h.hora_inicio;
-            const endStr = h.fecha_fin || h.hora_fin;
+    isAlumnoSelected(alumno: any): boolean {
+        return this.alumnosSeleccionados.some(a => a.jugador_id === alumno.jugador_id);
+    }
 
-            if (!startStr) return;
+    onTipoClaseChange() {
+        this.alumnosSeleccionados = [];
+        this.alumnoSeleccionado = null;
+        this.packAAsignar = null;
+    }
 
-            try {
-                // Ensure date format compatibility (Standardizing to T separator for iOS/Safari)
-                const dateInicio = new Date(startStr.replace(' ', 'T'));
-                let dateFin: Date;
+    filtrarMallas() {
+        if (this.categoriaFiltro === 'todos') {
+            this.mallasFiltradas = this.mallas;
+        } else {
+            this.mallasFiltradas = this.mallas.filter(m => (m.publico || '').toLowerCase().includes(this.categoriaFiltro));
+        }
+    }
 
-                if (endStr) {
-                    dateFin = new Date(endStr.replace(' ', 'T'));
-                } else {
-                    dateFin = new Date(dateInicio.getTime() + 60 * 60 * 1000); // +1 hour
-                }
+    onCategoriaChange() {
+        this.planificacionId = null;
+        this.claseMallaId = null;
+        this.clasesDisponibles = [];
+        this.contenidoClase = '';
+        this.filtrarMallas();
+    }
 
-                if (isNaN(dateInicio.getTime())) {
-                    console.warn('Invalid date detected for slot:', h);
-                    return;
-                }
+    onMallaChange() {
+        this.clasesDisponibles = [];
+        this.claseMallaId = null;
+        this.contenidoClase = '';
+        if (!this.planificacionId) return;
+        
+        this.isLoading = true;
+        // Adding getMallaById manually below since it's missing in service. Let's just use what's available or rely on the backend.
+        // Actually, we added getMallaById to EntrenamientoService... wait no, we only added some.
+        // Let's implement it.
+        const token = localStorage.getItem('token');
+        fetch(`${environment.apiUrl}/mallas/get_mallas.php?id=${this.planificacionId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        }).then(res => res.json()).then(res => {
+            this.clasesDisponibles = res.clases || [];
+            this.isLoading = false;
+        }).catch(() => this.isLoading = false);
+    }
 
-                // Get date part for grouping (YYYY-MM-DD)
-                const fechaS = startStr.split(' ')[0];
-                diasSet.add(fechaS);
+    onClaseChange() {
+        const clase = this.clasesDisponibles.find(c => c.id == this.claseMallaId);
+        if (clase) {
+            this.contenidoClase = `OBJETIVO: ${clase.objetivo || 'N/A'}\nDRILLS: ${clase.drills || 'N/A'}`;
+        } else {
+            this.contenidoClase = '';
+        }
+    }
 
-                if (!this.horariosPorDia[fechaS]) {
-                    this.horariosPorDia[fechaS] = { manana: [], tarde: [], noche: [] };
-                }
+    async confirmarAgendamiento() {
+        const obsPack = (this.mostrarOpcionPack && this.packAAsignar)
+            ? this.entrenamientoService.insertPack({
+                pack_id: this.packAAsignar.id || this.packAAsignar.pack_id,
+                jugador_id: this.alumnoSeleccionado.jugador_id,
+                estado_pago: 'pendiente',
+                metodo_pago: 'manual_entrenador',
+                precio_pagado: 0
+              })
+            : new Observable(obs => {
+                obs.next({ success: true, pack_jugador_id: this.alumnoSeleccionado?.pack_jugador_id });
+                obs.complete();
+              });
 
-                const hObj = {
-                    ...h,
-                    dateInicio,
-                    dateFin,
-                    fecha: fechaS
+        const loading = await this.loadingCtrl.create({ message: 'Agendando...' });
+        await loading.present();
+
+        obsPack.subscribe({
+            next: (resP: any) => {
+                const payloadReserva: any = {
+                    entrenador_id: this.entrenadorId,
+                    pack_id: (this.packAAsignar ? (this.packAAsignar.id || this.packAAsignar.pack_id) : (this.alumnoSeleccionado?.pack_id || 0)) || null,
+                    pack_jugador_id: resP.pack_jugador_id || null,
+                    fecha: this.selectedSlot.dateStr,
+                    hora_inicio: this.selectedSlot.hour,
+                    hora_fin: this.getHoraFin(this.selectedSlot.hour),
+                    jugador_id: this.alumnoSeleccionado.jugador_id,
+                    estado: 'reservado',
+                    recurrencia: this.recurrencia,
+                    tipo: this.tipoClaseSeleccionado,
+                    club_id: this.selectedSlot.slot.club_id || this.selectedClubId,
+                    malla_id: this.planificacionId,
+                    clase_id: this.claseMallaId,
+                    clase_titulo: this.clasesDisponibles.find(c => c.id == this.claseMallaId)?.titulo || null
                 };
 
-                const hora = dateInicio.getHours();
-                if (hora < 12) this.horariosPorDia[fechaS].manana.push(hObj);
-                else if (hora < 18) this.horariosPorDia[fechaS].tarde.push(hObj);
-                else this.horariosPorDia[fechaS].noche.push(hObj);
-            } catch (e) {
-                console.error('Error processing slot:', h, e);
+                if (this.tipoClaseSeleccionado !== 'individual' && this.alumnosSeleccionados.length > 1) {
+                    payloadReserva.jugador_ids = this.alumnosSeleccionados.map(a => a.jugador_id);
+                    payloadReserva.jugador_nombre = this.alumnosSeleccionados.map(a => a.jugador_nombre).join(', ');
+                }
+
+                this.entrenamientoService.crearReserva(payloadReserva).subscribe({
+                    next: () => {
+                        if (this.planificacionId && this.claseMallaId) {
+                            this.entrenamientoService.asignarMalla({
+                                jugador_id: this.alumnoSeleccionado.jugador_id,
+                                malla_id: this.planificacionId,
+                                entrenador_id: this.entrenadorId
+                            }).subscribe(() => this.postAgendamiento(loading));
+                        } else {
+                            this.postAgendamiento(loading);
+                        }
+                    },
+                    error: (err) => {
+                        loading.dismiss();
+                        this.mostrarToast(err.error?.error || 'Error al agendar reserva');
+                    }
+                });
+            },
+            error: () => {
+                loading.dismiss();
+                this.mostrarToast('Error al asignar el pack');
             }
         });
-
-        this.diasAgenda = Array.from(diasSet).sort();
-        console.log('Successfully organized days:', this.diasAgenda);
-
-        if (this.diasAgenda.length > 0) {
-            // Ensure first day is selected
-            if (!this.diaSeleccionado || !this.diasAgenda.includes(this.diaSeleccionado)) {
-                this.diaSeleccionado = this.diasAgenda[0];
-            }
-            this.actualizarTramoAutomatico();
-        }
     }
 
-    actualizarTramoAutomatico() {
-        if (!this.diaSeleccionado || !this.horariosPorDia[this.diaSeleccionado]) return;
-
-        const tramos = ['manana', 'tarde', 'noche'] as const;
-        for (const t of tramos) {
-            if (this.horariosPorDia[this.diaSeleccionado][t].length > 0) {
-                this.tramoSeleccionado = t;
-                break;
-            }
-        }
+    private postAgendamiento(loading: any) {
+        loading.dismiss();
+        this.mostrarToast('✅ Clase agendada exitosamente');
+        this.cerrarModal();
+        this.loadDisponibilidad();
+        this.loadBasics();
     }
 
-    async seleccionarHorario(bloque: any) {
-        if (bloque.ocupado) return;
+    async confirmarCancelacion() {
+        const resId = this.selectedSlot?.slot?.reserva_id;
+        if (!resId) return;
 
         const alert = await this.alertCtrl.create({
-            header: 'Confirmar Agendamiento',
-            message: `¿Agendar clase para ${this.alumnoSeleccionado.jugador_nombre} el ${bloque.fecha} a las ${bloque.dateInicio.toTimeString().slice(0, 5)}?`,
+            header: 'Cancelar Clase',
+            message: `¿Deseas cancelar la clase de ${this.selectedSlot.slot.jugador_nombre}?`,
             buttons: [
-                { text: 'Cancelar', role: 'cancel' },
+                { text: 'Atrás', role: 'cancel' },
                 {
-                    text: 'Confirmar',
-                    handler: () => this.ejecutarAgendamiento(bloque)
+                    text: 'Cancelar Clase',
+                    handler: () => {
+                        this.entrenamientoService.cancelarReserva(resId).subscribe({
+                            next: () => {
+                                this.mostrarToast('Clase cancelada');
+                                this.cerrarModal();
+                                this.loadDisponibilidad();
+                            },
+                            error: () => this.mostrarToast('Error cancelando')
+                        });
+                    }
                 }
             ]
         });
         await alert.present();
     }
 
-    async ejecutarAgendamiento(bloque: any) {
-        const loading = await this.loadingCtrl.create({ message: 'Agendando...' });
+    enableDetailEdit() {
+        this.isEditingDetail = true;
+        const s = this.selectedSlot?.slot;
+        this.planificacionId = s?.malla_id ? Number(s.malla_id) : null;
+        this.claseMallaId = s?.clase_id ? Number(s.clase_id) : null;
+        if (this.planificacionId) {
+            this.onMallaChange();
+        }
+    }
+
+    async saveTechnicalDetail() {
+        if (!this.selectedSlot?.slot?.reserva_id) return;
+        const loading = await this.loadingCtrl.create({ message: 'Actualizando...' });
         await loading.present();
 
         const payload = {
-            entrenador_id: this.entrenadorId,
-            pack_id: this.alumnoSeleccionado.pack_id,
-            pack_jugador_id: this.alumnoSeleccionado.pack_jugador_id,
-            club_id: bloque.club_id || this.selectedClubId,
-            fecha: bloque.fecha,
-            hora_inicio: bloque.dateInicio.toTimeString().slice(0, 5),
-            hora_fin: bloque.dateFin.toTimeString().slice(0, 5),
-            jugador_id: this.alumnoSeleccionado.jugador_id,
-            estado: 'reservado',
-            recurrencia: this.recurrencia,
-            tipo: 'individual',
-            cantidad_personas: 1
+            reserva_id: this.selectedSlot.slot.reserva_id,
+            malla_id: this.planificacionId,
+            clase_id: this.claseMallaId,
+            clase_titulo: this.clasesDisponibles.find(c => c.id == this.claseMallaId)?.titulo || null
         };
 
-        this.entrenamientoService.crearReserva(payload).subscribe({
+        this.entrenamientoService.updateReservaTecnica(payload).subscribe({
             next: () => {
                 loading.dismiss();
-                this.cerrarModal(); // Cerrar modal antes de navegar
-                this.mostrarToast('✅ Clase agendada exitosamente');
-                this.router.navigate(['/entrenador-entrenamientos']);
+                this.mostrarToast('Planificación actualizada');
+                this.isEditingDetail = false;
+                this.loadDisponibilidad();
+                this.cerrarModal();
             },
-            error: (err) => {
+            error: () => {
                 loading.dismiss();
-                console.error('Error reserving:', err);
-                const msg = err.error?.error || 'Error al agendar la clase';
-                this.alertCtrl.create({ header: 'Conflicto de Horario', message: msg, buttons: ['OK'] }).then(a => a.present());
+                this.mostrarToast('Error al actualizar');
             }
         });
+    }
+
+    extractDate(dStr: string) { return dStr ? dStr.split(' ')[0] : ''; }
+    extractTime(dStr: string) { return dStr ? dStr.split(' ')[1].slice(0, 5) : ''; }
+    formatDate(date: Date): string { return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`; }
+    
+    getHoraFin(horaInicio: string): string {
+        const [h, m] = horaInicio.split(':').map(Number);
+        const date = new Date();
+        date.setHours(h + 1, m);
+        return date.toTimeString().slice(0, 5);
     }
 
     async mostrarToast(msg: string) {
@@ -419,14 +512,5 @@ export class EntrenadorAgendarPage implements OnInit {
     goBack() {
         this.router.navigate(['/entrenador-home']);
     }
-
-    getInitials(name: string): string {
-        if (!name) return '';
-        const names = name.split(' ');
-        let initials = names[0].substring(0, 1).toUpperCase();
-        if (names.length > 1) {
-            initials += names[names.length - 1].substring(0, 1).toUpperCase();
-        }
-        return initials;
-    }
 }
+import { environment } from '../../../environments/environment';

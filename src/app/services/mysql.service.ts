@@ -192,4 +192,10 @@ export class MysqlService {
   getAlumnos(entrenadorId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.api}/alumno/get_alumno.php?entrenador_id=${entrenadorId}`, { headers: this.getHeaders() });
   }
+
+  crearAlumno(data: { nombre: string, email: string, entrenador_id: number }): Observable<any> {
+    return this.http.post(`${this.api}/alumno/create_alumno.php`, data, {
+      headers: this.getHeaders()
+    });
+  }
 }

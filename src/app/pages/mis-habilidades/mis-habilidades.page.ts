@@ -73,7 +73,6 @@ export class MisHabilidadesPage implements OnInit {
     storedRadarData: number[] = [];
     tecnicoChart: any;
 
-    // Tactico
     tacticoData: number[] = [];
     tacticoLabels1: string[] = [];
     tacticoData1: number[] = [];
@@ -277,48 +276,30 @@ export class MisHabilidadesPage implements OnInit {
                         // Technical AVG
                         this.avgTecnico = avg(this.storedRadarData.filter(v => v > 0)) || 0;
                         const tacticoKeys = Object.keys(tactico);
-                        if (tacticoKeys.length > 5) {
-                            const half = Math.ceil(tacticoKeys.length / 2);
-                            this.tacticoLabels1 = tacticoKeys.slice(0, half);
-                            this.tacticoData1 = this.tacticoLabels1.map(k => {
-                                const val = tactico[k];
-                                return typeof val === 'object' ? Number(val.valor || 0) : Number(val || 0);
-                            });
+                        let rawTacticoLabels = Object.keys(tactico);
+                        if (rawTacticoLabels.length === 0) {
+                            rawTacticoLabels = [
+                                'Posicionamiento fondo', 'Posicionamiento red', 'Decisiones fondo', 'Decisiones red', 
+                                'Golpes aéreos', 'Intenciones fondo', 'Intenciones red', 'Globo vs Abajo', 
+                                'Volea Bloqueo vs Plana', 'Volea Plana vs Cortada', 'Botar globo vs Remate Def', 
+                                'Remate Def vs Bandeja/Vibora', 'Remate Def vs Ofensivo', 'Bajada Pared vs Globo'
+                            ];
+                        }
+                        
+                        if (rawTacticoLabels.length > 5) {
+                            const half = Math.ceil(rawTacticoLabels.length / 2);
+                            this.tacticoLabels1 = rawTacticoLabels.slice(0, half);
+                            this.tacticoData1 = this.tacticoLabels1.map(k => typeof tactico[k] === 'object' ? Number(tactico[k]?.valor || 0) : Number(tactico[k] || 0));
                             
-                            this.tacticoLabels2 = tacticoKeys.slice(half);
-                            this.tacticoData2 = this.tacticoLabels2.map(k => {
-                                const val = tactico[k];
-                                return typeof val === 'object' ? Number(val.valor || 0) : Number(val || 0);
-                            });
-                            
-                            this.tacticoData = tacticoKeys.map(k => {
-                                const val = tactico[k];
-                                return typeof val === 'object' ? Number(val.valor || 0) : Number(val || 0);
-                            });
-                        } else if (tacticoKeys.length > 0) {
-                            // Si son pocos indicadores (menos de 6), no los dividimos para que Chart.js no falle 
-                            // intentando dibujar triángulos incompletos.
-                            this.tacticoLabels1 = tacticoKeys;
-                            this.tacticoData1 = tacticoKeys.map(k => {
-                                const val = tactico[k];
-                                return typeof val === 'object' ? Number(val.valor || 0) : Number(val || 0);
-                            });
+                            this.tacticoLabels2 = rawTacticoLabels.slice(half);
+                            this.tacticoData2 = this.tacticoLabels2.map(k => typeof tactico[k] === 'object' ? Number(tactico[k]?.valor || 0) : Number(tactico[k] || 0));
+                        } else {
+                            this.tacticoLabels1 = rawTacticoLabels;
+                            this.tacticoData1 = rawTacticoLabels.map(k => typeof tactico[k] === 'object' ? Number(tactico[k]?.valor || 0) : Number(tactico[k] || 0));
                             this.tacticoLabels2 = [];
                             this.tacticoData2 = [];
-                            this.tacticoData = [...this.tacticoData1];
-
-                            // Pad with dummy labels if under 3 to prevent rendering crashes
-                            while (this.tacticoLabels1.length < 3) {
-                                this.tacticoLabels1.push('-');
-                                this.tacticoData1.push(0);
-                            }
-                        } else {
-                            this.tacticoLabels1 = ['Posición', 'Estrategia', 'Lectura'];
-                            this.tacticoData1 = [0, 0, 0];
-                            this.tacticoLabels2 = ['Ritmo', 'Anticipación', 'Consistencia'];
-                            this.tacticoData2 = [0, 0, 0];
-                            this.tacticoData = [0, 0, 0, 0, 0, 0];
                         }
+                        this.tacticoData = rawTacticoLabels.map(k => typeof tactico[k] === 'object' ? Number(tactico[k]?.valor || 0) : Number(tactico[k] || 0));
                         this.avgTactico = avg(this.tacticoData.filter(v => v > 0)) || 0;
 
                         // Physical AVG & Data

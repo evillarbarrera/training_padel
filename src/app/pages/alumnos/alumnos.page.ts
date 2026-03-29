@@ -24,7 +24,7 @@ import { MysqlService } from '../../services/mysql.service';
 import { addIcons } from 'ionicons';
 import {
   searchOutline, peopleOutline, statsChartOutline, analyticsOutline,
-  chevronBackOutline, chevronForwardOutline, calendarOutline, addCircleOutline, timeOutline, checkmarkCircleOutline, closeOutline, videocamOutline
+  chevronBackOutline, chevronForwardOutline, calendarOutline, addCircleOutline, timeOutline, checkmarkCircleOutline, closeOutline, videocamOutline, personAddOutline, mailOutline
 } from 'ionicons/icons';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular/standalone';
 import { EvaluacionService } from '../../services/evaluacion.service';
@@ -102,7 +102,7 @@ export class AlumnosPage implements OnInit {
     addIcons({
       searchOutline, peopleOutline, statsChartOutline, analyticsOutline, videocamOutline,
       chevronBackOutline, chevronForwardOutline, calendarOutline, addCircleOutline, timeOutline,
-      checkmarkCircleOutline, closeOutline
+      checkmarkCircleOutline, closeOutline, personAddOutline, mailOutline
     });
   }
 
@@ -117,11 +117,15 @@ export class AlumnosPage implements OnInit {
   tramoSeleccionado: 'manana' | 'tarde' | 'noche' = 'manana';
   entrenadorId = Number(localStorage.getItem('userId'));
 
+  // Creación de Alumno Modal State
+  isCreatingAlumno: boolean = false;
+  nuevoAlumno = { nombre: '', email: '' };
+
   // Pagination
   paginaActual: number = 1;
   elementosPorPagina: number = 5; // Default
 
-  @HostListener('window:resize', ['$event'])
+  @HostListener('window:resize')
   onResize() {
     this.calcularElementosPorPagina();
   }
@@ -375,6 +379,48 @@ export class AlumnosPage implements OnInit {
   async mostrarToast(msg: string) {
     const toast = await this.toastCtrl.create({ message: msg, duration: 2500, position: 'top' });
     toast.present();
+  }
+
+  // --- REGISTRO DE ALUMNO ---
+  mostrarModalCrear() {
+    this.isCreatingAlumno = true;
+    this.nuevoAlumno = { nombre: '', email: '' };
+  }
+
+  cerrarModalCrear() {
+    this.isCreatingAlumno = false;
+  }
+
+  async crearAlumno() {
+    if (!this.nuevoAlumno.nombre || !this.nuevoAlumno.email) {
+      this.mostrarToast('Por favor completa todos los campos');
+      return;
+    }
+
+    const loading = await this.loadingCtrl.create({ message: 'Registrando alumno y enviando correo...' });
+    await loading.present();
+
+    this.mysqlService.crearAlumno({
+      ...this.nuevoAlumno,
+      entrenador_id: this.entrenadorId
+    }).subscribe({
+      next: (res) => {
+        loading.dismiss();
+        if (res.success) {
+          const mailMsg = res.mail_sent ? 'y se ha enviado el correo de bienvenida.' : 'pero falló el envío del correo (verificar la configuración SMTP).';
+          this.mostrarToast(`✅ Alumno registrado con éxito ${mailMsg}`);
+          this.cerrarModalCrear();
+          this.cargarAlumnos();
+        } else {
+          this.mostrarToast(`❌ Error: ${res.message || 'Error desconocido'}`);
+        }
+      },
+      error: (err) => {
+        loading.dismiss();
+        const msg = err.error?.error || 'Error al intentar crear al alumno';
+        this.mostrarToast(`❌ ${msg}`);
+      }
+    });
   }
 
   goToHome() {
