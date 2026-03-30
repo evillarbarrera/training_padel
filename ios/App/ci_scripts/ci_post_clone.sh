@@ -12,18 +12,19 @@ echo "--- Current directory: $(pwd) ---"
 echo "--- Listing files ---"
 ls -la
 
-# 1. Instalar Node.js si no está disponible
-export HOMEBREW_NO_AUTO_UPDATE=1
+# 1. Instalar Node.js si no está disponible (Solo si falla el comando node)
 if ! command -v node >/dev/null 2>&1; then
     echo "--- Installing Node.js via Homebrew ---"
+    export HOMEBREW_NO_AUTO_UPDATE=1
     brew install node
 fi
 node -v
 npm -v
 
-# 2. Instalar CocoaPods si no está disponible
+# 2. Instalar CocoaPods si no está disponible (Solo si falla el comando pod)
 if ! command -v pod >/dev/null 2>&1; then
     echo "--- Installing CocoaPods via Homebrew ---"
+    export HOMEBREW_NO_AUTO_UPDATE=1
     brew install cocoapods
 fi
 pod --version
@@ -41,8 +42,10 @@ echo "--- Running npx cap sync ios ---"
 npx cap sync ios
 
 # 6. Pod install en la carpeta de iOS
-cd ios/App
-echo "--- Running pod install in $(pwd) ---"
+echo "--- Switching to iOS App directory ---"
+cd ios/App || exit 1
+echo "--- Current directory: $(pwd) ---"
+echo "--- Running pod install ---"
 pod install
 
 echo "--- Post-clone script finished successfully ---"

@@ -17,14 +17,17 @@ import {
   IonRefresher,
   IonRefresherContent
 } from '@ionic/angular/standalone';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { EntrenamientoService } from '../../services/entrenamiento.service';
 import { MysqlService } from '../../services/mysql.service';
+import { PacksService } from '../../services/pack.service';
+import { PackAlumnoService } from '../../services/pack_alumno.service';
 import { addIcons } from 'ionicons';
 import {
   searchOutline, peopleOutline, statsChartOutline, analyticsOutline,
-  chevronBackOutline, chevronForwardOutline, calendarOutline, addCircleOutline, timeOutline, checkmarkCircleOutline, closeOutline, videocamOutline, personAddOutline, mailOutline
+  chevronBackOutline, chevronForwardOutline, calendarOutline, addCircleOutline, timeOutline, checkmarkCircleOutline, closeOutline, videocamOutline, personAddOutline, mailOutline,
+  alertCircleOutline, pricetagsOutline
 } from 'ionicons/icons';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular/standalone';
 import { EvaluacionService } from '../../services/evaluacion.service';
@@ -97,18 +100,23 @@ export class AlumnosPage implements OnInit {
     private alertCtrl: AlertController,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private route: ActivatedRoute,
+    private packsService: PacksService,
+    private packAlumnoService: PackAlumnoService
   ) {
     addIcons({
       searchOutline, peopleOutline, statsChartOutline, analyticsOutline, videocamOutline,
       chevronBackOutline, chevronForwardOutline, calendarOutline, addCircleOutline, timeOutline,
-      checkmarkCircleOutline, closeOutline, personAddOutline, mailOutline
+      checkmarkCircleOutline, closeOutline, personAddOutline, mailOutline,
+      alertCircleOutline, pricetagsOutline
     });
   }
 
   // Booking Modal State
   showBookingModal: boolean = false;
   selectedAlumno: any = null;
+  mostrarSoloRenovaciones: boolean = false;
   horariosDisponibles: any[] = [];
   cargandoHorarios: boolean = false;
   diasAgenda: string[] = [];
@@ -152,6 +160,11 @@ export class AlumnosPage implements OnInit {
   }
 
   ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['filter'] === 'renovacion') {
+        this.mostrarSoloRenovaciones = true;
+      }
+    });
     this.calcularElementosPorPagina();
     this.cargarAlumnos();
   }
@@ -240,6 +253,76 @@ export class AlumnosPage implements OnInit {
     this.router.navigate(['/evaluar', alumnoId]);
   }
 
+  async renovarPack(alumno: any) {
+    // Navigate to a dedicated renewal page or show a selection
+    // For now, let's navigate to pack-alumno with the student ID if it supported it, 
+    // but the trainer needs to pick a pack from HIS list.
+    // Let's implement a quick selection here.
+    const loading = await this.loadingCtrl.create({ message: 'Cargando packs...' });
+    await loading.present();
+
+    this.packsService.getMisPacks().subscribe({
+      next: async (packs: any[]) => {
+        loading.dismiss();
+        const inputs = packs.filter(p => p.activo == 1).map(p => ({
+          name: 'packId',
+          type: 'radio' as const,
+          label: `${p.nombre} ($${p.precio})`,
+          value: p.id,
+          checked: false
+        }));
+
+        if (inputs.length === 0) {
+          this.mostrarToast('No tienes packs activos definidos.');
+          return;
+        }
+
+        const alert = await this.alertCtrl.create({
+          header: 'Seleccionar Nuevo Pack',
+          subHeader: `Renovación para ${alumno.nombre}`,
+          inputs,
+          buttons: [
+            { text: 'Cancelar', role: 'cancel' },
+            {
+              text: 'Asignar',
+              handler: (packId) => {
+                if (packId) this.ejecutarRenovacion(alumno, packId);
+              }
+            }
+          ]
+        });
+        await alert.present();
+      },
+      error: () => {
+        loading.dismiss();
+        this.mostrarToast('Error al cargar packs.');
+      }
+    });
+  }
+
+  async ejecutarRenovacion(alumno: any, packId: number) {
+    const loading = await this.loadingCtrl.create({ message: 'Asignando pack...' });
+    await loading.present();
+
+    const payload = {
+      pack_id: packId,
+      jugador_id: alumno.id,
+      precio_pagado: 0 // Default for trainer assignment
+    };
+
+    this.packAlumnoService.insertPackAlumno(payload).subscribe({
+      next: () => {
+        loading.dismiss();
+        this.mostrarToast('✅ Pack renovado exitosamente');
+        this.cargarAlumnos();
+      },
+      error: (err) => {
+        loading.dismiss();
+        this.mostrarToast('❌ Error al renovar pack');
+      }
+    });
+  }
+
   get alumnosFiltrados() {
     const cleanFilter = this.filtro.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
@@ -247,7 +330,8 @@ export class AlumnosPage implements OnInit {
       const cleanNombre = (alumno.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const coincideNombre = cleanNombre.includes(cleanFilter);
       const coincideActivo = this.mostrarSoloActivos ? alumno.activo === 1 : true;
-      return coincideNombre && coincideActivo;
+      const coincideRenovacion = this.mostrarSoloRenovaciones ? alumno.pendientes <= 1 : true;
+      return coincideNombre && coincideActivo && coincideRenovacion;
     });
   }
 

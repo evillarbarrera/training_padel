@@ -9,7 +9,6 @@ import {
   IonContent,
   IonFab,
   IonFabButton,
-  IonFabList,
   IonIcon,
   IonButton,
   IonSpinner,
@@ -24,7 +23,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, add, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline, close, locationOutline, cardOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, add, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline, close, locationOutline, cardOutline, flashOutline, logoWhatsapp, timeOutline, alertCircleOutline, pricetagsOutline, statsChartOutline, informationCircleOutline } from 'ionicons/icons';
 
 import { environment } from 'src/environments/environment';
 
@@ -34,7 +33,6 @@ import { environment } from 'src/environments/environment';
   imports: [CommonModule, IonContent,
     IonFab,
     IonFabButton,
-    IonFabList,
     IonIcon,
     IonButton,
     IonSpinner,
@@ -59,9 +57,20 @@ export class EntrenadorHomePage {
   };
   showMPReminder: boolean = false;
   isNotificacionesOpen: boolean = false;
+  isControlCenterOpen: boolean = false;
   sinDireccion: boolean = false;
   planTrialDays: number = 0;
   planTrialActivo: boolean = false;
+
+  // New Features
+  claseActual: any = null;
+  alumnosRecordatorioList: any[] = [];
+  
+  // Point 4 & 5
+  ingresosProyectados: number = 0;
+  ingresosRecaudados: number = 0;
+  iaTip: string = 'Cargando consejo del día...';
+  isFinanceOpen: boolean = false;
 
 
   constructor(
@@ -93,7 +102,14 @@ export class EntrenadorHomePage {
       close,
       closeOutline,
       locationOutline,
-      cardOutline
+      cardOutline,
+      flashOutline,
+      logoWhatsapp,
+      timeOutline,
+      alertCircleOutline,
+      pricetagsOutline,
+      statsChartOutline,
+      informationCircleOutline
     });
   }
 
@@ -225,6 +241,9 @@ export class EntrenadorHomePage {
 
         this.loadDashboardStats(userId);
         this.loadAgenda();
+        this.checkClaseActual();
+        this.loadPaymentAlerts(userId);
+        this.generateIATip();
       },
       error: (err) => {
         console.error('Error loading profile:', err);
@@ -233,10 +252,34 @@ export class EntrenadorHomePage {
     });
   }
 
+  fetchRevenue(userId: number) {
+    this.entrenamientoService.getFinanzas(userId).subscribe({
+      next: (res: any) => {
+        if (res) {
+          this.ingresosRecaudados = res.recaudado || 0;
+          this.ingresosProyectados = res.proyectado || 0;
+        }
+      },
+      error: (err) => console.warn('Error fetching finances:', err)
+    });
+  }
+
+  generateIATip() {
+    const tips = [
+      "El clima está húmedo hoy, recuerda a tus alumnos que la bola pesará más en el revés.",
+      "Excelente día para trabajar voleas bajas, la superficie está rápida.",
+      "Motiva a tus alumnos a hidratarse un 20% más si la temperatura sube de 25°C.",
+      "Enfoque de hoy: Recordar la importancia de la 'bandeja' en defensa armada.",
+      "Tip: El 70% de los errores no forzados en alumnos nivel medio vienen de mala posición de pies."
+    ];
+    this.iaTip = tips[Math.floor(Math.random() * tips.length)];
+  }
+
   loadDashboardStats(userId: number) {
     this.entrenamientoService.getDashboardStats(userId).subscribe({
       next: (res) => {
         this.stats = res;
+        this.fetchRevenue(userId);
       },
       error: (err) => console.error('Error loading stats:', err)
     });
@@ -374,6 +417,13 @@ export class EntrenadorHomePage {
     this.router.navigate(['/perfil']);
   }
 
+  openFinance() {
+    this.isControlCenterOpen = false;
+    setTimeout(() => {
+      this.isFinanceOpen = true;
+    }, 400);
+  }
+
   async logout() {
     console.log('Logging out trainer...');
     localStorage.clear();
@@ -408,6 +458,13 @@ export class EntrenadorHomePage {
           }
         },
         {
+          text: 'Mis Cupones',
+          icon: 'gift-outline',
+          handler: () => {
+             this.router.navigate(['/entrenador-cupones']);
+          }
+        },
+        {
           text: 'Mi Plan',
           icon: 'card-outline',
           handler: () => {
@@ -438,6 +495,74 @@ export class EntrenadorHomePage {
     });
 
     await actionSheet.present();
+  }
+
+  // --- FEATURE LOGIC ---
+
+  checkClaseActual() {
+    // Detect if there is a class happening right NOW
+    const now = new Date();
+    const hour = now.getHours();
+    const min = now.getMinutes();
+    const timeStr = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+    
+    // We look in this.clasesHoyList (which includes Hoy and Mañana)
+    const hoy = this.clasesHoyList.filter(c => c.diaLabel === 'Hoy');
+    
+    // Logic: If current time is within +/- 30 mins of a class start time? 
+    // Or just "Next 60 mins"?
+    // Let's find a class that started at most 55 mins ago or starts in next 5 mins.
+    const active = hoy.find(c => {
+      const cTime = c.hora; // HH:mm
+      const [cHour, cMin] = cTime.split(':').map(Number);
+      const cDate = new Date();
+      cDate.setHours(cHour, cMin, 0);
+      
+      const diffMs = now.getTime() - cDate.getTime();
+      const diffMins = diffMs / 60000;
+      
+      return diffMins >= -5 && diffMins <= 55; // From 5 mins before start to 55 mins after
+    });
+
+    this.claseActual = active || null;
+  }
+
+  loadPaymentAlerts(userId: number) {
+    // Fetch students with low pack balance
+    this.mysqlService.getAlumnos(userId).subscribe({
+      next: (res: any) => {
+        if (res && Array.isArray(res)) {
+          // Filter students with 0 or 1 classes remaining
+          this.alumnosRecordatorioList = res.filter((a: any) => 
+            a.tiene_pack == 1 && Number(a.clases_disponibles) <= 1
+          ).slice(0, 5); // Limit to top 5 for the home card
+        }
+      }
+    });
+  }
+
+
+  onControlItemClick(action: string) {
+    this.isControlCenterOpen = false;
+    
+    setTimeout(() => {
+      if (action === 'logout') {
+        this.logout();
+      } else {
+        this.router.navigateByUrl(action);
+      }
+    }, 150);
+  }
+
+  sendWhatsAppReminder(alumno: any) {
+    const msg = `Hola ${alumno.nombre}, te escribo de Padel Academy. Notamos que te quedan ${alumno.clases_disponibles} clases en tu pack. ¡No olvides renovar para asegurar tu horario! 🎾`;
+    window.open(`https://wa.me/${alumno.telefono}?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
+  marcarAsistenciaLive() {
+    // In a real app, this would call a service. For now, a simple mock or feedback.
+    console.log("Marcar asistencia para:", this.claseActual.titulo);
+    // Suggestion: we could navigate to the class detail or perform a quick toggle
   }
 
 

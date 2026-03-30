@@ -19,6 +19,26 @@
   <!-- Main Content -->
   <div class="main-container">
 
+    <!-- PAYMENT REMINDERS (Feature Request) -->
+    <div class="payment-reminders-section animate-up" *ngIf="alumnosRecordatorioList.length > 0">
+      <div class="section-header-compact">
+        <h3 class="mini-title">Renovaciones Pendientes</h3>
+        <ion-badge class="mini-badge">{{ alumnosRecordatorioList.length }}</ion-badge>
+      </div>
+      <div class="reminders-scroll">
+        <div class="reminder-chip animate-pop" *ngFor="let alumno of alumnosRecordatorioList" (click)="sendWhatsAppReminder(alumno)">
+          <div class="chip-left">
+            <ion-icon name="alert-circle-outline" class="alert-icon"></ion-icon>
+            <span class="name">{{ alumno.nombre }}</span>
+          </div>
+          <div class="chip-right">
+            <span class="count">{{ alumno.clases_disponibles }} clases</span>
+            <ion-icon name="logo-whatsapp" class="wa-icon"></ion-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Segment Pills -->
     <div class="segment-wrapper animate-up">
       <ion-segment [value]="segmentoSeleccionado" (ionChange)="cambiarSegmento($event)" mode="md" class="nike-segment"

@@ -284,6 +284,21 @@ export class NotificationService {
   }
 
   /**
+   * Notificar al coach cuando un alumno agenda una nueva clase
+   */
+  notificarReservaACoach(coachId: number, alumnoNombre: string, fecha: string, hora: string): void {
+    this.mysqlService.enviarNotificacion({
+      user_id: coachId,
+      titulo: '🎾 Nueva Reserva Recibida',
+      mensaje: `${alumnoNombre} ha agendado una clase para el ${fecha} a las ${hora}.`,
+      tipo: 'nueva_reserva'
+    }).subscribe({
+      next: () => { },
+      error: (err) => console.error('Error notificar reserva a coach:', err)
+    });
+  }
+
+  /**
    * Programar recordatorio para el día anterior al entrenamiento
    */
   programarRecordatorio(alumnoId: number, packNombre: string, fechaEntrenamiento: string, horaInicio: string): void {

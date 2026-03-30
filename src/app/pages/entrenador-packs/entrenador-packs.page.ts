@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Location } from '@angular/common';
 import { PacksService } from '../../services/pack.service';
+import { MysqlService } from '../../services/mysql.service';
 import { Router } from '@angular/router';
 import {
   IonContent, IonSegment, IonSegmentButton, IonLabel,
   IonIcon, IonInput, IonButton, IonFab, IonFabButton,
   IonHeader, IonToolbar, IonTitle, IonButtons,
-  IonModal, IonItem, IonSelect, IonSelectOption, IonTextarea, IonSpinner
+  IonModal, IonItem, IonSelect, IonSelectOption, IonTextarea, IonSpinner, IonBadge
 } from '@ionic/angular/standalone';
 import { AlertController, LoadingController } from '@ionic/angular/standalone';
 
@@ -17,7 +18,8 @@ import {
   settingsOutline, homeOutline, calendarOutline, logOutOutline,
   searchOutline, addOutline, timeOutline, peopleOutline,
   trophyOutline, cubeOutline, closeOutline, clipboardOutline,
-  chevronBackOutline, createOutline, trashOutline, chevronForwardOutline
+  chevronBackOutline, createOutline, trashOutline, chevronForwardOutline,
+  logoWhatsapp, alertCircleOutline, pricetagsOutline
 } from 'ionicons/icons';
 
 @Component({
@@ -31,7 +33,7 @@ import {
     IonContent, IonSegment, IonSegmentButton, IonLabel,
     IonIcon, IonInput, IonButton, IonFab, IonFabButton,
     IonHeader, IonToolbar, IonTitle, IonButtons,
-    IonModal, IonItem, IonSelect, IonSelectOption, IonTextarea, IonSpinner
+    IonModal, IonItem, IonSelect, IonSelectOption, IonTextarea, IonSpinner, IonBadge
   ],
   providers: []
 })
@@ -41,6 +43,7 @@ export class EntrenadorPacksPage implements OnInit {
   packsFiltrados: any[] = [];
   filtro: string = '';
   mostrarFormulario = false;
+  alumnosRecordatorioList: any[] = [];
 
   segmentoSeleccionado: 'individual' | 'multijugador' | 'grupal' = 'individual';
   paginaActual: number = 1;
@@ -89,13 +92,14 @@ export class EntrenadorPacksPage implements OnInit {
     private packsService: PacksService,
     private router: Router,
     private alertController: AlertController,
-    private loadingCtrl: LoadingController
+    private loadingCtrl: LoadingController,
+    private mysqlService: MysqlService
   ) {
     addIcons({
       settingsOutline, homeOutline, calendarOutline, chevronBackOutline, chevronForwardOutline,
       createOutline, trashOutline, logOutOutline, searchOutline, addOutline,
       timeOutline, peopleOutline, trophyOutline, cubeOutline, closeOutline,
-      clipboardOutline
+      clipboardOutline, logoWhatsapp, alertCircleOutline, pricetagsOutline
     });
   }
 
@@ -107,6 +111,24 @@ export class EntrenadorPacksPage implements OnInit {
     }
     this.calcularElementosPorPagina();
     this.cargarPacks();
+    this.loadPaymentAlerts(Number(userId));
+  }
+
+  loadPaymentAlerts(userId: number) {
+    this.mysqlService.getAlumnos(userId).subscribe({
+      next: (res: any) => {
+        if (res && Array.isArray(res)) {
+          this.alumnosRecordatorioList = res.filter((a: any) => 
+            a.tiene_pack == 1 && Number(a.clases_disponibles) <= 1
+          ).slice(0, 5);
+        }
+      }
+    });
+  }
+
+  sendWhatsAppReminder(alumno: any) {
+    const msg = `Hola ${alumno.nombre}, te escribo de Padel Academy. Notamos que te quedan ${alumno.clases_disponibles} clases en tu pack. ¡No olvides renovar para asegurar tu horario! 🎾`;
+    window.open(`https://wa.me/${alumno.telefono}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 
   cargarPacks() {

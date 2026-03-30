@@ -74,6 +74,11 @@
               Progreso
             </ion-button>
 
+            <ion-button class="action-button renv" (click)="renovarPack(alumno)" *ngIf="alumno.pendientes <= 1">
+              <ion-icon name="pricetags-outline" slot="start"></ion-icon>
+              Renovar
+            </ion-button>
+
             <ion-button class="action-button" (click)="evaluar(alumno.id)">
               <ion-icon name="analytics-outline" slot="start"></ion-icon>
               Evaluar

@@ -16,6 +16,7 @@ import {
     chevronBackOutline, calendarOutline, timeOutline, checkmarkCircleOutline,
     closeOutline, personCircleOutline, addCircleOutline, trashOutline, createOutline
 } from 'ionicons/icons';
+import { environment } from 'src/environments/environment';
 
 registerLocaleData(localeEs);
 
@@ -337,9 +338,9 @@ export class EntrenadorAgendarPage implements OnInit {
         // Adding getMallaById manually below since it's missing in service. Let's just use what's available or rely on the backend.
         // Actually, we added getMallaById to EntrenamientoService... wait no, we only added some.
         // Let's implement it.
-        const token = localStorage.getItem('token');
+        const headers = (this.entrenamientoService as any).getHeaders();
         fetch(`${environment.apiUrl}/mallas/get_mallas.php?id=${this.planificacionId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: headers
         }).then(res => res.json()).then(res => {
             this.clasesDisponibles = res.clases || [];
             this.isLoading = false;
@@ -513,4 +514,3 @@ export class EntrenadorAgendarPage implements OnInit {
         this.router.navigate(['/entrenador-home']);
     }
 }
-import { environment } from '../../../environments/environment';

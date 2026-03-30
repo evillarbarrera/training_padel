@@ -798,6 +798,110 @@
   }
 }
 
+/* ─── Payment Reminders (Feature) ─── */
+.payment-reminders-section {
+  margin-bottom: 24px;
+  background: white;
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.02);
+
+  .section-header-compact {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-left: 4px;
+
+    .mini-title {
+      font-size: 11px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #000;
+      margin: 0;
+    }
+
+    .mini-badge {
+      --background: #000;
+      --color: #ccff00;
+      font-weight: 900;
+      border-radius: 6px;
+      font-size: 10px;
+    }
+  }
+
+  .reminders-scroll {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 4px 4px 12px;
+    margin-bottom: -8px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .reminder-chip {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 14px;
+      background: #f8f9fa;
+      border-radius: 14px;
+      min-width: 180px;
+      border: 1px solid rgba(0, 0, 0, 0.02);
+      transition: all 0.2s ease;
+
+      &:active {
+        transform: scale(0.96);
+        background: #f1f3f5;
+      }
+
+      .chip-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .alert-icon {
+          font-size: 18px;
+          color: #ff3b30;
+        }
+
+        .name {
+          font-size: 13px;
+          font-weight: 700;
+          color: #111;
+          white-space: nowrap;
+        }
+      }
+
+      .chip-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .count {
+          font-size: 11px;
+          font-weight: 800;
+          color: #888;
+        }
+
+        .wa-icon {
+          font-size: 18px;
+          color: #25d366;
+        }
+      }
+    }
+  }
+}
+
+
 @keyframes fadeIn {
   from {
     opacity: 0;

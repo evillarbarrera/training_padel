@@ -24,7 +24,26 @@
   <!-- Main Content -->
   <div class="dashboard-container">
 
-    <!-- Performance Summary (Integrated Metrics) -->
+    <!-- LIVE CLASS BANNER (Feature 2) -->
+    <div class="live-class-banner animate-up" *ngIf="claseActual" (click)="goToAgenda()">
+      <div class="live-status">
+        <span class="pulse-dot"></span>
+        LIVE: CLASE EN CURSO
+      </div>
+      <div class="live-body">
+        <div class="live-info">
+          <h3>{{ claseActual.titulo }}</h3>
+          <p>{{ claseActual.subtitulo }} ({{ claseActual.hora }})</p>
+        </div>
+        <div class="live-actions">
+           <ion-button fill="clear" color="dark" class="action-circle" (click)="marcarAsistenciaLive(); $event.stopPropagation()">
+             <ion-icon name="checkmark-done-circle-outline"></ion-icon>
+           </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Summary -->
     <div class="metrics-dashboard animate-up">
       <div class="metric-item highlight animate-pulse clickable-metric" (click)="goToAgenda()">
         <div class="metric-top">
@@ -41,6 +60,26 @@
       <div class="metric-item">
         <span class="metric-value">{{ stats.clases_mes }}</span>
         <span class="metric-label">Clases<br>del Mes</span>
+      </div>
+    </div>
+
+    <!-- PAYMENT REMINDERS (Feature 3) -->
+    <div class="payment-reminders-section animate-up" style="animation-delay: 0.1s;" *ngIf="alumnosRecordatorioList.length > 0">
+      <div class="section-header-compact">
+        <h4 class="mini-title">RENOVAR PACKS</h4>
+        <ion-badge color="danger" class="mini-badge">{{ alumnosRecordatorioList.length }}</ion-badge>
+      </div>
+      <div class="reminders-scroll">
+        <div class="reminder-chip" *ngFor="let a of alumnosRecordatorioList" (click)="sendWhatsAppReminder(a)">
+           <div class="chip-left">
+             <ion-icon name="alert-circle-outline" class="alert-icon"></ion-icon>
+             <span class="name">{{ a.nombre }}</span>
+           </div>
+           <div class="chip-right">
+             <span class="count">{{ a.clases_disponibles }}</span>
+             <ion-icon name="logo-whatsapp" class="wa-icon"></ion-icon>
+           </div>
+        </div>
       </div>
     </div>
 
@@ -90,6 +129,20 @@
       </div>
     </div>
 
+    <!-- POINT 5: IA COACHING TIP (Relocated) -->
+    <div class="ia-tip-banner animate-up" style="animation-delay: 0.1s;">
+      <div class="tip-content">
+        <div class="tip-header">
+          <ion-icon name="flash-outline"></ion-icon>
+          <span>TIP DE COACHING IA</span>
+        </div>
+        <p>"{{ iaTip }}"</p>
+      </div>
+    </div>
+
+
+
+
     <!-- Modules Grid -->
     <div class="modules-column animate-up" style="animation-delay: 0.2s;">
 
@@ -129,27 +182,65 @@
         </div>
       </div>
 
-      <!-- Cupones Card -->
-      <div class="nike-card module-card" (click)="goToCupones()">
-        <img src="/assets/perfil-bg.jpg" class="module-img" />
-        <div class="module-body">
-          <div class="module-text">
-            <h3>Cupones de Descuento</h3>
-            <p>Gestiona códigos y promociones</p>
-          </div>
-          <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
-        </div>
-      </div>
-
     </div>
   </div>
 
   <!-- Settings FAB -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button class="nike-fab" (click)="openSettings()">
-      <ion-icon name="person-outline"></ion-icon>
+    <ion-fab-button class="nike-fab" (click)="isControlCenterOpen = true">
+      <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>
+
+  <!-- Control Center Modal (Feature Improvement) -->
+  <ion-modal [isOpen]="isControlCenterOpen" (didDismiss)="isControlCenterOpen = false" 
+    initialBreakpoint="0.65" [breakpoints]="[0, 0.65]" class="control-center-modal">
+    <ng-template>
+      <ion-content class="control-center-content">
+        <div class="drag-handle"></div>
+        <div class="modal-header-nike">
+          <h2>CENTRO DE CONTROL</h2>
+          <p>GESTIÓN DEL ENTRENADOR</p>
+        </div>
+
+        <div class="control-grid">
+          <!-- Perfil e Información -->
+          <div class="grid-item" (click)="onControlItemClick('/perfil')">
+            <div class="icon-circle profile"><ion-icon name="person-outline"></ion-icon></div>
+            <span>Mi Perfil</span>
+          </div>
+
+          <div class="grid-item" (click)="onControlItemClick('/disponibilidad-entrenador')">
+            <div class="icon-circle time"><ion-icon name="time-outline"></ion-icon></div>
+            <span>Horarios</span>
+          </div>
+
+          <!-- Ventas y Packs (Feature Request) -->
+          <div class="grid-item highlights" (click)="onControlItemClick('/alumnos?filter=renovacion')">
+            <div class="icon-circle renovaciones"><ion-icon name="alert-circle-outline"></ion-icon></div>
+            <span>Renovaciones</span>
+          </div>
+
+
+          <div class="grid-item" (click)="onControlItemClick('/entrenador-cupones')">
+            <div class="icon-circle coupon"><ion-icon name="gift-outline"></ion-icon></div>
+            <span>Cupones</span>
+          </div>
+
+          <div class="grid-item" (click)="onControlItemClick('/entrenador-mi-plan')">
+            <div class="icon-circle plan"><ion-icon name="card-outline"></ion-icon></div>
+            <span>Mi Plan</span>
+          </div>
+
+          <!-- Salida -->
+          <div class="grid-item danger" (click)="onControlItemClick('logout')">
+            <div class="icon-circle logout"><ion-icon name="log-out-outline"></ion-icon></div>
+            <span>Cerrar Sesión</span>
+          </div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 
   <!-- Notifications Modal -->
   <ion-modal [isOpen]="isNotificacionesOpen" (didDismiss)="closeNotificaciones()"
@@ -216,6 +307,54 @@
           </div>
         </div>
 
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+
+  <!-- Point 4: Finance Modal (New) -->
+  <ion-modal [isOpen]="isFinanceOpen" (didDismiss)="isFinanceOpen = false" 
+    initialBreakpoint="0.6" [breakpoints]="[0, 0.6, 0.8]" class="finance-modal">
+    <ng-template>
+      <ion-content class="finance-content">
+        <div class="drag-handle"></div>
+        <div class="modal-header-nike">
+          <h2 class="premium-title">RESUMEN MENSUAL</h2>
+          <p class="premium-subtitle">PROYECCIÓN DE INGRESOS</p>
+        </div>
+
+        <div class="finance-section static">
+          <div class="finance-card-premium">
+            <div class="finance-header">
+              <div class="main-stat">
+                <span class="label">Total Recaudado</span>
+                <span class="value main-value">{{ ingresosRecaudados | currency:'CLP':'$':'1.0-0' }}</span>
+              </div>
+              <div class="percentage-badge" *ngIf="ingresosProyectados > 0">
+                {{ (ingresosRecaudados / ingresosProyectados) * 100 | number:'1.0-0' }}%
+              </div>
+            </div>
+
+            <div class="progress-container">
+              <div class="progress-bar" [style.width.%]="ingresosProyectados > 0 ? (ingresosRecaudados / ingresosProyectados) * 100 : 0"></div>
+            </div>
+
+            <div class="finance-footer-stats">
+              <div class="sub-stat">
+                <span class="sub-label">Proyectado</span>
+                <span class="sub-value">{{ ingresosProyectados | currency:'CLP':'$':'1.0-0' }}</span>
+              </div>
+              <div class="sub-stat text-right">
+                <span class="sub-label">Por Cobrar</span>
+                <span class="sub-value pending">{{ (ingresosProyectados - ingresosRecaudados) | currency:'CLP':'$':'1.0-0' }}</span>
+              </div>
+            </div>
+          </div>
+          <p class="finance-disclaimer">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            Cálculo basado en packs activos e inscripciones del mes actual.
+          </p>
+        </div>
       </ion-content>
     </ng-template>
   </ion-modal>

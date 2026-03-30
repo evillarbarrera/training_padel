@@ -1085,6 +1085,9 @@ export class JugadorReservasPage implements OnInit {
                 next: () => {
                   loader.dismiss();
                   this.notificationService.notificarReservaCreada(this.jugadorId, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
+                  if (this.selectedEntrenador) {
+                    this.notificationService.notificarReservaACoach(this.selectedEntrenador, this.jugadorNombre || 'Un alumno', payload.fecha, payload.hora_inicio);
+                  }
                   this.notificationService.programarRecordatorio(this.jugadorId, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
                   this.mostrarToast('✅ Reserva guardada correctamente');
                   this.onEntrenadorChange();

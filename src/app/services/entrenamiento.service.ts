@@ -18,15 +18,15 @@ export class EntrenamientoService {
   }
 
   getPacksJugador() {
-    return this.http.get<any[]>(`${this.api}/packs/jugador`);
+    return this.http.get<any[]>(`${this.api}/packs/jugador`, { headers: this.getHeaders() });
   }
 
   getHorariosProfesor(profesorId: number) {
-    return this.http.get<any[]>(`${this.api}/profesores/${profesorId}/horarios`);
+    return this.http.get<any[]>(`${this.api}/profesores/${profesorId}/horarios`, { headers: this.getHeaders() });
   }
 
   agendarEntrenamiento(data: any) {
-    return this.http.post(`${this.api}/entrenamientos/agendar`, data);
+    return this.http.post(`${this.api}/entrenamientos/agendar`, data, { headers: this.getHeaders() });
   }
 
   addDisponibilidad(data: any): Observable<any> {
@@ -96,6 +96,13 @@ export class EntrenamientoService {
     return this.http.post<any>(
       `${this.api}/disponibilidad/save_config.php`,
       payload,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getFinanzas(entrenadorId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.api}/entrenador/get_finanzas.php?entrenador_id=${entrenadorId}`,
       { headers: this.getHeaders() }
     );
   }
