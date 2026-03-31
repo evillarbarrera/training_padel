@@ -265,14 +265,32 @@ export class EntrenadorHomePage {
   }
 
   generateIATip() {
-    const tips = [
-      "El clima está húmedo hoy, recuerda a tus alumnos que la bola pesará más en el revés.",
-      "Excelente día para trabajar voleas bajas, la superficie está rápida.",
-      "Motiva a tus alumnos a hidratarse un 20% más si la temperatura sube de 25°C.",
-      "Enfoque de hoy: Recordar la importancia de la 'bandeja' en defensa armada.",
-      "Tip: El 70% de los errores no forzados en alumnos nivel medio vienen de mala posición de pies."
-    ];
-    this.iaTip = tips[Math.floor(Math.random() * tips.length)];
+    const token = localStorage.getItem('token');
+    fetch(`${environment.apiUrl}/ia/get_tip_frontend.php`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'X-Authorization': `Bearer ${token}`
+      }
+    })
+      .then(res => res.json())
+      .then(res => {
+        if (res && res.tips && res.tips.length > 0) {
+          // Select the first tip
+          const mainTip = res.tips[0];
+          this.iaTip = `${mainTip.titulo}: ${mainTip.mensaje}`;
+        } else if (res && res.mensaje) {
+          this.iaTip = `${res.titulo}: ${res.mensaje}`;
+        }
+      })
+      .catch(err => {
+        console.warn('Error fetching IA tip:', err);
+        const fallbacks = [
+          "El clima está húmedo hoy, recuerda a tus alumnos que la bola pesará más en el revés.",
+          "Excelente día para trabajar voleas bajas, la superficie está rápida.",
+          "Tip: El 70% de los errores no forzados en alumnos nivel medio vienen de mala posición de pies."
+        ];
+        this.iaTip = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+      });
   }
 
   loadDashboardStats(userId: number) {

@@ -19,7 +19,8 @@ import {
   albumsOutline, barbellOutline, personOutline, close,
   calendarNumberOutline, trophyOutline, barChartOutline,
   sparklesOutline, videocamOutline, chevronDownOutline, locationOutline,
-  notificationsOutline, closeOutline
+  notificationsOutline, closeOutline, ribbonOutline, lockClosedOutline,
+  chevronForwardOutline
 } from 'ionicons/icons';
 import { ActionSheetController, LoadingController, AlertController } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
@@ -68,6 +69,14 @@ export class JugadorHomePage implements OnInit {
   showTipsInfo = true;
   isNotificacionesOpen = false;
 
+  // Achievements
+  logros: any[] = [];
+  logrosDesbloqueados = 0;
+  logrosTotal = 0;
+  logrosPorcentaje = 0;
+  showAchievementToast = false;
+  achievementToast: any = null;
+
   modalPacksOpen = false;
 
   constructor(
@@ -97,7 +106,10 @@ export class JugadorHomePage implements OnInit {
       chevronDownOutline,
       locationOutline,
       notificationsOutline,
-      closeOutline
+      closeOutline,
+      ribbonOutline,
+      lockClosedOutline,
+      chevronForwardOutline
     });
   }
 
@@ -162,6 +174,19 @@ export class JugadorHomePage implements OnInit {
           this.sinDireccion = !user.direccion || user.direccion.trim().length < 3;
         }
       }
+    });
+
+    // Fetch Achievements
+    this.mysqlService.getLogros(userId).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.logros = res.logros || [];
+          this.logrosDesbloqueados = res.desbloqueados || 0;
+          this.logrosTotal = res.total || 0;
+          this.logrosPorcentaje = res.porcentaje || 0;
+        }
+      },
+      error: (err) => console.error('Error loading logros:', err)
     });
 
     // Fetch Daily Tip from AI
@@ -335,5 +360,23 @@ export class JugadorHomePage implements OnInit {
 
   closeNotificaciones() {
     this.isNotificacionesOpen = false;
+  }
+
+  goToLogros() {
+    this.router.navigate(['/mis-logros']);
+  }
+
+  showAchievementUnlocked(logro: any) {
+    this.achievementToast = logro;
+    this.showAchievementToast = true;
+    setTimeout(() => {
+      this.showAchievementToast = false;
+      this.achievementToast = null;
+    }, 4500);
+  }
+
+  dismissAchievementToast() {
+    this.showAchievementToast = false;
+    this.achievementToast = null;
   }
 }

@@ -14,7 +14,7 @@ import {
 import { addIcons } from 'ionicons';
 import {
     chevronBackOutline, calendarOutline, timeOutline, checkmarkCircleOutline,
-    closeOutline, personCircleOutline, addCircleOutline, trashOutline, createOutline
+    closeOutline, personCircleOutline, addCircleOutline, trashOutline, createOutline, addOutline
 } from 'ionicons/icons';
 import { environment } from 'src/environments/environment';
 
@@ -124,7 +124,7 @@ export class EntrenadorAgendarPage implements OnInit {
     ) {
         addIcons({
             chevronBackOutline, calendarOutline, timeOutline, checkmarkCircleOutline,
-            closeOutline, personCircleOutline, addCircleOutline, trashOutline, createOutline
+            closeOutline, personCircleOutline, addCircleOutline, trashOutline, createOutline, addOutline
         });
     }
 
@@ -137,7 +137,7 @@ export class EntrenadorAgendarPage implements OnInit {
     generarDias() {
         const today = new Date();
         this.diasAgenda = [];
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 14; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() + i);
             this.diasAgenda.push(d);
@@ -147,13 +147,17 @@ export class EntrenadorAgendarPage implements OnInit {
 
     loadBasics() {
         this.entrenamientoService.getMisAlumnos(this.entrenadorId).subscribe(res => {
-            this.alumnos = res.map(a => {
-                let foto = a.jugador_foto;
-                if (!foto || foto.includes('placeholder') || foto.includes('imagen_defecto')) {
-                    foto = `https://ui-avatars.com/api/?name=${encodeURIComponent(a.jugador_nombre)}&background=ccff00&color=000&length=2&rounded=true&bold=true&size=128`;
+            const uniqueAlumnos = new Map();
+            res.forEach((a: any) => {
+                if (!uniqueAlumnos.has(a.jugador_id)) {
+                    let foto = a.jugador_foto;
+                    if (!foto || foto.includes('placeholder') || foto.includes('imagen_defecto')) {
+                        foto = `https://ui-avatars.com/api/?name=${encodeURIComponent(a.jugador_nombre)}&background=ccff00&color=000&length=2&rounded=true&bold=true&size=128`;
+                    }
+                    uniqueAlumnos.set(a.jugador_id, { ...a, jugador_foto: foto, pack_nombre: a.pack_nombres || a.pack_nombre });
                 }
-                return { ...a, jugador_foto: foto, pack_nombre: a.pack_nombres || a.pack_nombre };
             });
+            this.alumnos = Array.from(uniqueAlumnos.values());
         });
 
         this.entrenamientoService.getPacks(this.entrenadorId).subscribe(res => this.packsDisponibles = res);
@@ -215,6 +219,7 @@ export class EntrenadorAgendarPage implements OnInit {
                 ocupado: true,
                 reserva_id: a.reserva_id || a.id,
                 jugador_nombre: a.jugador_nombre || a.nombre_jugador,
+                jugador_foto: a.jugador_foto || a.foto_jugador || a.jugador_imagen,
                 reserva_tipo: a.pack_nombre || a.tipo,
                 club_id: a.club_id,
                 club_nombre: a.club_nombre,
@@ -335,16 +340,13 @@ export class EntrenadorAgendarPage implements OnInit {
         if (!this.planificacionId) return;
         
         this.isLoading = true;
-        // Adding getMallaById manually below since it's missing in service. Let's just use what's available or rely on the backend.
-        // Actually, we added getMallaById to EntrenamientoService... wait no, we only added some.
-        // Let's implement it.
-        const headers = (this.entrenamientoService as any).getHeaders();
-        fetch(`${environment.apiUrl}/mallas/get_mallas.php?id=${this.planificacionId}`, {
-            headers: headers
-        }).then(res => res.json()).then(res => {
-            this.clasesDisponibles = res.clases || [];
-            this.isLoading = false;
-        }).catch(() => this.isLoading = false);
+        this.entrenamientoService.getMallaById(this.planificacionId).subscribe({
+            next: (res: any) => {
+                this.clasesDisponibles = res.clases || [];
+                this.isLoading = false;
+            },
+            error: () => this.isLoading = false
+        });
     }
 
     onClaseChange() {
@@ -377,8 +379,9 @@ export class EntrenadorAgendarPage implements OnInit {
             next: (resP: any) => {
                 const payloadReserva: any = {
                     entrenador_id: this.entrenadorId,
-                    pack_id: (this.packAAsignar ? (this.packAAsignar.id || this.packAAsignar.pack_id) : (this.alumnoSeleccionado?.pack_id || 0)) || null,
-                    pack_jugador_id: resP.pack_jugador_id || null,
+                    // Corregido: nunca enviar null, enviar 0 si no hay pack para evitar error en el backend
+                    pack_id: (this.packAAsignar ? (this.packAAsignar.id || this.packAAsignar.pack_id) : (this.alumnoSeleccionado?.pack_id || 0)) || 0,
+                    pack_jugador_id: resP.pack_jugador_id || (this.alumnoSeleccionado?.pack_jugador_id || null),
                     fecha: this.selectedSlot.dateStr,
                     hora_inicio: this.selectedSlot.hour,
                     hora_fin: this.getHoraFin(this.selectedSlot.hour),

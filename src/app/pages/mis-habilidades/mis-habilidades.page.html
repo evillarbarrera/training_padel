@@ -3,16 +3,17 @@
         <ion-refresher-content></ion-refresher-content>
     </ion-refresher>
 
-    <!-- Hero Header -->
-    <div class="header-nike">
-        <div class="header-overlay"></div>
-        <div class="header-content-wrapper">
-            <div class="avatar-circle">
-                <img [src]="jugadorFoto || 'assets/avatar.png'" alt="Avatar" />
+    <!-- V2 Header (Professional / Minimalist) -->
+    <div class="header-v2 animate-fade">
+        <div class="h-text">
+            <p>ANÁLISIS TÉCNICO ELITE</p>
+            <div class="h-title-row">
+                <h1>{{ jugadorNombre }}</h1>
             </div>
-            <div class="header-text">
-                <p class="welcome-pre">ANÁLISIS TÉCNICO ELITE</p>
-                <h1 class="header-title">{{ jugadorNombre }}</h1>
+        </div>
+        <div class="h-actions">
+            <div class="h-avatar">
+                <img [src]="jugadorFoto || 'assets/avatar.png'" alt="Avatar" />
             </div>
         </div>
     </div>

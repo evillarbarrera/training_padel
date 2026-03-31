@@ -1132,6 +1132,7 @@ ion-modal.notifications-modal {
         }
 
         &.profile { background: #f2f2f7; ion-icon { color: #2ecc71; } }
+        &.calendar { background: rgba(204, 255, 0, 0.15); ion-icon { color: #000; } }
         &.time { background: #f2f2f7; ion-icon { color: #3498db; } }
         &.renovaciones { background: rgba(255, 59, 48, 0.1); ion-icon { color: #ff3b30; } }
         &.coupon { background: #f2f2f7; ion-icon { color: #e67e22; } }

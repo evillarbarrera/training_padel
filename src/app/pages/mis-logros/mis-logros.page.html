@@ -1,0 +1,85 @@
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Header -->
+  <div class="logros-header-hero">
+    <div class="header-overlay"></div>
+    <div class="header-content">
+      <ion-button fill="clear" class="back-btn" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+      <div class="header-text">
+        <p class="header-pre">PROGRESO PERSONAL</p>
+        <h1>MIS LOGROS</h1>
+      </div>
+    </div>
+
+    <!-- Big Progress Circle -->
+    <div class="progress-hero">
+      <div class="progress-ring">
+        <svg viewBox="0 0 120 120" width="120" height="120">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
+          <circle cx="60" cy="60" r="52" fill="none" stroke="#CCFF00" stroke-width="8"
+            stroke-linecap="round"
+            [attr.stroke-dasharray]="326.7"
+            [attr.stroke-dashoffset]="326.7 - (326.7 * porcentaje / 100)"
+            transform="rotate(-90,60,60)"
+            style="transition: stroke-dashoffset 1.5s cubic-bezier(0.16,1,0.3,1)" />
+        </svg>
+        <div class="progress-text">
+          <span class="progress-number">{{ desbloqueados }}</span>
+          <span class="progress-divider">/{{ total }}</span>
+        </div>
+      </div>
+      <p class="progress-label">{{ porcentaje }}% COMPLETADO</p>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  <div class="logros-body">
+    <div class="categoria-section" *ngFor="let cat of categorias">
+      <div class="categoria-header">
+        <span class="cat-icon">{{ cat.icon }}</span>
+        <span class="cat-label">{{ cat.label }}</span>
+        <span class="cat-count">
+          {{ getUnlockedCount(cat.key) }}/{{ getByCategoria(cat.key).length }}
+        </span>
+      </div>
+
+      <div class="logro-card"
+        *ngFor="let logro of getByCategoria(cat.key)"
+        [class.unlocked]="logro.desbloqueado"
+        [class.locked]="!logro.desbloqueado"
+        [style.--badge-color]="logro.color_badge">
+
+        <div class="logro-icon-box">
+          <span class="logro-emoji">{{ logro.icono }}</span>
+        </div>
+
+        <div class="logro-info">
+          <div class="logro-top">
+            <span class="logro-nombre">{{ logro.nombre }}</span>
+            <span class="logro-status" *ngIf="logro.desbloqueado">✅</span>
+            <span class="logro-status locked" *ngIf="!logro.desbloqueado">🔒</span>
+          </div>
+          <p class="logro-desc">{{ logro.descripcion }}</p>
+
+          <!-- Progress bar for locked -->
+          <div class="logro-progress" *ngIf="!logro.desbloqueado">
+            <div class="logro-progress-bar">
+              <div class="logro-progress-fill" [style.width.%]="getProgressPercent(logro)"></div>
+            </div>
+            <span class="logro-progress-text">{{ logro.progreso_actual }}/{{ logro.progreso_requerido }}</span>
+          </div>
+
+          <!-- Date for unlocked -->
+          <span class="logro-fecha" *ngIf="logro.desbloqueado && logro.fecha_desbloqueo">
+            {{ logro.fecha_desbloqueo | date:'d MMM yyyy' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

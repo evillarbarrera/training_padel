@@ -288,10 +288,13 @@ ion-content {
   display: flex;
   align-items: stretch;
   justify-content: space-between;
-  padding: 30px 15px;
+  padding: 24px 20px;
   background: #ffffff;
-  border-bottom: 8px solid #f8f8fa;
+  border-radius: 28px;
+  border: 1px solid rgba(0,0,0,0.03);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
   margin-bottom: 25px;
+  margin-top: 10px;
 
   .metric-item {
     flex: 1;
@@ -299,7 +302,7 @@ ion-content {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 10px;
+    padding: 6px 4px;
     border-radius: 20px;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -332,7 +335,7 @@ ion-content {
         gap: 2px;
 
         .btn-chevron {
-          font-size: 14px;
+          font-size: 12px;
           color: #ccff00;
           background: #000;
           border-radius: 50%;
@@ -343,12 +346,12 @@ ion-content {
     }
 
     .metric-value {
-      font-size: 32px;
+      font-size: 24px;
       font-weight: 950;
       color: #000;
       line-height: 1;
-      margin-bottom: 8px;
-      letter-spacing: -1.2px;
+      margin-bottom: 4px;
+      letter-spacing: -1px;
     }
 
     .metric-label {
@@ -839,6 +842,697 @@ ion-modal.custom-bottom-sheet {
       margin: 0;
       font-size: 15px;
       font-weight: 600;
+    }
+  }
+}
+
+/* ═══════════════════════════════════════ */
+/* 🏅 LOGROS WIDGET                       */
+/* ═══════════════════════════════════════ */
+.logros-widget {
+  background: #f8f8fa;
+  border-radius: 24px;
+  padding: 14px 16px;
+  margin-bottom: 15px;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  .logros-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+
+    .logros-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      ion-icon {
+        font-size: 18px;
+        color: #000;
+      }
+
+      .logros-title {
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 1.5px;
+        color: #000;
+      }
+    }
+
+    .logros-meta {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      .logros-count {
+        font-size: 13px;
+        font-weight: 800;
+        color: #8e8e93;
+      }
+
+      .logros-arrow {
+        font-size: 16px;
+        color: #c7c7cc;
+      }
+    }
+  }
+
+  .logros-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 4px 0 12px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .logro-badge {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+
+    .logro-icono {
+      font-size: 18px;
+      z-index: 1;
+    }
+
+    .logro-lock {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      font-size: 10px;
+      z-index: 2;
+    }
+
+    &.unlocked {
+      background: rgba(0, 0, 0, 0.06);
+      border: 2px solid var(--badge-color, #CCFF00);
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.05),
+        inset 0 0 8px rgba(255, 255, 255, 0.3);
+      animation: badgeGlow 3s ease-in-out infinite;
+
+      .logro-icono {
+        animation: badgePulse 3s ease-in-out infinite;
+      }
+    }
+
+    &.locked {
+      background: #ededed;
+      border: 2px solid #e0e0e0;
+      opacity: 0.5;
+
+      .logro-icono {
+        filter: grayscale(100%);
+        opacity: 0.4;
+      }
+    }
+  }
+
+  .logros-progress-bar {
+    height: 4px;
+    background: #e5e5ea;
+    border-radius: 2px;
+    overflow: hidden;
+
+    .logros-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ccff00, #a8e600);
+      border-radius: 2px;
+      transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  }
+}
+
+@keyframes badgeGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 0, 0, 0.05); }
+  50% { box-shadow: 0 0 16px var(--badge-color, rgba(204, 255, 0, 0.4)); }
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+/* ═══════════════════════════════════════ */
+/* 🏅 ACHIEVEMENT TOAST                   */
+/* ═══════════════════════════════════════ */
+.achievement-toast-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 99999;
+  padding: 60px 20px 0;
+  pointer-events: all;
+  animation: toastSlideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.achievement-toast {
+  background: linear-gradient(135deg, #111 0%, #1a1a2e 100%);
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4),
+    0 0 30px var(--toast-color, rgba(204, 255, 0, 0.2));
+  position: relative;
+  overflow: hidden;
+
+  .toast-glow {
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, var(--toast-color, rgba(204, 255, 0, 0.3)) 0%, transparent 70%);
+    filter: blur(20px);
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+
+  .toast-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+
+    .toast-badge-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid var(--toast-color, #CCFF00);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+      animation: iconBounce 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) both;
+      animation-delay: 0.3s;
+    }
+
+    .toast-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .toast-label {
+        font-size: 9px;
+        font-weight: 950;
+        letter-spacing: 2px;
+        color: var(--toast-color, #CCFF00);
+      }
+
+      .toast-name {
+        font-size: 18px;
+        font-weight: 900;
+        color: #fff;
+        letter-spacing: -0.3px;
+      }
+
+      .toast-desc {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        font-weight: 500;
+      }
+    }
+  }
+
+  .toast-progress {
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    margin-top: 16px;
+    overflow: hidden;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background: var(--toast-color, #CCFF00);
+      animation: progressShrink 4.5s linear both;
+    }
+  }
+}
+
+@keyframes toastSlideDown {
+  from { transform: translateY(-120%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes iconBounce {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+@keyframes progressShrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+/* =========================================================
+   V2 HEADER (DEVELOPMENT) - Premium Image Background
+========================================================= */
+.header-v2 {
+  position: relative;
+  padding: 60px 20px 80px; /* Extra bottom padding for overlap */
+  background: url('/assets/fondo-padel.png') center/cover no-repeat;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 1;
+  border-bottom-left-radius: 30px;
+  border-bottom-right-radius: 30px;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 100%);
+    z-index: 0;
+  }
+
+  .h-text, .h-actions {
+    position: relative;
+    z-index: 2;
+  }
+
+  .h-text {
+    flex: 1;
+    p {
+      margin: 0 0 6px;
+      font-size: 11px;
+      color: #CCFF00;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .h-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 220px;
+
+      h1 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 950;
+        letter-spacing: -0.5px;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .h-wave { font-size: 20px; flex-shrink: 0; }
+    }
+  }
+
+  .h-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    .h-notif {
+      position: relative;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+
+      ion-icon { font-size: 22px; color: #fff; }
+      
+      .h-dot {
+        position: absolute;
+        top: 10px; right: 12px;
+        width: 8px; height: 8px;
+        background: #ff3b30;
+        border-radius: 50%;
+        box-shadow: 0 0 0 2px rgba(0,0,0,0.5);
+      }
+    }
+
+    .h-avatar {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #000;
+      border: 2px solid #CCFF00;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+
+      img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+      }
+    }
+  }
+}
+
+
+/* =========================================================
+   V2 DASHBOARD (DEVELOPMENT) - NIKE RUN CLUB STYLE
+========================================================= */
+.dashboard-v2 {
+  padding: 0 15px 40px;
+  margin-top: -40px; /* Overlap header gracefully */
+  position: relative;
+  z-index: 10;
+}
+
+.v2-title {
+  font-size: 16px;
+  font-weight: 950;
+  letter-spacing: -0.5px;
+  color: #000;
+  margin: 0;
+
+  &.section-mt {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    padding-left: 5px;
+  }
+}
+
+/* -- PRÓXIMA CLASE V2 (Sleek White Card) -- */
+.next-class-v2 {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:active { transform: scale(0.97); }
+
+  .nc-icon-badge {
+    width: 48px; height: 48px;
+    border-radius: 16px;
+    background: rgba(204, 255, 0, 0.15);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 22px;
+      color: #99eb00; /* Darker lime to stand out on white */
+    }
+  }
+
+  .nc-content {
+    flex: 1;
+    min-width: 0;
+
+    .nc-tag {
+      font-size: 9px;
+      font-weight: 900;
+      color: #8e8e93;
+      letter-spacing: 1.5px;
+      margin-bottom: 4px;
+    }
+
+    .nc-date {
+      font-size: 15px;
+      font-weight: 800;
+      color: #000;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+
+    .nc-coach {
+      font-size: 12px;
+      color: #8e8e93;
+      font-weight: 600;
+      display: flex; align-items: center; gap: 4px;
+
+      ion-icon { color: #c7c7cc; }
+    }
+  }
+
+  .nc-arrow {
+    font-size: 20px;
+    color: #c7c7cc;
+    padding-left: 5px;
+  }
+}
+
+/* -- TU PROGRESO V2 -- */
+.progress-v2 {
+  background: #fff;
+  border-radius: 30px;
+  padding: 25px 22px;
+  box-shadow: 0 15px 45px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.05);
+  margin-bottom: 25px;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 60px;
+    background: linear-gradient(to bottom, rgba(204, 255, 0, 0.03) 0%, transparent 100%);
+    border-radius: 30px 30px 0 0;
+    pointer-events: none;
+  }
+
+  .p-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    .p-pts {
+      background: #CCFF00;
+      color: #000;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 900;
+    }
+  }
+
+  .p-metrics {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+
+    .p-metric-item {
+      flex: 1;
+      background: #f8f8fa;
+      border-radius: 16px;
+      padding: 12px 5px;
+      text-align: center;
+      transition: all 0.2s ease;
+
+      &.highlight {
+        background: #000;
+        color: #CCFF00;
+        .m-val { color: #CCFF00; }
+        .m-lbl { color: rgba(255,255,255,0.7); }
+      }
+
+      .m-val {
+        font-size: 20px;
+        font-weight: 950;
+        line-height: 1;
+        margin-bottom: 6px;
+        color: #000;
+      }
+      .m-lbl {
+        font-size: 10px;
+        font-weight: 800;
+        line-height: 1.2;
+        color: #8e8e93;
+        text-transform: uppercase;
+      }
+    }
+  }
+
+  .p-divider {
+    height: 1px;
+    background: #f2f2f7;
+    margin: 0 -20px 20px;
+  }
+
+  .p-logros-section {
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    transition: transform 0.2s ease;
+
+    &:active { transform: scale(0.98); }
+
+    .p-l-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 800;
+      color: #8e8e93;
+      margin-bottom: 8px;
+    }
+
+    .p-l-bar {
+      height: 4px;
+      background: #e5e5ea;
+      border-radius: 2px;
+      margin-bottom: 12px;
+      overflow: hidden;
+
+      .p-l-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #CCFF00, #99eb00);
+        border-radius: 2px;
+      }
+    }
+
+    .p-l-badges {
+      display: flex;
+      gap: 6px;
+
+      .mini-badge {
+        width: 28px; height: 28px;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(0,0,0,0.03);
+        border: 1px solid var(--bc);
+        font-size: 14px;
+
+        &.locked {
+          background: #ededed;
+          border-color: #e0e0e0;
+          opacity: 0.5;
+          filter: grayscale(100%);
+        }
+      }
+
+      .mini-badge-more {
+        width: 28px; height: 28px;
+        border-radius: 8px;
+        background: #e5e5ea;
+        color: #8e8e93;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 10px; font-weight: 800;
+      }
+    }
+  }
+}
+
+/* -- ACCIONES RAPIDAS V2 -- */
+.actions-grid-v2 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+
+  .action-btn-v2 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    
+    &:active .a-icon { transform: scale(0.92); background: #e0e0e5; }
+
+    .a-icon {
+      width: 54px; height: 54px;
+      border-radius: 18px;
+      background: #f2f2f7;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s ease;
+
+      &.bg-blue { background: rgba(0, 122, 255, 0.1); ion-icon { color: #007aff; } }
+      &.bg-green { background: rgba(52, 199, 89, 0.1); ion-icon { color: #34c759; } }
+      &.bg-purple { background: rgba(175, 82, 222, 0.1); ion-icon { color: #af52de; } }
+      &.bg-orange { background: rgba(255, 149, 0, 0.1); ion-icon { color: #ff9500; } }
+
+      ion-icon {
+        font-size: 24px;
+      }
+    }
+
+    span {
+      font-size: 10px;
+      font-weight: 800;
+      color: #000;
+      letter-spacing: -0.2px;
+    }
+  }
+}
+
+/* -- DAILY TIP V2 -- */
+.daily-tip-v2 {
+  margin-bottom: 25px;
+  background: linear-gradient(135deg, #f8f8fa 0%, #fff 100%);
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+  border: 1px solid rgba(0,0,0,0.02);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+
+  .t-icon {
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    background: #CCFF00;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+
+    ion-icon { font-size: 20px; color: #000; }
+  }
+
+  .t-content {
+    .t-badge {
+      font-size: 9px;
+      font-weight: 950;
+      color: rgba(0,0,0,0.4);
+      letter-spacing: 1px;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    h4 {
+      margin: 0 0 4px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #000;
+    }
+
+    p {
+      margin: 0;
+      font-size: 12px;
+      color: #8e8e93;
+      line-height: 1.35;
+      font-weight: 500;
     }
   }
 }

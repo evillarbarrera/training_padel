@@ -198,4 +198,8 @@ export class MysqlService {
       headers: this.getHeaders()
     });
   }
+
+  getLogros(jugadorId: number): Observable<any> {
+    return this.http.get<any>(`${this.api}/logros/get_logros.php?jugador_id=${jugadorId}`, { headers: this.getHeaders() });
+  }
 }

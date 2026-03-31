@@ -1,15 +1,22 @@
 <ion-content>
-    <div class="header-nike">
-        <div class="header-overlay"></div>
-        <div class="header-content">
-            <h1 class="header-title">Agenda Trainer</h1>
-            <p class="header-sub">Gestión fácil de horarios</p>
+    <div class="header-v2 animate-fade">
+        <div class="h-text">
+            <p>GESTIÓN DE EQUIPO</p>
+            <div class="h-title-row">
+                <h1>Agenda Trainer</h1>
+            </div>
+        </div>
+        <div class="h-actions">
+            <!-- Posibilidad de avatar o icono de calendario -->
+            <div class="h-avatar">
+                <ion-icon name="calendar-outline" style="font-size: 24px; color: #ccff00;"></ion-icon>
+            </div>
         </div>
     </div>
 
     <div class="dashboard-container">
         <!-- Día Selector -->
-        <h3 class="section-title">Próximos 7 días</h3>
+        <h3 class="section-title legible">Calendario (Siguientes 14 Días)</h3>
         <div class="day-selector-nike">
             <ion-segment [(ngModel)]="diaSeleccionado" (ionChange)="onDiaChange($event)" scrollable mode="md" class="nike-segment-days">
                 <ion-segment-button *ngFor="let d of diasAgenda" [value]="formatDate(d)">
@@ -21,13 +28,15 @@
             </ion-segment>
         </div>
 
-        <!-- Clubes Selector (optional) -->
-        <div *ngIf="clubesDisponibles.length > 1" class="club-selector-wrapper mt-4">
-            <ion-segment [(ngModel)]="selectedClubId" (ionChange)="onClubChange()" mode="ios" class="club-segment">
-                <ion-segment-button *ngFor="let club of clubesDisponibles" [value]="club.id">
-                    <ion-label>{{ club.nombre }}</ion-label>
-                </ion-segment-button>
-            </ion-segment>
+        <!-- Clubes Selector (Toggles Nike Style) -->
+        <div *ngIf="clubesDisponibles.length > 1" class="club-toggle-container">
+            <div class="nike-toggle-track">
+                <div class="nike-toggle-item" *ngFor="let club of clubesDisponibles"
+                     [class.active]="selectedClubId === club.id"
+                     (click)="selectedClubId = club.id; onClubChange()">
+                     {{ club.nombre }}
+                </div>
+            </div>
         </div>
 
         <!-- Slots List -->
@@ -43,23 +52,27 @@
                     <p>No tienes disponibilidad este día.</p>
                 </div>
 
-                <div class="slot-list">
-                    <div class="nike-card slot-card-horizontal" *ngFor="let slot of slotsDisponibles"
-                         [class.ocupado]="slot.ocupado" (click)="seleccionarSlot(slot)">
-                        <div class="time-badge">
-                            {{ slot.time }}
-                        </div>
-                        <div class="slot-details" *ngIf="slot.ocupado">
-                            <h4>{{ slot.jugador_nombre || 'Clase Grupal' }}</h4>
-                            <p class="subtitle">{{ slot.reserva_tipo || 'Reserva' }}</p>
-                            <p class="malla-badge" *ngIf="slot.malla_nombre">
-                                <ion-icon name="create-outline"></ion-icon>
-                                {{ slot.clase_titulo || 'Planificada' }}
-                            </p>
-                        </div>
-                        <div class="slot-details" *ngIf="!slot.ocupado">
-                            <h4 class="free-text">Disponible</h4>
-                            <p class="subtitle">Toca para agendar</p>
+                <div class="slot-grid-circles">
+                    <div class="time-circle" *ngFor="let slot of slotsDisponibles"
+                         [class.ocupado]="slot.ocupado" 
+                         [class.disponible]="!slot.ocupado" 
+                         [class.otro-club]="slot.ocupado && selectedClubId && slot.club_id != selectedClubId"
+                         (click)="seleccionarSlot(slot)">
+                        <div class="circle-content">
+                            <span class="time">{{ slot.time }}</span>
+                            
+                            <!-- Information -->
+                            <div *ngIf="slot.ocupado" class="avatar-badge-wrapper">
+                                <img *ngIf="slot.jugador_foto" [src]="slot.jugador_foto" class="status-avatar">
+                                <ion-icon *ngIf="!slot.jugador_foto" name="person-circle-outline" class="status-icon"></ion-icon>
+                            </div>
+                            
+                            <!-- Label for Other Club -->
+                            <div *ngIf="slot.ocupado && selectedClubId && slot.club_id != selectedClubId" class="club-mini-label">
+                                {{ slot.club_nombre || 'Otro Club' }}
+                            </div>
+
+                            <ion-icon *ngIf="!slot.ocupado" name="add-outline" class="status-icon available"></ion-icon>
                         </div>
                     </div>
                 </div>
@@ -72,7 +85,7 @@
         <ng-template>
             <ion-header class="ion-no-border">
                 <ion-toolbar>
-                    <ion-title>Agendar a las {{ selectedSlot?.hour }}</ion-title>
+                    <ion-title>Agendar {{ selectedSlot?.hour }}</ion-title>
                     <ion-buttons slot="end">
                         <ion-button (click)="cerrarModal()" mode="ios">
                             <ion-icon name="close-outline" size="large" slot="icon-only"></ion-icon>
@@ -84,17 +97,20 @@
             <ion-content class="modal-content-nike">
                 <div class="modal-body pb-safe">
                     <ion-segment [(ngModel)]="tipoClaseSeleccionado" (ionChange)="onTipoClaseChange()" mode="ios" class="nike-segment-periods mt-2">
-                        <ion-segment-button value="individual"><ion-label>Indiv</ion-label></ion-segment-button>
+                        <ion-segment-button value="individual"><ion-label>Individual</ion-label></ion-segment-button>
                         <ion-segment-button value="multijugador"><ion-label>Multi</ion-label></ion-segment-button>
-                        <ion-segment-button value="grupal"><ion-label>Grupo</ion-label></ion-segment-button>
+                        <ion-segment-button value="grupal"><ion-label>Grupal</ion-label></ion-segment-button>
                     </ion-segment>
 
                     <!-- Student Selection -->
-                    <div class="mt-4">
-                        <h3 class="section-title">Añadir Alumnos ({{ alumnosSeleccionados.length }}/{{ maxAlumnos }})</h3>
-                        <ion-searchbar animated="true" placeholder="Busca por nombre..." mode="ios" class="custom-search" [(ngModel)]="filtroAlumnos"></ion-searchbar>
+                    <div class="mt-2">
+                        <div class="flex justify-between items-center mb-1">
+                            <h3 class="section-title legible m-0">Seleccionar Alumnos</h3>
+                            <span class="text-xs font-bold text-gray-400">({{ alumnosSeleccionados.length }}/{{ maxAlumnos }})</span>
+                        </div>
+                        <ion-searchbar animated="true" placeholder="Buscar jugador..." mode="ios" class="nike-search-v2" [(ngModel)]="filtroAlumnos"></ion-searchbar>
                         
-                        <div class="horizontal-scroll-list flex mt-2">
+                        <div class="horizontal-scroll-list flex mt-0">
                             <div class="alumno-chip" *ngFor="let a of alumnosFiltrados" 
                                  [class.selected]="isAlumnoSelected(a)" 
                                  (click)="toggleAlumnoSeleccion(a)">
@@ -105,52 +121,52 @@
                     </div>
 
                     <!-- Pack Assignment -->
-                    <div class="nike-card dark mt-4" *ngIf="mostrarOpcionPack && alumnoSeleccionado">
-                        <ion-item lines="none" style="--background: transparent">
-                            <ion-label class="ion-text-wrap" style="color: white">
-                                <h3>Requiere Asignar Pack</h3>
-                                <p style="color: #aaa">{{ alumnoSeleccionado.jugador_nombre }} no tiene pack activo o la clase es compartida.</p>
-                            </ion-label>
-                        </ion-item>
-                        <ion-item lines="none" style="--background: transparent">
-                            <ion-select [(ngModel)]="packAAsignar" interface="popover" placeholder="Selecciona el pack a cobrar" mode="ios" style="color: #ccff00; width: 100%;">
+                    <div class="nike-card dark mt-4 animate-fade" *ngIf="mostrarOpcionPack && alumnoSeleccionado">
+                        <div class="card-header-v3">
+                            <ion-icon name="alert-circle-outline" slot="start" color="warning"></ion-icon>
+                            <h4>Gestión de Cobro</h4>
+                        </div>
+                        <p class="mb-3">{{ alumnoSeleccionado.jugador_nombre }} no tiene créditos para esta sesión.</p>
+                        
+                        <div class="nike-select-wrapper">
+                            <ion-select [(ngModel)]="packAAsignar" interface="popover" placeholder="Elige el pack para cobrar" mode="ios">
                                 <ion-select-option *ngFor="let p of packsParaTipo" [value]="p">{{ p.nombre }}</ion-select-option>
                             </ion-select>
-                        </ion-item>
+                        </div>
                     </div>
 
                     <!-- Malla / Syllabus -->
                     <div class="nike-card dark mt-4">
-                        <h4 style="padding: 0 16px; color: white;">Planificación Técnica (Opcional)</h4>
-                        <ion-item lines="none" style="--background: transparent">
-                            <ion-select [(ngModel)]="categoriaFiltro" (ionChange)="onCategoriaChange()" interface="popover" mode="ios" style="color: white; width: 100%;">
-                                <ion-select-option value="todos">Cualquier Categoría</ion-select-option>
-                                <ion-select-option value="adulto">Adultos</ion-select-option>
-                                <ion-select-option value="menor">Menores</ion-select-option>
+                        <h4>Planificación Técnica (Opcional)</h4>
+                        <div class="nike-select-wrapper mb-2">
+                            <ion-select [(ngModel)]="categoriaFiltro" (ionChange)="onCategoriaChange()" interface="popover" mode="ios">
+                                <ion-select-option value="todos">Todas las categorías</ion-select-option>
+                                <ion-select-option value="adulto">Malla Adultos</ion-select-option>
+                                <ion-select-option value="menor">Malla Menores</ion-select-option>
                             </ion-select>
-                        </ion-item>
-                        <ion-item lines="none" style="--background: transparent">
-                            <ion-select [(ngModel)]="planificacionId" (ionChange)="onMallaChange()" interface="popover" placeholder="Elige la Malla" mode="ios" style="color: white; width: 100%;">
+                        </div>
+                        <div class="nike-select-wrapper mb-2">
+                            <ion-select [(ngModel)]="planificacionId" (ionChange)="onMallaChange()" interface="popover" placeholder="Selecciona la Malla" mode="ios">
                                 <ion-select-option *ngFor="let m of mallasFiltradas" [value]="m.id">{{ m.nombre }}</ion-select-option>
                             </ion-select>
-                        </ion-item>
-                        <ion-item lines="none" style="--background: transparent" *ngIf="planificacionId">
-                            <ion-select [(ngModel)]="claseMallaId" (ionChange)="onClaseChange()" interface="popover" placeholder="Elige qué clase dar" mode="ios" style="color: #00f2ff; width: 100%;">
-                                <ion-select-option *ngFor="let c of clasesDisponibles" [value]="c.id">({{ c.sesion_numero }}) {{ c.titulo }}</ion-select-option>
+                        </div>
+                        <div class="nike-select-wrapper" *ngIf="planificacionId">
+                            <ion-select [(ngModel)]="claseMallaId" (ionChange)="onClaseChange()" interface="popover" placeholder="Número de sesión" mode="ios">
+                                <ion-select-option *ngFor="let c of clasesDisponibles" [value]="c.id">Sesión {{ c.sesion_numero }}: {{ c.titulo }}</ion-select-option>
                             </ion-select>
-                        </ion-item>
+                        </div>
                     </div>
 
                     <!-- Repetir -->
                     <div class="nike-card dark mt-4">
-                        <ion-item lines="none" style="--background: transparent">
-                            <ion-icon name="repeat-outline" slot="start" style="color: white;"></ion-icon>
-                            <ion-select [(ngModel)]="recurrencia" interface="popover" mode="ios" style="color: white; width: 100%;">
-                                <ion-select-option [value]="1">Para hoy solamente</ion-select-option>
-                                <ion-select-option [value]="2">Semanas: 2 Reservas</ion-select-option>
-                                <ion-select-option [value]="4">Mes: 4 Reservas</ion-select-option>
+                        <div class="nike-select-wrapper">
+                            <ion-icon name="repeat-outline" slot="start" style="color: #666; margin-right: 10px;"></ion-icon>
+                            <ion-select [(ngModel)]="recurrencia" interface="popover" mode="ios">
+                                <ion-select-option [value]="1">Sin recurrencia (Hoy)</ion-select-option>
+                                <ion-select-option [value]="2">2 Reservas semanales</ion-select-option>
+                                <ion-select-option [value]="4">4 Reservas mensuales</ion-select-option>
                             </ion-select>
-                        </ion-item>
+                        </div>
                     </div>
 
                     <div class="mt-4 mb-4" style="text-align: center;">
@@ -180,40 +196,40 @@
             </ion-header>
             <ion-content class="modal-content-nike">
                 <div class="modal-body pb-safe" *ngIf="selectedSlot">
-                    <div class="student-header text-center mt-2">
+                    <div class="student-header text-center">
                         <h2>{{ selectedSlot.slot.jugador_nombre || 'Múltiples Alumnos' }}</h2>
                         <p>{{ selectedSlot.slot.reserva_tipo }}</p>
                     </div>
 
-                    <div class="nike-card dark mt-4" *ngIf="!isEditingDetail">
-                        <h4 style="color: white;">Planificación</h4>
+                    <div class="nike-card dark animate-fade" *ngIf="!isEditingDetail">
+                        <h4>Planificación</h4>
                         <p *ngIf="selectedSlot.slot.malla_nombre" style="color: #00f2ff">{{ selectedSlot.slot.malla_nombre }} - {{ selectedSlot.slot.clase_titulo }}</p>
-                        <p *ngIf="!selectedSlot.slot.malla_nombre" style="color: #aaa">Sin malla técnica asignada.</p>
+                        <p *ngIf="!selectedSlot.slot.malla_nombre">Sin planificación técnica asignada.</p>
                         
-                        <ion-button fill="clear" color="primary" (click)="enableDetailEdit()">
+                        <ion-button fill="clear" (click)="enableDetailEdit()">
                             <ion-icon name="create-outline" slot="start"></ion-icon>
                             Editar Planificación
                         </ion-button>
                     </div>
 
-                    <div class="nike-card dark mt-4" *ngIf="isEditingDetail">
-                        <h4 style="padding: 0 16px; color: white;">Editar Planificación</h4>
-                        <ion-item lines="none" style="--background: transparent">
+                    <div class="nike-card dark animate-fade" *ngIf="isEditingDetail">
+                        <h4 style="color: white; padding-left: 0;">Editar Planificación</h4>
+                        <ion-item lines="none" style="--background: transparent; --padding-start: 0;">
                             <ion-select [(ngModel)]="planificacionId" (ionChange)="onMallaChange()" interface="popover" placeholder="Elige la Malla" mode="ios" style="color: white; width: 100%;">
                                 <ion-select-option *ngFor="let m of mallas" [value]="m.id">{{ m.nombre }}</ion-select-option>
                             </ion-select>
                         </ion-item>
-                        <ion-item lines="none" style="--background: transparent" *ngIf="planificacionId">
+                        <ion-item lines="none" style="--background: transparent; --padding-start: 0;" *ngIf="planificacionId">
                             <ion-select [(ngModel)]="claseMallaId" (ionChange)="onClaseChange()" interface="popover" placeholder="Elige qué clase dar" mode="ios" style="color: #00f2ff; width: 100%;">
                                 <ion-select-option *ngFor="let c of clasesDisponibles" [value]="c.id">({{ c.sesion_numero }}) {{ c.titulo }}</ion-select-option>
                             </ion-select>
                         </ion-item>
                         
-                        <ion-button expand="block" shape="round" color="success" class="mt-4" (click)="saveTechnicalDetail()">Guardar Plan</ion-button>
+                        <ion-button expand="block" shape="round" class="nike-btn outline-success mt-4" (click)="saveTechnicalDetail()">Guardar Plan</ion-button>
                     </div>
 
                     <div class="mt-4 mb-4 text-center">
-                        <ion-button expand="block" color="danger" shape="round" (click)="confirmarCancelacion()">
+                        <ion-button expand="block" fill="solid" class="btn-cancelar-nike" (click)="confirmarCancelacion()">
                             <ion-icon name="trash-outline" slot="start"></ion-icon>
                             Cancelar Reserva
                         </ion-button>

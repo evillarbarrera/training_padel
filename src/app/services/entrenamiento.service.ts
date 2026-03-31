@@ -207,6 +207,13 @@ export class EntrenamientoService {
       headers: this.getHeaders()
     });
   }
+
+  getMallaById(mallaId: number): Observable<any> {
+    return this.http.get(`${this.api}/mallas/get_mallas.php?id=${mallaId}`, {
+      headers: this.getHeaders()
+    });
+  }
 }
+
 
 

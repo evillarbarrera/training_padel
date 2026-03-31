@@ -1,24 +1,45 @@
 /* --- HEADER ESTILO NIKE --- */
-.header-nike {
-    height: 250px;
-    margin-top: -50px;
-    padding-top: calc(50px + var(--ion-safe-area-top));
+.header-v2 {
     position: relative;
-    background: url('/assets/mod-agenda.jpg') center/cover no-repeat;
+    padding: 60px 25px 60px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.8)), url('/assets/mod-agenda.jpg') center/cover no-repeat;
+    border-radius: 0 0 45px 45px;
+    margin-bottom: -30px;
+    z-index: 10;
     display: flex;
-    align-items: flex-end;
-    padding-bottom: 30px;
-    padding-left: 25px;
-    padding-right: 25px;
-    border-radius: 0 0 30px 30px;
-    overflow: hidden;
-}
+    justify-content: space-between;
+    align-items: center;
 
-.header-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7));
-    z-index: 1;
+    .h-text {
+        p {
+            color: #ccff00;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        h1 {
+            color: #fff;
+            font-size: 34px;
+            font-weight: 950;
+            letter-spacing: -2px;
+            margin: 5px 0 0;
+            text-transform: uppercase;
+        }
+    }
+
+    .h-avatar {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
 }
 
 .header-content {
@@ -44,9 +65,15 @@
 
 .dashboard-container {
     padding: 25px 20px 120px;
+    margin-top: -15px; 
+    background: #fff;
+    border-radius: 40px 40px 0 0;
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 20px;
+    position: relative;
+    z-index: 20;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
 }
 
 /* SECTION STRUCTURE */
@@ -425,10 +452,10 @@ ion-toolbar {
     }
 }
 
-/* Fix date visibility */
+/* --- DATE SELECTOR (Smaller & Compact) --- */
 .nike-segment-days {
-    margin: 0 -10px 10px;
-    padding-bottom: 10px;
+    margin: 0 -5px 15px;
+    padding-bottom: 20px;
     --background: transparent;
 
     ion-segment-button {
@@ -436,60 +463,62 @@ ion-toolbar {
         --color: #111;
         --color-checked: #ccff00;
         margin-right: 12px;
-        min-width: 72px;
-        border-radius: 20px;
+        min-width: 62px; 
+        height: 75px; 
+        border-radius: 22px;
         overflow: hidden;
-        border: 2px solid #f2f2f7;
-        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        transition: all 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
 
         &::part(native) {
             background-color: #fff;
             color: #111;
-            border-radius: 20px;
-            padding: 14px 0;
+            padding: 10px 0;
         }
 
         &.segment-button-checked {
             border-color: #000;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+            transform: translateY(-4px);
 
             &::part(native) {
                 background-color: #000;
                 color: #ccff00;
             }
-
-            .day-label {
-                opacity: 1;
-                color: #ccff00;
-            }
         }
 
         ion-label {
-            display: flex;
-            flex-direction: column;
             gap: 2px;
-            margin: 0 !important;
-
             .day-label {
-                font-size: 11px;
-                font-weight: 900;
-                opacity: 0.5;
-                text-transform: uppercase;
-                letter-spacing: 1px;
+                font-size: 9px;
+                opacity: 0.6;
+                font-weight: 800;
             }
-
             .date-label {
                 font-size: 22px;
-                font-weight: 900;
-                letter-spacing: -0.5px;
+                font-weight: 950;
+                letter-spacing: -1px;
             }
         }
     }
 }
 
+.section-title.legible {
+    color: #000 !important;
+    font-weight: 950;
+    font-size: 22px; 
+    opacity: 1 !important;
+    margin-top: 15px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    display: block;
+}
+
 .nike-segment-periods {
     --background: #f0f0f5;
-    border-radius: 16px;
+    border-radius: 100px;
     padding: 5px;
     margin-bottom: 25px;
 
@@ -497,137 +526,166 @@ ion-toolbar {
         --indicator-color: #fff;
         --color: #888;
         --color-checked: #000;
-        --border-radius: 12px;
+        --border-radius: 100px;
         font-weight: 900;
         font-size: 13px;
-        height: 40px;
+        height: 42px;
 
         &::part(indicator-background) {
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
     }
 }
 
-.club-selector-wrapper {
-    margin-bottom: 15px;
-
-    .club-segment {
-        --background: #f0f0f5;
-        border-radius: 16px;
+.club-toggle-container {
+    margin-bottom: 25px;
+    
+    .nike-toggle-track {
+        background: #f0f0f5;
+        border-radius: 100px;
         padding: 5px;
+        display: flex;
+        gap: 5px;
+        position: relative;
+    }
 
-        ion-segment-button {
-            --indicator-color: #fff;
-            --color: #888;
-            --color-checked: #ccff00;
-            --border-radius: 12px;
-            font-weight: 800;
-            font-size: 13px;
-            height: 40px;
-            text-transform: capitalize;
+    .nike-toggle-item {
+        flex: 1;
+        text-align: center;
+        padding: 12px 10px;
+        border-radius: 100px;
+        font-weight: 800;
+        font-size: 13px;
+        color: #888;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 2;
+        text-transform: capitalize;
 
-            &.segment-button-checked {
-                &::part(native) {
-                    background-color: #000;
-                    color: #ccff00;
-                }
-                ion-label {
-                    color: #ccff00 !important;
-                }
-            }
+        &.active {
+            background: #000;
+            color: #ccff00;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
         }
     }
 }
 
-/* NEW UI CLASSES */
-.slots-container {
-    display: flex;
-    flex-direction: column;
+/* --- TIME SLOTS (Circular Grid) --- */
+.slot-grid-circles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 15px;
+    margin-top: 15px;
 }
 
-.slot-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+@keyframes pulse-neon {
+    0% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(204, 255, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0); }
 }
 
-.slot-card-horizontal {
+.time-circle {
+    aspect-ratio: 1/1;
+    border-radius: 50%;
     display: flex;
     align-items: center;
-    padding: 18px 20px;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    border: 1.5px solid rgba(0, 0, 0, 0.05);
     background: #fff;
-    border-radius: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-    gap: 20px;
-    transition: all 0.2s;
-    
+
     &:active {
-        transform: scale(0.96);
-        background: #fbfbfb;
+        transform: scale(0.9);
+    }
+
+    .circle-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+    }
+
+    &.disponible {
+        border-color: rgba(204, 255, 0, 0.3);
+        animation: pulse-neon 2s infinite;
+
+        .time { font-weight: 900; font-size: 16px; color: #000; }
+        .status-icon.available { 
+            position: absolute; 
+            top: -5px; 
+            right: -5px; 
+            font-size: 18px; 
+            background: #ccff00; 
+            color: #000;
+            border-radius: 50%; 
+            padding: 3px; 
+            border: 2px solid #fff;
+            box-shadow: 0 4px 10px rgba(204, 255, 0, 0.3);
+        }
     }
 
     &.ocupado {
-        background: #fcfcfc;
-        border: 1px dashed #e0e0e0;
-        box-shadow: none;
-    }
+        background: #f8f8fb;
+        border-style: solid;
+        border-color: rgba(0,0,0,0.08);
 
-    .time-badge {
-        background: #000;
-        color: #ccff00;
-        padding: 8px 14px;
-        border-radius: 12px;
-        font-weight: 900;
-        font-size: 16px;
-        letter-spacing: -0.5px;
-        flex-shrink: 0;
-    }
-
-    .slot-details {
-        flex: 1;
-
-        h4 {
-            margin: 0 0 4px;
-            font-size: 16px;
-            font-weight: 800;
-            color: #111;
+        .time { 
+            font-weight: 800; 
+            font-size: 15px; 
+            color: #ccc;
+        }
+        
+        .avatar-badge-wrapper {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            z-index: 5;
             
-            &.free-text {
-                color: #ccff00;
-                background: #000;
-                display: inline-block;
-                padding: 4px 10px;
-                border-radius: 8px;
-                font-size: 14px;
-                transform: rotate(-2deg);
+            .status-avatar {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                border: 2px solid #fff;
+                box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+                object-fit: cover;
+                background: #fff;
+            }
+
+            .status-icon {
+                color: #ccc;
+                font-size: 24px;
+                background: #fff;
+                border-radius: 50%;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             }
         }
-
-        .subtitle {
-            margin: 0;
-            font-size: 13px;
-            font-weight: 600;
-            color: #888;
-        }
-
-        .malla-badge {
-            margin: 8px 0 0;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: #f0f0f5;
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 800;
-            color: #000;
+        
+        .club-mini-label {
+            position: absolute;
+            bottom: 15%;
+            font-size: 8px;
+            font-weight: 900;
             text-transform: uppercase;
-            
-            ion-icon {
-                color: #00f2ff;
-                font-size: 14px;
-            }
+            color: #888;
+            width: 80%;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: 0.2px;
+        }
+    }
+    
+    &.otro-club {
+        background: #fdfdfd;
+        border-color: rgba(0,0,0,0.03);
+        
+        .time {
+            opacity: 0.4;
+            transform: translateY(-4px);
         }
     }
 }
@@ -635,51 +693,59 @@ ion-toolbar {
 .horizontal-scroll-list {
     display: flex;
     overflow-x: auto;
-    padding: 10px 5px 20px;
+    padding: 10px 5px 25px;
     gap: 15px;
     margin: 0 -10px;
 
-    &::-webkit-scrollbar {
-        display: none;
-    }
+    &::-webkit-scrollbar { display: none; }
 
     .alumno-chip {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
-        min-width: 60px;
-        opacity: 0.5;
-        transition: all 0.2s;
+        gap: 10px;
+        min-width: 85px;
+        padding: 12px 5px;
+        background: #fff;
+        border-radius: 20px;
+        border: 1px solid #f2f2f7;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        opacity: 0.6;
 
         &.selected {
+            background: #000;
+            transform: translateY(-8px);
+            border-color: #000;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
             opacity: 1;
-            transform: translateY(-5px);
             
             .chip-avatar {
                 border-color: #ccff00;
-                box-shadow: 0 8px 20px rgba(204,255,0,0.3);
+                box-shadow: 0 0 0 4px rgba(204, 255, 0, 0.2);
             }
 
             .chip-name {
                 font-weight: 900;
-                color: #000;
+                color: #ccff00;
             }
         }
 
         .chip-avatar {
-            width: 55px;
-            height: 55px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             object-fit: cover;
             border: 3px solid transparent;
+            transition: 0.3s;
         }
 
         .chip-name {
-            font-size: 11px;
-            font-weight: 700;
+            font-size: 12px;
+            font-weight: 800;
             text-align: center;
-            max-width: 70px;
+            color: #666;
+            max-width: 75px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -687,52 +753,195 @@ ion-toolbar {
     }
 }
 
+/* --- SEARCH V2 COMPACT --- */
+.nike-search-v2 {
+    --background: #f4f4f7;
+    --border-radius: 12px;
+    --placeholder-color: #999;
+    --icon-color: #000;
+    --height: 44px;
+    padding: 0;
+    margin-bottom: 12px;
+    
+    &::part(container) {
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        padding-inline-start: 12px;
+    }
+    
+    &.focused ::part(container) {
+        border-color: #ccff00;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    &::part(native) {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+}
+
+.section-title.legible {
+    font-size: 14px;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+}
+
+/* --- SELECT WRAPPER --- */
+.nike-select-wrapper {
+    background: #222;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255,255,255,0.05);
+
+    ion-icon {
+        font-size: 20px;
+        color: #ccff00;
+    }
+
+    ion-select {
+        flex: 1;
+        width: 100%;
+        --placeholder-color: rgba(255,255,255,0.4);
+        --placeholder-opacity: 1;
+        font-weight: 800;
+        font-size: 14px;
+        color: #fff;
+        
+        &::part(icon) {
+            color: rgba(255,255,255,0.5);
+            font-size: 16px;
+        }
+
+        &::part(text) {
+            color: #fff;
+        }
+    }
+    
+    &:has(ion-select:focus) {
+        border-color: #ccff00;
+    }
+}
+
+.card-header-v3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    
+    ion-icon {
+        font-size: 22px;
+    }
+}
+
 .nike-card.dark {
     background: #111;
-    border-color: #333;
-    padding: 15px 0;
+    border-radius: 28px;
+    padding: 25px 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
 
     h4 {
         margin: 0 0 10px;
         font-size: 15px;
-        font-weight: 800;
+        font-weight: 900;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        color: #fff; /* Changed to white for header-title feel */
+        letter-spacing: 1px;
+    }
+    
+    &.animate-fade h4 {
+        color: #ccff00; /* Contrast for alert card */
     }
 
     p {
         margin: 0;
-    }
-    
-    ion-item {
-        --padding-start: 16px;
-        --padding-end: 16px;
-    }
-    
-    ion-select {
-        background: #222;
-        border-radius: 12px;
-        padding: 10px 15px;
-        font-weight: 800;
         font-size: 14px;
+        font-weight: 500;
+        color: rgba(255,255,255,0.6);
+        line-height: 1.5;
+    }
+    
+    ion-button {
+        --color: #00f2ff;
+        --padding-start: 0;
+        margin-top: 15px;
+        font-weight: 950;
+        text-transform: uppercase;
+        font-size: 13px;
+        height: 36px;
         
-        &::part(icon) {
-            color: rgba(255,255,255,0.5);
-        }
+        &::part(native) { color: #00f2ff; }
+        
+        ion-icon { margin-right: 8px; font-size: 18px; }
     }
 }
 
-.nike-btn {
-    --border-radius: 100px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    height: 56px;
-    margin: 20px 0;
-    
-    &.outline-success {
-        --background: #ccff00;
-        --color: #000;
-        --box-shadow: 0 8px 25px rgba(204,255,0,0.3);
+.student-header {
+    padding: 10px 0 30px;
+    h2 {
+        font-size: 32px;
+        font-weight: 950;
+        letter-spacing: -2px;
+        color: #000;
+        margin: 0 0 5px;
+        text-transform: uppercase;
+        line-height: 1;
     }
+    p {
+        font-size: 15px;
+        font-weight: 800;
+        color: #999;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+}
+
+.btn-cancelar-nike {
+    --background: #ff3131;
+    --background-activated: #d70000;
+    --color: #fff;
+    --border-radius: 100px;
+    height: 64px;
+    font-weight: 950;
+    text-transform: uppercase;
+    font-size: 16px;
+    letter-spacing: 1.5px;
+    margin-top: 25px;
+    box-shadow: 0 12px 30px rgba(255, 49, 49, 0.3);
+    
+    ion-icon {
+        margin-right: 12px;
+        font-size: 22px;
+    }
+}
+
+.nike-btn.outline-success {
+    --background: #ccff00;
+    --color: #000;
+    --border-radius: 100px;
+    height: 64px;
+    font-weight: 950;
+    text-transform: uppercase;
+    box-shadow: 0 12px 30px rgba(204, 255, 0, 0.4);
+    margin: 20px 0;
+}
+
+.modal-content-nike {
+    --background: #fff;
+    .modal-body {
+        padding: 0 25px 40px;
+    }
+}
+
+/* FAB */
+.nike-fab.back-fab {
+    --background: #000;
+    --color: #ccff00;
+    --box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 }

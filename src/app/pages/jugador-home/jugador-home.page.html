@@ -6,29 +6,68 @@
   <input type="file" #videoInput (change)="onVideoSelected($event)" accept="video/*" style="display: none;">
 
   <!-- Hero Header -->
-  <div class="header-nike">
-    <div class="header-overlay"></div>
-    <div class="header-content-wrapper">
-      <div class="header-left-info">
-        <div class="avatar-circle">
-          <img [src]="fotoPerfil || 'assets/avatar.png'" alt="Avatar" />
+  <ng-container *ngIf="!isDev">
+    <div class="header-nike">
+      <div class="header-overlay"></div>
+      <div class="header-content-wrapper">
+        <div class="header-left-info">
+          <div class="avatar-circle">
+            <img [src]="fotoPerfil || 'assets/avatar.png'" alt="Avatar" />
+          </div>
+          <div class="header-text">
+            <p class="welcome-pre">CONTINUAR ENTRENANDO,</p>
+            <h1 class="header-title">{{ jugadorNombre }}</h1>
+          </div>
         </div>
-        <div class="header-text">
-          <p class="welcome-pre">CONTINUAR ENTRENANDO,</p>
-          <h1 class="header-title">{{ jugadorNombre }}</h1>
-        </div>
-      </div>
 
-      <!-- Notifications Button -->
-      <div class="notifications-btn" (click)="openNotificaciones()" *ngIf="getNotificacionesCount() > 0">
-        <ion-icon name="notifications-outline"></ion-icon>
-        <ion-badge color="danger" class="notif-badge">{{ getNotificacionesCount() }}</ion-badge>
+        <!-- Notifications Button -->
+        <div class="notifications-btn" (click)="openNotificaciones()" *ngIf="getNotificacionesCount() > 0">
+          <ion-icon name="notifications-outline"></ion-icon>
+          <ion-badge color="danger" class="notif-badge">{{ getNotificacionesCount() }}</ion-badge>
+        </div>
       </div>
     </div>
-  </div>
+  </ng-container>
+
+  <!-- V2 Header (Professional / Minimalist) -->
+  <ng-container *ngIf="isDev">
+    <div class="header-v2 animate-fade">
+      <div class="h-text">
+        <p>Hola, de vuelta a la cancha</p>
+        <div class="h-title-row">
+          <h1>{{ jugadorNombre }}</h1>
+          <span class="h-wave">👋</span>
+        </div>
+      </div>
+      
+      <div class="h-actions">
+        <!-- Notificaciones Minimalista -->
+        <div class="h-notif" (click)="openNotificaciones()">
+          <ion-icon name="notifications-outline"></ion-icon>
+          <div class="h-dot" *ngIf="getNotificacionesCount() > 0"></div>
+        </div>
+        <!-- Avatar -->
+        <div class="h-avatar">
+          <img [src]="fotoPerfil || 'assets/avatar.png'" alt="Avatar" />
+        </div>
+      </div>
+    </div>
+  </ng-container>
 
   <!-- Main Content -->
-  <div class="dashboard-container">
+  <ng-container *ngIf="!isDev">
+    <div class="dashboard-container">
+
+    <!-- AI Daily Tip -->
+    <div class="daily-tip-card animate-up" *ngIf="dailyTip">
+      <div class="tip-icon">
+        <ion-icon name="sparkles"></ion-icon>
+      </div>
+      <div class="tip-content">
+        <h4>{{ dailyTip.titulo }}</h4>
+        <p>{{ dailyTip.mensaje }}</p>
+      </div>
+    </div>
 
     <!-- Integrated Metrics Summary -->
     <div class="metrics-dashboard animate-up"
@@ -52,14 +91,30 @@
       </div>
     </div>
 
-    <!-- AI Daily Tip -->
-    <div class="daily-tip-card animate-up" *ngIf="dailyTip">
-      <div class="tip-icon">
-        <ion-icon name="sparkles"></ion-icon>
+    <!-- 🏅 Achievements Widget -->
+    <div class="logros-widget animate-up" *ngIf="logros.length > 0" (click)="goToLogros()">
+      <div class="logros-header">
+        <div class="logros-title-group">
+          <ion-icon name="ribbon-outline"></ion-icon>
+          <span class="logros-title">MIS LOGROS</span>
+        </div>
+        <div class="logros-meta">
+          <span class="logros-count">{{ logrosDesbloqueados }}/{{ logrosTotal }}</span>
+          <ion-icon name="chevron-forward-outline" class="logros-arrow"></ion-icon>
+        </div>
       </div>
-      <div class="tip-content">
-        <h4>{{ dailyTip.titulo }}</h4>
-        <p>{{ dailyTip.mensaje }}</p>
+      <div class="logros-scroll">
+        <div class="logro-badge"
+          *ngFor="let logro of logros"
+          [class.unlocked]="logro.desbloqueado"
+          [class.locked]="!logro.desbloqueado"
+          [style.--badge-color]="logro.color_badge">
+          <span class="logro-icono">{{ logro.icono }}</span>
+          <span class="logro-lock" *ngIf="!logro.desbloqueado">🔒</span>
+        </div>
+      </div>
+      <div class="logros-progress-bar">
+        <div class="logros-progress-fill" [style.width.%]="logrosPorcentaje"></div>
       </div>
     </div>
 
@@ -188,6 +243,92 @@
 
     </div>
   </div>
+  </ng-container>
+
+  <ng-container *ngIf="isDev">
+    <div class="dashboard-v2 animate-up">
+      <!-- PRÓXIMA CLASE V2 -->
+      <div class="next-class-v2" *ngIf="proximaClase" (click)="goToMisClases()">
+        <div class="nc-icon-badge">
+          <ion-icon name="calendar-outline"></ion-icon>
+        </div>
+        <div class="nc-content">
+          <div class="nc-tag">SIGUIENTE SESIÓN</div>
+          <div class="nc-date">{{ proximaClase.fecha | date:'d MMM' }} • {{ proximaClase.hora_inicio.slice(0,5) }} HRS</div>
+          <div class="nc-coach"><ion-icon name="person-outline"></ion-icon> {{ proximaClase.entrenador || 'Tu Entrenamiento' }}</div>
+        </div>
+        <ion-icon name="chevron-forward" class="nc-arrow"></ion-icon>
+      </div>
+
+      <!-- Quick Actions V2 (Moviéndolo arriba para ser más útil) -->
+      <div class="actions-grid-v2 delay-1">
+         <div class="action-btn-v2" (click)="goToAgenda()">
+            <div class="a-icon bg-blue"><ion-icon name="calendar-outline"></ion-icon></div>
+            <span>Agendar</span>
+         </div>
+         <div class="action-btn-v2" (click)="goToMisClases()">
+            <div class="a-icon bg-green"><ion-icon name="time-outline"></ion-icon></div>
+            <span>Mis Clases</span>
+         </div>
+         <div class="action-btn-v2" (click)="misHabilidades()">
+            <div class="a-icon bg-orange"><ion-icon name="ribbon-outline"></ion-icon></div>
+            <span>Tu Nivel</span>
+         </div>
+      </div>
+
+      <!-- Daily Tip V2 -->
+      <div class="daily-tip-v2 delay-1" *ngIf="dailyTip">
+         <div class="t-icon"><ion-icon name="bulb-outline"></ion-icon></div>
+         <div class="t-content">
+            <span class="t-badge">TIP DEL COACH</span>
+            <h4>{{ dailyTip.titulo }}</h4>
+            <p>{{ dailyTip.mensaje }}</p>
+         </div>
+      </div>
+
+      <!-- TU PROGRESO V2 -->
+      <div class="progress-v2 delay-2">
+        <div class="p-header">
+           <h3 class="v2-title">Tu Progreso</h3>
+           <div class="p-pts" (click)="goToLogros()">Nivel {{ logrosDesbloqueados > 0 ? logrosDesbloqueados : 1 }} <ion-icon name="chevron-forward"></ion-icon></div>
+        </div>
+        
+        <div class="p-metrics">
+           <div class="p-metric-item highlight" (click)="abrirModalPacks()">
+             <div class="m-val">{{ clasesPendientes }}</div>
+             <div class="m-lbl">Pendientes</div>
+           </div>
+           <div class="p-metric-item">
+             <div class="m-val">{{ clasesDisponibles }}</div>
+             <div class="m-lbl">Créditos</div>
+           </div>
+           <div class="p-metric-item">
+             <div class="m-val">{{ clasesReservadas }}</div>
+             <div class="m-lbl">Reservadas</div>
+           </div>
+        </div>
+
+        <div class="p-divider"></div>
+
+        <div class="p-logros-section" (click)="goToLogros()">
+           <div class="p-l-header">
+             <span>Progreso de Insignias</span>
+             <span class="pct">{{ logrosPorcentaje }}%</span>
+           </div>
+           <div class="p-l-bar"><div class="p-l-fill" [style.width.%]="logrosPorcentaje"></div></div>
+           <div class="p-l-badges">
+              <div class="mini-badge" *ngFor="let logro of (logros.length ? logros.slice(0, 5) : [1,2,3,4,5])" 
+                   [class.locked]="logro.desbloqueado === false" 
+                   [style.--bc]="logro.color_badge || '#e5e5ea'">
+                {{ logro.icono || '🔒' }}
+              </div>
+              <div class="mini-badge-more" *ngIf="logros.length > 5">+{{ logros.length - 5 }}</div>
+           </div>
+        </div>
+      </div>
+
+    </div>
+  </ng-container>
 
   <!-- Gemini Analysis Results Modal (Semi-overlay) -->
   <div class="ai-results-overlay" *ngIf="aiResult" [class.show]="aiResult">
@@ -347,5 +488,21 @@
       </ion-content>
     </ng-template>
   </ion-modal>
+
+  <!-- 🏅 Achievement Unlocked Toast -->
+  <div class="achievement-toast-overlay" *ngIf="showAchievementToast" (click)="dismissAchievementToast()">
+    <div class="achievement-toast" [style.--toast-color]="achievementToast?.color_badge || '#CCFF00'">
+      <div class="toast-glow"></div>
+      <div class="toast-content">
+        <div class="toast-badge-icon">{{ achievementToast?.icono }}</div>
+        <div class="toast-text">
+          <span class="toast-label">¡LOGRO DESBLOQUEADO!</span>
+          <span class="toast-name">{{ achievementToast?.nombre }}</span>
+          <span class="toast-desc">{{ achievementToast?.descripcion }}</span>
+        </div>
+      </div>
+      <div class="toast-progress"></div>
+    </div>
+  </div>
 
 </ion-content>
