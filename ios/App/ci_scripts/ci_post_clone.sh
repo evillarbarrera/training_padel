@@ -42,6 +42,11 @@ else
 fi
 
 # 4. Instalación de dependencias
+echo "--- Fixing ngrok issue (server down) ---"
+# Eliminamos temporalmente ngrok para evitar fallos en el postinstall (servidor caído)
+# No es necesario para el build de iOS
+sed -i '' '/"ngrok":/d' package.json
+
 echo "--- Running npm install ---"
 # Usamos legacy-peer-deps para asegurar compatibilidad en Ionic/Angular 19/20
 npm install --legacy-peer-deps --no-audit --no-fund
