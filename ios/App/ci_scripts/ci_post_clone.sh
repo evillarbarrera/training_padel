@@ -3,58 +3,64 @@
 # Salir inmediatamente si un comando falla
 set -e
 
-echo "--- Starting CI Post-Clone Script ---"
+echo "--- STARTING CI POST-CLONE SCRIPT (HARDENED) ---"
 
-# 1. Navegar al root del repositorio
-cd "$CI_PRIMARY_REPOSITORY_PATH"
-echo "--- Directory: $(pwd) ---"
+# 1. Mostrar información del entorno para debugging
+echo "--- Environment Info ---"
+echo "CI_PRIMARY_REPOSITORY_PATH: $CI_PRIMARY_REPOSITORY_PATH"
+echo "Current directory: $(pwd)"
+echo "Listing root files:"
+ls -F "$CI_PRIMARY_REPOSITORY_PATH"
 
-# Verificar que estamos en la carpeta correcta
-if [ ! -f "package.json" ]; then
-    echo "!!! Error: No se encontró package.json en $(pwd). Verificando estructura..."
-    ls -R
+# 2. Localizar el directorio raíz del proyecto (donde está package.json)
+# Xcode Cloud puede clonar el repo completo o solo una subcarpeta dependiendo de la config.
+if [ -f "$CI_PRIMARY_REPOSITORY_PATH/package.json" ]; then
+    PROJECT_ROOT="$CI_PRIMARY_REPOSITORY_PATH"
+elif [ -f "$CI_PRIMARY_REPOSITORY_PATH/training/package.json" ]; then
+    PROJECT_ROOT="$CI_PRIMARY_REPOSITORY_PATH/training"
+else
+    echo "!!! ERROR: No se pudo localizar package.json en el root o en /training"
     exit 1
 fi
 
-# 2. Configurar Node.js
-# Xcode Cloud suele traer Node.js instalado, lo instalamos solo si falta o es muy antiguo
+echo "--- Using PROJECT_ROOT: $PROJECT_ROOT ---"
+cd "$PROJECT_ROOT"
+
+# 3. Validar herramientas instaladas o instalarlas
 if ! command -v node >/dev/null 2>&1; then
-    echo "--- Installing Node.js via Homebrew ---"
-    export HOMEBREW_NO_AUTO_UPDATE=1
+    echo "--- Node.js not found. Installing via Homebrew... ---"
     brew install node
 else
-    echo "--- Node.js version: $(node -v) ---"
+    echo "--- Node.js: $(node -v) ---"
 fi
 
-# 3. Instalar CocoaPods
 if ! command -v pod >/dev/null 2>&1; then
-    echo "--- Installing CocoaPods via Homebrew ---"
-    export HOMEBREW_NO_AUTO_UPDATE=1
+    echo "--- CocoaPods not found. Installing via Homebrew... ---"
     brew install cocoapods
 else
-    echo "--- CocoaPods version: $(pod --version) ---"
+    echo "--- CocoaPods: $(pod --version) ---"
 fi
 
-# 4. Instalar dependencias de Node
+# 4. Instalación de dependencias
 echo "--- Running npm install ---"
-# Limpiar caché si es necesario y usar legacy-peer-deps para evitar conflictos en Ionic/Angular
+# Usamos legacy-peer-deps para asegurar compatibilidad en Ionic/Angular 19/20
 npm install --legacy-peer-deps --no-audit --no-fund
 
-# 5. Construir el proyecto Angular
+# 5. Build de Angular
 echo "--- Running npm run build ---"
-# Aumentar memoria para el build de Angular en CI
 export NODE_OPTIONS="--max-old-space-size=4096"
 npm run build -- --configuration production
 
-# 6. Sincronizar Capacitor
-echo "--- Running npx cap sync ios ---"
+# 6. Sincronización Capacitor
+echo "--- Synchronizing Capacitor ---"
 npx cap sync ios
 
-# 7. Pod install en carpeta iOS
-echo "--- Switching to iOS App directory ---"
-cd ios/App || exit 1
-echo "--- Final Pod Install ---"
-# En Xcode Cloud a veces es necesario forzar la arquitectura para el simulador o usar repo-update
+# 7. iOS Pods
+# IMPORTANTE: Asegurarse de estar en el directorio de la App de iOS
+cd "$PROJECT_ROOT/ios/App"
+echo "--- Current directory for pods: $(pwd) ---"
+echo "--- Running pod install ---"
+# repo-update ayuda si los specs son antiguos en el runner
 pod install --repo-update
 
-echo "--- Post-clone script finished successfully ---"
+echo "--- CI POST-CLONE SCRIPT FINISHED SUCCESSFULLY ---"
