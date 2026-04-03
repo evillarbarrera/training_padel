@@ -59,7 +59,7 @@ export class JugadorHomePage implements OnInit {
   clasesGrupales = 0;
   packsDetalle: any[] = [];
   proximaClase: any = null;
-  isDev = !environment.production && environment.showSocialFeatures;
+  isDev = true;
 
   // AI Analysis states
   @ViewChild('videoInput') videoInput!: ElementRef;
