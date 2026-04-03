@@ -240,19 +240,6 @@
         </div>
       </div>
 
-      <!-- Modules Minimalist Column -->
-      <div class="modules-column animate-up" style="animation-delay: 0.3s;">
-        <div class="nike-card module-card" (click)="goToPacks()">
-          <img src="/assets/mod-packs.jpg" class="module-img" />
-          <div class="module-body">
-            <div class="module-text">
-              <h3>Administrar Packs</h3>
-              <p>Edita tus planes y precios</p>
-            </div>
-            <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
-          </div>
-        </div>
-      </div>
 
     </div>
   </ng-container>
@@ -299,6 +286,12 @@
             <span>Renovaciones</span>
           </div>
 
+
+
+          <div class="grid-item" (click)="onControlItemClick('/entrenador-packs')">
+            <div class="icon-circle coupon"><ion-icon name="pricetags-outline"></ion-icon></div>
+            <span>Mis Packs</span>
+          </div>
 
           <div class="grid-item" (click)="onControlItemClick('/entrenador-cupones')">
             <div class="icon-circle coupon"><ion-icon name="gift-outline"></ion-icon></div>
