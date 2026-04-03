@@ -1171,3 +1171,191 @@ ion-modal.notifications-modal {
     span { color: #8e8e93; }
   }
 }
+/* =========================================================
+   V2 DESIGN SYSTEM (MINIMALIST / PROFESSIONAL)
+   ========================================================= */
+
+.header-v2 {
+  position: relative;
+  padding: 60px 20px 80px;
+  background: url('/assets/fondo-padel.png') center/cover no-repeat;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 1;
+  border-bottom-left-radius: 30px;
+  border-bottom-right-radius: 30px;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 100%);
+    z-index: 0;
+  }
+
+  .h-text, .h-actions {
+    position: relative;
+    z-index: 2;
+  }
+
+  .h-text {
+    flex: 1;
+    p {
+      margin: 0 0 6px;
+      font-size: 11px;
+      color: #CCFF00;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .h-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      h1 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 950;
+        letter-spacing: -0.5px;
+        color: #fff;
+      }
+      .h-wave { font-size: 20px; }
+    }
+  }
+
+  .h-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    .h-notif {
+      position: relative;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      ion-icon { font-size: 22px; color: #fff; }
+      .h-dot {
+        position: absolute;
+        top: 10px; right: 12px;
+        width: 8px; height: 8px;
+        background: #ff3b30;
+        border-radius: 50%;
+      }
+    }
+
+    .h-avatar {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #CCFF00;
+      img { width: 100%; height: 100%; object-fit: cover; }
+    }
+  }
+}
+
+.dashboard-v2 {
+  padding: 0 15px 40px;
+  margin-top: -40px;
+  position: relative;
+  z-index: 10;
+}
+
+.next-class-v2 {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+
+  .nc-icon-badge {
+    width: 48px; height: 48px;
+    border-radius: 16px;
+    background: rgba(204, 255, 0, 0.15);
+    display: flex; align-items: center; justify-content: center;
+    ion-icon { font-size: 22px; color: #99eb00; }
+  }
+
+  .nc-content {
+    flex: 1;
+    .nc-tag { font-size: 9px; font-weight: 900; color: #8e8e93; letter-spacing: 1.5px; }
+    .nc-date { font-size: 15px; font-weight: 800; color: #000; }
+    .nc-coach { font-size: 12px; color: #8e8e93; display: flex; align-items: center; gap: 4px; }
+  }
+}
+
+.actions-grid-v2 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+
+  .action-btn-v2 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    .a-icon {
+      width: 54px; height: 54px;
+      border-radius: 18px;
+      background: #f2f2f7;
+      display: flex; align-items: center; justify-content: center;
+      ion-icon { font-size: 24px; }
+      &.bg-blue { background: rgba(0, 122, 255, 0.1); ion-icon { color: #007aff; } }
+      &.bg-green { background: rgba(52, 199, 89, 0.1); ion-icon { color: #34c759; } }
+      &.bg-orange { background: rgba(255, 149, 0, 0.1); ion-icon { color: #ff9500; } }
+    }
+    span { font-size: 10px; font-weight: 800; color: #000; }
+  }
+}
+
+.daily-tip-v2 {
+  margin-bottom: 25px;
+  background: #f8f8fa;
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  .t-icon {
+    width: 32px; height: 32px;
+    background: #CCFF00;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    ion-icon { color: #000; }
+  }
+  .t-content {
+    .t-badge { font-size: 8px; font-weight: 900; color: #8e8e93; }
+    h4 { margin: 0; font-size: 13px; font-weight: 800; }
+    p { margin: 0; font-size: 12px; color: #64748b; }
+  }
+}
+
+.progress-v2 {
+  background: #fff;
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  margin-bottom: 25px;
+  .p-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
+    .p-pts { background: #CCFF00; color: #000; padding: 4px 8px; border-radius: 10px; font-size: 10px; font-weight: 900; }
+  }
+  .p-metrics {
+    display: flex; gap: 10px; margin-bottom: 15px;
+    .p-metric-item {
+      flex: 1; background: #f8f8fa; border-radius: 12px; padding: 10px; text-align: center;
+      &.highlight { background: #000; color: #CCFF00; .m-val { color: #CCFF00; } }
+      .m-val { font-size: 18px; font-weight: 900; }
+      .m-lbl { font-size: 9px; font-weight: 700; color: #8e8e93; text-transform: uppercase; }
+    }
+  }
+  .p-l-bar { height: 4px; background: #e5e5ea; border-radius: 2px; margin: 10px 0; overflow: hidden; .p-l-fill { height: 100%; background: #CCFF00; } }
+}

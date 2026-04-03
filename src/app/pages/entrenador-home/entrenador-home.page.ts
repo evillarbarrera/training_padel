@@ -45,6 +45,7 @@ import { environment } from 'src/environments/environment';
 export class EntrenadorHomePage {
 
   coachNombre: string = 'Coach';
+  isDev: boolean = true;
   coachFoto: string | null = null;
   isLoading: boolean = false;
   clasesHoyList: any[] = [];

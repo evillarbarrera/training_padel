@@ -1,189 +1,262 @@
 <ion-content>
 
   <!-- Hero Header -->
-  <div class="header-nike">
-    <div class="header-overlay"></div>
-    <div class="header-content">
-      <div class="coach-profile-brief">
-        <div class="profile-img-container" *ngIf="coachFoto">
-          <img [src]="coachFoto" class="coach-img" />
-        </div>
-        <div class="title-details">
-          <p class="welcome-pre">BIENVENIDO,</p>
-          <h1 class="header-title">{{ coachNombre }}</h1>
-        </div>
-      </div>
-      <!-- Notifications Button -->
-      <div class="notifications-btn" (click)="openNotificaciones()" *ngIf="getNotificacionesCount() > 0">
-        <ion-icon name="notifications-outline"></ion-icon>
-        <ion-badge color="danger" class="notif-badge">{{ getNotificacionesCount() }}</ion-badge>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main Content -->
-  <div class="dashboard-container">
-
-    <!-- LIVE CLASS BANNER (Feature 2) -->
-    <div class="live-class-banner animate-up" *ngIf="claseActual" (click)="goToAgenda()">
-      <div class="live-status">
-        <span class="pulse-dot"></span>
-        LIVE: CLASE EN CURSO
-      </div>
-      <div class="live-body">
-        <div class="live-info">
-          <h3>{{ claseActual.titulo }}</h3>
-          <p>{{ claseActual.subtitulo }} ({{ claseActual.hora }})</p>
-        </div>
-        <div class="live-actions">
-           <ion-button fill="clear" color="dark" class="action-circle" (click)="marcarAsistenciaLive(); $event.stopPropagation()">
-             <ion-icon name="checkmark-done-circle-outline"></ion-icon>
-           </ion-button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Performance Summary -->
-    <div class="metrics-dashboard animate-up">
-      <div class="metric-item highlight animate-pulse clickable-metric" (click)="goToAgenda()">
-        <div class="metric-top">
-          <span class="metric-value">{{ stats.clases_pendientes || 0 }}</span>
-        </div>
-        <span class="metric-label">CLASES<br>PENDIENTES</span>
-      </div>
-      <div class="metric-divider"></div>
-      <div class="metric-item">
-        <span class="metric-value">{{ stats.total_alumnos }}</span>
-        <span class="metric-label">Alumnos<br>Activos</span>
-      </div>
-      <div class="metric-divider"></div>
-      <div class="metric-item">
-        <span class="metric-value">{{ stats.clases_mes }}</span>
-        <span class="metric-label">Clases<br>del Mes</span>
-      </div>
-    </div>
-
-    <!-- PAYMENT REMINDERS (Feature 3) -->
-    <div class="payment-reminders-section animate-up" style="animation-delay: 0.1s;" *ngIf="alumnosRecordatorioList.length > 0">
-      <div class="section-header-compact">
-        <h4 class="mini-title">RENOVAR PACKS</h4>
-        <ion-badge color="danger" class="mini-badge">{{ alumnosRecordatorioList.length }}</ion-badge>
-      </div>
-      <div class="reminders-scroll">
-        <div class="reminder-chip" *ngFor="let a of alumnosRecordatorioList" (click)="sendWhatsAppReminder(a)">
-           <div class="chip-left">
-             <ion-icon name="alert-circle-outline" class="alert-icon"></ion-icon>
-             <span class="name">{{ a.nombre }}</span>
-           </div>
-           <div class="chip-right">
-             <span class="count">{{ a.clases_disponibles }}</span>
-             <ion-icon name="logo-whatsapp" class="wa-icon"></ion-icon>
-           </div>
-        </div>
-      </div>
-    </div>
-
-
-
-    <!-- Próximas Clases Section (Replicated from Web) -->
-    <div class="next-classes-section animate-up" style="animation-delay: 0.1s;">
-      <div class="section-header" (click)="isClassesExpanded = !isClassesExpanded">
-        <div class="header-left">
-          <h3 class="section-title">Próximas Clases</h3>
-          <ion-badge color="dark" *ngIf="clasesHoyList.length > 0">{{ clasesHoyList.length }}</ion-badge>
-        </div>
-        <ion-button fill="clear" color="dark" class="toggle-btn">
-          <ion-icon [name]="isClassesExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
-        </ion-button>
-      </div>
-
-      <div class="classes-container" *ngIf="clasesHoyList.length > 0 && isClassesExpanded">
-        <div class="class-card-mini" *ngFor="let clase of clasesHoyList">
-          <div class="time-col">
-            <span class="day-label" [class.tomorrow]="clase.diaLabel === 'Mañana'">{{ clase.diaLabel }}</span>
-            <span class="hour">{{ clase.hora }}</span>
+  <ng-container *ngIf="!isDev">
+    <div class="header-nike">
+      <div class="header-overlay"></div>
+      <div class="header-content">
+        <div class="coach-profile-brief">
+          <div class="profile-img-container" *ngIf="coachFoto">
+            <img [src]="coachFoto" class="coach-img" />
           </div>
-          <div class="info-col">
-            <span class="title">{{ clase.titulo }}</span>
-            <span class="subtitle">{{ clase.subtitulo }}</span>
-            <span class="location-mini" *ngIf="clase.lugar">
-              <ion-icon name="location-outline"></ion-icon> {{ clase.lugar }}
-            </span>
+          <div class="title-details">
+            <p class="welcome-pre">BIENVENIDO,</p>
+            <h1 class="header-title">{{ coachNombre }}</h1>
           </div>
-          <div class="type-col">
-            <ion-badge
-              [color]="clase.tipo === 'Grupal' ? 'warning' : (clase.tipo === 'Multijugador' ? 'tertiary' : 'primary')">
-              {{ clase.tipo }}
-            </ion-badge>
+        </div>
+        <!-- Notifications Button -->
+        <div class="notifications-btn" (click)="openNotificaciones()" *ngIf="getNotificacionesCount() > 0">
+          <ion-icon name="notifications-outline"></ion-icon>
+          <ion-badge color="danger" class="notif-badge">{{ getNotificacionesCount() }}</ion-badge>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- V2 Header (Minimalist) -->
+  <ng-container *ngIf="isDev">
+    <div class="header-v2 animate-fade">
+      <div class="h-text">
+        <p>¡Buen entrenamiento hoy!</p>
+        <div class="h-title-row">
+          <h1>{{ coachNombre }}</h1>
+          <span class="h-wave">👋</span>
+        </div>
+      </div>
+      
+      <div class="h-actions">
+        <div class="h-notif" (click)="openNotificaciones()">
+          <ion-icon name="notifications-outline"></ion-icon>
+          <div class="h-dot" *ngIf="getNotificacionesCount() > 0"></div>
+        </div>
+        <div class="h-avatar" (click)="goToPerfil()">
+          <img [src]="coachFoto || 'assets/avatar.png'" alt="Coach" />
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Content V1 -->
+  <ng-container *ngIf="!isDev">
+    <div class="dashboard-container">
+
+      <!-- LIVE CLASS BANNER (Feature 2) -->
+      <div class="live-class-banner animate-up" *ngIf="claseActual" (click)="goToAgenda()">
+        <div class="live-status">
+          <span class="pulse-dot"></span>
+          LIVE: CLASE EN CURSO
+        </div>
+        <div class="live-body">
+          <div class="live-info">
+            <h3>{{ claseActual.titulo }}</h3>
+            <p>{{ claseActual.subtitulo }} ({{ claseActual.hora }})</p>
+          </div>
+          <div class="live-actions">
+             <ion-button fill="clear" color="dark" class="action-circle" (click)="marcarAsistenciaLive(); $event.stopPropagation()">
+               <ion-icon name="checkmark-done-circle-outline"></ion-icon>
+             </ion-button>
           </div>
         </div>
       </div>
 
-      <div class="empty-classes" *ngIf="clasesHoyList.length === 0 && !isLoading && isClassesExpanded">
-        <ion-icon name="checkmark-done-circle-outline"></ion-icon>
-        <p>No hay clases para hoy ni mañana 🎉</p>
-      </div>
-
-      <div class="loading-state" *ngIf="isLoading">
-        <ion-spinner name="crescent"></ion-spinner>
-      </div>
-    </div>
-
-    <!-- POINT 5: IA COACHING TIP (Relocated) -->
-    <div class="ia-tip-banner animate-up" style="animation-delay: 0.1s;">
-      <div class="tip-content">
-        <div class="tip-header">
-          <ion-icon name="flash-outline"></ion-icon>
-          <span>TIP DE COACHING IA</span>
+      <!-- Performance Summary -->
+      <div class="metrics-dashboard animate-up">
+        <div class="metric-item highlight animate-pulse clickable-metric" (click)="goToAgenda()">
+          <div class="metric-top">
+            <span class="metric-value">{{ stats.clases_pendientes || 0 }}</span>
+          </div>
+          <span class="metric-label">CLASES<br>PENDIENTES</span>
         </div>
+        <div class="metric-divider"></div>
+        <div class="metric-item">
+          <span class="metric-value">{{ stats.total_alumnos }}</span>
+          <span class="metric-label">Alumnos<br>Activos</span>
+        </div>
+        <div class="metric-divider"></div>
+        <div class="metric-item">
+          <span class="metric-value">{{ stats.clases_mes }}</span>
+          <span class="metric-label">Clases<br>del Mes</span>
+        </div>
+      </div>
+
+      <!-- PAYMENT REMINDERS (Feature 3) -->
+      <div class="payment-reminders-section animate-up" style="animation-delay: 0.1s;" *ngIf="alumnosRecordatorioList.length > 0">
+        <div class="section-header-compact">
+          <h4 class="mini-title">RENOVAR PACKS</h4>
+          <ion-badge color="danger" class="mini-badge">{{ alumnosRecordatorioList.length }}</ion-badge>
+        </div>
+        <div class="reminders-scroll">
+          <div class="reminder-chip" *ngFor="let a of alumnosRecordatorioList" (click)="sendWhatsAppReminder(a)">
+             <div class="chip-left">
+               <ion-icon name="alert-circle-outline" class="alert-icon"></ion-icon>
+               <span class="name">{{ a.nombre }}</span>
+             </div>
+             <div class="chip-right">
+               <span class="count">{{ a.clases_disponibles }}</span>
+               <ion-icon name="logo-whatsapp" class="wa-icon"></ion-icon>
+             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Próximas Clases Section -->
+      <div class="next-classes-section animate-up" style="animation-delay: 0.1s;">
+        <div class="section-header" (click)="isClassesExpanded = !isClassesExpanded">
+          <div class="header-left">
+            <h3 class="section-title">Próximas Clases</h3>
+            <ion-badge color="dark" *ngIf="clasesHoyList.length > 0">{{ clasesHoyList.length }}</ion-badge>
+          </div>
+          <ion-button fill="clear" color="dark" class="toggle-btn">
+            <ion-icon [name]="isClassesExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+          </ion-button>
+        </div>
+
+        <div class="classes-container" *ngIf="clasesHoyList.length > 0 && isClassesExpanded">
+          <div class="class-card-mini" *ngFor="let clase of clasesHoyList">
+            <div class="time-col">
+              <span class="day-label" [class.tomorrow]="clase.diaLabel === 'Mañana'">{{ clase.diaLabel }}</span>
+              <span class="hour">{{ clase.hora }}</span>
+            </div>
+            <div class="info-col">
+              <span class="title">{{ clase.titulo }}</span>
+              <span class="subtitle">{{ clase.subtitulo }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- IA Tip -->
+      <div class="ia-tip-banner animate-up">
         <p>"{{ iaTip }}"</p>
       </div>
-    </div>
 
-
-
-
-    <!-- Modules Grid -->
-    <div class="modules-column animate-up" style="animation-delay: 0.2s;">
-
-      <!-- Agenda Card -->
-      <div class="nike-card module-card" (click)="goToAgenda()">
-        <img src="/assets/reserva-bg.jpg" class="module-img" />
-        <div class="module-body">
-          <div class="module-text">
+      <!-- Modules Grid -->
+      <div class="modules-column animate-up" style="animation-delay: 0.2s;">
+        <div class="nike-card module-card" (click)="goToAgenda()">
+          <img src="/assets/reserva-bg.jpg" class="module-img" />
+          <div class="module-body">
             <h3>Mi Agenda</h3>
-            <p>Monitorea tus clases y calendario</p>
+            <ion-icon name="chevron-forward-outline"></ion-icon>
           </div>
-          <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Content V2 (Nike Minimalist Style) -->
+  <ng-container *ngIf="isDev">
+    <div class="dashboard-v2 animate-up">
+      
+      <!-- PRÓXIMA CLASE V2 (Sleek Card) -->
+      <div class="next-class-v2" *ngIf="claseActual || clasesHoyList.length > 0" (click)="goToAgenda()">
+        <div class="nc-icon-badge">
+          <ion-icon [name]="claseActual ? 'flash-outline' : 'calendar-outline'"></ion-icon>
+        </div>
+        <div class="nc-content">
+          <div class="nc-tag">{{ claseActual ? 'CLASE EN CURSO' : 'PRÓXIMA SESIÓN' }}</div>
+          <div class="nc-date">
+             {{ (claseActual ? claseActual.hora : clasesHoyList[0].hora) }} HRS • 
+             {{ (claseActual ? claseActual.titulo : clasesHoyList[0].titulo) }}
+          </div>
+          <div class="nc-coach">
+            <ion-icon name="location-outline"></ion-icon> 
+            {{ (claseActual ? claseActual.lugar : clasesHoyList[0].lugar) || 'Club de Pádel' }}
+          </div>
+        </div>
+        <ion-icon name="chevron-forward" class="nc-arrow"></ion-icon>
+      </div>
+
+      <!-- Quick Actions Grid V2 -->
+      <div class="actions-grid-v2 delay-1">
+         <div class="action-btn-v2" (click)="goToAgenda()">
+            <div class="a-icon bg-blue"><ion-icon name="calendar-outline"></ion-icon></div>
+            <span>Mi Agenda</span>
+         </div>
+         <div class="action-btn-v2" (click)="goToAlumnos()">
+            <div class="a-icon bg-green"><ion-icon name="people-outline"></ion-icon></div>
+            <span>Alumnos</span>
+         </div>
+         <div class="action-btn-v2" (click)="goToAgendar()">
+            <div class="a-icon bg-orange"><ion-icon name="add-circle-outline"></ion-icon></div>
+            <span>Agendar</span>
+         </div>
+      </div>
+
+      <!-- IA COACHING TIP V2 (Styled as Student Daily Tip) -->
+      <div class="daily-tip-v2 delay-1" *ngIf="iaTip">
+         <div class="t-icon"><ion-icon name="flash-outline"></ion-icon></div>
+         <div class="t-content">
+            <span class="t-badge">TIP DEL COACHING IA</span>
+            <h4>{{ iaTip.split(':')[0] }}</h4>
+            <p>{{ iaTip.split(':')[1] || iaTip }}</p>
+         </div>
+      </div>
+
+      <!-- PERFORMANCE & REVENUE WIDGET (Adapted from Student Progress) -->
+      <div class="progress-v2 delay-2">
+        <div class="p-header">
+           <h3 class="v2-title">Resumen Mensual</h3>
+           <div class="p-pts" (click)="openFinance()">Ingresos <ion-icon name="chevron-forward"></ion-icon></div>
+        </div>
+        
+        <div class="p-metrics">
+           <div class="p-metric-item highlight" (click)="goToAgenda()">
+             <div class="m-val">{{ stats.clases_pendientes || 0 }}</div>
+             <div class="m-lbl">Clases</div>
+           </div>
+           <div class="p-metric-item" (click)="goToAlumnos()">
+             <div class="m-val">{{ stats.total_alumnos }}</div>
+             <div class="m-lbl">Alumnos</div>
+           </div>
+           <div class="p-metric-item" (click)="openFinance()">
+             <div class="m-val">{{ (ingresosRecaudados / 1000) | number:'1.0-0' }}k</div>
+             <div class="m-lbl">Recaudado</div>
+           </div>
+        </div>
+
+        <div class="p-divider"></div>
+
+        <div class="p-logros-section" (click)="openFinance()">
+           <div class="p-l-header">
+             <span>Meta Mensual Proyectada</span>
+             <span class="pct">{{ ingresosProyectados > 0 ? ((ingresosRecaudados / ingresosProyectados) * 100 | number:'1.0-0') : 0 }}%</span>
+           </div>
+           <div class="p-l-bar">
+             <div class="p-l-fill" [style.width.%]="ingresosProyectados > 0 ? (ingresosRecaudados / ingresosProyectados) * 100 : 0"></div>
+           </div>
+           <div class="p-l-header" style="margin-top: 5px;">
+             <span>Total Proyectado: {{ ingresosProyectados | currency:'CLP':'$':'1.0-0' }}</span>
+           </div>
         </div>
       </div>
 
-      <!-- Alumnos Card -->
-      <div class="nike-card module-card" (click)="goToAlumnos()">
-        <img src="/assets/mod-alumnos.jpg" class="module-img" />
-        <div class="module-body">
-          <div class="module-text">
-            <h3>Mis Alumnos</h3>
-            <p>Progreso y detalles de cada jugador</p>
+      <!-- Modules Minimalist Column -->
+      <div class="modules-column animate-up" style="animation-delay: 0.3s;">
+        <div class="nike-card module-card" (click)="goToPacks()">
+          <img src="/assets/mod-packs.jpg" class="module-img" />
+          <div class="module-body">
+            <div class="module-text">
+              <h3>Administrar Packs</h3>
+              <p>Edita tus planes y precios</p>
+            </div>
+            <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
           </div>
-          <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
-        </div>
-      </div>
-
-      <!-- Packs Card -->
-      <div class="nike-card module-card" (click)="goToPacks()">
-        <img src="/assets/mod-packs.jpg" class="module-img" />
-        <div class="module-body">
-          <div class="module-text">
-            <h3>Packs de Entrenamiento</h3>
-            <p>Gestiona tus ofertas y sesiones</p>
-          </div>
-          <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
         </div>
       </div>
 
     </div>
-  </div>
+  </ng-container>
+
 
   <!-- Settings FAB -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
