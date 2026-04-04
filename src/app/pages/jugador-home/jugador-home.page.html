@@ -247,6 +247,7 @@
 
   <ng-container *ngIf="isDev">
     <div class="dashboard-v2 animate-up">
+      
       <!-- PRÓXIMA CLASE V2 -->
       <div class="next-class-v2" *ngIf="proximaClase" (click)="goToMisClases()">
         <div class="nc-icon-badge">
@@ -260,34 +261,8 @@
         <ion-icon name="chevron-forward" class="nc-arrow"></ion-icon>
       </div>
 
-      <!-- Quick Actions V2 (Moviéndolo arriba para ser más útil) -->
-      <div class="actions-grid-v2 delay-1">
-         <div class="action-btn-v2" (click)="goToAgenda()">
-            <div class="a-icon bg-blue"><ion-icon name="calendar-outline"></ion-icon></div>
-            <span>Agendar</span>
-         </div>
-         <div class="action-btn-v2" (click)="goToMisClases()">
-            <div class="a-icon bg-green"><ion-icon name="time-outline"></ion-icon></div>
-            <span>Mis Clases</span>
-         </div>
-         <div class="action-btn-v2" (click)="misHabilidades()">
-            <div class="a-icon bg-orange"><ion-icon name="ribbon-outline"></ion-icon></div>
-            <span>Tu Nivel</span>
-         </div>
-      </div>
-
-      <!-- Daily Tip V2 -->
-      <div class="daily-tip-v2 delay-1" *ngIf="dailyTip">
-         <div class="t-icon"><ion-icon name="bulb-outline"></ion-icon></div>
-         <div class="t-content">
-            <span class="t-badge">TIP DEL COACH</span>
-            <h4>{{ dailyTip.titulo }}</h4>
-            <p>{{ dailyTip.mensaje }}</p>
-         </div>
-      </div>
-
-      <!-- TU PROGRESO V2 -->
-      <div class="progress-v2 delay-2">
+      <!-- 1. TU PROGRESO V2 (AHORA PRIMERO) -->
+      <div class="progress-v2 delay-1">
         <div class="p-header">
            <h3 class="v2-title">Tu Progreso</h3>
            <div class="p-pts" (click)="goToLogros()">Nivel {{ logrosDesbloqueados > 0 ? logrosDesbloqueados : 1 }} <ion-icon name="chevron-forward"></ion-icon></div>
@@ -326,6 +301,35 @@
            </div>
         </div>
       </div>
+
+      <!-- 2. DAILY TIP V2 (SEGUNDO) -->
+      <div class="daily-tip-v2 delay-1" *ngIf="dailyTip">
+         <div class="t-icon"><ion-icon name="bulb-outline"></ion-icon></div>
+         <div class="t-content">
+            <span class="t-badge">TIP DEL COACH</span>
+            <h4>{{ dailyTip.titulo }}</h4>
+            <p>{{ dailyTip.mensaje }}</p>
+         </div>
+      </div>
+
+      <!-- 3. ACCIONES RÁPIDAS V2 (AL FINAL) -->
+      <div class="actions-grid-v2 delay-2">
+         <div class="action-btn-v2" (click)="goToAgenda()">
+            <div class="a-icon bg-blue"><ion-icon name="calendar-outline"></ion-icon></div>
+            <span>Agendar</span>
+         </div>
+         <div class="action-btn-v2" (click)="goToMisClases()">
+            <div class="a-icon bg-green"><ion-icon name="time-outline"></ion-icon></div>
+            <span>Mis Clases</span>
+         </div>
+         <div class="action-btn-v2" (click)="misHabilidades()">
+            <div class="a-icon bg-orange"><ion-icon name="ribbon-outline"></ion-icon></div>
+            <span>Tu Nivel</span>
+         </div>
+      </div>
+
+    </div>
+  </ng-container>
 
     </div>
   </ng-container>
