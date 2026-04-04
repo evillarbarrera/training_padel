@@ -56,16 +56,38 @@ echo "--- Running npm run build ---"
 export NODE_OPTIONS="--max-old-space-size=4096"
 npm run build -- --configuration production
 
-# 6. Sincronización Capacitor
-echo "--- Synchronizing Capacitor ---"
-npx cap sync ios
+# 6. Sincronización Capacitor (SOLO COPIA WEB)
+echo "--- Copying Web Assets (Skip Pods) ---"
+# Evitamos 'sync' porque lanza pod install prematuramente sin reintentos
+npx cap copy ios
 
-# 7. iOS Pods
-# IMPORTANTE: Asegurarse de estar en el directorio de la App de iOS
+# 7. iOS Pods con Reintentos y Blindaje DNS
 cd "$PROJECT_ROOT/ios/App"
-echo "--- Current directory for pods: $(pwd) ---"
-echo "--- Running pod install ---"
-# repo-update ayuda si los specs son antiguos en el runner
-pod install --repo-update
+echo "--- Running Pod Install with Retries ---"
+
+MAX_RETRIES=3
+RETRY_COUNT=0
+SUCCESS=false
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    echo "--- Pod Install Attempt $((RETRY_COUNT + 1)) of $MAX_RETRIES ---"
+    
+    # Intentamos la instalación. Si falla por red (host resolve), limpiamos repo y reintentamos.
+    if pod install --repo-update; then
+        SUCCESS=true
+        break
+    else
+        echo "--- pod install failed. Cleaning trunk and retrying... ---"
+        pod repo remove trunk || true
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        # Pequeña espera para dejar que la red se estabilice
+        sleep 5
+    fi
+done
+
+if [ "$SUCCESS" = false ]; then
+    echo "!!! ERROR: pod install failed after $MAX_RETRIES attempts."
+    exit 1
+fi
 
 echo "--- CI POST-CLONE SCRIPT FINISHED SUCCESSFULLY ---"
