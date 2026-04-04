@@ -176,34 +176,8 @@
         <ion-icon name="chevron-forward" class="nc-arrow"></ion-icon>
       </div>
 
-      <!-- Quick Actions Grid V2 -->
-      <div class="actions-grid-v2 delay-1">
-         <div class="action-btn-v2" (click)="goToAgenda()">
-            <div class="a-icon bg-blue"><ion-icon name="calendar-outline"></ion-icon></div>
-            <span>Mi Agenda</span>
-         </div>
-         <div class="action-btn-v2" (click)="goToAlumnos()">
-            <div class="a-icon bg-green"><ion-icon name="people-outline"></ion-icon></div>
-            <span>Alumnos</span>
-         </div>
-         <div class="action-btn-v2" (click)="goToAgendar()">
-            <div class="a-icon bg-orange"><ion-icon name="add-circle-outline"></ion-icon></div>
-            <span>Agendar</span>
-         </div>
-      </div>
-
-      <!-- IA COACHING TIP V2 (Styled as Student Daily Tip) -->
-      <div class="daily-tip-v2 delay-1" *ngIf="iaTip">
-         <div class="t-icon"><ion-icon name="flash-outline"></ion-icon></div>
-         <div class="t-content">
-            <span class="t-badge">TIP DEL COACHING IA</span>
-            <h4>{{ iaTip.split(':')[0] }}</h4>
-            <p>{{ iaTip.split(':')[1] || iaTip }}</p>
-         </div>
-      </div>
-
-      <!-- PERFORMANCE & REVENUE WIDGET (Adapted from Student Progress) -->
-      <div class="progress-v2 delay-2">
+      <!-- 1. RESUMEN MENSUAL V2 (EL REY PARA EL PRO) -->
+      <div class="progress-v2 delay-1">
         <div class="p-header">
            <h3 class="v2-title">Resumen Mensual</h3>
            <div class="p-pts" (click)="openFinance()">Ingresos <ion-icon name="chevron-forward"></ion-icon></div>
@@ -212,15 +186,15 @@
         <div class="p-metrics">
            <div class="p-metric-item highlight" (click)="goToAgenda()">
              <div class="m-val">{{ stats.clases_pendientes || 0 }}</div>
-             <div class="m-lbl">Clases</div>
+             <div class="m-lbl">Pendientes</div>
            </div>
            <div class="p-metric-item" (click)="goToAlumnos()">
              <div class="m-val">{{ stats.total_alumnos }}</div>
              <div class="m-lbl">Alumnos</div>
            </div>
-           <div class="p-metric-item" (click)="openFinance()">
-             <div class="m-val">{{ (ingresosRecaudados / 1000) | number:'1.0-0' }}k</div>
-             <div class="m-lbl">Recaudado</div>
+           <div class="p-metric-item" (click)="goToAgenda()">
+             <div class="m-val">{{ stats.clases_mes || 0 }}</div>
+             <div class="m-lbl">Clases Mes</div>
            </div>
         </div>
 
@@ -240,6 +214,42 @@
         </div>
       </div>
 
+      <!-- 2. IA COACHING TIP V2 (INSIGHTS) -->
+      <!-- UI Sync ID: 88721-V2 -->
+      <div class="daily-tip-v2 delay-1" id="trainer-tip-v2" *ngIf="iaTip">
+         <div class="t-icon"><ion-icon name="flash-outline"></ion-icon></div>
+         <div class="t-content">
+            <span class="t-badge">TIP DEL COACHING IA</span>
+            <h4>{{ iaTip.split(':')[0] }}</h4>
+            <p>{{ iaTip.split(':')[1] || iaTip }}</p>
+         </div>
+      </div>
+
+      <!-- 3. CENTRO DE MANDO V2 (ENMARCADO EXPERTO) -->
+      <div class="actions-v2-card delay-2" id="trainer-menu-v2">
+         <div class="v2-card-header">
+            <h4 class="v2-subtitle">Centro de Mando</h4>
+            <span class="v2-status-dot pulse"></span>
+         </div>
+         
+         <div class="actions-grid-v2">
+            <!-- HERO ACTION (MI AGENDA) -->
+            <div class="action-btn-v2 hero-action" (click)="goToAgenda()">
+               <div class="a-icon bg-hero"><ion-icon name="calendar-outline"></ion-icon></div>
+               <span>Mi Agenda</span>
+            </div>
+            
+            <div class="action-btn-v2" (click)="goToAlumnos()">
+               <div class="a-icon bg-soft"><ion-icon name="person-outline"></ion-icon></div>
+               <span>Alumnos</span>
+            </div>
+            
+            <div class="action-btn-v2" (click)="goToAgendar()">
+               <div class="a-icon bg-soft"><ion-icon name="add-circle-outline"></ion-icon></div>
+               <span>Agendar</span>
+            </div>
+         </div>
+      </div>
 
     </div>
   </ng-container>

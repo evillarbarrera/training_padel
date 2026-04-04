@@ -1447,77 +1447,151 @@ ion-modal.custom-bottom-sheet {
   }
 }
 
-/* -- ACCIONES RAPIDAS V2 -- */
+/* -- ACCIONES RAPIDAS V2 (ENMARCADAS + UX HERO) -- */
+.actions-v2-card {
+  background: #fff;
+  border-radius: 32px;
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.03);
+  margin-bottom: 30px;
+  position: relative;
+  
+  .v2-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    .v2-subtitle {
+       font-size: 11px;
+       font-weight: 950;
+       color: #000;
+       text-transform: uppercase;
+       letter-spacing: 1.5px;
+       margin: 0;
+       opacity: 0.8;
+    }
+
+    .v2-status-dot {
+       width: 8px; height: 8px;
+       background: #CCFF00;
+       border-radius: 50%;
+       box-shadow: 0 0 10px #CCFF00;
+       
+       &.pulse {
+         animation: dot-pulse 2s infinite;
+       }
+    }
+  }
+}
+
 .actions-grid-v2 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-  margin-bottom: 25px;
+  grid-template-columns: 1.2fr 0.9fr 0.9fr; /* Enfoque en Reservar */
+  gap: 12px;
+  margin-bottom: 0;
 
   .action-btn-v2 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     
-    &:active .a-icon { transform: scale(0.92); background: #e0e0e5; }
+    &:active .a-icon { transform: scale(0.92); }
 
     .a-icon {
-      width: 54px; height: 54px;
-      border-radius: 18px;
-      background: #f2f2f7;
+      width: 58px; height: 58px;
+      border-radius: 20px;
       display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s ease;
-
-      &.bg-blue { background: rgba(0, 122, 255, 0.1); ion-icon { color: #007aff; } }
-      &.bg-green { background: rgba(52, 199, 89, 0.1); ion-icon { color: #34c759; } }
-      &.bg-purple { background: rgba(175, 82, 222, 0.1); ion-icon { color: #af52de; } }
-      &.bg-orange { background: rgba(255, 149, 0, 0.1); ion-icon { color: #ff9500; } }
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      
+      &.bg-hero {
+         background: #CCFF00;
+         ion-icon { 
+           color: #000 !important;
+           --color: #000 !important;
+         }
+         box-shadow: 0 8px 20px rgba(204, 255, 0, 0.3);
+      }
+      
+      &.bg-soft {
+         background: rgba(0, 0, 0, 0.04);
+         ion-icon { 
+           color: #000 !important;
+           --color: #000 !important;
+         }
+         border: 1px solid rgba(0,0,0,0.02);
+      }
 
       ion-icon {
-        font-size: 24px;
+        font-size: 26px;
+        color: #000 !important;
+        --color: #000 !important;
       }
+    }
+
+    /* ESTILO HERO (Reservar) */
+    &.hero-action {
+       span {
+         color: #000;
+         font-weight: 950;
+         opacity: 1;
+       }
     }
 
     span {
       font-size: 10px;
       font-weight: 800;
-      color: #000;
+      color: #777;
       letter-spacing: -0.2px;
+      text-align: center;
     }
   }
 }
 
-/* -- DAILY TIP V2 -- */
+/* -- DAILY TIP V2 (UPGRADE EXPERTO) -- */
 .daily-tip-v2 {
-  margin-bottom: 25px;
-  background: linear-gradient(135deg, #f8f8fa 0%, #fff 100%);
-  border-radius: 24px;
-  padding: 20px;
+  margin-bottom: 30px;
+  background: white;
+  border-radius: 28px;
+  padding: 24px;
   display: flex;
-  gap: 15px;
+  gap: 18px;
   align-items: flex-start;
-  border: 1px solid rgba(0,0,0,0.02);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.03);
+  position: relative;
+  overflow: hidden;
 
   .t-icon {
-    width: 36px; height: 36px;
-    border-radius: 12px;
+    width: 44px; height: 44px;
+    border-radius: 14px;
     background: #CCFF00;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
+    box-shadow: 0 5px 15px rgba(204, 255, 0, 0.2);
+    position: relative;
+    z-index: 5;
 
-    ion-icon { font-size: 20px; color: #000; }
+    ion-icon { 
+      font-size: 24px; 
+      color: #000 !important; 
+      --color: #000 !important;
+      position: relative;
+      display: block;
+    }
   }
 
   .t-content {
     .t-badge {
       font-size: 9px;
       font-weight: 950;
-      color: rgba(0,0,0,0.4);
-      letter-spacing: 1px;
+      color: #99eb00;
+      letter-spacing: 1.5px;
+      margin-bottom: 4px;
       display: block;
-      margin-bottom: 2px;
+      opacity: 1;
     }
 
     h4 {
