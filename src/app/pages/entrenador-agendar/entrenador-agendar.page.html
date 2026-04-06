@@ -120,47 +120,109 @@
                         </div>
                     </div>
 
-                    <!-- Pack Assignment -->
-                    <div class="nike-card dark mt-4 animate-fade" *ngIf="mostrarOpcionPack && alumnoSeleccionado">
+                    <!-- Pack Assignment / Gestión de Cobro -->
+                    <div class="nike-card minimal-light animate-fade mt-4" *ngIf="alumnoSeleccionado">
                         <div class="card-header-v3">
-                            <ion-icon name="alert-circle-outline" slot="start" color="warning"></ion-icon>
-                            <h4>Gestión de Cobro</h4>
+                            <ion-icon name="card-outline" slot="start" color="primary"></ion-icon>
+                            <h4 style="color: #333;">Gestión de Cobro</h4>
                         </div>
-                        <p class="mb-3">{{ alumnoSeleccionado.jugador_nombre }} no tiene créditos para esta sesión.</p>
                         
-                        <div class="nike-select-wrapper">
-                            <ion-select [(ngModel)]="packAAsignar" interface="popover" placeholder="Elige el pack para cobrar" mode="ios">
-                                <ion-select-option *ngFor="let p of packsParaTipo" [value]="p">{{ p.nombre }}</ion-select-option>
+                        <!-- NEW: Pack Selector for Existing Packs (Functional Parity with Web) -->
+                        <div class="nike-select-wrapper light-wrapper animate-fade mb-2" *ngIf="alumnosPacksConCredito.length >= 1">
+                            <ion-icon name="ticket-outline" slot="start" style="color: #10b981; font-size: 20px; margin-right: 12px;"></ion-icon>
+                            <ion-item lines="none" style="--background: transparent; width: 100%; --padding-start: 0;">
+                                <ion-label position="stacked" style="color: #64748b; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">Usar Pack del Alumno:</ion-label>
+                                <ion-select [(ngModel)]="alumnoSeleccionado.pack_jugador_id" interface="popover" mode="ios" (ionChange)="onPackAlumnoToggle()" style="margin-top: 5px;">
+                                    <ion-select-option *ngFor="let p of alumnosPacksConCredito" [value]="p.id || p.pack_jugador_id">
+                                        {{ p.pack_nombre }} ({{ p.sesiones_restantes }} créd.)
+                                    </ion-select-option>
+                                </ion-select>
+                            </ion-item>
+                        </div>
+
+                        <!-- Info del pack seleccionado actualmente (Solo si NO hay selector o ya se eligió uno) -->
+                        <div class="current-credits-info animate-fade" *ngIf="alumnosPacksConCredito.length === 0 && (alumnoSeleccionado.sesiones_restantes || 0) > 0 && !mostrarSelectorPackManual">
+                            <span class="pack-name-badge">{{ alumnoSeleccionado.pack_nombre || 'Pack Activo' }}</span>
+                            <p class="credits-count">
+                                Saldo disponible: <strong>{{ alumnoSeleccionado.sesiones_restantes }} clases</strong>
+                            </p>
+                        </div>
+                        
+                        <!-- Alerta de Agotado: Solo si el saldo real después de calcular disponibles es 0 -->
+                        <div class="exhausted-pack-card" style="background:#fee2e2; padding: 10px; border-radius:8px; margin-bottom: 12px; border: 1px solid #fca5a5;" 
+                             *ngIf="alumnosPacksConCredito.length === 0 && (alumnoSeleccionado.sesiones_restantes || 0) <= 0">
+                            <p class="m-0" style="color:#b91c1c; font-size:14px; font-weight: 500;">
+                                <ion-icon name="alert-circle-outline" style="vertical-align: middle;"></ion-icon> El alumno se quedó sin créditos.
+                            </p>
+                        </div>
+                        
+                        <!-- Checkbox para vender pack nuevo (Visible si tiene créditos) -->
+                        <div class="premium-checkbox-card mt-2" [class.active]="mostrarSelectorPackManual" (click)="togglePackManual()" 
+                             *ngIf="alumnosPacksConCredito.length > 0 || (alumnoSeleccionado.sesiones_restantes || 0) > 0">
+                            <div class="chk-content">
+                                <ion-checkbox [checked]="mostrarSelectorPackManual" mode="ios" style="--size: 20px; --checkbox-background-checked: #10b981; pointer-events: none; margin: 0;"></ion-checkbox>
+                                <div class="chk-text">
+                                    <span class="main-label">Asignar un pack NUEVO</span>
+                                    <span class="sub-label">Venta manual de sesión</span>
+                                </div>
+                            </div>
+                            <ion-icon [name]="mostrarSelectorPackManual ? 'checkmark-circle' : 'add-circle-outline'" 
+                                      [color]="mostrarSelectorPackManual ? 'success' : 'medium'"></ion-icon>
+                        </div>
+                        
+                        <!-- Selector de Pack Manual (Visible si se activó el check o si NO tiene créditos en absoluto) -->
+                        <div class="nike-select-wrapper light-wrapper animate-fade mt-3" 
+                             *ngIf="mostrarSelectorPackManual || (alumnosPacksConCredito.length === 0 && (alumnoSeleccionado.sesiones_restantes || 0) <= 0)">
+                            <ion-icon name="wallet-outline" slot="start" style="color: #0ea5e9; font-size: 20px; margin-right: 12px;"></ion-icon>
+                            <ion-select [(ngModel)]="packAAsignar" interface="action-sheet" placeholder="Seleccionar nuevo pack" mode="ios" cancelText="Cancelar">
+                                <ion-select-option *ngFor="let p of packsParaTipo" [value]="p" class="ion-text-wrap">{{ p.nombre }} - ${{ p.precio | number:'1.0-0' }}</ion-select-option>
                             </ion-select>
+                        </div>
+
+                        <!-- NEW: Multi-student pack status display (Functional Parity with Web) -->
+                        <div class="mt-3" *ngIf="tipoClaseSeleccionado !== 'individual' && alumnosSeleccionados.length > 0">
+                            <div *ngFor="let s of alumnosSeleccionados" class="flex justify-between items-center bg-gray-50 p-2 rounded-lg mb-1">
+                                <span class="text-xs font-bold text-gray-700">{{ s.jugador_nombre }}</span>
+                                <span class="text-xs px-2 py-1 rounded" [ngClass]="(s.sesiones_restantes > 0) ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                                    {{ (s.sesiones_restantes > 0) ? s.pack_nombre : 'Sin saldo' }}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Malla / Syllabus -->
-                    <div class="nike-card dark mt-4">
-                        <h4>Planificación Técnica (Opcional)</h4>
-                        <div class="nike-select-wrapper mb-2">
+                    <div class="nike-card minimal-light animate-fade mt-5">
+                        <div class="card-header-v3 mb-3">
+                            <ion-icon name="school-outline" slot="start" color="primary"></ion-icon>
+                            <h4 style="color: #333; margin: 0;">Planificación Técnica</h4>
+                        </div>
+                        <div class="nike-select-wrapper light-wrapper mb-2">
                             <ion-select [(ngModel)]="categoriaFiltro" (ionChange)="onCategoriaChange()" interface="popover" mode="ios">
                                 <ion-select-option value="todos">Todas las categorías</ion-select-option>
                                 <ion-select-option value="adulto">Malla Adultos</ion-select-option>
                                 <ion-select-option value="menor">Malla Menores</ion-select-option>
                             </ion-select>
                         </div>
-                        <div class="nike-select-wrapper mb-2">
+                        <div class="nike-select-wrapper light-wrapper mb-2">
                             <ion-select [(ngModel)]="planificacionId" (ionChange)="onMallaChange()" interface="popover" placeholder="Selecciona la Malla" mode="ios">
                                 <ion-select-option *ngFor="let m of mallasFiltradas" [value]="m.id">{{ m.nombre }}</ion-select-option>
                             </ion-select>
                         </div>
-                        <div class="nike-select-wrapper" *ngIf="planificacionId">
-                            <ion-select [(ngModel)]="claseMallaId" (ionChange)="onClaseChange()" interface="popover" placeholder="Número de sesión" mode="ios">
-                                <ion-select-option *ngFor="let c of clasesDisponibles" [value]="c.id">Sesión {{ c.sesion_numero }}: {{ c.titulo }}</ion-select-option>
+                        <div class="nike-select-wrapper light-wrapper" *ngIf="planificacionId">
+                            <ion-select [(ngModel)]="claseMallaId" (ionChange)="onClaseChange()" interface="action-sheet" placeholder="Número de sesión" mode="ios">
+                                <ion-select-option *ngFor="let c of clasesDisponibles" [value]="c.id" class="ion-text-wrap">Sesión {{ c.sesion_numero }}: {{ c.titulo }}</ion-select-option>
                             </ion-select>
                         </div>
                     </div>
 
                     <!-- Repetir -->
-                    <div class="nike-card dark mt-4">
-                        <div class="nike-select-wrapper">
-                            <ion-icon name="repeat-outline" slot="start" style="color: #666; margin-right: 10px;"></ion-icon>
+                    <div class="nike-card minimal-light animate-fade mt-5 mb-5">
+                        <div class="card-header-v3 mb-3" style="margin-bottom: 12px !important">
+                            <ion-icon name="calendar-outline" slot="start" color="primary"></ion-icon>
+                            <h4 style="color: #333; margin: 0;">Recurrencia</h4>
+                        </div>
+                        <div class="nike-select-wrapper light-wrapper" style="margin-bottom: 0;">
+                            <ion-icon name="repeat-outline" slot="start" style="color: #64748b; margin-right: 10px;"></ion-icon>
                             <ion-select [(ngModel)]="recurrencia" interface="popover" mode="ios">
                                 <ion-select-option [value]="1">Sin recurrencia (Hoy)</ion-select-option>
                                 <ion-select-option [value]="2">2 Reservas semanales</ion-select-option>
@@ -171,8 +233,7 @@
 
                     <div class="mt-4 mb-4" style="text-align: center;">
                         <ion-button expand="block" class="nike-btn outline-success" shape="round" 
-                                    (click)="confirmarAgendamiento()" 
-                                    [disabled]="alumnosSeleccionados.length === 0 || (mostrarOpcionPack && !packAAsignar)">
+                                    (click)="confirmarAgendamiento()">
                             Agendar
                         </ion-button>
                     </div>

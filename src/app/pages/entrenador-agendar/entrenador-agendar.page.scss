@@ -837,37 +837,34 @@ ion-toolbar {
     }
 }
 
-.nike-card.dark {
-    background: #111;
-    border-radius: 28px;
-    padding: 25px 20px;
+.nike-card.minimal-light {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 22px 20px;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+    border: 1px solid #f1f5f9;
 
     h4 {
         margin: 0 0 10px;
         font-size: 15px;
         font-weight: 900;
         text-transform: uppercase;
-        color: #fff; /* Changed to white for header-title feel */
-        letter-spacing: 1px;
-    }
-    
-    &.animate-fade h4 {
-        color: #ccff00; /* Contrast for alert card */
+        color: #1e293b;
+        letter-spacing: 0.5px;
     }
 
     p {
         margin: 0;
         font-size: 14px;
         font-weight: 500;
-        color: rgba(255,255,255,0.6);
+        color: #64748b;
         line-height: 1.5;
     }
     
     ion-button {
-        --color: #00f2ff;
+        --color: #0ea5e9;
         --padding-start: 0;
         margin-top: 15px;
         font-weight: 950;
@@ -875,9 +872,130 @@ ion-toolbar {
         font-size: 13px;
         height: 36px;
         
-        &::part(native) { color: #00f2ff; }
+        &::part(native) { color: #0ea5e9; }
         
         ion-icon { margin-right: 8px; font-size: 18px; }
+    }
+}
+
+.light-wrapper {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+
+    ion-icon {
+        color: #0ea5e9 !important;
+    }
+
+    ion-select {
+        color: #334155 !important;
+        --placeholder-color: #94a3b8 !important;
+
+        &::part(icon) {
+            color: #64748b !important;
+        }
+
+        &::part(text) {
+            color: #334155 !important;
+        }
+    }
+    
+    &:has(ion-select:focus) {
+        border-color: #0ea5e9 !important;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+}
+
+.current-credits-info {
+    background: #f1f5f9;
+    padding: 14px 18px;
+    border-radius: 18px;
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-left: 4px solid #0ea5e9;
+
+    .pack-name-badge {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #0ea5e9;
+        background: rgba(14, 165, 233, 0.1);
+        padding: 4px 10px;
+        border-radius: 8px;
+        display: inline-block;
+        width: fit-content;
+    }
+
+    .credits-count {
+        margin: 0;
+        font-size: 15px;
+        color: #334155;
+        font-weight: 500;
+        
+        strong {
+            color: #0f172a;
+            font-weight: 800;
+        }
+    }
+}
+
+.premium-checkbox-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 20px;
+    
+    .chk-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .chk-text {
+        display: flex;
+        flex-direction: column;
+        
+        .main-label {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .sub-label {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+    }
+
+    ion-icon {
+        font-size: 24px;
+        transition: transform 0.3s ease;
+    }
+
+    &.active {
+        background: #f0fdf4;
+        border-color: #10b981;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+        
+        ion-icon {
+            transform: scale(1.1);
+        }
+
+        .main-label {
+            color: #065f46;
+        }
+    }
+
+    &:active {
+        transform: scale(0.98);
     }
 }
 

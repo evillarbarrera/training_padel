@@ -200,16 +200,12 @@
 
         <div class="p-divider"></div>
 
-        <div class="p-logros-section" (click)="openFinance()">
+        <div class="p-recaudado-section" (click)="openFinance()">
            <div class="p-l-header">
-             <span>Meta Mensual Proyectada</span>
-             <span class="pct">{{ ingresosProyectados > 0 ? ((ingresosRecaudados / ingresosProyectados) * 100 | number:'1.0-0') : 0 }}%</span>
+             <span>TOTAL RECAUDADO</span>
            </div>
-           <div class="p-l-bar">
-             <div class="p-l-fill" [style.width.%]="ingresosProyectados > 0 ? (ingresosRecaudados / ingresosProyectados) * 100 : 0"></div>
-           </div>
-           <div class="p-l-header" style="margin-top: 5px;">
-             <span>Total Proyectado: {{ ingresosProyectados | currency:'CLP':'$':'1.0-0' }}</span>
+           <div class="p-total-value">
+             {{ ingresosRecaudados | currency:'CLP':'$':'1.0-0' }}
            </div>
         </div>
       </div>
@@ -401,39 +397,21 @@
         <div class="drag-handle"></div>
         <div class="modal-header-nike">
           <h2 class="premium-title">RESUMEN MENSUAL</h2>
-          <p class="premium-subtitle">PROYECCIÓN DE INGRESOS</p>
+          <p class="premium-subtitle">INGRESOS CONFIRMADOS</p>
         </div>
 
         <div class="finance-section static">
           <div class="finance-card-premium">
             <div class="finance-header">
-              <div class="main-stat">
-                <span class="label">Total Recaudado</span>
-                <span class="value main-value">{{ ingresosRecaudados | currency:'CLP':'$':'1.0-0' }}</span>
-              </div>
-              <div class="percentage-badge" *ngIf="ingresosProyectados > 0">
-                {{ (ingresosRecaudados / ingresosProyectados) * 100 | number:'1.0-0' }}%
-              </div>
-            </div>
-
-            <div class="progress-container">
-              <div class="progress-bar" [style.width.%]="ingresosProyectados > 0 ? (ingresosRecaudados / ingresosProyectados) * 100 : 0"></div>
-            </div>
-
-            <div class="finance-footer-stats">
-              <div class="sub-stat">
-                <span class="sub-label">Proyectado</span>
-                <span class="sub-value">{{ ingresosProyectados | currency:'CLP':'$':'1.0-0' }}</span>
-              </div>
-              <div class="sub-stat text-right">
-                <span class="sub-label">Por Cobrar</span>
-                <span class="sub-value pending">{{ (ingresosProyectados - ingresosRecaudados) | currency:'CLP':'$':'1.0-0' }}</span>
+              <div class="main-stat" style="width: 100%; text-align: center;">
+                <span class="label">Recaudado este mes</span>
+                <span class="value main-value" style="font-size: 38px;">{{ ingresosRecaudados | currency:'CLP':'$':'1.0-0' }}</span>
               </div>
             </div>
           </div>
           <p class="finance-disclaimer">
             <ion-icon name="information-circle-outline"></ion-icon>
-            Cálculo basado en packs activos e inscripciones del mes actual.
+            Ingresos confirmados por packs activos.
           </p>
         </div>
       </ion-content>

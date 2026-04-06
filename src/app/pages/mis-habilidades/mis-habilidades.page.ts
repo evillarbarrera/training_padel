@@ -229,6 +229,10 @@ export class MisHabilidadesPage implements OnInit {
         this.evaluacionService.getEvaluaciones(this.userId!, entrenadorId).subscribe({
             next: (data) => {
                 console.log('Evaluaciones received:', data);
+                // Extract coaches from unfiltered data on first load
+                if (!entrenadorId && data && data.length > 0) {
+                    this.extractCoaches(data);
+                }
                 if (data && data.length > 0) {
                     // Sort by date ascending
                     const sorted = data.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
@@ -366,9 +370,19 @@ export class MisHabilidadesPage implements OnInit {
     }
 
     onCoachChange(ev: any) {
-        this.selectedCoachId = ev.detail.value;
+        this.selectedCoachId = ev.detail?.value ?? ev;
         const filterId = this.selectedCoachId === 'all' ? undefined : Number(this.selectedCoachId);
         this.isLoading = true;
+        this.hasData = false;
+        this.loadEvaluaciones(filterId);
+        this.loadVideos(filterId);
+    }
+
+    selectCoachTab(id: number | 'all') {
+        this.selectedCoachId = id;
+        const filterId = id === 'all' ? undefined : Number(id);
+        this.isLoading = true;
+        this.hasData = false;
         this.loadEvaluaciones(filterId);
         this.loadVideos(filterId);
     }

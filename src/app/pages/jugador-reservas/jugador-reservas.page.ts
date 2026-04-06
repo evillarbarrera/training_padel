@@ -355,9 +355,9 @@ export class JugadorReservasPage implements OnInit {
     // Club filtering is already handled by the API call and generarBloquesHorarios,
     // so we only need to hide days that ended up with zero slots.
     return this.dias.filter(dia => {
-      const tramos = this.horariosPorDia[dia];
-      if (!tramos) return false;
-      return tramos.manana.length > 0 || tramos.tarde.length > 0 || tramos.noche.length > 0;
+      const data = this.horariosPorDia[dia];
+      if (!data) return false;
+      return data.todos && data.todos.length > 0;
     });
   }
 
@@ -804,7 +804,7 @@ export class JugadorReservasPage implements OnInit {
       const d = new Date();
       d.setDate(d.getDate() + i);
       const ds = d.toISOString().split('T')[0];
-      this.horariosPorDia[ds] = { manana: [], tarde: [], noche: [] };
+      this.horariosPorDia[ds] = { todos: [] };
     }
 
     const slotsMap = new Map<string, any>();
@@ -952,12 +952,11 @@ export class JugadorReservasPage implements OnInit {
       }
     });
 
-    // Populate horariosPorDia tramos
+    // Populate horariosPorDia as flat list with tramo color tag
     finalSlotsMap.forEach(slot => {
-      // Filter out slots based on the target type selector just like before
+      // Filter out slots based on the target type selector
       if (this.tipoEntrenamiento !== 'todos') {
         if (this.tipoEntrenamiento === 'grupal') {
-          // Si el filtro es grupal, mostrar SOLO grupal
           if (slot.tipo !== 'grupal') return;
         } else {
           if (slot.tipo === 'grupal') return;
@@ -965,15 +964,16 @@ export class JugadorReservasPage implements OnInit {
       }
 
       if (!this.horariosPorDia[slot.fecha]) {
-        this.horariosPorDia[slot.fecha] = { manana: [], tarde: [], noche: [] };
+        this.horariosPorDia[slot.fecha] = { todos: [] };
       }
 
+      // Tag each slot with its time period for color-coding
       const hora = slot.hora_inicio.getHours();
-      let tramo: 'manana' | 'tarde' | 'noche' = 'noche';
-      if (hora >= 6 && hora < 12) tramo = 'manana';
-      else if (hora >= 12 && hora < 18) tramo = 'tarde';
+      if (hora >= 6 && hora < 12) slot.tramo = 'manana';
+      else if (hora >= 12 && hora < 18) slot.tramo = 'tarde';
+      else slot.tramo = 'noche';
 
-      this.horariosPorDia[slot.fecha][tramo].push(slot);
+      this.horariosPorDia[slot.fecha].todos.push(slot);
     });
 
     this.dias = Object.keys(this.horariosPorDia).sort();
@@ -991,14 +991,7 @@ export class JugadorReservasPage implements OnInit {
   }
 
   actualizarTramoAutomatico() {
-    if (!this.diaSeleccionado || !this.horariosPorDia[this.diaSeleccionado]) return;
-    const tramos = ['manana', 'tarde', 'noche'] as const;
-    for (const t of tramos) {
-      if (this.horariosPorDia[this.diaSeleccionado][t].length > 0) {
-        this.tramoSeleccionado = t;
-        break;
-      }
-    }
+    // No longer needed since we show all slots at once
   }
 
   onDiaSeleccionadoChange() {

@@ -85,6 +85,13 @@ export class EntrenamientoService {
     );
   }
 
+  getAlumnosGlobales(entrenadorId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.api}/alumno/get_alumno.php?entrenador_id=${entrenadorId}`,
+      { headers: this.getHeaders() }
+    );
+  }
+
   getDefaultConfig(entrenadorId: number): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.api}/disponibilidad/get_config.php?entrenador_id=${entrenadorId}`,
@@ -212,6 +219,14 @@ export class EntrenamientoService {
     return this.http.get(`${this.api}/mallas/get_mallas.php?id=${mallaId}`, {
       headers: this.getHeaders()
     });
+  }
+
+  getPacksAlumno(jugadorId: number, entrenadorId?: number): Observable<any> {
+    let url = `${this.api}/alumno/get_mis_packs_alumno.php?jugador_id=${jugadorId}`;
+    if (entrenadorId) {
+      url += `&entrenador_id=${entrenadorId}`;
+    }
+    return this.http.get<any>(url, { headers: this.getHeaders() });
   }
 }
 
