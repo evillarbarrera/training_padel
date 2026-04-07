@@ -161,9 +161,13 @@ export class LoginPage implements OnInit {
     this.error = '';
 
     try {
+      const isNative = this.platform.is('capacitor');
+
       const result: SignInWithAppleResponse = await SignInWithApple.authorize({
-        clientId: 'cl.padelacademy.app',
-        redirectURI: '', // Not needed for native app
+        // IMPORTANTE: En el navegador (web), necesitas un Service ID, no el Bundle ID.
+        // Si no tienes uno con el sufijo .service, verifica el nombre exacto en tu portal de Apple.
+        clientId: isNative ? 'cl.padelacademy.app' : 'cl.padelacademy.app.service',
+        redirectURI: isNative ? '' : window.location.origin + '/login',
         scopes: 'email name',
       });
 
@@ -171,7 +175,7 @@ export class LoginPage implements OnInit {
       const email = result.response.email;
       const user = result.response.user;
 
-      if (email) {
+      if (email && user) {
         this.mysql.appleCheck(email, user).subscribe({
           next: (res) => {
             this.isLoading = false;
@@ -193,7 +197,8 @@ export class LoginPage implements OnInit {
       } else {
         // En Apple, el email solo se devuelve la primera vez que el usuario se conecta.
         this.isLoading = false;
-        this.showError('No se pudo obtener el email de Apple. Inténtalo de nuevo o usa otro método.');
+        const msg = !email ? 'No se pudo obtener el email de Apple.' : 'No se pudo obtener el identificador de usuario de Apple.';
+        this.showError(msg + ' Inténtalo de nuevo o usa otro método.');
       }
     } catch (err: any) {
       this.isLoading = false;
