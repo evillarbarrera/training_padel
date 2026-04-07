@@ -45,6 +45,10 @@ export class MysqlService {
     return this.http.post<any>(`${this.api}/auth/google_auth.php`, { email }, { headers: this.getHeaders() });
   }
 
+  appleCheck(email: string, appleUser: string) {
+    return this.http.post<any>(`${this.api}/auth/apple_auth.php`, { email, user: appleUser }, { headers: this.getHeaders() });
+  }
+
   googleRegister(nombre: string, email: string, rol: string) {
     return this.http.post<any>(`${this.api}/auth/google_register.php`, {
       nombre,

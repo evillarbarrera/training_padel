@@ -261,6 +261,21 @@
   }
 }
 
+.apple-login-btn {
+  --border-radius: 16px;
+  --background: #000;
+  --color: #fff;
+  height: 56px;
+  font-weight: 700;
+  margin: 12px 0 0;
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  ion-icon {
+    color: #fff;
+    font-size: 20px;
+  }
+}
+
 // ─── Footer Link ───
 .register-link {
   text-align: center;

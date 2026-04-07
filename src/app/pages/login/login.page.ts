@@ -8,8 +8,9 @@ import { MysqlService } from 'src/app/services/mysql.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { ToastController, AlertController, Platform, LoadingController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { mailOutline, lockClosedOutline, logoGoogle } from 'ionicons/icons';
+import { mailOutline, lockClosedOutline, logoGoogle, logoApple } from 'ionicons/icons';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { SignInWithApple, SignInWithAppleResponse } from '@capacitor-community/apple-sign-in';
 import { timeout } from 'rxjs/operators';
 
 @Component({
@@ -36,11 +37,11 @@ export class LoginPage implements OnInit {
     private router: Router,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
-    private platform: Platform,
+    public platform: Platform,
     private loadingCtrl: LoadingController,
     private notificationService: NotificationService
   ) {
-    addIcons({ mailOutline, lockClosedOutline, logoGoogle });
+    addIcons({ mailOutline, lockClosedOutline, logoGoogle, logoApple });
   }
 
   ngOnInit() {
@@ -150,6 +151,55 @@ export class LoginPage implements OnInit {
       console.error('Google sign in error:', err);
       if (err.error !== 'popup_closed_by_user') {
         this.showError('Error al iniciar sesión con Google.');
+      }
+    }
+  }
+
+  async loginWithApple() {
+    if (this.isLoading) return;
+    this.isLoading = true;
+    this.error = '';
+
+    try {
+      const result: SignInWithAppleResponse = await SignInWithApple.authorize({
+        clientId: 'cl.padelacademy.app',
+        redirectURI: '', // Not needed for native app
+        scopes: 'email name',
+      });
+
+      console.log('Apple response:', result);
+      const email = result.response.email;
+      const user = result.response.user;
+
+      if (email) {
+        this.mysql.appleCheck(email, user).subscribe({
+          next: (res) => {
+            this.isLoading = false;
+            if (res.exists) {
+              if (res.token) localStorage.setItem('token', res.token);
+              localStorage.setItem('userId', res.id.toString());
+              this.notificationService.updateTokenForUser();
+              this.redirectBasedOnRole(res.rol);
+            } else {
+              this.showError('Usuario no registrado. Regístrate con este email primero.');
+            }
+          },
+          error: (err) => {
+            this.isLoading = false;
+            console.error('Apple check error:', err);
+            this.showError('Error al verificar cuenta Apple.');
+          }
+        });
+      } else {
+        // En Apple, el email solo se devuelve la primera vez que el usuario se conecta.
+        this.isLoading = false;
+        this.showError('No se pudo obtener el email de Apple. Inténtalo de nuevo o usa otro método.');
+      }
+    } catch (err: any) {
+      this.isLoading = false;
+      console.error('Apple sign in error:', err);
+      if (err.error !== 'popup_closed_by_user') {
+        this.showError('Error al iniciar sesión con Apple.');
       }
     }
   }

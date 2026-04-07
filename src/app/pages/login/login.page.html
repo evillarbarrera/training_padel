@@ -52,6 +52,12 @@
           Google
         </ion-button>
 
+        <ion-button expand="block" fill="solid" class="apple-login-btn" (click)="loginWithApple()"
+          [disabled]="isLoading">
+          <ion-icon name="logo-apple" slot="start"></ion-icon>
+          Sign in with Apple
+        </ion-button>
+
         <!-- Error Message Display -->
         <div *ngIf="error" class="error-msg-container">
           <ion-icon name="alert-circle-outline"></ion-icon>
