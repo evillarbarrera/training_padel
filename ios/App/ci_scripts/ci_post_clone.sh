@@ -26,8 +26,17 @@ fi
 echo "--- Using PROJECT_ROOT: $PROJECT_ROOT ---"
 cd "$PROJECT_ROOT"
 
-# 3. Validar herramientas instaladas o instalarlas
-# Use pre-installed Node.js from Xcode Cloud environment
+# 3. Intelligent Node.js Detection & Installation
+if ! command -v node &> /dev/null; then
+    echo "--- Node.js not found in PATH. Checking common Homebrew paths... ---"
+    export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
+fi
+
+if ! command -v node &> /dev/null; then
+    echo "--- Node.js still not found. Installing via Homebrew (this might take 2-3 mins)... ---"
+    brew install node
+fi
+
 echo "--- Using Node.js: $(node -v) ---"
 echo "--- Using npm: $(npm -v) ---"
 
