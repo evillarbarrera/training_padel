@@ -27,12 +27,20 @@ echo "--- Using PROJECT_ROOT: $PROJECT_ROOT ---"
 cd "$PROJECT_ROOT"
 
 # 3. Validar herramientas instaladas o instalarlas
-if ! command -v node >/dev/null 2>&1; then
-    echo "--- Node.js not found. Installing via Homebrew... ---"
-    brew install node
-else
-    echo "--- Node.js: $(node -v) ---"
-fi
+# Use pre-installed Node.js from Xcode Cloud environment
+echo "--- Using Node.js: $(node -v) ---"
+echo "--- Using npm: $(npm -v) ---"
+
+# Fix potential npm issues
+npm cache clean --force
+
+# Use npm install for faster/cleaner install in CI, with legacy-peer-deps to ignore conflicts
+echo "--- Running npm install ---"
+# Eliminamos temporalmente ngrok para evitar fallos en el postinstall (servidor caído)
+# No es necesario para el build de iOS
+sed -i '' '/"ngrok":/d' package.json
+
+npm install --legacy-peer-deps --no-audit --no-fund
 
 if ! command -v pod >/dev/null 2>&1; then
     echo "--- CocoaPods not found. Installing via Homebrew... ---"
@@ -40,16 +48,6 @@ if ! command -v pod >/dev/null 2>&1; then
 else
     echo "--- CocoaPods: $(pod --version) ---"
 fi
-
-# 4. Instalación de dependencias
-echo "--- Fixing ngrok issue (server down) ---"
-# Eliminamos temporalmente ngrok para evitar fallos en el postinstall (servidor caído)
-# No es necesario para el build de iOS
-sed -i '' '/"ngrok":/d' package.json
-
-echo "--- Running npm install ---"
-# Usamos legacy-peer-deps para asegurar compatibilidad en Ionic/Angular 19/20
-npm install --legacy-peer-deps --no-audit --no-fund
 
 # 5. Build de Angular
 echo "--- Running npm run build ---"
