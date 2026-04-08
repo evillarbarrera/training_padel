@@ -161,12 +161,11 @@ export class LoginPage implements OnInit {
     this.error = '';
 
     try {
-      const isNative = this.platform.is('capacitor');
+      const isNative = this.platform.is('capacitor') || this.platform.is('hybrid');
+      const clientId = isNative ? 'cl.padelacademy.app' : 'cl.padelacademy.app.web';
 
       const result: SignInWithAppleResponse = await SignInWithApple.authorize({
-        // IMPORTANTE: En el navegador (web), necesitas un Service ID, no el Bundle ID.
-        // Si no tienes uno con el sufijo .service, verifica el nombre exacto en tu portal de Apple.
-        clientId: isNative ? 'cl.padelacademy.app' : 'cl.padelacademy.app.service',
+        clientId: clientId,
         redirectURI: isNative ? '' : window.location.origin + '/login',
         scopes: 'email name',
       });
