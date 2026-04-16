@@ -319,21 +319,33 @@
             <span class="v2-status-dot pulse"></span>
          </div>
          
+         <!-- HIGHLIGHTED ACTION: RESERVAR CANCHA -->
+         <div class="hero-booking-action animate-pulse" (click)="goToReservarCancha()" style="background: #ccff00; padding: 22px; border-radius: 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 25px rgba(204, 255, 0, 0.3);">
+            <div style="display: flex; align-items: center; gap: 15px;">
+              <div style="width: 45px; height: 45px; background: rgba(0,0,0,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;">🎾</div>
+              <div>
+                <h3 style="margin: 0; color: #000; font-weight: 900; font-size: 18px; letter-spacing: -0.5px;">Reservar Cancha</h3>
+                <p style="margin: 0; color: rgba(0,0,0,0.6); font-size: 12px; font-weight: 700;">Clubes y Disponibilidad</p>
+              </div>
+            </div>
+            <ion-icon name="arrow-forward" style="color: #000; font-size: 24px;"></ion-icon>
+         </div>
+
          <div class="actions-grid-v2">
-            <!-- BOTÓN HERO (AGENDAR) -->
-            <div class="action-btn-v2 hero-action" (click)="goToAgenda()">
-               <div class="a-icon bg-hero"><ion-icon name="calendar-outline"></ion-icon></div>
-               <span>Reservar</span>
+            <!-- BOTÓN SECUNDARIO (AGENDAR CLASE) -->
+            <div class="action-btn-v2" (click)="goToAgenda()">
+               <div class="a-icon bg-soft"><ion-icon name="calendar-outline"></ion-icon></div>
+               <span style="font-size: 11px; font-weight: 800;">Agendar Clase</span>
             </div>
             
             <div class="action-btn-v2" (click)="goToMisClases()">
                <div class="a-icon bg-soft"><ion-icon name="time-outline"></ion-icon></div>
-               <span>Mi Agenda</span>
+               <span style="font-size: 11px; font-weight: 800;">Mi Agenda</span>
             </div>
             
             <div class="action-btn-v2" (click)="misHabilidades()">
                <div class="a-icon bg-soft"><ion-icon name="ribbon-outline"></ion-icon></div>
-               <span>Tu Nivel</span>
+               <span style="font-size: 11px; font-weight: 800;">Tu Nivel</span>
             </div>
          </div>
       </div>

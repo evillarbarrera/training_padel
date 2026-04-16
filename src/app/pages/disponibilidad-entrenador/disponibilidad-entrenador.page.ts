@@ -205,7 +205,7 @@ export class DisponibilidadEntrenadorPage implements OnInit {
     }
 
     this.isLoading = true;
-    const payload = { ...this.newClub, admin_id: this.entrenador_id };
+    const payload = { ...this.newClub, admin_id: this.entrenador_id, rol: 'entrenador' };
     this.entrenamientoService.addClub(payload).subscribe({
       next: (res) => {
         this.mostrarToast('✅ Club creado exitosamente');

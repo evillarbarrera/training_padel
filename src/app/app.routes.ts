@@ -94,4 +94,8 @@ export const routes: Routes = [
     path: 'entrenador-mi-plan',
     loadComponent: () => import('./pages/entrenador-mi-plan/entrenador-mi-plan.page').then(m => m.EntrenadorMiPlanPage)
   },
+  {
+    path: 'clubes-reservar',
+    loadComponent: () => import('./pages/clubes-reservar/clubes-reservar.page').then(m => m.ClubesReservarPage)
+  }
 ];

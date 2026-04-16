@@ -206,4 +206,25 @@ export class MysqlService {
   getLogros(jugadorId: number): Observable<any> {
     return this.http.get<any>(`${this.api}/logros/get_logros.php?jugador_id=${jugadorId}`, { headers: this.getHeaders() });
   }
+
+  // Clubes & Reservas (Playtomic Style)
+  getClubes(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/clubes/get_clubes.php`, { headers: this.getHeaders() });
+  }
+
+  getCanchas(clubId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/clubes/get_canchas.php?club_id=${clubId}`, { headers: this.getHeaders() });
+  }
+
+  getDisponibilidadCancha(canchaId: number, fecha: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/clubes/get_disponibilidad.php?cancha_id=${canchaId}&fecha=${fecha}`, { headers: this.getHeaders() });
+  }
+
+  addReservaClub(reserva: any): Observable<any> {
+    return this.http.post<any>(`${this.api}/clubes/add_reserva.php`, reserva, { headers: this.getHeaders() });
+  }
+
+  getTorneosPublicos(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/torneos/get_torneos_publicos.php`, { headers: this.getHeaders() });
+  }
 }

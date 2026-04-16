@@ -136,7 +136,7 @@ export class JugadorHomePage implements OnInit {
         // Try to get photo from stats first
         if (res.foto_perfil) {
           const foto = res.foto_perfil;
-          this.fotoPerfil = foto.startsWith('http') ? foto : `https://api.padelmanager.cl/${foto}`;
+          this.fotoPerfil = foto.startsWith('http') ? foto : `${environment.apiUrl.replace('/prd','').replace('/dev','')}/${foto.startsWith('/') ? foto.substring(1) : foto}`;
         }
 
         // Datos de Packs
@@ -215,6 +215,10 @@ export class JugadorHomePage implements OnInit {
 
   agendar() {
     this.router.navigate(['/jugador-reservas']);
+  }
+
+  goToReservarCancha() {
+    this.router.navigate(['/clubes-reservar']);
   }
 
   comprarPack() {

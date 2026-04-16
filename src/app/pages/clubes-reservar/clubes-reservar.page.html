@@ -1,0 +1,118 @@
+<!-- 1. UNIFIED FLOATING BACK BUTTON -->
+<div class="floating-back-btn" (click)="goBack()">
+  <ion-icon name="arrow-back"></ion-icon>
+</div>
+
+<ion-content [fullscreen]="true" class="ion-padding-bottom">
+  
+  <!-- A. CLUB DISCOVERY LIST (PLAYTOMIC STYLE) -->
+  <div *ngIf="!selectedClub" class="discovery-container">
+    <div class="search-header-playtomic">
+        <div class="search-input-wrapper">
+            <ion-icon name="search-outline"></ion-icon>
+            <input type="text" [(ngModel)]="searchTerm" placeholder="Arturo Prat 169, Machalí...">
+            <ion-icon name="heart-outline" class="right-icon"></ion-icon>
+        </div>
+        <div class="priority-label" *ngIf="userRegion">
+            <span>Explorando en {{ userRegion }}</span>
+        </div>
+    </div>
+
+    <div class="club-list-playtomic">
+      <div *ngIf="loading" class="skeleton-container">
+        <div class="skeleton-card" *ngFor="let i of [1,2,3]"></div>
+      </div>
+
+      <div class="playtomic-card animate-up" *ngFor="let club of filteredClubes" (click)="onSelectClub(club)">
+        <div class="p-card-image">
+          <img [src]="club.logoUrl" (error)="club.logoUrl = heroBackground">
+          <div class="p-overlay"></div>
+          <h3 class="p-club-name">{{ club.nombre }}</h3>
+          <ion-icon name="heart-outline" class="p-fav-icon"></ion-icon>
+        </div>
+        <div class="p-card-detail">
+          <p class="p-loc">{{ club.direccion || 'Om - Machalí' }}</p>
+          <div class="p-availability-line">
+            <span class="p-price">1h desde <strong>$14.000</strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B. CLUB DETAIL (PLAYTOMIC STYLE) -->
+  <div *ngIf="selectedClub" class="club-detail-playtomic animate-fade">
+    
+    <!-- HEADER IMAGE -->
+    <div class="detail-hero">
+        <img [src]="selectedClub.logoUrl" (error)="selectedClub.logoUrl = heroBackground">
+        <ion-icon name="share-outline" class="share-icon"></ion-icon>
+    </div>
+
+    <!-- CLUB INFO -->
+    <div class="detail-info-block">
+        <div class="title-row">
+            <h1>{{ selectedClub.nombre }}</h1>
+            <ion-icon name="heart-outline"></ion-icon>
+        </div>
+        <p class="address-txt">{{ selectedClub.direccion }}</p>
+    </div>
+
+    <!-- DETAIL TABS (Simplified) -->
+    <div class="detail-tabs-wrapper">
+        <div class="p-tabs">
+            <div class="p-tab" [class.active]="activeSubTab === 'reservar'" (click)="activeSubTab = 'reservar'">Reservar</div>
+            <div class="p-tab" [class.active]="activeSubTab === 'eventos'" (click)="activeSubTab = 'eventos'">Torneos</div>
+        </div>
+    </div>
+
+    <!-- CONTENT: RESERVAR -->
+    <div class="segment-body" *ngIf="activeSubTab === 'reservar'">
+        
+        <!-- DATE SCROLLER -->
+        <div class="p-date-scroller">
+            <div class="p-date-track">
+                <div class="p-date-item" *ngFor="let day of weekDays" 
+                     [class.active]="selectedFecha === day.fullDate"
+                     (click)="onSelectDate(day.fullDate)">
+                    <span class="p-day-name">{{ day.nombre }}</span>
+                    <div class="p-day-circle">{{ day.numero }}</div>
+                    <span class="p-month-name">Abr.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- COURTS AVAILABILITY LIST (ACCORDION STYLE) -->
+        <div class="p-direct-courts-list">
+            <div class="p-section-title">Reserva una pista</div>
+            
+            <div class="p-court-booking-block" *ngFor="let cancha of canchas" [class.is-expanded]="cancha.expanded">
+                <div class="p-court-header" (click)="toggleCancha(cancha)">
+                    <div class="c-info">
+                        <h4>{{ cancha.nombre }}</h4>
+                        <p>Interior | Cristal | Dobles</p>
+                    </div>
+                    <ion-icon [name]="cancha.expanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+                </div>
+
+                <div class="p-court-body-expand" *ngIf="cancha.expanded">
+                    <div class="p-court-slots">
+                        <!-- Only Available Slots -->
+                        <ng-container *ngFor="let h of horarios">
+                           <div class="p-slot-chip" *ngIf="h.disponible" (click)="reservar(h)">
+                               {{ h.hora_inicio.slice(0,5) }}
+                           </div>
+                        </ng-container>
+                    </div>
+                    
+                    <div class="p-no-slots" *ngIf="(horarios | json) === '[]' || !hasAvailableSlots()">
+                        Sin horarios disponibles para hoy
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  </div>
+
+</ion-content>
