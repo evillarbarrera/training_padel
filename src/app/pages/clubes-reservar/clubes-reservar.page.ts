@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
-  IonContent, IonHeader, IonToolbar, IonTitle, IonIcon, IonSkeletonText, 
+  IonContent, IonHeader, IonToolbar, IonTitle, IonIcon,
   AlertController
 } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
@@ -25,7 +25,7 @@ import { environment } from '../../../environments/environment';
   imports: [
     CommonModule, FormsModule, 
     IonContent, IonHeader, IonToolbar, IonTitle,
-    IonIcon, IonSkeletonText
+    IonIcon
   ]
 })
 export class ClubesReservarPage implements OnInit {
