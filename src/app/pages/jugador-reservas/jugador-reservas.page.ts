@@ -392,6 +392,8 @@ export class JugadorReservasPage implements OnInit {
       return Number(p.entrenador_id) === Number(this.selectedEntrenador) && this.getPackRealCredits(p) > 0;
     });
 
+    this.checkBookingRestriction(this.selectedEntrenador!);
+
     this.entrenamientoService
       .getDisponibilidadEntrenador(this.selectedEntrenador!, undefined, this.selectedClubId || undefined)
       .subscribe({
@@ -581,7 +583,17 @@ export class JugadorReservasPage implements OnInit {
           if (payRes.token && payRes.url) {
             const separator = payRes.url.includes('?') ? '&' : '?';
             window.location.href = `${payRes.url}${separator}token_ws=${payRes.token}`;
+          } else if (payRes.direct || (payRes.success && !payRes.url)) {
+            loader.dismiss();
+            this.showPackModal = false;
+            this.alertCtrl.create({
+              header: '¡Pack Activado!',
+              message: payRes.message || 'El pack ha sido activado. Ahora puedes agendar tus clases.',
+              buttons: ['OK']
+            }).then(a => a.present());
+            this.onEntrenadorChange();
           } else {
+            loader.dismiss();
             this.mostrarToast('❌ Error al iniciar el pago');
           }
         },
@@ -608,6 +620,7 @@ export class JugadorReservasPage implements OnInit {
       hora_fin: this.pendingHorario.hora_fin.toTimeString().slice(0, 5),
       jugador_id: Number(this.jugadorId),
       pack_id: packId,
+      reserva_id: this.pendingHorario.id || null,
       estado: 'bloqueado', // Estado temporal hasta que pague
       tipo: finalTipo,
       cantidad_personas: 1,
@@ -635,7 +648,18 @@ export class JugadorReservasPage implements OnInit {
               const separator = payRes.url.includes('?') ? '&' : '?';
               window.location.href = `${payRes.url}${separator}token_ws=${payRes.token}`;
             }
+            else if (payRes.direct || (payRes.success && !payRes.url)) {
+              loader.dismiss();
+              this.showPackModal = false;
+              this.alertCtrl.create({
+                header: '¡Reserva Completada!',
+                message: payRes.message || 'Tu reserva ha sido registrada. Recuerda coordinar el pago con tu profesor.',
+                buttons: ['OK']
+              }).then(a => a.present());
+              this.onEntrenadorChange();
+            }
             else {
+              loader.dismiss();
               this.mostrarToast('❌ Error al iniciar el pago');
             }
           },
@@ -717,6 +741,7 @@ export class JugadorReservasPage implements OnInit {
           jugador_id: Number(this.jugadorId),
           pack_id: packId,
           pack_jugador_id: newPackJugadorId,
+          reserva_id: this.pendingHorario.id || null,
           estado: 'reservado',
           tipo: finalTipo,
           cantidad_personas: 1,
@@ -782,6 +807,9 @@ export class JugadorReservasPage implements OnInit {
     this.tipoEntrenamiento = tipo;
     // Don't reset diaSeleccionado to improve UX
     this.generarBloquesHorarios(this.horarios, this.totalTrainerPacks);
+    if (this.selectedEntrenador) {
+      this.checkBookingRestriction(this.selectedEntrenador);
+    }
   }
 
   getSelectedClub() {
@@ -1132,28 +1160,40 @@ export class JugadorReservasPage implements OnInit {
     }
   }
 
-  checkBookingRestriction() {
+  checkBookingRestriction(entrenadorId?: number) {
     this.mysqlService.getHomeStats(this.jugadorId).subscribe({
       next: (res: any) => {
         const stats = res.estadisticas?.packs;
         if (stats) {
-          this.creditosDisponibles = Number(stats.disponibles || 0); 
-          this.reservasFuturas = Number(stats.futuras || 0);
+          if (entrenadorId) {
+            // Filtrar estadísticas solo para el entrenador seleccionado
+            let detalleCoach = (stats.detalle || []).filter((d: any) => Number(d.entrenador_id) === Number(entrenadorId));
+            
+            // FILTRAR POR TIPO DE ENTRENAMIENTO (Opcional pero sugerido por el usuario)
+            if (this.tipoEntrenamiento !== 'todos') {
+              detalleCoach = detalleCoach.filter((d: any) => {
+                const pTipo = d.tipo?.toLowerCase() || 'individual';
+                if (this.tipoEntrenamiento === 'grupal') return pTipo === 'grupal';
+                return pTipo !== 'grupal'; // Individual y Multiplayer usan packs no grupales
+              });
+            }
 
-          // ESCENARIO A: Tiene Créditos (Créditos > 0) OR is a new user (0 credits, 0 future bookings)
-          // This allows new users to see coaches and then be prompted to buy a pack when selecting a slot.
+            this.creditosDisponibles = detalleCoach.reduce((acc: number, d: any) => acc + Number(d.disponibles || 0), 0);
+            this.reservasFuturas = detalleCoach.reduce((acc: number, d: any) => acc + Number(d.futuras || 0), 0);
+          } else {
+            this.creditosDisponibles = Number(stats.disponibles || 0); 
+            this.reservasFuturas = Number(stats.futuras || 0);
+          }
+
+          // ESCENARIO A: Tiene Créditos (Créditos > 0) OR es usuario nuevo (ambos 0 o sin deuda)
           if (this.creditosDisponibles > 0 || (this.creditosDisponibles === 0 && this.reservasFuturas === 0)) {
             this.escenarioReserva = 'A';
           }
-          // ESCENARIO B: This case is now effectively subset of A or C, but we keep it for logic completeness if needed.
-          // However, with the change above, Scenario B will only happen if we explicitly want to block booking 
-          // even with 0 futures (which we don't for new users anymore).
-          else if (this.reservasFuturas === 0) {
-            this.escenarioReserva = 'B';
-          }
-          // ESCENARIO C: No tiene Créditos PERO TIENE Reservas Futuras
+          // ESCENARIO B: No tiene Créditos y ya tiene todo agendado (Pero permitimos que siga agendando si quiere comprar otro)
           else {
-            this.escenarioReserva = 'C';
+            // Simplificamos: Si no tiene créditos, siempre lo enviamos a A (Discovery) para que pueda elegir y comprar
+            // eliminando el bloqueo del escenario C.
+            this.escenarioReserva = 'A'; 
           }
         }
       },

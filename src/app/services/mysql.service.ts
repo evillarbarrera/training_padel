@@ -227,4 +227,12 @@ export class MysqlService {
   getTorneosPublicos(): Observable<any[]> {
     return this.http.get<any[]>(`${this.api}/torneos/get_torneos_publicos.php`, { headers: this.getHeaders() });
   }
+
+  saveMatchResult(data: any): Observable<any> {
+    return this.http.post<any>(`${this.api}/clubes/save_match_result.php`, data, { headers: this.getHeaders() });
+  }
+
+  getMisPartidos(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/clubes/get_mis_partidos.php`, { headers: this.getHeaders() });
+  }
 }

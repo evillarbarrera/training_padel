@@ -97,5 +97,9 @@ export const routes: Routes = [
   {
     path: 'clubes-reservar',
     loadComponent: () => import('./pages/clubes-reservar/clubes-reservar.page').then(m => m.ClubesReservarPage)
+  },
+  {
+    path: 'jugador-partidos',
+    loadComponent: () => import('./pages/jugador-partidos/jugador-partidos.page').then(m => m.JugadorPartidosPage)
   }
 ];

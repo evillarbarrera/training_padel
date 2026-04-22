@@ -289,6 +289,10 @@ export class JugadorHomePage implements OnInit {
     this.router.navigate(['/jugador-reservas'], { queryParams: { view: 'mis-entrenamientos' } });
   }
 
+  goToPartidos() {
+    this.router.navigate(['/jugador-partidos']);
+  }
+
   logout() {
     console.log('Logging out player...');
     localStorage.clear();

@@ -43,6 +43,7 @@ export class ClubesReservarPage implements OnInit {
   
   searchTerm: string = '';
   userRegion: string = '';
+  showOccupied: boolean = true;
   loading = true;
 
   defaultClubImages: string[] = [
@@ -118,16 +119,19 @@ export class ClubesReservarPage implements OnInit {
     this.loading = true;
     this.mysql.getClubes().subscribe({
       next: (res: any[]) => {
-        this.clubes = res.map((c, index) => {
-          if (c.logo && c.logo.trim() !== '' && c.logo !== 'null') {
-            c.logoUrl = c.logo.startsWith('http') ? c.logo : `${environment.apiUrl.replace('/dev','').replace('/prd','')}/${c.logo}`;
-          } else {
-            // Assign a random high-quality default image
-            const randomIndex = index % this.defaultClubImages.length;
-            c.logoUrl = this.defaultClubImages[randomIndex];
-          }
-          return c;
-        });
+        // 🔒 Filtro de Seguridad: Solo mostrar clubes con el módulo de reservas activado
+        this.clubes = res
+          .filter(c => Number(c.reservas_activas) === 1)
+          .map((c, index) => {
+            if (c.logo && c.logo.trim() !== '' && c.logo !== 'null') {
+              c.logoUrl = c.logo.startsWith('http') ? c.logo : `${environment.apiUrl.replace('/dev','').replace('/prd','')}/${c.logo}`;
+            } else {
+              // Assign a random high-quality default image
+              const randomIndex = index % this.defaultClubImages.length;
+              c.logoUrl = this.defaultClubImages[randomIndex];
+            }
+            return c;
+          });
         this.sortClubesByUserRegion();
         this.loading = false;
       },

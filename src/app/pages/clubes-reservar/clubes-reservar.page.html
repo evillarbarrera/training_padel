@@ -84,7 +84,15 @@
 
         <!-- COURTS AVAILABILITY LIST (ACCORDION STYLE) -->
         <div class="p-direct-courts-list">
-            <div class="p-section-title">Reserva una pista</div>
+            <div class="p-section-header-row">
+                <div class="p-section-title">Reserva una pista</div>
+                <div class="show-occupied-toggle" (click)="showOccupied = !showOccupied">
+                    <span>Ver ocupados</span>
+                    <div class="mini-toggle" [class.active]="showOccupied">
+                        <div class="toggle-dot"></div>
+                    </div>
+                </div>
+            </div>
             
             <div class="p-court-booking-block" *ngFor="let cancha of canchas" [class.is-expanded]="cancha.expanded">
                 <div class="p-court-header" (click)="toggleCancha(cancha)">
@@ -97,9 +105,14 @@
 
                 <div class="p-court-body-expand" *ngIf="cancha.expanded">
                     <div class="p-court-slots">
-                        <!-- Only Available Slots -->
+                        <!-- Slots: Render based on availability and toggle -->
                         <ng-container *ngFor="let h of horarios">
+                           <!-- Slot Disponible -->
                            <div class="p-slot-chip" *ngIf="h.disponible" (click)="reservar(h)">
+                               {{ h.hora_inicio.slice(0,5) }}
+                           </div>
+                           <!-- Slot Ocupado (Solo si showOccupied) -->
+                           <div class="p-slot-chip is-occupied" *ngIf="!h.disponible && showOccupied">
                                {{ h.hora_inicio.slice(0,5) }}
                            </div>
                         </ng-container>

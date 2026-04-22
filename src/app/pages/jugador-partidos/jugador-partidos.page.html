@@ -1,0 +1,441 @@
+<ion-content [fullscreen]="true">
+  <!-- FLOATING BACK BUTTON -->
+  <div class="fab-back-btn" (click)="goBack()">
+    <ion-icon name="arrow-back"></ion-icon>
+  </div>
+
+  <ion-refresher slot="fixed" (ionRefresh)="loadPartidos($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="stats-hero animate-fade">
+    <div class="hero-bg-image">
+       <img src="https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?q=80&w=1200" alt="Padel Background">
+       <div class="hero-overlay"></div>
+    </div>
+    
+    <div class="hero-content">
+        <h1 class="page-title">MIS PARTIDOS</h1>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="s-val">{{ totalJugados }}</span>
+            <span class="s-lbl">PARTIDOS</span>
+          </div>
+          <div class="stat-card highlight">
+            <span class="s-val">{{ victorias }}</span>
+            <span class="s-lbl">VICTORIAS</span>
+          </div>
+          <div class="stat-card">
+            <span class="s-val">{{ categoriaMasJugada }}</span>
+            <span class="s-lbl">CATEGORÍA</span>
+          </div>
+        </div>
+
+        <!-- Nivel AI Badge -->
+        <div class="level-ai-card animate-up">
+           <div class="lc-left">
+              <ion-icon name="sparkles-outline"></ion-icon>
+              <div>
+                <h3>Nivel Estimado</h3>
+                <p>Basado en tus últimos encuentros</p>
+              </div>
+           </div>
+           <div class="lc-right">
+              <span class="l-val">{{ categoriaMasJugada }}</span>
+           </div>
+        </div>
+    </div>
+  </div>
+
+  <div class="matches-container">
+    <!-- TAB SELECTOR -->
+    <div class="ios-tabs-selector">
+       <div class="tab-item" [class.active]="selectedTab === 'proximos'" (click)="selectedTab = 'proximos'">
+          PRÓXIMOS
+       </div>
+       <div class="tab-item" [class.active]="selectedTab === 'historial'" (click)="selectedTab = 'historial'">
+          HISTORIAL
+       </div>
+    </div>
+
+    <!-- PRÓXIMOS PARTIDOS TAB -->
+    <div class="section-block animate-fade" *ngIf="selectedTab === 'proximos'">
+      <div *ngIf="proximos.length === 0 && !loading" class="empty-state">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <p>No tienes partidos programados.</p>
+      </div>
+
+      <div class="match-card upcoming animate-up" *ngFor="let p of proximos" (click)="openMatchDetail(p)">
+        <div class="m-header">
+          <span class="m-date">{{ p.fecha | date:'fullDate':'':'es-ES' | uppercase }}</span>
+          <ion-badge color="dark">{{ p.hora_inicio.slice(0,5) }}</ion-badge>
+        </div>
+        <div class="m-body">
+          <div class="m-club">
+            <ion-icon name="location-outline"></ion-icon>
+            <span>{{ p.club_nombre }}</span>
+          </div>
+          <div class="m-players">
+             <div class="p-avatar" [title]="p.jugador1_nombre">{{ p.jugador1_nombre?.charAt(0) || 'P' }}</div>
+             <div class="p-avatar" [title]="p.jugador2_nombre">{{ p.jugador2_nombre?.charAt(0) || 'P' }}</div>
+             <span class="vs">VS</span>
+             <div class="p-avatar" [title]="p.jugador3_nombre">{{ p.jugador3_nombre?.charAt(0) || 'P' }}</div>
+             <div class="p-avatar" [title]="p.jugador4_nombre">{{ p.jugador4_nombre?.charAt(0) || 'P' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARTIDOS JUGADOS CON FILTROS TAB -->
+    <div class="section-block animate-fade" *ngIf="selectedTab === 'historial'">
+      <div class="history-header">
+         <div class="filters-row">
+            <select [(ngModel)]="filterClub" (change)="updateLists()">
+                <option value="">Clubes</option>
+                <option *ngFor="let c of clubesList" [value]="c.id">{{ c.nombre }}</option>
+            </select>
+            <select [(ngModel)]="filterCategoria" (change)="updateLists()">
+                <option value="">Categorías</option>
+                <option value="1ra">1ra</option>
+                <option value="2da">2da</option>
+                <option value="3ra">3ra</option>
+                <option value="4ta">4ta</option>
+                <option value="5ta">5ta</option>
+                <option value="6ta">6ta</option>
+                <option value="Iniciante">Iniciante</option>
+            </select>
+            <input type="date" [(ngModel)]="filterFecha" (change)="updateLists()">
+         </div>
+      </div>
+      
+      <div *ngIf="jugados.length === 0 && !loading" class="empty-state">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <p>Aún no tienes partidos registrados.</p>
+      </div>
+
+      <div class="match-card played animate-up" *ngFor="let p of jugados">
+        <div class="m-header">
+          <span class="m-date">{{ p.fecha | date:'d/MM/yyyy' }}</span>
+          <ion-badge [color]="p.resultado_registrado ? 'success' : 'warning'">
+            {{ p.resultado_registrado ? 'FINALIZADO' : 'PENDIENTE RESULTADO' }}
+          </ion-badge>
+        </div>
+        
+        <div class="m-body">
+          <div class="m-main-info">
+             <h4>{{ p.club_nombre }}</h4>
+             <p class="m-cat" *ngIf="p.categoria">Categoría: {{ p.categoria }}</p>
+          </div>
+
+          <!-- Score Display or Button -->
+          <div class="m-result-box" *ngIf="p.resultado_registrado">
+             <div class="score-display">
+                <span class="score">{{ p.marcador }}</span>
+             </div>
+          </div>
+
+          <ion-button fill="outline" color="dark" size="small" *ngIf="!p.resultado_registrado" (click)="openResultModal(p)">
+             CARGAR RESULTADO
+          </ion-button>
+        </div>
+
+        <div class="m-footer" *ngIf="p.resultado_registrado && p.id_ganador">
+           <span class="winner-tag">
+             <ion-icon name="trophy-outline"></ion-icon> 
+             GANÓ: DUPLA {{ p.id_ganador }}
+           </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CARGAR RESULTADO (REDiseño PREMIUM) -->
+  <ion-modal [isOpen]="showResultModal" (didDismiss)="showResultModal = false" class="ios-result-modal">
+    <ng-template>
+      <div class="ios-modal-container">
+        <!-- Blue Header Background -->
+        <div class="ios-header-bg">
+           <ion-button fill="clear" (click)="showResultModal = false" class="close-float-btn">
+              <ion-icon name="arrow-back"></ion-icon>
+           </ion-button>
+        </div>
+
+        <div class="ios-scroll-content">
+          <!-- Club Info Bar -->
+          <div class="club-info-card">
+              <div class="club-logo-row">
+                 <img [src]="selectedMatch?.club_logo ? 'https://api.padelmanager.cl/' + selectedMatch.club_logo : 'assets/avatar.png'" class="club-logo">
+                 <div class="club-text">
+                    <h3>{{ selectedMatch?.club_nombre }}</h3>
+                    <p>{{ selectedMatch?.club_direccion }}</p>
+                    <a class="more-info">Mas Información ></a>
+                 </div>
+              </div>
+          </div>
+
+          <!-- Main Summary Card -->
+          <div class="ios-white-card summary-card">
+             <div class="sc-header">
+                <ion-icon name="trophy-outline" class="padel-icon"></ion-icon>
+                <div class="sc-title">
+                   <h2>PÁDEL</h2>
+                   <p>{{ selectedMatch?.fecha | date:'fullDate':'':'es-ES' }} {{ selectedMatch?.hora_inicio.slice(0,5) }} - {{ selectedMatch?.hora_fin.slice(0,5) }}</p>
+                </div>
+             </div>
+             <div class="sc-grid">
+                <div class="sc-item">
+                   <span class="l">Género</span>
+                   <span class="v">Sin definir</span>
+                </div>
+                <div class="sc-item">
+                   <span class="l">Nivel</span>
+                   <span class="v">{{ categoria || 'Todos' }}</span>
+                </div>
+                <div class="sc-item">
+                   <span class="l">Precio</span>
+                   <span class="v">$0</span>
+                </div>
+             </div>
+          </div>
+
+          <!-- Status Row -->
+          <div class="ios-white-card status-row">
+             <div class="st-left"><ion-icon name="lock-closed-outline"></ion-icon> Partido Privado</div>
+             <div class="st-right"><ion-icon name="checkmark-circle" color="success"></ion-icon> Pista reservada</div>
+          </div>
+
+          <!-- Scoring Table Section (Image 2 style) -->
+          <div class="ios-score-card">
+             <div class="table-headers">
+                <span class="h-set">Set-1</span>
+                <span class="h-set">Set-2</span>
+                <span class="h-set">Set-3</span>
+             </div>
+             
+             <!-- Row Dupla A -->
+             <div class="score-row team-a" [class.winner]="idGanador === 1">
+                <div class="team-label">A (Tú) <ion-icon name="trophy" *ngIf="idGanador === 1"></ion-icon></div>
+                <div class="set-cell"><input type="number" [(ngModel)]="set1A" (change)="updateGanadorManual()"></div>
+                <div class="set-cell"><input type="number" [(ngModel)]="set2A" (change)="updateGanadorManual()"></div>
+                <div class="set-cell"><input type="number" [(ngModel)]="set3A" (change)="updateGanadorManual()"></div>
+             </div>
+
+             <!-- Row Dupla B -->
+             <div class="score-row team-b" [class.winner]="idGanador === 2">
+                <div class="team-label">B <ion-icon name="trophy" *ngIf="idGanador === 2"></ion-icon></div>
+                <div class="set-cell"><input type="number" [(ngModel)]="set1B" (change)="updateGanadorManual()"></div>
+                <div class="set-cell"><input type="number" [(ngModel)]="set2B" (change)="updateGanadorManual()"></div>
+                <div class="set-cell"><input type="number" [(ngModel)]="set3B" (change)="updateGanadorManual()"></div>
+             </div>
+
+             <div class="score-footer">
+                <span>Resumen del partido</span>
+                <ion-icon name="chevron-forward"></ion-icon>
+             </div>
+          </div>
+
+          <!-- Competitivo Banner -->
+          <div class="ios-white-card competitive-card">
+             <div class="cc-text">
+                <h3>Competitivo</h3>
+                <p>El resultado de este partido afectará al nivel</p>
+             </div>
+             <ion-icon name="chevron-forward"></ion-icon>
+          </div>
+
+          <!-- Players Section -->
+          <div class="ios-white-card players-card">
+             <h3>Jugadores</h3>
+             <div class="players-grid">
+                <div class="p-item">
+                   <div class="p-avatar-wrap">
+                      <img src="assets/avatar.png" class="p-img">
+                      <div class="p-lvl yellow">2.5</div>
+                   </div>
+                   <span class="p-name">{{ selectedMatch?.jugador1_nombre?.split(' ')[0] }} (Tú)</span>
+                </div>
+                <!-- Other players -->
+                <div class="p-item" *ngIf="selectedMatch?.jugador2_id">
+                   <div class="p-avatar-wrap">
+                      <img src="assets/avatar.png" class="p-img">
+                      <div class="p-lvl yellow">2.6</div>
+                   </div>
+                   <span class="p-name">{{ selectedMatch?.jugador2_nombre?.split(' ')[0] }}</span>
+                </div>
+                <div class="vs-line"></div>
+                <div class="p-item" *ngIf="selectedMatch?.jugador3_id">
+                   <div class="p-avatar-wrap">
+                      <img src="assets/avatar.png" class="p-img">
+                      <div class="p-lvl green">1.9</div>
+                   </div>
+                   <span class="p-name">{{ selectedMatch?.jugador3_nombre?.split(' ')[0] }}</span>
+                </div>
+                <div class="p-item" *ngIf="selectedMatch?.jugador4_id">
+                   <div class="p-avatar-wrap">
+                      <img src="assets/avatar.png" class="p-img">
+                      <div class="p-lvl green">2.7</div>
+                   </div>
+                   <span class="p-name">{{ selectedMatch?.jugador4_nombre?.split(' ')[0] }}</span>
+                </div>
+             </div>
+          </div>
+
+          <div class="bottom-share-area">
+             <p>¡Comparte el resultado con tus amigos!</p>
+             <ion-button class="ios-share-btn" (click)="saveResult()">Compartir</ion-button>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- MODAL: DETALLE PARTIDO (PRÓXIMOS) -->
+  <ion-modal [isOpen]="showDetailModal" (didDismiss)="showDetailModal = false" class="ios-result-modal">
+    <ng-template>
+      <div class="ios-modal-container">
+        <!-- Blue Header Background -->
+        <div class="ios-header-bg">
+           <ion-button fill="clear" (click)="showDetailModal = false" class="close-float-btn">
+              <ion-icon name="arrow-back"></ion-icon>
+           </ion-button>
+           <div class="header-actions">
+              <ion-icon name="share-outline"></ion-icon>
+              <ion-icon name="ellipsis-vertical"></ion-icon>
+           </div>
+        </div>
+
+        <div class="ios-scroll-content">
+          
+          <!-- Inscription Banner -->
+          <div class="inscription-banner animate-fade">
+             <ion-icon name="information-circle"></ion-icon>
+             <span>Estás inscrito a este partido</span>
+          </div>
+
+          <!-- Main Summary Card -->
+          <div class="ios-white-card summary-card detail">
+             <div class="sc-header">
+                <ion-icon name="trophy-outline" class="padel-icon"></ion-icon>
+                <div class="sc-title">
+                   <h2>PÁDEL</h2>
+                   <p>{{ selectedMatch?.fecha | date:'fullDate':'':'es-ES' }} {{ selectedMatch?.hora_inicio.slice(0,5) }} - {{ selectedMatch?.hora_fin.slice(0,5) }}</p>
+                </div>
+             </div>
+             <div class="sc-grid">
+                <div class="sc-item">
+                   <span class="l">Género</span>
+                   <span class="v">Sin definir</span>
+                </div>
+                <div class="sc-item">
+                   <span class="l">Nivel</span>
+                   <span class="v">{{ categoria }}</span>
+                </div>
+                <div class="sc-item">
+                   <span class="l">Precio</span>
+                   <span class="v">$0</span>
+                </div>
+             </div>
+          </div>
+
+          <!-- Status Row -->
+          <div class="ios-white-card status-row">
+             <div class="st-left"><ion-icon name="lock-closed-outline"></ion-icon> Partido Privado</div>
+             <div class="st-right"><ion-icon name="checkmark-circle" color="success"></ion-icon> Pista reservada</div>
+          </div>
+
+          <!-- Competitivo Banner -->
+          <div class="ios-white-card competitive-card">
+             <div class="cc-text">
+                <h3>Competitivo</h3>
+                <p>El resultado de este partido afectará al nivel</p>
+             </div>
+             <ion-icon name="chevron-forward"></ion-icon>
+          </div>
+
+          <!-- Players Section -->
+          <div class="ios-white-card players-card detailed">
+             <div class="pc-header">
+                <h3>Jugadores</h3>
+                <span class="edit-btn">Editar</span>
+             </div>
+             
+             <div class="players-grid full">
+                <!-- TEAM A -->
+                <div class="team-column">
+                   <div class="p-card">
+                      <div class="p-avatar-wrap">
+                        <img src="assets/avatar.png" class="p-img">
+                        <div class="p-lvl yellow">2.5</div>
+                      </div>
+                      <div class="p-info">
+                         <span class="p-name">{{ selectedMatch?.jugador1_nombre?.split(' ')[0] }} (Tú)</span>
+                         <span class="p-status">Pendiente <ion-icon name="wallet-outline"></ion-icon></span>
+                      </div>
+                   </div>
+
+                   <div class="p-card invite" *ngIf="!selectedMatch?.jugador2_id">
+                      <div class="add-icon"><ion-icon name="add"></ion-icon></div>
+                      <span>Invitar</span>
+                   </div>
+                   <div class="p-card" *ngIf="selectedMatch?.jugador2_id">
+                      <div class="p-avatar-wrap">
+                        <img src="assets/avatar.png" class="p-img">
+                        <div class="p-lvl yellow">2.1</div>
+                      </div>
+                      <div class="p-info">
+                         <span class="p-name">{{ selectedMatch?.jugador2_nombre?.split(' ')[0] }}</span>
+                         <span class="p-status">Confirmado</span>
+                      </div>
+                   </div>
+                   <span class="team-label-fixed">A</span>
+                </div>
+
+                <div class="vs-divider"></div>
+
+                <!-- TEAM B -->
+                <div class="team-column">
+                    <div class="p-card invite" *ngIf="!selectedMatch?.jugador3_id">
+                        <div class="add-icon"><ion-icon name="add"></ion-icon></div>
+                        <span>Invitar</span>
+                     </div>
+                     <div class="p-card" *ngIf="selectedMatch?.jugador3_id">
+                        <div class="p-avatar-wrap">
+                          <img src="assets/avatar.png" class="p-img">
+                          <div class="p-lvl green">1.9</div>
+                        </div>
+                        <div class="p-info">
+                           <span class="p-name">{{ selectedMatch?.jugador3_nombre?.split(' ')[0] }}</span>
+                           <span class="p-status">Confirmado</span>
+                        </div>
+                     </div>
+
+                     <div class="p-card invite" *ngIf="!selectedMatch?.jugador4_id">
+                        <div class="add-icon"><ion-icon name="add"></ion-icon></div>
+                        <span>Invitar</span>
+                     </div>
+                     <div class="p-card" *ngIf="selectedMatch?.jugador4_id">
+                        <div class="p-avatar-wrap">
+                          <img src="assets/avatar.png" class="p-img">
+                          <div class="p-lvl green">2.7</div>
+                        </div>
+                        <div class="p-info">
+                           <span class="p-name">{{ selectedMatch?.jugador4_nombre?.split(' ')[0] }}</span>
+                           <span class="p-status">Confirmado</span>
+                        </div>
+                     </div>
+                   
+                   <span class="team-label-fixed">B</span>
+                </div>
+             </div>
+          </div>
+
+          <div class="bottom-share-area">
+             <p>¡Comparte el resultado con tus amigos!</p>
+             <ion-button class="ios-share-btn">Compartir</ion-button>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>
