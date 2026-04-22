@@ -199,14 +199,12 @@ export class JugadorReservasPage implements OnInit {
             this.fotoPerfil = 'assets/avatar.png';
           }
 
-          if (res.direccion || userData.direccion) {
-            const dir = res.direccion || userData.direccion;
-            this.regionSeleccionada = dir.region || '';
-            const selectedRegionObj = this.regions.find(r => r.name === this.regionSeleccionada);
-            if (selectedRegionObj) {
-              this.filteredComunas = this.allComunas[selectedRegionObj.id] || [];
-              this.comunaSeleccionada = dir.comuna || '';
-            }
+          const dir = res.direccion || userData.direccion;
+          this.regionSeleccionada = dir.region || '';
+          const selectedRegionObj = this.regions.find(r => r.name === this.regionSeleccionada);
+          if (selectedRegionObj) {
+            this.filteredComunas = this.allComunas[selectedRegionObj.id] || [];
+            this.comunaSeleccionada = dir.comuna || '';
           }
         }
         this.cargarEntrenadores();
@@ -708,7 +706,7 @@ export class JugadorReservasPage implements OnInit {
           this.notificationService.notificarPackContratado(this.jugadorId, pack.nombre);
           this.alertCtrl.create({
             header: '¡Pack Activado!',
-            message: 'Ya tienes tus créditos disponibles. Ahora puedes seleccionar un horario para agendar.',
+            message: `Créditos listos. ${this.pendingHorario ? 'Intentando reservar...' : 'Selecciona un horario ahora.'}`,
             buttons: ['OK']
           }).then(a => a.present());
           this.showPackModal = false;
@@ -756,10 +754,19 @@ export class JugadorReservasPage implements OnInit {
             this.notificationService.notificarReservaCreada(this.jugadorId, pack.nombre, payload.fecha, payload.hora_inicio);
             this.notificationService.programarRecordatorio(this.jugadorId, pack.nombre, payload.fecha, payload.hora_inicio);
 
+            const fechaFmt = new Date(payload.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'long' });
             this.alertCtrl.create({
-              header: '¡Listo!',
-              message: 'Pack activado y clase agendada correctamente. Recuerda coordinar el pago con tu profesor.',
-              buttons: ['OK']
+              header: '¡Reserva Confirmada!',
+              message: `Tu compra de ${pack.nombre} fue exitosa y tu primera clase ha sido agendada para el ${fechaFmt} a las ${payload.hora_inicio}.`,
+              buttons: [
+                {
+                  text: 'OK',
+                  handler: () => {
+                    this.cambiarVista('mis-entrenamientos');
+                    this.fetchAllData();
+                  }
+                }
+              ]
             }).then(a => a.present());
             this.showPackModal = false;
             this.onEntrenadorChange(); // Reload slots
@@ -1027,9 +1034,13 @@ export class JugadorReservasPage implements OnInit {
     // y dejar que el usuario explore la disponibilidad sin interrupciones.
   }
 
-  handleNoCreditsFlow() {
+  handleNoCreditsFlow(horario?: any) {
+    if (horario) {
+      this.pendingHorario = horario;
+    }
+
     if (!this.selectedEntrenador) {
-      this.mostrarPacksDisponibles(null);
+      this.mostrarPacksDisponibles(horario || null);
       return;
     }
 
@@ -1042,20 +1053,24 @@ export class JugadorReservasPage implements OnInit {
             buttons: ['OK']
           }).then(a => a.present());
         } else {
-          this.mostrarPacksDisponibles(null);
+          this.mostrarPacksDisponibles(horario);
         }
       },
-      error: () => this.mostrarPacksDisponibles(null)
+      error: () => this.mostrarPacksDisponibles(horario)
     });
   }
 
   reservarHorario(horario: any) {
     if (horario.ocupado) return;
+    
+    // Guardar inmediatamente el horario seleccionado
+    this.pendingHorario = horario;
+    console.log('DEBUG: Horario seleccionado guardado:', this.pendingHorario);
 
     // Validar créditos justo antes de reservar
     const hasCredits = this.packsDelEntrenador.some(p => this.getPackRealCredits(p) > 0);
     if (!hasCredits) {
-      this.handleNoCreditsFlow();
+      this.handleNoCreditsFlow(horario);
       return;
     }
 
@@ -1118,7 +1133,7 @@ export class JugadorReservasPage implements OnInit {
                   this.cargando = false;
                   const msg = err.error?.error || '';
                   if (msg.toLowerCase().includes('créditos') || msg.toLowerCase().includes('sesiones')) {
-                    this.handleNoCreditsFlow();
+                    this.handleNoCreditsFlow(horario);
                   } else {
                     this.alertCtrl.create({
                       header: 'Atención',
@@ -1133,7 +1148,7 @@ export class JugadorReservasPage implements OnInit {
         ]
       }).then(a => a.present());
     } else {
-      this.handleNoCreditsFlow();
+      this.handleNoCreditsFlow(horario);
     }
   }
 
