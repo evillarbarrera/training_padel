@@ -32,10 +32,13 @@ if ! command -v node &> /dev/null; then
     export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
 fi
 
-if ! command -v node &> /dev/null; then
-    echo "--- Node.js still not found. Installing via Homebrew (this might take 2-3 mins)... ---"
-    brew install node
-fi
+  if ! command -v brew &> /dev/null; then
+    echo "--- Homebrew not found. This environment might not support manual installs. ---"
+  else
+    echo "--- Node.js still not found. Installing Node 22 (LTS) via Homebrew... ---"
+    brew install node@22
+    brew link node@22
+  fi
 
 echo "--- Using Node.js: $(node -v) ---"
 echo "--- Using npm: $(npm -v) ---"
@@ -48,6 +51,9 @@ echo "--- Running npm install ---"
 # Eliminamos temporalmente ngrok para evitar fallos en el postinstall (servidor caído)
 # No es necesario para el build de iOS
 sed -i '' '/"ngrok":/d' package.json
+
+# 4. Configurar Sharp para usar binarios precompilados y evitar errores de vips
+export SHARP_IGNORE_GLOBAL_LIBVIPS=1
 
 npm install --legacy-peer-deps --no-audit --no-fund
 
