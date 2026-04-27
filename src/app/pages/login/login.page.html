@@ -46,17 +46,19 @@
           <span>o</span>
         </div>
 
-        <ion-button expand="block" fill="outline" class="google-login-btn" (click)="loginWithGoogle()"
-          [disabled]="isLoading">
-          <ion-icon name="logo-google" slot="start"></ion-icon>
-          Google
-        </ion-button>
-
-        <ion-button expand="block" fill="solid" class="apple-login-btn" (click)="loginWithApple()"
-          [disabled]="isLoading">
-          <ion-icon name="logo-apple" slot="start"></ion-icon>
-          Sign in with Apple
-        </ion-button>
+        <div class="social-row">
+          <ion-button expand="block" fill="outline" class="google-btn" (click)="loginWithGoogle()"
+            [disabled]="isLoading">
+            <ion-icon name="logo-google" slot="start"></ion-icon>
+            Google
+          </ion-button>
+  
+          <ion-button expand="block" fill="solid" class="apple-btn" (click)="loginWithApple()"
+            [disabled]="isLoading">
+            <ion-icon name="logo-apple" slot="start"></ion-icon>
+            Apple
+          </ion-button>
+        </div>
 
         <!-- Error Message Display -->
         <div *ngIf="error" class="error-msg-container">

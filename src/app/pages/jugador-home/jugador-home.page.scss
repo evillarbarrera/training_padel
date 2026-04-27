@@ -727,6 +727,11 @@ ion-modal.bottom-sheet-modal {
   }
 }
 
+ion-fab[vertical="bottom"] {
+  bottom: 12px;
+  right: 12px;
+}
+
 /* --- NIKE CARD & ANIMATIONS --- */
 .nike-card {
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
@@ -1217,7 +1222,7 @@ ion-modal.custom-bottom-sheet {
    V2 DASHBOARD (DEVELOPMENT) - NIKE RUN CLUB STYLE
 ========================================================= */
 .dashboard-v2 {
-  padding: 0 15px 40px;
+  padding: 0 15px 100px;
   margin-top: -40px; /* Overlap header gracefully */
   position: relative;
   z-index: 10;

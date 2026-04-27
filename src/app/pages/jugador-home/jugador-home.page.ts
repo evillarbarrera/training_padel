@@ -258,8 +258,10 @@ export class JugadorHomePage implements OnInit {
     await loading.present();
 
     // Prepare form data
+    const userId = localStorage.getItem('userId') || '0';
     const formData = new FormData();
     formData.append('video', file);
+    formData.append('jugador_id', userId);
 
     // Call our new backend proxy
     this.http.post<any>(`${environment.apiUrl}/ia/gemini_analyze.php`, formData)
@@ -268,6 +270,13 @@ export class JugadorHomePage implements OnInit {
           loading.dismiss();
           if (res.success) {
             this.aiResult = res.analysis;
+            
+            // Check for newly unlocked achievements
+            if (res.nuevos_logros && res.nuevos_logros.length > 0) {
+              res.nuevos_logros.forEach((l: any) => {
+                this.showAchievementUnlocked(l);
+              });
+            }
           }
         },
         error: (err) => {

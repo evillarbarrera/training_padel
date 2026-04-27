@@ -1055,28 +1055,31 @@
 
   .filters-row {
     display: flex;
-    gap: 10px;
+    flex-wrap: wrap; // Permite que se bajen si no caben
+    gap: 8px;
   }
 
   .filter-selector {
-    flex: 1;
+    flex: 1 1 calc(50% - 10px); // Intenta ocupar 50%, pero puede crecer
+    min-width: 140px; // Si la pantalla es muy chica, se apilarán
     background: #f8fafc;
     border: 1.5px solid #e2e8f0;
-    border-radius: 20px; // More rounded like the screenshot
+    border-radius: 16px;
     display: flex;
     align-items: center;
-    padding: 0 15px;
-    height: 52px;
+    padding: 0 10px;
+    height: 48px;
 
     ion-icon {
       color: #000;
-      font-size: 18px;
+      font-size: 16px;
     }
 
     ion-select {
-      --padding-start: 10px;
-      font-size: 13px;
-      font-weight: 900;
+      --padding-start: 6px;
+      --padding-end: 6px;
+      font-size: 12px;
+      font-weight: 800;
       color: #000;
       width: 100%;
     }

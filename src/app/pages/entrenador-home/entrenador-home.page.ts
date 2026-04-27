@@ -391,7 +391,16 @@ export class EntrenadorHomePage {
           return a.hora.localeCompare(b.hora);
         });
 
-        this.clasesHoyList = clases;
+        // Filter past classes for Today
+        const now = new Date();
+        const currentHHmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        
+        this.clasesHoyList = clases.filter(c => {
+          if (c.diaLabel === 'Hoy') {
+             return c.hora >= currentHHmm;
+          }
+          return true; // Keep all tomorrow classes
+        });
         this.isLoading = false;
       },
       error: (err) => {
