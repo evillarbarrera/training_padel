@@ -217,9 +217,8 @@ export class EntrenadorPacksPage implements OnInit {
       }
 
       if (p.tipo === 'grupal') {
-        const diaInvalido = (p.dia_semana === null || p.dia_semana === undefined || p.dia_semana === '');
-        if (!p.capacidad_minima || !p.capacidad_maxima || diaInvalido || !p.hora_inicio || !p.categoria) {
-          await this.presentAlert('Datos Incompletos', 'Faltan campos obligatorios para pack grupal.');
+        if (!p.capacidad_minima || !p.capacidad_maxima || !p.categoria) {
+          await this.presentAlert('Datos Incompletos', 'Indica capacidad mínima, máxima y categoría.');
           return;
         }
       }

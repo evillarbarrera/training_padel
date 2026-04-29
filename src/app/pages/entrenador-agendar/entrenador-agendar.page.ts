@@ -73,6 +73,8 @@ export class EntrenadorAgendarPage implements OnInit {
     mostrarOpcionPack = false;
     mostrarSelectorPackManual = false;
     packAAsignar: any = null;
+    packsGrupalesDisponibles: any[] = [];
+    packGrupalSeleccionado: any = null;
     alumnosPacks: any[] = [];
     cargandoPacks = false;
 
@@ -246,13 +248,15 @@ export class EntrenadorAgendarPage implements OnInit {
         const reservas = agendaData.reservas_tradicionales || [];
         reservas.forEach((a: any) => {
             const fecha = a.fecha || this.extractDate(a.fecha_inicio);
-            const hora = (a.hora_inicio || this.extractTime(a.fecha_inicio)).slice(0, 5);
+            const rawHora = a.hora_inicio || this.extractTime(a.fecha_inicio) || '08:00:00';
+            const hora = rawHora.slice(0, 5);
             this.applyToSlot(fecha, hora, a);
         });
 
         const templates = agendaData.packs_grupales || [];
         templates.forEach((t: any) => {
-            const hora = t.hora_inicio.slice(0, 5);
+            const rawHora = t.hora_inicio || '08:00:00';
+            const hora = rawHora.slice(0, 5);
             
             if (t.fecha) {
                 // Specific date session
@@ -490,6 +494,31 @@ export class EntrenadorAgendarPage implements OnInit {
         this.alumnoSeleccionado = null;
         this.packAAsignar = null;
         this.mostrarSelectorPackManual = false;
+        this.packGrupalSeleccionado = null;
+
+        if (this.tipoClaseSeleccionado === 'grupal') {
+            this.loadPacksGrupales();
+        }
+    }
+
+    loadPacksGrupales() {
+        this.entrenamientoService.getPacks(this.entrenadorId).subscribe({
+            next: (res: any[]) => {
+                this.packsGrupalesDisponibles = res.filter(p => p.tipo === 'grupal' && Number(p.activo) === 1);
+            }
+        });
+    }
+
+    onPackGrupalChange() {
+        if (this.packGrupalSeleccionado) {
+            const cat = (this.packGrupalSeleccionado.categoria || '').toLowerCase();
+            if (cat.includes('adulto')) {
+                this.categoriaFiltro = 'adulto';
+            } else if (cat.includes('menor')) {
+                this.categoriaFiltro = 'menor';
+            }
+            this.onCategoriaChange();
+        }
     }
 
     togglePackManual() {
@@ -543,8 +572,10 @@ export class EntrenadorAgendarPage implements OnInit {
     async confirmarAgendamiento() {
         if (this.tipoClaseSeleccionado === 'individual') {
             if (!this.alumnoSeleccionado || !this.selectedSlot) return;
-        } else {
+        } else if (this.tipoClaseSeleccionado === 'multijugador') {
             if (this.alumnosSeleccionados.length === 0 || !this.selectedSlot) return;
+        } else if (this.tipoClaseSeleccionado === 'grupal') {
+            if (!this.selectedSlot) return;
         }
 
         if (this.mostrarSelectorPackManual && !this.packAAsignar) {
@@ -565,9 +596,7 @@ export class EntrenadorAgendarPage implements OnInit {
         await loading.present();
 
         const primerJugador = this.alumnoSeleccionado;
-        const jugadorIds = (this.tipoClaseSeleccionado === 'individual') 
-            ? [primerJugador.jugador_id || primerJugador.id] 
-            : this.alumnosSeleccionados.map(a => a.jugador_id || a.id);
+        const jugadorIds = this.alumnosSeleccionados.map(a => a.jugador_id || a.id);
 
         const needsPack = this.packAAsignar || requiereNuevoPack;
 
@@ -593,8 +622,13 @@ export class EntrenadorAgendarPage implements OnInit {
                 let fId: any = 0;
                 let fJugadorId: any = 0;
 
+                // 0. Match from GROUP template if selected
+                if (this.tipoClaseSeleccionado === 'grupal' && this.packGrupalSeleccionado) {
+                    fId = this.packGrupalSeleccionado.id || this.packGrupalSeleccionado.pack_id || 0;
+                    fJugadorId = 0;
+                }
                 // 1. Match from NEW pack assignment
-                if (this.packAAsignar) {
+                else if (this.packAAsignar) {
                     fId = this.packAAsignar.id || this.packAAsignar.pack_id || 0;
                     fJugadorId = resP.pack_jugador_id || 0;
                 }
@@ -655,8 +689,8 @@ export class EntrenadorAgendarPage implements OnInit {
                     fecha: this.selectedSlot.dateStr,
                     hora_inicio: this.selectedSlot.hour,
                     hora_fin: this.getHoraFin(this.selectedSlot.hour),
-                    jugador_id: String(primerJugador.jugador_id || primerJugador.id),
-                    jugador_nombre: primerJugador.jugador_nombre || 'Alumno',
+                    jugador_id: primerJugador ? String(primerJugador.jugador_id || primerJugador.id) : '0',
+                    jugador_nombre: primerJugador ? (primerJugador.jugador_nombre || 'Alumno') : 'Clase Abierta',
                     estado: 'reservado',
                     recurrencia: String(this.recurrencia || 1),
                     tipo: this.tipoClaseSeleccionado,

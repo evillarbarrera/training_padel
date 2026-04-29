@@ -835,10 +835,10 @@ export class JugadorReservasPage implements OnInit {
     limite.setDate(ahora.getDate() + 30);
 
     // Initialize 30 days
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 35; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
-      const ds = d.toISOString().split('T')[0];
+      const ds = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
       this.horariosPorDia[ds] = { todos: [] };
     }
 
@@ -953,6 +953,8 @@ export class JugadorReservasPage implements OnInit {
                 nombre_pack: p.nombre,
                 categoria: p.categoria,
                 pack_id: p.id,
+                club_id: p.club_id,
+                club_nombre: p.club_nombre,
                 genero: this.detectarGenero(p.nombre || '', p.categoria || '')
               });
               if (!nuevasFechas.includes(fechaStr)) nuevasFechas.push(fechaStr);
@@ -964,13 +966,20 @@ export class JugadorReservasPage implements OnInit {
         // or keep it but the coach should ideally use the agenda for recurrence.
         // For now, we project only the NEXT occurrence to avoid clutter.
         else if (p.dia_semana) {
-          const packDay = Number(p.dia_semana);
-          for (let i = 0; i <= 7; i++) { // Limit to 7 days instead of 30 to avoid "repetitive" look
+          const daysMap: { [key: string]: number } = {
+            'domingo': 0, 'lunes': 1, 'martes': 2, 'miercoles': 3, 'jueves': 4, 'viernes': 5, 'sabado': 6,
+            'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3, 'thursday': 4, 'friday': 5, 'saturday': 6,
+            '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 0
+          };
+          const dayStr = p.dia_semana.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // "miércoles" -> "miercoles"
+          const packDay = daysMap[dayStr] ?? Number(p.dia_semana);
+
+          for (let i = 0; i < 35; i++) { // Project up to 35 days
             const checkDate = new Date();
             checkDate.setDate(ahora.getDate() + i);
 
             let jsDay = checkDate.getDay();
-            if (jsDay === packDay || (jsDay === 0 && packDay === 7)) {
+            if (jsDay === packDay) {
               const start = new Date(checkDate.getTime());
               start.setHours(Number(h), Number(m), 0, 0);
 
@@ -995,12 +1004,13 @@ export class JugadorReservasPage implements OnInit {
                     nombre_pack: p.nombre,
                     categoria: p.categoria,
                     pack_id: p.id,
+                    club_id: p.club_id,
+                    club_nombre: p.club_nombre,
                     genero: this.detectarGenero(p.nombre || '', p.categoria || '')
                   });
                   if (!nuevasFechas.includes(fechaStr)) nuevasFechas.push(fechaStr);
                 }
               }
-              break; // Only project the first one found
             }
           }
         }
@@ -1290,7 +1300,7 @@ export class JugadorReservasPage implements OnInit {
 
     const titulo = puedeCancelar ? '¿Cancelar reserva?' : 'No se puede cancelar';
     const mensaje = puedeCancelar
-      ? `¿Estás seguro que deseas cancelar el entrenamiento del ${fecha.toLocaleDateString('es-ES')} a las ${reserva.hora_inicio.slice(0, 5)}?`
+      ? `¿Estás seguro que deseas cancelar el entrenamiento del ${fecha.toLocaleDateString('es-ES')} a las ${(reserva.hora_inicio || '08:00').slice(0, 5)}?`
       : `Debes cancelar con mínimo 12 horas de anticipación. Horas restantes: ${Math.round(horas_restantes)}`;
 
     this.alertCtrl.create({

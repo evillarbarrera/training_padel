@@ -102,6 +102,19 @@
                         <ion-segment-button value="grupal"><ion-label>Grupal</ion-label></ion-segment-button>
                     </ion-segment>
 
+                    <!-- Group Pack Selector (The Product Template) -->
+                    <div class="nike-select-wrapper light-wrapper animate-fade mt-3" *ngIf="tipoClaseSeleccionado === 'grupal'">
+                        <ion-icon name="cube-outline" slot="start" style="color: #6366f1; font-size: 20px; margin-right: 12px;"></ion-icon>
+                        <ion-item lines="none" style="--background: transparent; width: 100%; --padding-start: 0;">
+                            <ion-label position="stacked" style="color: #64748b; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">Seleccionar Pack (Producto):</ion-label>
+                            <ion-select [(ngModel)]="packGrupalSeleccionado" interface="action-sheet" mode="ios" placeholder="Elige el pack grupal..." (ionChange)="onPackGrupalChange()">
+                                <ion-select-option *ngFor="let p of packsGrupalesDisponibles" [value]="p">
+                                    {{ p.nombre }} ({{ p.categoria }})
+                                </ion-select-option>
+                            </ion-select>
+                        </ion-item>
+                    </div>
+
                     <!-- Student Selection -->
                     <div class="mt-2">
                         <div class="flex justify-between items-center mb-1">
