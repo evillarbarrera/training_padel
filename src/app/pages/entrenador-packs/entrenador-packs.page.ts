@@ -9,7 +9,7 @@ import {
   IonContent, IonSegment, IonSegmentButton, IonLabel,
   IonIcon, IonInput, IonButton, IonFab, IonFabButton,
   IonHeader, IonToolbar, IonTitle, IonButtons,
-  IonModal, IonItem, IonSelect, IonSelectOption, IonTextarea, IonSpinner, IonBadge
+  IonModal, IonItem, IonSelect, IonSelectOption, IonTextarea, IonSpinner, IonBadge, IonCheckbox
 } from '@ionic/angular/standalone';
 import { AlertController, LoadingController } from '@ionic/angular/standalone';
 
@@ -33,7 +33,7 @@ import {
     IonContent, IonSegment, IonSegmentButton, IonLabel,
     IonIcon, IonInput, IonButton, IonFab, IonFabButton,
     IonHeader, IonToolbar, IonTitle, IonButtons,
-    IonModal, IonItem, IonSelect, IonSelectOption, IonTextarea, IonSpinner, IonBadge
+    IonModal, IonItem, IonSelect, IonSelectOption, IonTextarea, IonSpinner, IonBadge, IonCheckbox
   ],
   providers: []
 })
@@ -78,7 +78,9 @@ export class EntrenadorPacksPage implements OnInit {
     hora_inicio: null,
     categoria: '',
     rango_horario_inicio: null,
-    rango_horario_fin: null
+    rango_horario_fin: null,
+    fecha: null,
+    permite_inscripcion: 1
   };
 
   modalOpen = false;
@@ -317,7 +319,9 @@ export class EntrenadorPacksPage implements OnInit {
       rango_inicio_h: null,
       rango_inicio_m: null,
       rango_fin_h: null,
-      rango_fin_m: null
+      rango_fin_m: null,
+      fecha: null,
+      permite_inscripcion: 1
     };
   }
 

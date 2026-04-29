@@ -140,7 +140,7 @@
       <div *ngFor="let grupal of entrenamientosGrupales" class="entrenamiento-card grupal animate-fade-in">
         <div class="card-header">
           <div class="fecha-badge">
-            {{ getDiasSemana(grupal.dia_semana) | uppercase }} {{ grupal.fecha | date:'dd MMM' | uppercase }}
+            {{ (grupal.dia_semana != null ? getDiasSemana(grupal.dia_semana) : (grupal.fecha | date:'EEEE':'':'es')) | uppercase }} {{ grupal.fecha | date:'dd MMM' | uppercase }}
           </div>
           <span class="estado-badge reservado">INSCRITO</span>
         </div>
@@ -170,18 +170,6 @@
           </div>
         </div>
 
-        <div class="otros-inscritos" *ngIf="grupal.otros_inscritos?.length || (grupal.cupos_ocupados > 1)">
-          <div class="team-header">
-            <ion-icon name="shield-checkmark-outline"></ion-icon>
-            <span class="label">EQUIPO CONFIRMADO:</span>
-          </div>
-          <div class="compañeros-list">
-            <div class="compañero me">Yo</div>
-            <div *ngFor="let comp of grupal.otros_inscritos" class="compañero">
-              {{ comp.nombre }}
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 

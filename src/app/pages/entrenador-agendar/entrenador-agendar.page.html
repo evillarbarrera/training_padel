@@ -262,6 +262,44 @@
                         <p>{{ selectedSlot.slot.reserva_tipo }}</p>
                     </div>
 
+                    <!-- SECCIÓN: Participantes (Solo Grupal) -->
+                    <div class="participants-section animate-up" *ngIf="selectedSlot.slot.reserva_tipo?.toLowerCase().includes('grupal') || selectedSlot.slot.capacidad_maxima" style="background: #f8fafc; border-radius: 16px; padding: 15px; margin: 15px 0; border: 1px solid #e2e8f0;">
+                        <div class="ps-header" style="margin-bottom: 12px;">
+                            <ion-icon name="people-outline" style="vertical-align: middle; margin-right: 5px; color: #64748b;"></ion-icon>
+                            <b style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase;">Participantes ({{ participantesGrupo.length }}/{{ selectedSlot.slot.capacidad_maxima || 6 }})</b>
+                        </div>
+
+                        <div class="ps-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
+                            <div class="participant-item animate-pop" *ngFor="let p of participantesGrupo" style="display: flex; align-items: center; gap: 6px; background: white; padding: 4px 10px; border-radius: 20px; border: 1px solid #cbd5e1;">
+                                <img [src]="getFotoUrl(p)" class="p-avatar" style="width: 20px; height: 20px; border-radius: 50%;">
+                                <span style="font-size: 11px; font-weight: 700; color: #334155;">{{ p.nombre || p.jugador_nombre }}</span>
+                            </div>
+                            <div class="no-participants" *ngIf="participantesGrupo.length === 0" style="font-size: 12px; color: #94a3b8; font-style: italic; padding: 5px 0;">
+                                Sin alumnos inscritos aún.
+                            </div>
+                        </div>
+
+                        <div class="add-player-box" style="border-top: 1px solid #e2e8f0; padding-top: 12px;">
+                            <label style="font-size: 9px; font-weight: 900; color: #94a3b8; display: block; margin-bottom: 8px;">AGREGAR ALUMNO MANUALMENTE</label>
+                            <div class="search-input-wrap" style="position: relative;">
+                                <ion-searchbar 
+                                    [(ngModel)]="searchQueryMini" 
+                                    (ionInput)="searchPlayersMini()"
+                                    placeholder="Buscar..."
+                                    class="mini-search"
+                                    mode="ios"
+                                    style="--border-radius: 10px; --background: white; --box-shadow: none; border: 1px solid #e2e8f0; height: 36px; padding: 0;">
+                                </ion-searchbar>
+                                
+                                <div class="search-results-mini" *ngIf="searchResultsMini.length > 0" style="position: absolute; top: 40px; left: 0; right: 0; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; z-index: 100; max-height: 150px; overflow-y: auto;">
+                                    <div class="res-item" *ngFor="let res of searchResultsMini" (click)="addJugadorManual(res)" style="padding: 10px 15px; font-size: 12px; font-weight: 700; color: #1e293b; border-bottom: 1px solid #f1f5f9;">
+                                        {{ res.nombre }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="nike-card dark animate-fade" *ngIf="!isEditingDetail">
                         <h4>Planificación</h4>
                         <p *ngIf="selectedSlot.slot.malla_nombre" style="color: #00f2ff">{{ selectedSlot.slot.malla_nombre }} - {{ selectedSlot.slot.clase_titulo }}</p>

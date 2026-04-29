@@ -128,8 +128,8 @@ export class EntrenadorEntrenamientosPage implements OnInit {
         if (res.packs_grupales && Array.isArray(res.packs_grupales)) {
           const packsGrupalesMapeados = res.packs_grupales.map((pack: any) => ({
             ...pack,
-            reserva_id: pack.id || pack.pack_id, // Puede ser id o pack_id
-            fecha: null, // Los packs grupales no tienen fecha específica, son recurrentes
+            reserva_id: pack.id || pack.pack_id, 
+            fecha: pack.fecha || null, // RESPETAR LA FECHA SI EXISTE
             tipo: 'grupal',
             estado: pack.estado_grupo
           }));
@@ -138,11 +138,12 @@ export class EntrenadorEntrenamientosPage implements OnInit {
 
         // Distribuir en días
         this.dias.forEach(dia => {
-          const diaBDFormato = dia.diaNumero; // 0-6 en formato correcto
+          // Convertir índice JS (0=Dom, 1=Lun) a formato MySQL (0=Lun, 6=Dom)
+          const diaBDFormato = (dia.diaNumero === 0) ? 6 : dia.diaNumero - 1;
 
           // 1. Obtener reservas específicas para este día (fecha exacta)
           const reservasDia = todasReservas
-            .filter(r => r.tipo !== 'grupal' && r.fecha === dia.fecha)
+            .filter(r => r.fecha === dia.fecha) // Coincidencia exacta de fecha
             .map(r => {
               const inscritos = r.inscritos || [];
               const jugadores = inscritos.map((ins: any) => {
@@ -167,10 +168,10 @@ export class EntrenadorEntrenamientosPage implements OnInit {
               };
             });
 
-          // 2. Obtener templates grupales para este día de la semana
-          // (Filtrar aquellos que ya tengan una reserva específica creada a la misma hora)
+          // 2. Obtener templates grupales para este día de la semana (SOLO si no tienen fecha específica)
           const templatesDia = todasReservas.filter(r =>
             r.tipo === 'grupal' &&
+            !r.fecha && // Solo los que son plantillas puras
             Number(r.dia_semana) === diaBDFormato &&
             !reservasDia.some(res => res.hora_inicio === r.hora_inicio)
           ).map(r => {

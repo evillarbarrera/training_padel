@@ -61,6 +61,12 @@ export class EntrenadorAgendarPage implements OnInit {
     selectedSlot: any = null;
     recurrencia: number = 1;
 
+    // Manual Player Search (Group)
+    searchQueryMini: string = '';
+    searchResultsMini: any[] = [];
+    isSearchingMini: boolean = false;
+    participantesGrupo: any[] = [];
+
     tipoClaseSeleccionado: 'individual' | 'multijugador' | 'grupal' = 'individual';
     alumnosSeleccionados: any[] = [];
     alumnoSeleccionado: any = null;
@@ -247,14 +253,33 @@ export class EntrenadorAgendarPage implements OnInit {
         const templates = agendaData.packs_grupales || [];
         templates.forEach((t: any) => {
             const hora = t.hora_inicio.slice(0, 5);
-            // Estos son recurrentes por dia de la semana
-            this.diasAgenda.forEach(date => {
-                const dayName = date.toLocaleDateString('es-ES', { weekday: 'long' }).toLowerCase();
-                const dayRef = (t.dia_semana || '').toString().toLowerCase();
-                if (dayName === dayRef) {
-                    this.applyToSlot(this.formatDate(date), hora, t);
-                }
-            });
+            
+            if (t.fecha) {
+                // Specific date session
+                this.applyToSlot(t.fecha, hora, {
+                    ...t,
+                    reserva_id: t.pack_id,
+                    reserva_tipo: 'Entrenamiento Grupal',
+                    jugador_nombre: t.jugador_nombre || 'Abierto para inscripción'
+                });
+            } else {
+                // Recurring template
+                this.diasAgenda.forEach(date => {
+                    const dayIndex = date.getDay(); // 0 (Sun) - 6 (Sat)
+                    const dayName = date.toLocaleDateString('es-ES', { weekday: 'long' }).toLowerCase();
+                    const dayRef = (t.dia_semana != null) ? t.dia_semana.toString().toLowerCase() : '';
+                    
+                    const daysMap = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+                    if (dayRef === dayIndex.toString() || dayRef === dayName || dayRef === daysMap[dayIndex]) {
+                        this.applyToSlot(this.formatDate(date), hora, {
+                            ...t,
+                            reserva_id: t.pack_id,
+                            reserva_tipo: 'Entrenamiento Grupal (Recurrente)',
+                            jugador_nombre: 'Clase Grupal'
+                        });
+                    }
+                });
+            }
         });
     }
 
@@ -312,10 +337,57 @@ export class EntrenadorAgendarPage implements OnInit {
         if (slot.ocupado) {
             this.isDetailModalOpen = true;
             this.isEditingDetail = false;
+            this.participantesGrupo = slot.inscritos || [];
         } else {
             this.resetBookingState();
             this.isBookingModalOpen = true;
         }
+    }
+
+    searchPlayersMini() {
+        if (this.searchQueryMini.length < 3) {
+            this.searchResultsMini = [];
+            return;
+        }
+        this.isSearchingMini = true;
+        this.entrenamientoService.searchAlumnos(this.searchQueryMini).subscribe({
+            next: (res) => {
+                this.searchResultsMini = res;
+                this.isSearchingMini = false;
+            },
+            error: () => this.isSearchingMini = false
+        });
+    }
+
+    async addJugadorManual(player: any) {
+        if (!this.selectedSlot?.slot?.reserva_id) return;
+        
+        const loading = await this.loadingCtrl.create({ message: 'Agregando jugador...' });
+        await loading.present();
+
+        this.entrenamientoService.addJugadorAPack(this.selectedSlot.slot.reserva_id, player.id).subscribe({
+            next: (res: any) => {
+                loading.dismiss();
+                if (res.success) {
+                    this.mostrarToast('✅ Jugador agregado al grupo');
+                    this.searchQueryMini = '';
+                    this.searchResultsMini = [];
+                    // Refresh current participants
+                    if (!this.selectedSlot.slot.inscritos) this.selectedSlot.slot.inscritos = [];
+                    this.selectedSlot.slot.inscritos.push({
+                        nombre: player.nombre,
+                        foto: player.foto_perfil
+                    });
+                    this.participantesGrupo = [...this.selectedSlot.slot.inscritos];
+                } else {
+                    this.mostrarToast(res.error || 'No se pudo agregar al jugador');
+                }
+            },
+            error: (err) => {
+                loading.dismiss();
+                this.mostrarToast('Error de conexión');
+            }
+        });
     }
 
     resetBookingState() {

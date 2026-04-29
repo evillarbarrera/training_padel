@@ -228,6 +228,12 @@ export class EntrenamientoService {
     }
     return this.http.get<any>(url, { headers: this.getHeaders() });
   }
+
+  addJugadorAPack(packId: number, jugadorId: number): Observable<any> {
+    return this.http.post(`${this.api}/entrenador/add_jugador_pack.php`, { pack_id: packId, jugador_id: jugadorId }, {
+      headers: this.getHeaders()
+    });
+  }
 }
 
 

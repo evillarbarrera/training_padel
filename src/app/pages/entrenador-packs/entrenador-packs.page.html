@@ -307,9 +307,10 @@
 
             <div class="form-grid">
               <div class="nike-field">
-                <label>Día</label>
+                <label>Día Semanal (Recurrente)</label>
                 <ion-item lines="none" class="nike-item">
-                  <ion-select [(ngModel)]="nuevoPack.dia_semana" interface="popover">
+                  <ion-select [(ngModel)]="nuevoPack.dia_semana" interface="popover" placeholder="Opcional">
+                    <ion-select-option [value]="null">Solo por fecha</ion-select-option>
                     <ion-select-option [value]="0">Domingo</ion-select-option>
                     <ion-select-option [value]="1">Lunes</ion-select-option>
                     <ion-select-option [value]="2">Martes</ion-select-option>
@@ -320,6 +321,15 @@
                   </ion-select>
                 </ion-item>
               </div>
+              <div class="nike-field">
+                <label>Fecha Específica</label>
+                <ion-item lines="none" class="nike-item">
+                  <ion-input type="date" [(ngModel)]="nuevoPack.fecha"></ion-input>
+                </ion-item>
+              </div>
+            </div>
+
+            <div class="form-grid">
               <div class="nike-field">
                 <label>Hora Inicio (24h)</label>
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -336,13 +346,20 @@
                   </ion-item>
                 </div>
               </div>
+              <div class="nike-field">
+                <label>Categoría</label>
+                <ion-item lines="none" class="nike-item">
+                  <ion-input [(ngModel)]="nuevoPack.categoria" placeholder="Ej: Avanzados / 4ta"></ion-input>
+                </ion-item>
+              </div>
             </div>
 
-            <div class="nike-field">
-              <label>Categoría</label>
-              <ion-item lines="none" class="nike-item">
-                <ion-input [(ngModel)]="nuevoPack.categoria" placeholder="Ej: Avanzados / 4ta"></ion-input>
+            <div class="nike-field" style="margin-top: 15px;">
+              <ion-item lines="none" class="nike-item-checkbox">
+                <ion-label style="font-size: 11px; font-weight: 800; color: #111;">ABIERTO A INSCRIPCIÓN PÚBLICA</ion-label>
+                <ion-checkbox slot="start" [(ngModel)]="nuevoPack.permite_inscripcion" [checked]="nuevoPack.permite_inscripcion == 1" (ionChange)="nuevoPack.permite_inscripcion = $event.detail.checked ? 1 : 0"></ion-checkbox>
               </ion-item>
+              <p class="helper-text-mobile" style="margin-left: 45px;">Si se desactiva, solo tú podrás agregar alumnos.</p>
             </div>
           </div>
         </div>

@@ -923,47 +923,84 @@ export class JugadorReservasPage implements OnInit {
       }
     });
 
-    // 2. Project recurring group classes from the 'packs' table
+    // 2. Project sessions from the 'packs' table (Specific dates or allowing inscription)
     packsList.forEach(p => {
-      if (p.tipo === 'grupal' && p.dia_semana && p.hora_inicio) {
-        const packDay = Number(p.dia_semana);
+      if (p.tipo === 'grupal' && p.hora_inicio && (p.fecha || p.dia_semana)) {
         const [h, m] = p.hora_inicio.split(':');
         const duration = Number(p.duracion_sesion_min || 60);
 
-        for (let i = 0; i <= 30; i++) {
-          const checkDate = new Date();
-          checkDate.setDate(ahora.getDate() + i);
+        // CASE A: Specific Date (New Logic)
+        if (p.fecha) {
+          const start = new Date(p.fecha + 'T' + p.hora_inicio);
+          const end = new Date(start.getTime());
+          end.setMinutes(start.getMinutes() + duration);
 
-          let jsDay = checkDate.getDay();
-          if (jsDay === packDay || (jsDay === 0 && packDay === 7)) {
-            const start = new Date(checkDate.getTime());
-            start.setHours(Number(h), Number(m), 0, 0);
+          if (start >= ahora && start <= limite) {
+            const fechaStr = p.fecha;
+            const horaStr = start.toTimeString().slice(0, 5);
+            const timeKey = `${fechaStr}_${horaStr}`;
 
-            const end = new Date(start.getTime());
-            end.setMinutes(start.getMinutes() + duration);
+            if (!slotsMap.has(timeKey) || slotsMap.get(timeKey).tipo !== 'grupal') {
+              slotsMap.set(timeKey, {
+                fecha: fechaStr,
+                hora_inicio: start,
+                hora_fin: end,
+                ocupado: Number(p.cupos_ocupados) >= Number(p.capacidad_maxima),
+                inscritos: Number(p.cupos_ocupados || 0),
+                capacidad: Number(p.capacidad_maxima || 8),
+                cantidad_personas: Number(p.capacidad_maxima || 8),
+                tipo: 'grupal',
+                nombre_pack: p.nombre,
+                categoria: p.categoria,
+                pack_id: p.id,
+                genero: this.detectarGenero(p.nombre || '', p.categoria || '')
+              });
+              if (!nuevasFechas.includes(fechaStr)) nuevasFechas.push(fechaStr);
+            }
+          }
+        }
+        // CASE B: Recurring (Only if explicitly allowed or limited projection)
+        // Note: The user wants to avoid "repetitive" things, so we could either remove this 
+        // or keep it but the coach should ideally use the agenda for recurrence.
+        // For now, we project only the NEXT occurrence to avoid clutter.
+        else if (p.dia_semana) {
+          const packDay = Number(p.dia_semana);
+          for (let i = 0; i <= 7; i++) { // Limit to 7 days instead of 30 to avoid "repetitive" look
+            const checkDate = new Date();
+            checkDate.setDate(ahora.getDate() + i);
 
-            if (start >= ahora) {
-              const fechaStr = `${start.getFullYear()}-${(start.getMonth() + 1).toString().padStart(2, '0')}-${start.getDate().toString().padStart(2, '0')}`;
-              const horaStr = start.toTimeString().slice(0, 5);
-              const timeKey = `${fechaStr}_${horaStr}`;
+            let jsDay = checkDate.getDay();
+            if (jsDay === packDay || (jsDay === 0 && packDay === 7)) {
+              const start = new Date(checkDate.getTime());
+              start.setHours(Number(h), Number(m), 0, 0);
 
-              if (!slotsMap.has(timeKey) || slotsMap.get(timeKey).tipo !== 'grupal') {
-                slotsMap.set(timeKey, {
-                  fecha: fechaStr,
-                  hora_inicio: start,
-                  hora_fin: end,
-                  ocupado: Number(p.cupos_ocupados) >= Number(p.capacidad_maxima),
-                  inscritos: Number(p.cupos_ocupados || 0),
-                  capacidad: Number(p.capacidad_maxima || 8),
-                  cantidad_personas: Number(p.capacidad_maxima || 8),
-                  tipo: 'grupal',
-                  nombre_pack: p.nombre,
-                  categoria: p.categoria,
-                  pack_id: p.id,
-                  genero: this.detectarGenero(p.nombre || '', p.categoria || '')
-                });
-                if (!nuevasFechas.includes(fechaStr)) nuevasFechas.push(fechaStr);
+              const end = new Date(start.getTime());
+              end.setMinutes(start.getMinutes() + duration);
+
+              if (start >= ahora) {
+                const fechaStr = `${start.getFullYear()}-${(start.getMonth() + 1).toString().padStart(2, '0')}-${start.getDate().toString().padStart(2, '0')}`;
+                const horaStr = start.toTimeString().slice(0, 5);
+                const timeKey = `${fechaStr}_${horaStr}`;
+
+                if (!slotsMap.has(timeKey) || slotsMap.get(timeKey).tipo !== 'grupal') {
+                  slotsMap.set(timeKey, {
+                    fecha: fechaStr,
+                    hora_inicio: start,
+                    hora_fin: end,
+                    ocupado: Number(p.cupos_ocupados) >= Number(p.capacidad_maxima),
+                    inscritos: Number(p.cupos_ocupados || 0),
+                    capacidad: Number(p.capacidad_maxima || 8),
+                    cantidad_personas: Number(p.capacidad_maxima || 8),
+                    tipo: 'grupal',
+                    nombre_pack: p.nombre,
+                    categoria: p.categoria,
+                    pack_id: p.id,
+                    genero: this.detectarGenero(p.nombre || '', p.categoria || '')
+                  });
+                  if (!nuevasFechas.includes(fechaStr)) nuevasFechas.push(fechaStr);
+                }
               }
+              break; // Only project the first one found
             }
           }
         }
@@ -1225,10 +1262,11 @@ export class JugadorReservasPage implements OnInit {
     return 'medium';
   }
 
-  getDiasSemana(dia_semana: number): string {
+  getDiasSemana(dia_semana: any): string {
+    if (dia_semana === null || dia_semana === undefined) return '';
     // BD usa formato 0-6: 0=Domingo, 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    return dias[dia_semana] || `Día ${dia_semana} no válido`;
+    return dias[dia_semana] || '';
   }
 
   goToHome() {
