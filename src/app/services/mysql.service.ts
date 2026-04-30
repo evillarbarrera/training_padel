@@ -225,7 +225,7 @@ export class MysqlService {
   }
 
   getTorneosPublicos(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.api}/torneos/get_torneos_publicos.php`, { headers: this.getHeaders() });
+    return this.http.get<any[]>(`${this.api}/torneos/get_torneos_public.php`, { headers: this.getHeaders() });
   }
 
   saveMatchResult(data: any): Observable<any> {
@@ -234,5 +234,17 @@ export class MysqlService {
 
   getMisPartidos(): Observable<any[]> {
     return this.http.get<any[]>(`${this.api}/clubes/get_mis_partidos.php`, { headers: this.getHeaders() });
+  }
+
+  enrollInTournament(data: { torneo_id: number, jugador1_id: number, jugador2_id: number }): Observable<any> {
+    return this.http.post<any>(`${this.api}/torneos/join_torneo.php`, data, { headers: this.getHeaders() });
+  }
+  
+  getUsuarios(search: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/user/get_users.php?search=${search}`, { headers: this.getHeaders() });
+  }
+
+  updateReserva(data: any): Observable<any> {
+    return this.http.post<any>(`${this.api}/clubes/update_reserva.php`, data, { headers: this.getHeaders() });
   }
 }

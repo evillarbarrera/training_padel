@@ -47,9 +47,12 @@
             </div>
             
             <ng-container *ngIf="!cargandoHorarios">
-                <div *ngIf="slotsDisponibles.length === 0" class="empty-state">
-                    <ion-icon name="time-outline" size="large"></ion-icon>
-                    <p>No tienes disponibilidad este día.</p>
+                <div *ngIf="slotsDisponibles.length === 0" class="empty-state animate-fade">
+                    <ion-icon name="alert-circle-outline" size="large" style="color: #64748b;"></ion-icon>
+                    <p>No hay bloques de horario para este día.</p>
+                    <ion-button fill="clear" color="primary" size="small" (click)="router.navigate(['/disponibilidad-entrenador'])">
+                        Abrir disponibilidad
+                    </ion-button>
                 </div>
 
                 <div class="slot-grid-circles">

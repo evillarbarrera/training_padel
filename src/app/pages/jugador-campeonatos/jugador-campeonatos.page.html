@@ -1,0 +1,123 @@
+<div class="floating-back-btn" (click)="goBack()">
+  <ion-icon name="arrow-back"></ion-icon>
+</div>
+
+<ion-content [fullscreen]="true" class="ion-padding-bottom">
+  
+  <!-- A. CLUB DISCOVERY LIST (CAMPEONATOS FOCUS) -->
+  <div *ngIf="!selectedClub" class="discovery-container animate-fade">
+    <div class="search-header-playtomic">
+        <div class="search-input-wrapper">
+            <ion-icon name="search-outline"></ion-icon>
+            <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar clubes con torneos...">
+        </div>
+        
+        <div class="priority-label">
+            <span>Clubes con torneos activos</span>
+        </div>
+    </div>
+
+    <div class="club-list-playtomic">
+      <div *ngIf="loading" class="skeleton-container">
+        <div class="skeleton-card" *ngFor="let i of [1,2,3]"></div>
+      </div>
+
+      <div class="playtomic-card animate-up" *ngFor="let club of filteredClubes" (click)="onSelectClub(club)">
+        <div class="p-card-image">
+          <img [src]="club.logoUrl" (error)="club.logoUrl = heroBackground">
+          <div class="p-overlay"></div>
+          <h3 class="p-club-name">{{ club.nombre }}</h3>
+          <div class="tournaments-badge"><ion-icon name="trophy-outline"></ion-icon> Ver Torneos</div>
+        </div>
+        <div class="p-card-detail">
+          <p class="p-loc">{{ club.direccion || 'Chile' }}</p>
+        </div>
+      </div>
+
+      <div *ngIf="!loading && filteredClubes.length === 0" class="empty-state">
+         <ion-icon name="search-outline"></ion-icon>
+         <p>No se encontraron clubes con torneos disponibles.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- B. CLUB TOURNAMENTS LIST -->
+  <div *ngIf="selectedClub" class="club-detail-playtomic animate-fade">
+    
+    <!-- HEADER IMAGE -->
+    <div class="detail-hero">
+        <img [src]="selectedClub.logoUrl" (error)="selectedClub.logoUrl = heroBackground">
+        <ion-icon name="share-outline" class="share-icon"></ion-icon>
+    </div>
+
+    <!-- CLUB INFO -->
+    <div class="detail-info-block">
+        <div class="title-row">
+            <h1>{{ selectedClub.nombre }}</h1>
+        </div>
+        <p class="address-txt">{{ selectedClub.direccion }}</p>
+    </div>
+
+    <div class="segment-body">
+        <div class="p-direct-courts-list">
+            <div class="p-section-header-row">
+                <div class="p-section-title">Campeonatos Disponibles</div>
+            </div>
+
+            <!-- Torneos List -->
+            <div class="playtomic-card tournament-card animate-up" *ngFor="let t of torneosDelClub">
+                <div class="p-card-image mini">
+                    <img [src]="t.imagen || heroBackground">
+                    <div class="p-overlay"></div>
+                    <div class="t-badge" [class.orange]="t.tipo === 'Americano'">{{ t.tipo?.toUpperCase() || 'TORNEO' }}</div>
+                </div>
+                <div class="p-card-detail">
+                    <h3>{{ t.nombre }}</h3>
+                    <p class="p-loc" *ngIf="t.tipo !== 'Americano'">{{ t.fecha_inicio | date:'d MMM' }} - {{ t.fecha_fin | date:'d MMM' }}</p>
+                    <p class="p-loc" *ngIf="t.tipo === 'Americano'">{{ t.fecha_inicio | date:'d MMM' }} • {{ t.hora_inicio }}</p>
+                    
+                    <div class="p-availability-line">
+                        <span class="p-price">Desde <strong>${{ t.precio || '0' }}</strong></span>
+                    </div>
+
+                    <ion-button expand="block" fill="solid" color="dark" class="nike-btn-black" (click)="openEnrollment(t)">
+                        Inscribirse con Partner
+                    </ion-button>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- MODAL: BUSCAR PARTNER -->
+  <ion-modal [isOpen]="showPartnerModal" (didDismiss)="showPartnerModal = false" class="search-player-modal">
+    <ng-template>
+      <div class="search-modal-container">
+        <div class="search-header">
+           <ion-icon name="search-outline"></ion-icon>
+           <input type="text" placeholder="Buscar a tu partner..." [(ngModel)]="partnerSearchTerm" (keyup)="onPartnerSearch()">
+           <ion-button fill="clear" (click)="showPartnerModal = false"><ion-icon name="close-outline"></ion-icon></ion-button>
+        </div>
+        
+        <ion-content class="search-results-content">
+           <div class="player-result-item" *ngFor="let p of partnerResults" (click)="selectPartner(p)">
+              <div class="p-avatar-wrap">
+                 <img [src]="p.foto_perfil || 'assets/avatar.png'" class="p-img">
+                 <div class="p-lvl yellow">{{ p.categoria?.slice(0,3) || '4ta' }}</div>
+              </div>
+              <div class="p-info">
+                 <span class="p-name">{{ p.nombre }}</span>
+                 <span class="p-cat">{{ p.categoria || 'Sin categoría' }}</span>
+              </div>
+              <ion-icon name="person-add-outline" color="primary"></ion-icon>
+           </div>
+           
+           <div class="empty-results" *ngIf="partnerResults.length === 0 && partnerSearchTerm.length > 2">
+              <p>No se encontraron jugadores.</p>
+           </div>
+        </ion-content>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>

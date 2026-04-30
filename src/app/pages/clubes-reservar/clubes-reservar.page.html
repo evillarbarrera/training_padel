@@ -6,13 +6,26 @@
 <ion-content [fullscreen]="true" class="ion-padding-bottom">
   
   <!-- A. CLUB DISCOVERY LIST (PLAYTOMIC STYLE) -->
-  <div *ngIf="!selectedClub" class="discovery-container">
+    <div class="discovery-container" *ngIf="!selectedClub">
     <div class="search-header-playtomic">
         <div class="search-input-wrapper">
             <ion-icon name="search-outline"></ion-icon>
             <input type="text" [(ngModel)]="searchTerm" placeholder="Arturo Prat 169, Machalí...">
             <ion-icon name="heart-outline" class="right-icon"></ion-icon>
         </div>
+        
+        <!-- NEW: MIS PARTIDOS QUICK ACCESS -->
+        <div class="quick-access-matches animate-up" (click)="goToMisPartidos()">
+           <div class="qa-content">
+              <div class="qa-icon"><ion-icon name="trophy-outline"></ion-icon></div>
+              <div class="qa-text">
+                 <h4>Mis Partidos</h4>
+                 <p>Gestiona tus duplas y resultados</p>
+              </div>
+           </div>
+           <ion-icon name="chevron-forward" class="qa-arrow"></ion-icon>
+        </div>
+
         <div class="priority-label" *ngIf="userRegion">
             <span>Explorando en {{ userRegion }}</span>
         </div>
@@ -121,6 +134,56 @@
                     <div class="p-no-slots" *ngIf="(horarios | json) === '[]' || !hasAvailableSlots()">
                         Sin horarios disponibles para hoy
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENT: TORNEOS (EVENTOS) -->
+    <div class="segment-body" *ngIf="activeSubTab === 'eventos'">
+        <div class="p-direct-courts-list">
+            <div class="p-section-header-row">
+                <div class="p-section-title">Próximos Campeonatos</div>
+            </div>
+
+            <!-- Torneos List -->
+            <div *ngIf="torneos.length === 0 && americanos.length === 0" class="p-no-slots">
+                No hay campeonatos programados en este club.
+            </div>
+
+            <div class="playtomic-card tournament-card animate-up" *ngFor="let t of torneos">
+                <div class="p-card-image mini">
+                    <img [src]="t.imagen || heroBackground">
+                    <div class="p-overlay"></div>
+                    <div class="t-badge">TORNEO</div>
+                </div>
+                <div class="p-card-detail">
+                    <h3>{{ t.nombre }}</h3>
+                    <p class="p-loc">{{ t.fecha_inicio | date:'d MMM' }} - {{ t.fecha_fin | date:'d MMM' }}</p>
+                    <div class="p-availability-line">
+                        <span class="p-price">Desde <strong>${{ t.precio || '0' }}</strong></span>
+                    </div>
+                    <ion-button expand="block" fill="solid" color="dark" class="nike-btn-black" style="margin-top: 15px;">
+                        Inscribirse
+                    </ion-button>
+                </div>
+            </div>
+
+            <div class="playtomic-card tournament-card animate-up" *ngFor="let a of americanos">
+                <div class="p-card-image mini">
+                    <img [src]="a.imagen || heroBackground">
+                    <div class="p-overlay"></div>
+                    <div class="t-badge orange">AMERICANO</div>
+                </div>
+                <div class="p-card-detail">
+                    <h3>{{ a.nombre }}</h3>
+                    <p class="p-loc">{{ a.fecha_inicio | date:'d MMM' }} • {{ a.hora_inicio }}</p>
+                    <div class="p-availability-line">
+                        <span class="p-price">Precio <strong>${{ a.precio || '0' }}</strong></span>
+                    </div>
+                    <ion-button expand="block" fill="solid" color="dark" class="nike-btn-black" style="margin-top: 15px;">
+                        Inscribirse
+                    </ion-button>
                 </div>
             </div>
         </div>

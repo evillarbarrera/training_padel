@@ -2,11 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
-  IonContent, IonHeader, IonToolbar, IonTitle, IonIcon,
+  IonContent, IonIcon, IonButton,
   AlertController
 } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { addIcons } from 'ionicons';
 import { 
   locationOutline, searchOutline, calendarOutline, 
@@ -24,8 +24,7 @@ import { environment } from '../../../environments/environment';
   standalone: true,
   imports: [
     CommonModule, FormsModule, 
-    IonContent, IonHeader, IonToolbar, IonTitle,
-    IonIcon
+    IonContent, IonIcon, IonButton
   ]
 })
 export class ClubesReservarPage implements OnInit {
@@ -45,6 +44,8 @@ export class ClubesReservarPage implements OnInit {
   userRegion: string = '';
   showOccupied: boolean = true;
   loading = true;
+  viewMode: 'reservar' | 'campeonatos' = 'reservar';
+  clubsWithTournaments: Set<number> = new Set();
 
   defaultClubImages: string[] = [
     'https://images.unsplash.com/photo-1626224484214-4051d388915e?q=80&w=800&auto=format&fit=crop', // Padel 1
@@ -58,6 +59,7 @@ export class ClubesReservarPage implements OnInit {
   constructor(
     private mysql: MysqlService, 
     private router: Router,
+    private route: ActivatedRoute,
     private alertCtrl: AlertController
   ) {
     addIcons({ 
@@ -74,10 +76,31 @@ export class ClubesReservarPage implements OnInit {
   }
 
   ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['view'] === 'campeonatos') {
+        this.viewMode = 'campeonatos';
+      } else {
+        this.viewMode = 'reservar';
+      }
+    });
+
     this.selectedFecha = this.getLocalISODate(new Date());
     this.generateWeekDays();
     this.loadUserProfile();
+    this.loadGlobalTournaments();
     this.loadClubes();
+  }
+
+  loadGlobalTournaments() {
+    this.mysql.getTorneosPublicos().subscribe(res => {
+      res.forEach((t: any) => {
+        if (t.club_id) this.clubsWithTournaments.add(Number(t.club_id));
+      });
+    });
+  }
+
+  goToMisPartidos() {
+    this.router.navigate(['/jugador-partidos']);
   }
 
   loadUserProfile() {
@@ -149,11 +172,18 @@ export class ClubesReservarPage implements OnInit {
   }
 
   get filteredClubes() {
+    let list = this.clubes;
+    
+    // Filter by View Mode
+    if (this.viewMode === 'campeonatos') {
+      list = list.filter(c => this.clubsWithTournaments.has(Number(c.id)));
+    }
+
     if (!this.searchTerm || this.searchTerm.trim() === '') {
-      return this.clubes;
+      return list;
     }
     const term = this.searchTerm.toLowerCase().trim();
-    return this.clubes.filter(c => 
+    return list.filter(c => 
       (c.nombre && c.nombre.toLowerCase().includes(term)) || 
       (c.direccion && c.direccion.toLowerCase().includes(term)) ||
       (c.region && c.region.toLowerCase().includes(term))

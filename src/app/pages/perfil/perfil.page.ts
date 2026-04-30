@@ -23,6 +23,7 @@ import {
   AlertController
 } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
+import { Browser } from '@capacitor/browser';
 import { addIcons } from 'ionicons';
 import {
   personOutline,
@@ -39,7 +40,9 @@ import {
   linkOutline,
   shieldCheckmarkOutline,
   trashOutline,
-  warningOutline
+  warningOutline,
+  logOutOutline,
+  documentTextOutline
 } from 'ionicons/icons';
 
 
@@ -157,7 +160,9 @@ export class PerfilPage implements OnInit {
       linkOutline,
       shieldCheckmarkOutline,
       trashOutline,
-      warningOutline
+      warningOutline,
+      logOutOutline,
+      documentTextOutline
     });
 
   }
@@ -307,14 +312,40 @@ export class PerfilPage implements OnInit {
         {
           text: 'Sí, Eliminar',
           role: 'destructive',
-          handler: () => {
-            window.location.href = `https://api.padelmanager.cl/delete-account?user_id=${this.userId}`;
+          handler: async () => {
+            await Browser.open({ url: `https://api.padelmanager.cl/delete-account?user_id=${this.userId}` });
           }
         }
       ]
     });
 
     await alert.present();
+  }
+
+  async logout() {
+    const alert = await this.alertCtrl.create({
+      header: 'Cerrar Sesión',
+      message: '¿Estás seguro que deseas salir?',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Salir',
+          handler: () => {
+            localStorage.clear();
+            this.navCtrl.navigateRoot('/login');
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  async openPrivacy() {
+    await Browser.open({ url: 'https://api.padelmanager.cl/privacy.html' });
+  }
+
+  async openTerms() {
+    await Browser.open({ url: 'https://api.padelmanager.cl/terms.html' });
   }
 
 }

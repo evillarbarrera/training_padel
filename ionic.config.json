@@ -2,11 +2,10 @@
   "name": "PadelManager Training",
   "integrations": {},
   "type": "angular-standalone",
-  "proxies": {
-    "/api": {
-      "target": "http://c2701752.ferozo.com",
-      "secure": false,
-      "changeOrigin": true
+  "proxies": [
+    {
+      "proxyUrl": "/prd",
+      "proxyTarget": "https://api.padelmanager.cl"
     }
-  }
+  ]
 }

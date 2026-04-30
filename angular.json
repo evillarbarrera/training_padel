@@ -87,7 +87,8 @@
             "allowedHosts": [
               "unprovable-bairnly-amiya.ngrok-free.dev",
               "localhost"
-            ]
+            ],
+            "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
             "production": {

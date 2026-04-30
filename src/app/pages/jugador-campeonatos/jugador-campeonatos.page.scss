@@ -1,0 +1,151 @@
+ion-content {
+    --background: #f8fafc;
+}
+
+// 0. FLOATING BACK BUTTON
+.floating-back-btn {
+    position: fixed; top: 50px; left: 15px; z-index: 999;
+    width: 44px; height: 44px; background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(10px); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #0f172a; font-size: 24px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+// 1. SEARCH HEADER
+.search-header-playtomic {
+    padding: 65px 20px 25px;
+    background: linear-gradient(180deg, #fff 0%, #f1f5f9 100%);
+    border-bottom: 2px solid #e2e8f0;
+
+    .search-input-wrapper {
+        display: flex; align-items: center; background: #fff; border-radius: 18px; 
+        padding: 12px 18px; gap: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+        border: 1px solid #f1f5f9;
+        input { border: none; background: transparent; flex: 1; font-size: 15px; color: #0f172a; outline: none; font-weight: 500; }
+        ion-icon { color: #6366f1; font-size: 20px; }
+    }
+
+    .priority-label {
+        margin-top: 15px; font-size: 13px; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 6px;
+        &::before { content: '•'; color: #ccff00; font-size: 20px; }
+    }
+}
+
+// 2. DISCOVERY LIST
+.club-list-playtomic {
+    padding: 15px 0 40px;
+}
+
+.playtomic-card {
+    margin-bottom: 30px;
+    background: #fff;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+    border-radius: 24px;
+    overflow: hidden;
+
+    .p-card-image {
+        position: relative; height: 200px; overflow: hidden;
+        img { width: 100%; height: 100%; object-fit: cover; }
+        .p-overlay { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(15,23,42,0.8) 0%, transparent 60%); }
+        .p-club-name { position: absolute; bottom: 20px; left: 20px; margin: 0; color: #fff; font-size: 24px; font-weight: 900; letter-spacing: -1px; }
+        
+        .tournaments-badge {
+            position: absolute; top: 20px; right: 20px; background: #ccff00; color: #000;
+            padding: 8px 15px; border-radius: 12px; font-size: 11px; font-weight: 950;
+            display: flex; align-items: center; gap: 6px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+    }
+
+    .p-card-detail {
+        padding: 18px 20px;
+        .p-loc { margin: 0; font-size: 13px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    }
+
+    &.tournament-card {
+        margin: 0 20px 20px;
+        .p-card-image.mini {
+            height: 140px;
+            .t-badge {
+                position: absolute; top: 15px; left: 15px; 
+                background: #ccff00; color: #000; padding: 6px 12px;
+                border-radius: 10px; font-size: 10px; font-weight: 950;
+                &.orange { background: #ff7a00; color: #fff; }
+            }
+        }
+        .p-card-detail {
+            h3 { margin: 0; font-size: 18px; font-weight: 950; color: #0f172a; }
+            .p-loc { margin: 5px 0 12px !important; }
+            .p-availability-line {
+                background: #f8fafc; border-radius: 16px; padding: 15px; margin-bottom: 15px;
+                display: flex; align-items: center; justify-content: center;
+                .p-price { font-size: 14px; color: #1e293b; strong { color: #000; font-weight: 950; } }
+            }
+        }
+    }
+}
+
+// 3. DETAIL VIEW
+.club-detail-playtomic {
+    .detail-hero {
+        position: relative; height: 230px;
+        img { width: 100%; height: 100%; object-fit: cover; }
+        .share-icon { 
+            position: absolute; top: 50px; right: 20px; color: #0f172a; font-size: 26px; 
+            background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); padding: 8px; border-radius: 50%;
+        }
+    }
+
+    .detail-info-block {
+        padding: 25px 20px; background: #fff; border-radius: 0 0 30px 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        h1 { margin: 0; font-size: 30px; font-weight: 950; color: #0f172a; letter-spacing: -1.5px; }
+        .address-txt { margin: 10px 0 0; font-size: 14px; color: #475569; font-weight: 600; opacity: 0.8; }
+    }
+
+    .p-direct-courts-list {
+        padding: 30px 0;
+        .p-section-header-row { padding: 0 20px; margin-bottom: 20px; .p-section-title { font-size: 22px; font-weight: 950; } }
+    }
+}
+
+// 4. MODAL SEARCH
+.search-player-modal {
+    --height: 90%;
+    --border-radius: 30px 30px 0 0;
+    .search-modal-container {
+        height: 100%; display: flex; flex-direction: column; background: #fff;
+        .search-header {
+            padding: 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f1f5f9;
+            ion-icon { font-size: 22px; color: #6366f1; }
+            input { flex: 1; border: none; font-size: 17px; font-weight: 600; outline: none; }
+        }
+        .search-results-content {
+            .player-result-item {
+                display: flex; align-items: center; padding: 15px 20px; gap: 15px; border-bottom: 1px solid #f8fafc;
+                .p-avatar-wrap {
+                    position: relative; width: 48px; height: 48px;
+                    .p-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+                    .p-lvl { position: absolute; bottom: -2px; right: -2px; background: #ccff00; color: #000; font-size: 9px; font-weight: 950; padding: 2px 5px; border-radius: 6px; border: 2px solid #fff; }
+                }
+                .p-info { flex: 1; .p-name { font-size: 15px; font-weight: 800; } .p-cat { font-size: 12px; color: #64748b; } }
+                ion-icon { font-size: 24px; color: #6366f1; }
+            }
+        }
+    }
+}
+
+.nike-btn-black {
+    --background: #000; --color: #fff; --border-radius: 16px; --padding-top: 18px; --padding-bottom: 18px;
+    font-weight: 950; text-transform: uppercase; letter-spacing: 1px; font-size: 12px;
+}
+
+.empty-state {
+    padding: 60px 40px; text-align: center; color: #94a3b8;
+    ion-icon { font-size: 64px; opacity: 0.2; margin-bottom: 20px; }
+    p { font-size: 16px; font-weight: 700; }
+}
+
+.animate-up { animation: up 0.7s cubic-bezier(0.23, 1, 0.32, 1) both; }
+.animate-fade { animation: fade 0.4s ease both; }
+@keyframes up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }

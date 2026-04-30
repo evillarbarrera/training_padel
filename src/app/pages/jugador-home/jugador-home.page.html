@@ -54,6 +54,129 @@
     </div>
   </ng-container>
 
+  <ng-container *ngIf="isDev">
+    <div class="dashboard-v2 animate-up">
+      
+      <!-- PRÓXIMA CLASE V2 -->
+      <div class="next-class-v2" *ngIf="proximaClase" (click)="goToMisClases()">
+        <div class="nc-icon-badge">
+          <ion-icon name="calendar-outline"></ion-icon>
+        </div>
+        <div class="nc-content">
+          <div class="nc-tag">SIGUIENTE SESIÓN</div>
+          <div class="nc-date">{{ proximaClase.fecha | date:'d MMM' }} • {{ proximaClase.hora_inicio.slice(0,5) }} HRS</div>
+          <div class="nc-coach"><ion-icon name="person-outline"></ion-icon> {{ proximaClase.entrenador || 'Tu Entrenamiento' }}</div>
+        </div>
+        <ion-icon name="chevron-forward" class="nc-arrow"></ion-icon>
+      </div>
+
+      <!-- 1. TU PROGRESO V2 (EL REY DEL DASHBOARD) -->
+      <div class="progress-v2 delay-1">
+        <div class="p-header">
+           <h3 class="v2-title">Tu Progreso</h3>
+           <div class="p-pts" (click)="goToLogros()">Nivel {{ logrosDesbloqueados > 0 ? logrosDesbloqueados : 1 }} <ion-icon name="chevron-forward"></ion-icon></div>
+        </div>
+        
+        <div class="p-metrics">
+           <div class="p-metric-item highlight" (click)="abrirModalPacks()">
+             <div class="m-val">{{ clasesPendientes }}</div>
+             <div class="m-lbl">Pendientes</div>
+           </div>
+           <div class="p-metric-item">
+             <div class="m-val">{{ clasesDisponibles }}</div>
+             <div class="m-lbl">Créditos</div>
+           </div>
+           <div class="p-metric-item">
+             <div class="m-val">{{ clasesReservadas }}</div>
+             <div class="m-lbl">Reservadas</div>
+           </div>
+        </div>
+
+        <div class="p-divider"></div>
+
+        <div class="p-logros-section" (click)="goToLogros()">
+           <div class="p-l-header">
+             <span>Progreso de Insignias</span>
+             <span class="pct">{{ logrosPorcentaje }}%</span>
+           </div>
+           <div class="p-l-bar"><div class="p-l-fill" [style.width.%]="logrosPorcentaje"></div></div>
+           <div class="p-l-badges">
+              <div class="mini-badge" *ngFor="let logro of (logros.length ? logros.slice(0, 5) : [1,2,3,4,5])" 
+                   [class.locked]="logro.desbloqueado === false" 
+                   [style.--bc]="logro.color_badge || '#e5e5ea'">
+                {{ logro.icono || '🔒' }}
+              </div>
+              <div class="mini-badge-more" *ngIf="logros.length > 5">+{{ logros.length - 5 }}</div>
+           </div>
+        </div>
+      </div>
+
+      <!-- 2. DAILY TIP V2 (SEGUNDO LUGAR) -->
+      <div class="daily-tip-v2 delay-1" *ngIf="dailyTip">
+         <div class="t-icon"><ion-icon name="sparkles-outline"></ion-icon></div>
+         <div class="t-content">
+            <span class="t-badge">TIP DEL COACH</span>
+            <h4>{{ dailyTip.titulo }}</h4>
+            <p>{{ dailyTip.mensaje }}</p>
+         </div>
+      </div>
+
+      <!-- 3. ACCIONES RÁPIDAS V2 (ORDEN PREMIUM UX) -->
+      <div class="actions-v2-card delay-2">
+         <div class="v2-card-header">
+            <h4 class="v2-subtitle">Centro de Mando</h4>
+            <span class="v2-status-dot pulse"></span>
+         </div>
+         
+         <!-- HERO BUTTONS GRID -->
+         <div class="hero-actions-grid">
+            <!-- HERO 1: RESERVAR CANCHA -->
+            <div class="hero-booking-action animate-pulse" (click)="goToReservarCancha()">
+               <div class="hero-btn-content">
+                 <div class="hero-icon-wrap">🎾</div>
+                 <div class="hero-text-wrap">
+                   <h3>Reservar Cancha</h3>
+                   <p>Clubes y Disponibilidad</p>
+                 </div>
+               </div>
+               <ion-icon name="arrow-forward"></ion-icon>
+            </div>
+
+            <!-- HERO 2: CAMPEONATOS -->
+            <div class="hero-booking-action tournament-hero animate-pop delay-1" (click)="goToCampeonatos()">
+               <div class="hero-btn-content">
+                 <div class="hero-icon-wrap trophy">🏆</div>
+                 <div class="hero-text-wrap">
+                   <h3>Campeonatos</h3>
+                   <p>Torneos y Americanos</p>
+                 </div>
+               </div>
+               <ion-icon name="arrow-forward"></ion-icon>
+            </div>
+         </div>
+
+         <div class="actions-grid-v2">
+            <!-- BOTÓN SECUNDARIO (AGENDAR CLASE) -->
+            <div class="action-btn-v2" (click)="goToAgenda()">
+               <div class="a-icon bg-soft"><ion-icon name="calendar-outline"></ion-icon></div>
+               <span class="a-label">Agendar Clase</span>
+            </div>
+            
+            <div class="action-btn-v2" (click)="goToMisClases()">
+               <div class="a-icon bg-soft"><ion-icon name="time-outline"></ion-icon></div>
+               <span class="a-label">Mi Agenda</span>
+            </div>
+            
+            <div class="action-btn-v2" (click)="misHabilidades()">
+               <div class="a-icon bg-soft"><ion-icon name="ribbon-outline"></ion-icon></div>
+               <span class="a-label">Tu Nivel</span>
+            </div>
+         </div>
+      </div>
+
+    </div>
+  </ng-container>
+
   <!-- Main Content -->
   <ng-container *ngIf="!isDev">
     <div class="dashboard-container">
@@ -164,8 +287,32 @@
       </div>
 
 
+      <!-- Reservar Cancha Card -->
+      <div class="nike-card module-card animate-pop delay-3" (click)="goToReservarCancha()">
+        <img src="/assets/reserva-bg.jpg" class="module-img" />
+        <div class="module-body">
+          <div class="module-text">
+            <h3>Reservar Cancha</h3>
+            <p>Busca clubes y reserva tu pista</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
+        </div>
+      </div>
+
+      <!-- Campeonatos Card -->
+      <div class="nike-card module-card animate-pop delay-4" (click)="goToCampeonatos()">
+        <img src="/assets/mod-packs.jpg" class="module-img" />
+        <div class="module-body">
+          <div class="module-text">
+            <h3>Campeonatos</h3>
+            <p>Torneos, Americanos y Partidos</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
+        </div>
+      </div>
+
       <!-- Skills Card -->
-      <div class="nike-card module-card animate-pop delay-4" (click)="misHabilidades()">
+      <div class="nike-card module-card animate-pop delay-5" (click)="misHabilidades()">
         <img src="/assets/mod-alumnos.jpg" class="module-img" />
         <div class="module-body">
           <div class="module-text">
@@ -234,7 +381,7 @@
         <div class="challenge-info">
           <h3>20 BANDEJAS</h3>
           <p>Sube tu video y gana 50 puntos</p>
-          <div class="progress-bar-dev">
+      <div class="progress-bar-dev">
             <div class="progress-fill-dev"></div>
           </div>
         </div>
@@ -243,122 +390,6 @@
 
     </div>
   </div>
-  </ng-container>
-
-  <ng-container *ngIf="isDev">
-    <div class="dashboard-v2 animate-up">
-      
-      <!-- PRÓXIMA CLASE V2 -->
-      <div class="next-class-v2" *ngIf="proximaClase" (click)="goToMisClases()">
-        <div class="nc-icon-badge">
-          <ion-icon name="calendar-outline"></ion-icon>
-        </div>
-        <div class="nc-content">
-          <div class="nc-tag">SIGUIENTE SESIÓN</div>
-          <div class="nc-date">{{ proximaClase.fecha | date:'d MMM' }} • {{ proximaClase.hora_inicio.slice(0,5) }} HRS</div>
-          <div class="nc-coach"><ion-icon name="person-outline"></ion-icon> {{ proximaClase.entrenador || 'Tu Entrenamiento' }}</div>
-        </div>
-        <ion-icon name="chevron-forward" class="nc-arrow"></ion-icon>
-      </div>
-
-      <!-- 1. TU PROGRESO V2 (EL REY DEL DASHBOARD) -->
-      <div class="progress-v2 delay-1">
-        <div class="p-header">
-           <h3 class="v2-title">Tu Progreso</h3>
-           <div class="p-pts" (click)="goToLogros()">Nivel {{ logrosDesbloqueados > 0 ? logrosDesbloqueados : 1 }} <ion-icon name="chevron-forward"></ion-icon></div>
-        </div>
-        
-        <div class="p-metrics">
-           <div class="p-metric-item highlight" (click)="abrirModalPacks()">
-             <div class="m-val">{{ clasesPendientes }}</div>
-             <div class="m-lbl">Pendientes</div>
-           </div>
-           <div class="p-metric-item">
-             <div class="m-val">{{ clasesDisponibles }}</div>
-             <div class="m-lbl">Créditos</div>
-           </div>
-           <div class="p-metric-item">
-             <div class="m-val">{{ clasesReservadas }}</div>
-             <div class="m-lbl">Reservadas</div>
-           </div>
-        </div>
-
-        <div class="p-divider"></div>
-
-        <div class="p-logros-section" (click)="goToLogros()">
-           <div class="p-l-header">
-             <span>Progreso de Insignias</span>
-             <span class="pct">{{ logrosPorcentaje }}%</span>
-           </div>
-           <div class="p-l-bar"><div class="p-l-fill" [style.width.%]="logrosPorcentaje"></div></div>
-           <div class="p-l-badges">
-              <div class="mini-badge" *ngFor="let logro of (logros.length ? logros.slice(0, 5) : [1,2,3,4,5])" 
-                   [class.locked]="logro.desbloqueado === false" 
-                   [style.--bc]="logro.color_badge || '#e5e5ea'">
-                {{ logro.icono || '🔒' }}
-              </div>
-              <div class="mini-badge-more" *ngIf="logros.length > 5">+{{ logros.length - 5 }}</div>
-           </div>
-        </div>
-      </div>
-
-      <!-- 2. DAILY TIP V2 (SEGUNDO LUGAR) -->
-      <div class="daily-tip-v2 delay-1" *ngIf="dailyTip">
-         <div class="t-icon"><ion-icon name="sparkles-outline"></ion-icon></div>
-         <div class="t-content">
-            <span class="t-badge">TIP DEL COACH</span>
-            <h4>{{ dailyTip.titulo }}</h4>
-            <p>{{ dailyTip.mensaje }}</p>
-         </div>
-      </div>
-
-      <!-- 3. ACCIONES RÁPIDAS V2 (ORDEN PREMIUM UX) -->
-      <div class="actions-v2-card delay-2">
-         <div class="v2-card-header">
-            <h4 class="v2-subtitle">Centro de Mando</h4>
-            <span class="v2-status-dot pulse"></span>
-         </div>
-         
-         <!-- HIDHLIGHTED ACTION: RESERVAR CANCHA (OCULTO PARA PRODUCCIÓN)
-         <div class="hero-booking-action animate-pulse" (click)="goToReservarCancha()" style="background: #ccff00; padding: 22px; border-radius: 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 25px rgba(204, 255, 0, 0.3);">
-            <div style="display: flex; align-items: center; gap: 15px;">
-              <div style="width: 45px; height: 45px; background: rgba(0,0,0,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;">🎾</div>
-              <div>
-                <h3 style="margin: 0; color: #000; font-weight: 900; font-size: 18px; letter-spacing: -0.5px;">Reservar Cancha</h3>
-                <p style="margin: 0; color: rgba(0,0,0,0.6); font-size: 12px; font-weight: 700;">Clubes y Disponibilidad</p>
-              </div>
-            </div>
-            <ion-icon name="arrow-forward" style="color: #000; font-size: 24px;"></ion-icon>
-         </div>
-         -->
-
-         <div class="actions-grid-v2">
-            <!-- BOTÓN SECUNDARIO (AGENDAR CLASE) -->
-            <div class="action-btn-v2" (click)="goToAgenda()">
-               <div class="a-icon bg-soft"><ion-icon name="calendar-outline"></ion-icon></div>
-               <span style="font-size: 11px; font-weight: 800;">Agendar Clase</span>
-            </div>
-            
-            <div class="action-btn-v2" (click)="goToMisClases()">
-               <div class="a-icon bg-soft"><ion-icon name="time-outline"></ion-icon></div>
-               <span style="font-size: 11px; font-weight: 800;">Mi Agenda</span>
-            </div>
-            
-            <div class="action-btn-v2" (click)="misHabilidades()">
-               <div class="a-icon bg-soft"><ion-icon name="ribbon-outline"></ion-icon></div>
-               <span style="font-size: 11px; font-weight: 800;">Tu Nivel</span>
-            </div>
-
-            <!-- OCULTO PARA PRODUCCIÓN
-            <div class="action-btn-v2" (click)="goToPartidos()">
-               <div class="a-icon bg-soft"><ion-icon name="trophy-outline"></ion-icon></div>
-               <span style="font-size: 11px; font-weight: 800;">Partidos</span>
-            </div>
-            -->
-         </div>
-      </div>
-
-    </div>
   </ng-container>
 
   <!-- Gemini Analysis Results Modal (Semi-overlay) -->

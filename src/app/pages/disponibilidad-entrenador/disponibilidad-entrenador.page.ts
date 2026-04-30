@@ -227,18 +227,34 @@ export class DisponibilidadEntrenadorPage implements OnInit {
      SEMANA (30 DÍAS)
   ============================== */
   crearSemanaDesdeHoy() {
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    const TOTAL_DIAS = 30; // Changed from 10 to 30 to match web
+    const TOTAL_DIAS_ADELANTE = 30;
+    const TOTAL_DIAS_ATRAS = 60; // 2 meses atrás
 
     const nombresDias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
     this.dias = [];
 
-    for (let i = 0; i < TOTAL_DIAS; i++) {
-      const fecha = new Date(hoy);
-      fecha.setDate(hoy.getDate() + i);
+    // Generar 7 días hacia atrás
+    for (let i = -TOTAL_DIAS_ATRAS; i < 0; i++) {
+      const fecha = new Date(today);
+      fecha.setDate(today.getDate() + i);
+
+      this.dias.push({
+        nombre: nombresDias[fecha.getDay()],
+        fecha: this.getLocalISODate(fecha),
+        hora_inicio: '07:00',
+        hora_fin: '22:00',
+        duracion: 60
+      });
+    }
+
+    // Generar 30 días hacia adelante (incluyendo hoy)
+    for (let i = 0; i < TOTAL_DIAS_ADELANTE; i++) {
+      const fecha = new Date(today);
+      fecha.setDate(today.getDate() + i);
 
       this.dias.push({
         nombre: nombresDias[fecha.getDay()],
@@ -250,7 +266,15 @@ export class DisponibilidadEntrenadorPage implements OnInit {
     }
 
     if (this.dias.length > 0) {
-      this.diaSeleccionado = this.dias[0].fecha;
+      this.diaSeleccionado = this.getLocalISODate(today);
+      
+      // Hacer scroll al día seleccionado (hoy)
+      setTimeout(() => {
+        const activeBtn = document.querySelector('ion-segment-button.segment-button-checked');
+        if (activeBtn) {
+          activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }, 500);
     }
   }
 

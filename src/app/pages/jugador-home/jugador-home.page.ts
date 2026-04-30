@@ -20,7 +20,7 @@ import {
   calendarNumberOutline, trophyOutline, barChartOutline,
   sparklesOutline, videocamOutline, chevronDownOutline, locationOutline,
   notificationsOutline, closeOutline, ribbonOutline, lockClosedOutline,
-  chevronForwardOutline
+  chevronForwardOutline, arrowForward, timeOutline
 } from 'ionicons/icons';
 import { ActionSheetController, LoadingController, AlertController } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
@@ -90,26 +90,29 @@ export class JugadorHomePage implements OnInit {
     private http: HttpClient
   ) {
     addIcons({
-      settingsOutline,
-      homeOutline,
-      calendarOutline,
-      logOutOutline,
-      albumsOutline,
-      barbellOutline,
-      personOutline,
-      close,
-      calendarNumberOutline,
-      trophyOutline,
-      barChartOutline,
-      sparklesOutline,
-      videocamOutline,
-      chevronDownOutline,
-      locationOutline,
-      notificationsOutline,
-      closeOutline,
-      ribbonOutline,
-      lockClosedOutline,
-      chevronForwardOutline
+      'settings-outline': settingsOutline,
+      'home-outline': homeOutline,
+      'calendar-outline': calendarOutline,
+      'log-out-outline': logOutOutline,
+      'albums-outline': albumsOutline,
+      'barbell-outline': barbellOutline,
+      'person-outline': personOutline,
+      'close': close,
+      'calendar-number-outline': calendarNumberOutline,
+      'trophy-outline': trophyOutline,
+      'bar-chart-outline': barChartOutline,
+      'sparkles-outline': sparklesOutline,
+      'sparkles': sparklesOutline, // Fallback
+      'videocam-outline': videocamOutline,
+      'chevron-down-outline': chevronDownOutline,
+      'location-outline': locationOutline,
+      'notifications-outline': notificationsOutline,
+      'close-outline': closeOutline,
+      'ribbon-outline': ribbonOutline,
+      'lock-closed-outline': lockClosedOutline,
+      'chevron-forward-outline': chevronForwardOutline,
+      'arrow-forward': arrowForward,
+      'time-outline': timeOutline
     });
   }
 
@@ -298,8 +301,8 @@ export class JugadorHomePage implements OnInit {
     this.router.navigate(['/jugador-reservas'], { queryParams: { view: 'mis-entrenamientos' } });
   }
 
-  goToPartidos() {
-    this.router.navigate(['/jugador-partidos']);
+  goToCampeonatos() {
+    this.router.navigate(['/jugador-campeonatos']);
   }
 
   logout() {

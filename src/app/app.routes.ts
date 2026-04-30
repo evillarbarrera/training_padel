@@ -101,5 +101,9 @@ export const routes: Routes = [
   {
     path: 'jugador-partidos',
     loadComponent: () => import('./pages/jugador-partidos/jugador-partidos.page').then(m => m.JugadorPartidosPage)
+  },
+  {
+    path: 'jugador-campeonatos',
+    loadComponent: () => import('./pages/jugador-campeonatos/jugador-campeonatos.page').then(m => m.JugadorCampeonatosPage)
   }
 ];

@@ -99,7 +99,6 @@ export class EntrenadorAgendaPage {
 
     this.entrenamientosFiltrados = this.entrenamientos.filter(e => {
       if (e.fecha) return e.fecha === fechaStr;
-      if (e.tipo === 'grupal_template') return this.mapDia(e.dia_semana) === diaNombre;
       return false;
     }).sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio));
   }

@@ -4,293 +4,307 @@ ion-content {
 
 // 0. FLOATING BACK BUTTON
 .fab-back-btn {
-    position: fixed; bottom: 30px; right: 20px; z-index: 1000;
-    width: 60px; height: 60px; background: #000; border-radius: 50%;
+    position: fixed; top: 50px; left: 20px; z-index: 1000;
+    width: 45px; height: 45px; 
+    background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    color: #ccff00; font-size: 28px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    color: #fff; font-size: 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     transition: transform 0.2s;
     &:active { transform: scale(0.9); }
 }
 
-// 1. STATS HERO WITH IMAGE
+// 1. STATS HERO
 .stats-hero {
-    position: relative;
-    padding: 0;
-    background: #000;
-    min-height: 380px;
-    display: flex; align-items: flex-end;
+    position: relative; height: 380px; background: #000;
+    display: flex; align-items: flex-end; overflow: hidden;
 
     .hero-bg-image {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        position: absolute; inset: 0;
+        img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
     }
     .hero-overlay {
-        position: absolute; bottom: 0; left: 0; width: 100%; height: 70%;
-        background: linear-gradient(0deg, rgba(15,23,42,1) 0%, transparent 100%);
+        position: absolute; inset: 0;
+        background: linear-gradient(to bottom, transparent 0%, rgba(15,23,42,1) 100%);
     }
 
     .hero-content {
         position: relative; z-index: 2; width: 100%; padding: 30px 20px;
         
-        .page-title { color: #fff; font-size: 32px; font-weight: 950; margin: 0 0 25px; letter-spacing: -1.5px; }
+        .page-title { color: #fff; font-size: 32px; font-weight: 950; margin: 0 0 25px; letter-spacing: -1.5px; text-transform: uppercase; }
 
         .stats-grid {
             display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 25px;
             .stat-card {
-                background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 20px 10px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.1);
-                .s-val { font-size: 24px; font-weight: 950; color: #fff; letter-spacing: -1px; }
-                .s-lbl { font-size: 10px; font-weight: 900; color: #94a3b8; margin-top: 5px; text-transform: uppercase; }
-                &.highlight { .s-val { color: #ccff00; } }
+                background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 18px 10px; border-radius: 18px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.1);
+                .s-val { font-size: 22px; font-weight: 950; color: #fff; letter-spacing: -1px; }
+                .s-lbl { font-size: 9px; font-weight: 900; color: #94a3b8; margin-top: 4px; text-transform: uppercase; }
+                &.highlight { background: #CCFF00; border: none; .s-val, .s-lbl { color: #000; } }
             }
         }
 
         .level-ai-card {
-            background: rgba(204, 255, 0, 0.1); border: 1px solid rgba(204, 255, 0, 0.3);
-            border-radius: 20px; padding: 20px; display: flex; align-items: center; justify-content: space-between;
-            color: #fff;
-
+            background: rgba(255, 255, 255, 0.95); border-radius: 22px; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             .lc-left {
-                display: flex; align-items: center; gap: 15px;
-                ion-icon { font-size: 24px; color: #ccff00; }
-                h3 { margin: 0; font-size: 16px; font-weight: 900; }
-                p { margin: 2px 0 0; font-size: 12px; color: #94a3b8; font-weight: 600; }
+                display: flex; align-items: center; gap: 12px;
+                ion-icon { font-size: 24px; color: #2563eb; }
+                h3 { margin: 0; font-size: 14px; font-weight: 850; color: #000; }
+                p { margin: 0; font-size: 11px; color: #64748b; font-weight: 600; }
             }
-            .lc-right {
-               .l-val { background: #ccff00; color: #000; padding: 6px 14px; border-radius: 12px; font-size: 18px; font-weight: 950; }
-            }
+            .lc-right { .l-val { background: #000; color: #CCFF00; padding: 6px 14px; border-radius: 12px; font-size: 16px; font-weight: 950; } }
         }
     }
 }
 
-// 2. MATCHES LIST
+// 2. CONTAINER
 .matches-container {
-    padding: 30px 20px 100px;
-
-    .ios-tabs-selector {
-        display: flex; background: #fff; border-radius: 12px; padding: 5px; margin-bottom: 30px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;
-        .tab-item {
-            flex: 1; text-align: center; padding: 12px; font-size: 11px; font-weight: 900; color: #64748b;
-            text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; transition: all 0.2s;
-            &.active { background: #000; color: #ccff00; }
-        }
-    }
-
-    .history-header {
-        margin-bottom: 25px;
-        .filters-row {
-            display: flex; gap: 8px; margin-top: 15px; overflow-x: auto; padding-bottom: 5px;
-            
-            select, input {
-                background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; 
-                padding: 10px 12px; font-size: 12px; font-weight: 800; color: #1e293b;
-                outline: none; box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-                min-width: 100px;
-            }
-            input[type="date"] { flex: 1; }
-        }
-    }
-
-    .section-block {
-        margin-bottom: 40px;
-        .section-title { font-size: 18px; font-weight: 950; color: #0f172a; margin: 0; letter-spacing: 0.5px; }
-    }
-
-    .match-card {
-        background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 20px;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;
-
-        &.upcoming { border-left: 6px solid #ccff00; }
-        &.played { border-left: 6px solid #e2e8f0; }
-
-        .m-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
-            .m-date { font-size: 11px; font-weight: 900; color: #64748b; }
-            ion-badge { border-radius: 8px; font-size: 10px; padding: 5px 10px; }
-        }
-
-        .m-body {
-            .m-club { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; ion-icon { color: #6366f1; } span { font-weight: 800; color: #0f172a; } }
-            h4 { margin: 0 0 5px; font-size: 18px; font-weight: 900; }
-            .m-cat { margin: 0; font-size: 13px; color: #64748b; font-weight: 700; }
-
-            .m-players {
-                display: flex; align-items: center; gap: 8px; margin-top: 15px;
-                .p-avatar { width: 36px; height: 36px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: #000; border: 1px solid #e2e8f0; }
-                .vs { font-size: 12px; font-weight: 950; color: #94a3b8; margin: 0 5px; }
-            }
-
-            .m-result-box {
-                margin-top: 15px; padding: 12px; background: #f8fafc; border-radius: 12px; text-align: center;
-                .score { font-size: 20px; font-weight: 950; letter-spacing: 2px; color: #000; }
-            }
-        }
-
-        .m-footer {
-            margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0;
-            .winner-tag { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 900; color: #059669; }
-        }
-    }
+    padding: 30px 16px 120px; background: #fff; border-radius: 40px 40px 0 0; margin-top: -40px; position: relative; z-index: 3;
 }
 
-// 3. IOS MODAL REDESIGN
-.ios-result-modal {
-    --height: 100%; --border-radius: 0;
-    --background: #f4f7fa;
+/* --- REFINED TAB SELECTOR --- */
+.ios-tabs-selector-premium {
+  display: flex; background: #f1f5f9; border-radius: 16px; padding: 4px; margin-bottom: 30px; position: relative;
+  .tab-item {
+    flex: 1; position: relative; padding: 12px 0; text-align: center; font-size: 12px; font-weight: 900; color: #64748b; border-radius: 12px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); letter-spacing: 0.5px;
+    &.active { background: #fff; color: #2563eb; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1); }
+    .tab-indicator { position: absolute; top: -6px; right: 15%; background: #2563eb; color: #fff; font-size: 9px; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
+  }
+}
 
-    .ios-modal-container {
-        height: 100%; background: #f4f7fa; display: flex; flex-direction: column;
+/* --- PREMIUM MATCH CARDS (LIST) --- */
+.match-card-premium {
+  background: #fff; border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; transition: all 0.3s;
+  &:active { transform: scale(0.97); background: #f8fafc; }
+
+  .m-card-top {
+    display: flex; gap: 15px; margin-bottom: 20px;
+    .m-date-badge {
+      width: 50px; height: 54px; background: #eff6ff; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;
+      .m-day { font-size: 18px; font-weight: 950; color: #2563eb; line-height: 1; }
+      .m-month { font-size: 9px; font-weight: 900; color: #2563eb; margin-top: 2px; }
+    }
+    .m-main-info {
+      flex: 1;
+      .m-club-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; .m-club-name { font-size: 16px; font-weight: 850; color: #000; } .m-arrow { color: #cbd5e1; font-size: 16px; } }
+      .m-time-meta { display: flex; align-items: center; gap: 5px; color: #64748b; font-size: 12px; font-weight: 700; ion-icon { font-size: 14px; } }
+    }
+  }
+
+  .m-card-bottom {
+    display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid #f8fafc;
+    .m-player-stack {
+      display: flex; align-items: center;
+      .p-avatar-circle, .p-avatar-placeholder {
+        width: 36px; height: 36px; border-radius: 50%; border: 2px solid #fff; margin-right: -10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; background: #f1f5f9;
+        img { width: 100%; height: 100%; object-fit: cover; }
+        ion-icon { font-size: 18px; color: #94a3b8; }
+      }
+      .p-avatar-placeholder { display: flex; align-items: center; justify-content: center; background: #fff; border: 2px dashed #cbd5e1; }
+    }
+    .m-status-pill { background: #f1f5f9; padding: 6px 12px; border-radius: 10px; span { font-size: 9px; font-weight: 950; color: #64748b; } &.complete { background: #dcfce7; span { color: #15803d; } } }
+  }
+
+  &.played {
+    .m-card-played-content {
+      display: flex; justify-content: space-between; align-items: center;
+      .m-played-left { .m-played-date { font-size: 11px; font-weight: 800; color: #94a3b8; } .m-played-club { margin: 2px 0; font-size: 15px; font-weight: 850; color: #000; } .m-played-cat { font-size: 11px; font-weight: 700; color: #2563eb; background: #eff6ff; padding: 2px 6px; border-radius: 6px; } }
+      .m-played-right {
+        .result-badge-premium {
+          display: flex; align-items: center; background: #fee2e2; padding: 6px 12px; border-radius: 12px; gap: 8px; .r-text, .r-score { font-size: 14px; font-weight: 950; color: #dc2626; } &.win { background: #dcfce7; .r-text, .r-score { color: #15803d; } }
+        }
+        .btn-load-result { --border-radius: 10px; font-size: 10px; font-weight: 900; height: 34px; --background: #000; }
+      }
+    }
+    .m-played-footer { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #f1f5f9; display: flex; justify-content: space-between; align-items: center; .winner-info { display: flex; align-items: center; gap: 5px; color: #64748b; font-size: 11px; font-weight: 700; ion-icon { color: #fbbf24; } } .more-dots { color: #cbd5e1; } }
+  }
+}
+
+/* --- EXPERT UX V3: MATCH DETAIL & RESULT MODALS --- */
+ion-modal.ios-match-detail-premium {
+  --background: #f8fafc;
+  --border-radius: 0;
+
+  .premium-modal-v3 {
+    height: 100%; display: flex; flex-direction: column; background: #f8fafc;
+
+    .v3-header {
+      height: 140px; 
+      background: linear-gradient(to bottom, #0f172a, #000);
+      padding: 50px 20px 0;
+      position: relative;
+
+      .v3-header-top {
+        display: flex; justify-content: space-between; align-items: center;
         
-        .ios-header-bg {
-            height: 160px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            position: relative; padding: 20px;
-            .close-float-btn { --color: #fff; font-size: 24px; position: absolute; top: 10px; left: 5px; }
+        .v3-back-btn { --color: #fff; font-size: 24px; margin: 0; }
+        
+        .v3-inscription-pill {
+          background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);
+          padding: 8px 16px; border-radius: 20px; display: flex; align-items: center; gap: 6px;
+          color: #fff; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;
+          ion-icon { font-size: 14px; color: #ccff00; }
         }
-
-        .ios-scroll-content {
-            margin-top: -60px; flex: 1; overflow-y: auto; padding: 0 15px 40px;
-        }
-
-        .ios-white-card {
-            background: #fff; border-radius: 16px; padding: 20px; margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
-        }
-
-        .club-info-card {
-            background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 20px;
-            .club-logo-row {
-                display: flex; align-items: center; gap: 15px;
-                .club-logo { width: 50px; height: 50px; border-radius: 10px; object-fit: cover; }
-                .club-text {
-                    h3 { margin: 0; font-size: 15px; font-weight: 800; color: #000; }
-                    p { margin: 2px 0; font-size: 11px; color: #64748b; }
-                    .more-info { color: #2563eb; font-size: 11px; font-weight: 700; }
-                }
-            }
-        }
-
-        .summary-card {
-            .sc-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f1f5f9;
-                .padel-icon { background: #f8fafc; padding: 8px; border-radius: 50%; font-size: 20px; color: #000; }
-                h2 { margin: 0; font-size: 16px; font-weight: 950; letter-spacing: 0.5px; }
-                p { margin: 2px 0 0; font-size: 11px; font-weight: 700; color: #64748b; text-transform: capitalize; }
-            }
-            .sc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
-                .sc-item { display: flex; flex-direction: column; align-items: center; gap: 5px;
-                    .l { font-size: 11px; font-weight: 700; color: #64748b; }
-                    .v { font-size: 14px; font-weight: 900; color: #000; }
-                }
-            }
-        }
-
-        .status-row {
-            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 800;
-            .st-left { display: flex; align-items: center; gap: 6px; color: #334155; }
-            .st-right { display: flex; align-items: center; gap: 6px; color: #0f172a; }
-        }
-
-        .competitive-card {
-            padding: 15px 20px; display: flex; align-items: center; justify-content: space-between;
-            h3 { margin: 0; font-size: 15px; font-weight: 800; }
-            p { margin: 2px 0 0; font-size: 11px; color: #64748b; font-weight: 600; }
-            ion-icon { font-size: 20px; color: #94a3b8; }
-        }
-
-        .ios-score-card {
-            background: #e0f2fe; border-radius: 20px; padding: 0; margin-bottom: 20px; overflow: hidden;
-            .table-headers {
-                display: flex; justify-content: flex-end; padding: 15px 20px 5px; gap: 20px;
-                .h-set { font-size: 11px; font-weight: 800; color: #0369a1; }
-            }
-            .score-row {
-                display: flex; align-items: center; padding: 12px 20px; border-bottom: 1px solid rgba(186, 230, 253, 0.5);
-                .team-label { flex: 1; font-weight: 900; font-size: 15px; color: #0c4a6e; display: flex; align-items: center; gap: 5px;
-                    ion-icon { color: #fbbf24; }
-                }
-                .set-cell { width: 45px; display: flex; justify-content: flex-end;
-                    input { width: 35px; height: 35px; border-radius: 8px; border: none; background: #fff; text-align: center; font-weight: 950; font-size: 18px; color: #000; }
-                }
-                &.winner { background: rgba(255,255,255,0.4); }
-            }
-            .score-footer {
-                padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: #bae6fd;
-                span { font-size: 13px; font-weight: 800; color: #0369a1; }
-                ion-icon { font-size: 18px; color: #0369a1; }
-            }
-        }
-
-        .players-card {
-            h3 { margin: 0 0 20px; font-size: 15px; font-weight: 900; }
-            .pc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; h3 { margin: 0; } .edit-btn { color: #2563eb; font-weight: 800; font-size: 12px; } }
-
-            .players-grid {
-                display: flex; align-items: center; justify-content: space-between; position: relative;
-                .vs-line { position: absolute; left: 50%; top: 20px; bottom: 20px; width: 1px; background: #f1f5f9; }
-                
-                &.full { gap: 15px; .vs-divider { width: 1px; background: #f1f5f9; height: 120px; } }
-
-                .team-column {
-                    width: 48%; display: flex; flex-direction: column; gap: 12px; position: relative; padding-bottom: 25px;
-                    .team-label-fixed { position: absolute; bottom: 0; width: 100%; text-align: center; font-size: 18px; font-weight: 950; color: #1e293b; color: #cbd5e1; }
-                }
-
-                .p-card {
-                    display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #f1f5f9; border-radius: 12px; padding: 10px;
-                    
-                    &.invite {
-                        background: #f8fafc; border-style: dashed; border-color: #cbd5e1; justify-content: center; color: #2563eb; font-weight: 800; font-size: 12px;
-                        .add-icon { width: 30px; height: 30px; border: 1px solid #2563eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-                        &.icon-only { height: 62px; }
-                    }
-
-                    .p-info {
-                        display: flex; flex-direction: column; 
-                        .p-name { font-size: 12px; font-weight: 800; color: #1e293b; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-                        .p-status { font-size: 10px; font-weight: 700; color: #94a3b8; display: flex; align-items: center; gap: 3px; }
-                    }
-                }
-
-                .p-item {
-                    display: flex; flex-direction: column; align-items: center; gap: 10px; width: 25%;
-                    .p-avatar-wrap {
-                        position: relative; width: 55px; height: 55px;
-                        .p-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-                        .p-lvl {
-                            position: absolute; bottom: -5px; right: -5px; padding: 3px 8px; border-radius: 10px; font-size: 10px; font-weight: 950; color: #000; border: 2px solid #fff;
-                            &.yellow { background: #fde047; }
-                            &.green { background: #86efac; }
-                        }
-                    }
-                    .p-name { font-size: 12px; font-weight: 800; color: #1e293b; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-                }
-            }
-        }
-
-        .inscription-banner {
-            background: #eff6ff; border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
-            ion-icon { font-size: 20px; color: #3b82f6; }
-            span { font-size: 13px; font-weight: 800; color: #1e40af; }
-        }
-
-        .header-actions {
-            position: absolute; top: 15px; right: 20px; display: flex; gap: 15px;
-            ion-icon { color: #fff; font-size: 22px; }
-        }
-
-        .bottom-share-area {
-            text-align: center; margin-top: 20px;
-            p { font-size: 13px; color: #0f172a; font-weight: 800; margin-bottom: 20px; }
-            .ios-share-btn { --background: #2563eb; --border-radius: 30px; font-weight: 950; width: 100%; }
-        }
+        .v3-actions { ion-icon { font-size: 24px; color: #fff; } }
+      }
     }
+
+    .v3-scroll-content {
+      flex: 1; overflow-y: auto; padding: 0 16px 120px; margin-top: -40px; position: relative; z-index: 10;
+    }
+
+    // MATCH HERO CARD
+    .v3-match-hero-card {
+      background: #fff; border-radius: 28px; padding: 25px; margin-bottom: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
+
+      .vh-club-info {
+        display: flex; align-items: center; gap: 15px; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #f1f5f9;
+        .vh-logo { width: 50px; height: 50px; border-radius: 14px; border: 1px solid #f1f5f9; }
+        .vh-text {
+          h3 { margin: 0; font-size: 18px; font-weight: 950; color: #000; letter-spacing: -0.5px; }
+          p { margin: 2px 0 0; font-size: 12px; color: #2563eb; font-weight: 800; }
+        }
+      }
+
+      .vh-stats-row {
+        display: flex; justify-content: space-between;
+        .vh-stat {
+          display: flex; align-items: center; gap: 8px;
+          ion-icon { font-size: 18px; color: #94a3b8; }
+          .vh-val-grp {
+            display: flex; flex-direction: column;
+            .v { font-size: 14px; font-weight: 950; color: #000; }
+            .l { font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
+          }
+        }
+      }
+    }
+
+    // SCORING AREA (3 SETS)
+    .v3-scoring-container {
+       margin-top: 10px;
+       .v3-score-header { display: flex; justify-content: flex-end; gap: 15px; padding-right: 15px; margin-bottom: 10px; span { font-size: 10px; font-weight: 950; color: #cbd5e1; } }
+       .v3-score-row {
+          display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 15px; border-radius: 16px; margin-bottom: 10px; border: 1px solid transparent; transition: all 0.3s;
+          &.winner { background: #f0fdf4; border-color: #bbf7d0; .t-name { color: #15803d; } ion-icon { color: #fbbf24; } }
+          .v3-team-info { display: flex; align-items: center; gap: 8px; .t-name { font-size: 12px; font-weight: 900; color: #64748b; } }
+          .v3-set-inputs {
+             display: flex; gap: 10px;
+             input { width: 40px; height: 40px; border: 1px solid #e2e8f0; border-radius: 10px; text-align: center; font-size: 16px; font-weight: 950; background: #fff; outline: none; &:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.1); } }
+          }
+       }
+    }
+
+    // FRIENDLY BANNER
+    .v3-friendly-banner {
+      background: #0f172a; border-radius: 20px; padding: 18px 20px; display: flex; align-items: center; gap: 15px; margin-bottom: 20px;
+      &.win { background: #dcfce7; .fb-icon { background: #fff; ion-icon { color: #15803d; } } .fb-text { strong { color: #15803d; } p { color: #166534; } } }
+      .fb-icon { width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; ion-icon { color: #ccff00; font-size: 20px; } }
+      .fb-text { flex: 1; strong { color: #fff; font-size: 14px; font-weight: 950; display: block; } p { color: rgba(255,255,255,0.6); font-size: 11px; margin: 2px 0 0; font-weight: 600; } }
+    }
+
+    // TEAMS SECTION
+    .v3-teams-section {
+      margin-bottom: 20px;
+      .v3-section-header {
+        display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
+        h3 { font-size: 13px; font-weight: 950; color: #94a3b8; letter-spacing: 1px; }
+        .v3-edit-btn { font-size: 12px; font-weight: 900; color: #2563eb; }
+      }
+
+      .v3-teams-container {
+        display: flex; flex-direction: column; gap: 15px; position: relative;
+
+        .v3-vs-badge {
+          position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+          background: #f8fafc; border: 1px solid #e2e8f0; width: 34px; height: 34px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 10px; font-weight: 950; color: #94a3b8; z-index: 5;
+        }
+
+        .v3-team-box {
+          background: #fff; border-radius: 24px; padding: 20px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+          
+          .v3-team-label { font-size: 9px; font-weight: 950; color: #cbd5e1; margin-bottom: 15px; text-align: center; letter-spacing: 2px; }
+
+          .v3-player-row {
+            display: flex; justify-content: space-around; align-items: center; gap: 20px;
+            
+            .v3-p-card {
+              flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px;
+              
+              .v3-avatar-wrap {
+                position: relative; width: 60px; height: 60px;
+                .v3-img { width: 100%; height: 100%; border-radius: 50% !important; object-fit: cover; border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+                .v3-badge { 
+                  position: absolute; bottom: -2px; right: -2px; background: #000; color: #fff; font-size: 8px; font-weight: 950; padding: 3px 6px; border-radius: 8px;
+                  &.you { background: #CCFF00; color: #000; }
+                }
+              }
+              .v3-name { font-size: 13px; font-weight: 850; color: #000; text-align: center; }
+
+              &.invite {
+                .v3-invite-circle {
+                  width: 60px; height: 60px; border-radius: 50%; border: 2px dashed #cbd5e1; background: #f8fafc;
+                  display: flex; align-items: center; justify-content: center; font-size: 20px; color: #2563eb;
+                }
+                .v3-name { color: #2563eb; }
+                &:active { transform: scale(0.95); }
+              }
+            }
+          }
+
+          &.team-a { border-left: 6px solid #2563eb; }
+          &.team-b { border-left: 6px solid #f43f5e; }
+        }
+      }
+    }
+
+    // FOOTER ACTIONS
+    .v3-footer-actions {
+      margin-top: 20px; text-align: center;
+      .v3-share-btn, .v3-save-btn { 
+        --background: #25d366; --color: #fff; --border-radius: 16px; --padding-top: 18px; --padding-bottom: 18px; font-weight: 950; font-size: 15px; width: 100%; margin: 0 0 15px;
+        box-shadow: 0 8px 20px rgba(37, 211, 102, 0.2);
+      }
+      .v3-save-btn { --background: #000; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+      p { font-size: 12px; font-weight: 700; color: #94a3b8; line-height: 1.4; margin: 0; }
+    }
+  }
 }
 
-.nike-btn-black {
-    --background: #000; --color: #fff; --border-radius: 16px; --padding-top: 20px; --padding-bottom: 20px; font-weight: 900; letter-spacing: 0.5px;
+/* --- SEARCH PLAYER MODAL PREMIUM --- */
+ion-modal.search-player-modal-premium {
+  --background: #fff; --border-radius: 35px 35px 0 0; --box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+  &::part(content) { background: #fff; }
+}
+.search-modal-premium-container {
+  display: flex; flex-direction: column; height: 100%; background: #fff;
+  .s-header-premium {
+    padding: 25px 20px 15px; border-bottom: 1px solid #f2f2f7;
+    .s-input-wrapper {
+      position: relative; background: #f2f2f7; border-radius: 18px; display: flex; align-items: center; padding: 12px 15px;
+      &:focus-within { background: #fff; box-shadow: 0 0 0 2px #2563eb, 0 8px 20px rgba(37, 99, 235, 0.1); }
+      .s-search-icon { font-size: 20px; color: #8e8e93; margin-right: 12px; }
+      input { border: none; background: transparent; flex: 1; font-size: 15px; font-weight: 600; outline: none; }
+      .s-close-circle { width: 24px; height: 24px; background: #d1d1d6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; margin-left: 8px; }
+    }
+  }
+  .s-results-premium-content {
+    --background: #fff; padding: 10px 5px;
+    .p-result-card {
+      display: flex; align-items: center; gap: 15px; padding: 15px 20px; border-radius: 20px; margin: 5px 10px;
+      .p-avatar-main { position: relative; width: 54px; height: 54px; .p-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #fff; } .p-lvl-badge { position: absolute; bottom: -2px; right: -2px; font-size: 8px; font-weight: 950; color: #fff; padding: 3px 6px; border-radius: 8px; &.cat-gold { background: linear-gradient(135deg, #fbbf24, #d97706); } &.cat-silver { background: linear-gradient(135deg, #94a3b8, #475569); } &.cat-bronze { background: linear-gradient(135deg, #d97706, #92400e); } } }
+      .p-details { flex: 1; .p-name-txt { font-size: 15px; font-weight: 850; color: #000; } .p-meta { display: flex; align-items: center; gap: 6px; .p-tag { font-size: 11px; font-weight: 700; color: #8e8e93; display: flex; align-items: center; gap: 3px; } .p-tag-dot { color: #d1d1d6; } } }
+      .p-action-btn { width: 32px; height: 32px; background: #2563eb; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; }
+    }
+    .s-empty-state { padding: 60px 40px; text-align: center; .empty-icon-wrap { width: 80px; height: 80px; background: #f2f2f7; border-radius: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; ion-icon { font-size: 40px; color: #cbd5e1; } } h3 { font-size: 18px; font-weight: 950; margin: 0 0 10px; } p { font-size: 14px; font-weight: 600; color: #8e8e93; line-height: 1.4; } }
+  }
 }
 
-.animate-up { animation: up 0.7s cubic-bezier(0.23, 1, 0.32, 1) both; }
-.animate-fade { animation: fade 0.4s ease both; }
-@keyframes up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+/* Animations */
+@keyframes up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.animate-up { animation: up 0.5s ease both; }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.animate-fade { animation: fade 0.3s ease both; }

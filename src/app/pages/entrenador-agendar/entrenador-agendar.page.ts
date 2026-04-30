@@ -141,7 +141,7 @@ export class EntrenadorAgendarPage implements OnInit {
     }
 
     constructor(
-        private router: Router,
+        public router: Router,
         private entrenamientoService: EntrenamientoService,
         private alertCtrl: AlertController,
         private loadingCtrl: LoadingController,
@@ -162,12 +162,22 @@ export class EntrenadorAgendarPage implements OnInit {
     generarDias() {
         const today = new Date();
         this.diasAgenda = [];
-        for (let i = 0; i < 14; i++) {
+        // Permitimos al entrenador ver 60 días hacia atrás (2 meses) y 14 hacia adelante
+        for (let i = -60; i < 14; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() + i);
             this.diasAgenda.push(d);
         }
-        this.diaSeleccionado = this.formatDate(this.diasAgenda[0]);
+        // Por defecto, seleccionamos el día de hoy
+        this.diaSeleccionado = this.formatDate(today);
+        
+        // Pequeño delay para asegurar que el DOM cargó y hacer scroll al día de hoy
+        setTimeout(() => {
+            const activeBtn = document.querySelector('.nike-segment-days ion-segment-button.segment-button-checked');
+            if (activeBtn) {
+                activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+        }, 500);
     }
 
     loadBasics() {

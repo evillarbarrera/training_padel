@@ -1,6 +1,6 @@
 {
-  "/api": {
-    "target": "http://c2701752.ferozo.com",
+  "/prd": {
+    "target": "https://api.padelmanager.cl",
     "secure": false,
     "changeOrigin": true
   }

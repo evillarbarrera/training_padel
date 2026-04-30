@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
-  IonContent, IonHeader, IonToolbar, IonTitle, IonIcon, 
+  IonContent, IonIcon, 
   IonButton, IonRefresher, IonRefresherContent, IonModal,
-  AlertController, ToastController, LoadingController, IonBadge
+  AlertController, ToastController, LoadingController
 } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
 import { Router } from '@angular/router';
@@ -14,8 +14,10 @@ import {
   checkmarkCircleOutline, addOutline, barChartOutline, 
   chevronForward, sparklesOutline, peopleOutline,
   lockClosedOutline, checkmarkCircle, ellipsisVertical,
-  shareOutline, pencilOutline
+  shareOutline, pencilOutline, ribbon, calendarClearOutline,
+  ellipsisHorizontal, add, chevronDown, personAddOutline
 } from 'ionicons/icons';
+import { NavController } from '@ionic/angular';
 
 @Component({
   selector: 'app-jugador-partidos',
@@ -24,9 +26,9 @@ import {
   standalone: true,
   imports: [
     CommonModule, FormsModule, 
-    IonContent, IonHeader, IonToolbar, IonTitle,
-    IonIcon, IonButton, IonRefresher, IonRefresherContent,
-    IonModal, IonBadge
+    IonContent, IonIcon, IonButton, 
+    IonRefresher, IonRefresherContent,
+    IonModal
   ]
 })
 export class JugadorPartidosPage implements OnInit {
@@ -51,35 +53,41 @@ export class JugadorPartidosPage implements OnInit {
   filterFecha = '';
   clubesList: any[] = [];
 
-  // Modal Result
+  // Result Modal Data
   showResultModal = false;
   showDetailModal = false;
   selectedMatch: any = null;
   categoria = '';
-  
-  // Scoring Sets
   set1A: number | null = null;
   set1B: number | null = null;
   set2A: number | null = null;
   set2B: number | null = null;
   set3A: number | null = null;
   set3B: number | null = null;
+  idGanador: number | null = null;
   
-  idGanador: number | null = null; // 1: Dupla 1, 2: Dupla 2
+  // Player Search Modal
+  showSearchModal = false;
+  playerSearchTerm = '';
+  playerResults: any[] = [];
+  activeSlot: number = 2; // 2, 3 or 4
+  fotoPerfil = "";
 
   constructor(
-    private mysql: MysqlService,
+    private mysqlService: MysqlService,
     private router: Router,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
-    private loadingCtrl: LoadingController
+    private loadingCtrl: LoadingController,
+    private navCtrl: NavController
   ) {
     addIcons({ 
       arrowBack, trophyOutline, calendarOutline, locationOutline, 
-      checkmarkCircleOutline, addOutline, barChartOutline,
+      checkmarkCircleOutline, addOutline, barChartOutline, 
       chevronForward, sparklesOutline, peopleOutline,
       lockClosedOutline, checkmarkCircle, ellipsisVertical,
-      shareOutline, pencilOutline
+      shareOutline, pencilOutline, ribbon, calendarClearOutline,
+      ellipsisHorizontal, add, chevronDown, personAddOutline
     });
   }
 
@@ -89,7 +97,7 @@ export class JugadorPartidosPage implements OnInit {
 
   loadPartidos(event?: any) {
     this.loading = !event;
-    this.mysql.getMisPartidos().subscribe({
+    this.mysqlService.getMisPartidos().subscribe({
       next: (res: any[]) => {
         this.partidos = res;
         this.updateLists();
@@ -111,6 +119,12 @@ export class JugadorPartidosPage implements OnInit {
         console.error('Error loading matches:', err);
         this.loading = false;
         if (event) event.target.complete();
+      }
+    });
+
+    this.mysqlService.getPerfil(this.userId).subscribe(res => {
+      if (res.success && res.user.foto_perfil) {
+        this.fotoPerfil = res.user.foto_perfil;
       }
     });
   }
@@ -173,6 +187,54 @@ export class JugadorPartidosPage implements OnInit {
     this.showDetailModal = true;
   }
 
+  async goToReservar() {
+    this.navCtrl.navigateForward('/clubes-reservar');
+  }
+
+  isMatchComplete(p: any): boolean {
+    return !!(p.jugador1_id && p.jugador2_id && p.jugador3_id && p.jugador4_id);
+  }
+
+  getMissingPlayersCount(p: any): number {
+    let count = 0;
+    if (!p.jugador2_id) count++;
+    if (!p.jugador3_id) count++;
+    if (!p.jugador4_id) count++;
+    return count;
+  }
+
+  isUserWinner(p: any): boolean {
+    if (!p.resultado_registrado || !p.id_ganador) return false;
+    // Asumimos que el usuario actual es siempre jugador1 o parte de la dupla 1 si id_ganador es 1
+    // Ajustar según la lógica real de tu API si es necesario
+    return p.id_ganador === 1;
+  }
+
+  async shareMatch() {
+    if (!this.selectedMatch) return;
+    const text = `¡Mira mi próximo partido de Pádel! 🎾\n📅 ${this.selectedMatch.fecha}\n🕒 ${this.selectedMatch.hora_inicio}\n📍 En Training Padel Academy`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Partido de Pádel',
+          text: text,
+          url: window.location.href
+        });
+      } catch (err) {
+        console.log('Error sharing:', err);
+      }
+    } else {
+      // Fallback
+      const toast = await this.toastCtrl.create({
+        message: 'Copiado al portapapeles',
+        duration: 2000,
+        position: 'top'
+      });
+      toast.present();
+    }
+  }
+
   updateGanadorManual() {
      let winsA = 0;
      let winsB = 0;
@@ -220,7 +282,7 @@ export class JugadorPartidosPage implements OnInit {
         id_ganador: this.idGanador
     };
 
-    this.mysql.saveMatchResult(payload).subscribe({
+    this.mysqlService.saveMatchResult(payload).subscribe({
         next: () => {
             loader.dismiss();
             this.showResultModal = false;
@@ -247,5 +309,52 @@ export class JugadorPartidosPage implements OnInit {
 
   goBack() {
     this.router.navigate(['/jugador-home']);
+  }
+
+  // PLAYER SEARCH LOGIC
+  openSearch(slot: number) {
+    this.activeSlot = slot;
+    this.playerSearchTerm = '';
+    this.playerResults = [];
+    this.showSearchModal = true;
+  }
+
+  onPlayerSearch() {
+    if (this.playerSearchTerm.length < 3) {
+      this.playerResults = [];
+      return;
+    }
+    this.mysqlService.getUsuarios(this.playerSearchTerm).subscribe(res => {
+      this.playerResults = res.filter(u => u.id != this.userId);
+    });
+  }
+
+  async selectPlayer(player: any) {
+    const loader = await this.loadingCtrl.create({ message: 'Agregando jugador...' });
+    await loader.present();
+
+    const payload = { ...this.selectedMatch };
+    payload[`jugador${this.activeSlot}_id`] = player.id;
+    
+    this.mysqlService.updateReserva(payload).subscribe({
+      next: () => {
+        loader.dismiss();
+        this.showSearchModal = false;
+        this.loadPartidos();
+        // Update selected match in detail view
+        const updated = this.partidos.find(p => p.id === this.selectedMatch.id);
+        if (updated) this.selectedMatch = updated;
+        
+        this.toastCtrl.create({
+          message: `${player.nombre} agregado al partido`,
+          duration: 2000,
+          color: 'success'
+        }).then(t => t.present());
+      },
+      error: (err) => {
+        loader.dismiss();
+        console.error('Error updating player:', err);
+      }
+    });
   }
 }

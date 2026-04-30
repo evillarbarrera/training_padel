@@ -31,6 +31,32 @@ ion-content {
         margin-top: 15px; font-size: 13px; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 6px;
         &::before { content: '•'; color: #ccff00; font-size: 20px; }
     }
+
+    .quick-access-matches {
+        margin-top: 20px;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        border-radius: 18px; padding: 15px 20px;
+        display: flex; align-items: center; justify-content: space-between;
+        color: #fff; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
+        border: 1px solid rgba(255,255,255,0.1);
+        cursor: pointer;
+        transition: transform 0.2s;
+        &:active { transform: scale(0.97); }
+
+        .qa-content {
+            display: flex; align-items: center; gap: 15px;
+            .qa-icon {
+                width: 40px; height: 40px; background: rgba(204, 255, 0, 0.2);
+                border-radius: 12px; display: flex; align-items: center; justify-content: center;
+                color: #ccff00; font-size: 20px;
+            }
+            .qa-text {
+                h4 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -0.3px; }
+                p { margin: 2px 0 0; font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 600; }
+            }
+        }
+        .qa-arrow { font-size: 20px; color: rgba(255,255,255,0.4); }
+    }
 }
 
 // 2. DISCOVERY LIST (Elevated Cards)
@@ -191,22 +217,32 @@ ion-content {
 }
 
 // 4. TOURNAMENTS
-.events-elite-list {
-    padding: 20px; background: #f8fafc;
-    .event-card-v2 {
-        background: #fff; border-radius: 20px; padding: 18px; margin-bottom: 20px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.04); border-left: 5px solid #ccff00;
-        .e-header {
-            display: flex; justify-content: space-between; margin-bottom: 12px;
-            .e-cat { font-size: 10px; font-weight: 950; color: #6366f1; text-transform: uppercase; }
-            .e-date { font-size: 12px; font-weight: 800; color: #64748b; }
-        }
-        h4 { margin: 0 0 12px; font-size: 18px; font-weight: 950; color: #0f172a; }
-        .e-footer {
-            display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 12px;
-            span { font-size: 13px; color: #64748b; font-weight: 600; }
+.tournament-card {
+    border-radius: 24px !important;
+    overflow: hidden;
+    .p-card-image.mini {
+        height: 140px;
+        .t-badge {
+            position: absolute; top: 15px; left: 15px; 
+            background: #ccff00; color: #000; padding: 6px 12px;
+            border-radius: 10px; font-size: 10px; font-weight: 950;
+            letter-spacing: 0.5px; z-index: 2; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            &.orange { background: #ff7a00; color: #fff; }
         }
     }
+    .p-card-detail {
+        padding: 15px 20px;
+        h3 { margin: 0; font-size: 18px; font-weight: 950; color: #0f172a; letter-spacing: -0.5px; }
+        .p-loc { margin: 5px 0 12px !important; font-size: 13px !important; }
+        .p-availability-line {
+            padding: 12px 15px;
+            &::before { content: '🏆'; background: transparent; font-size: 16px; }
+        }
+    }
+}
+
+.events-elite-list {
+    padding: 20px; background: #f8fafc;
 }
 
 // ANIMATIONS
