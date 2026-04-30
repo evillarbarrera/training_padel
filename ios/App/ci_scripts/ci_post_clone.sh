@@ -68,8 +68,13 @@ export SHARP_IGNORE_GLOBAL_LIBVIPS=1
 
 npm install --legacy-peer-deps --no-audit --no-fund
 
+echo "--- Verifying critical dependencies ---"
+if [ ! -d "node_modules/@capacitor/browser" ]; then
+    echo "--- @capacitor/browser not found in node_modules. Forcing manual install... ---"
+    npm install @capacitor/browser --legacy-peer-deps
+fi
+
 if ! command -v pod >/dev/null 2>&1; then
-    echo "--- CocoaPods not found. Installing via Homebrew... ---"
     brew install cocoapods
 else
     echo "--- CocoaPods: $(pod --version) ---"
