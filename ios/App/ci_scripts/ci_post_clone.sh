@@ -7,6 +7,7 @@ echo "--- STARTING CI POST-CLONE SCRIPT (HARDENED) ---"
 
 # 1. Mostrar información del entorno para debugging
 echo "--- Environment Info ---"
+export NG_CLI_ANALYTICS=false
 echo "CI_PRIMARY_REPOSITORY_PATH: $CI_PRIMARY_REPOSITORY_PATH"
 echo "Current directory: $(pwd)"
 echo "Listing root files:"
@@ -27,18 +28,18 @@ echo "--- Using PROJECT_ROOT: $PROJECT_ROOT ---"
 cd "$PROJECT_ROOT"
 
 # 3. Intelligent Node.js Detection & Installation
-if ! command -v node &> /dev/null; then
-    echo "--- Node.js not found in PATH. Checking common Homebrew paths... ---"
-    export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
-fi
+export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
 
-  if ! command -v brew &> /dev/null; then
-    echo "--- Homebrew not found. This environment might not support manual installs. ---"
-  else
-    echo "--- Node.js still not found. Installing Node 22 (LTS) via Homebrew... ---"
-    brew install node@22
-    brew link node@22
-  fi
+NODE_VERSION=$(node -v 2>/dev/null | cut -d'v' -f2 | cut -d'.' -f1 || echo "0")
+if [ "$NODE_VERSION" -lt 20 ]; then
+    echo "--- Node.js version ($NODE_VERSION) is too old or not found. Installing Node 22 via Homebrew... ---"
+    if command -v brew &> /dev/null; then
+        brew install node@22
+        brew link --overwrite node@22
+    else
+        echo "!!! WARNING: Homebrew not found. Cannot update Node.js. Build might fail. ---"
+    fi
+fi
 
 echo "--- Using Node.js: $(node -v) ---"
 echo "--- Using npm: $(npm -v) ---"
@@ -47,10 +48,10 @@ echo "--- Using npm: $(npm -v) ---"
 npm cache clean --force
 
 # Use npm install for faster/cleaner install in CI, with legacy-peer-deps to ignore conflicts
+# Eliminamos temporalmente ngrok para evitar fallos en el postinstall
+# Usamos un comando que no falle si la entrada no existe
 echo "--- Running npm install ---"
-# Eliminamos temporalmente ngrok para evitar fallos en el postinstall (servidor caído)
-# No es necesario para el build de iOS
-sed -i '' '/"ngrok":/d' package.json
+grep -v "ngrok" package.json > package.json.tmp && mv package.json.tmp package.json
 
 # 4. Configurar Sharp para usar binarios precompilados y evitar errores de vips
 export SHARP_IGNORE_GLOBAL_LIBVIPS=1
