@@ -30,14 +30,24 @@ cd "$PROJECT_ROOT"
 # 3. Intelligent Node.js Detection & Installation
 export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
 
-NODE_VERSION=$(node -v 2>/dev/null | cut -d'v' -f2 | cut -d'.' -f1 || echo "0")
+# Detectar versión actual de Node de forma segura
+NODE_RAW_VERSION=$(node -v 2>/dev/null || echo "")
+if [ -z "$NODE_RAW_VERSION" ]; then
+    NODE_VERSION=0
+else
+    NODE_VERSION=$(echo "$NODE_RAW_VERSION" | cut -d'v' -f2 | cut -d'.' -f1)
+fi
+
 if [ "$NODE_VERSION" -lt 20 ]; then
-    echo "--- Node.js version ($NODE_VERSION) is too old or not found. Installing Node 22 via Homebrew... ---"
+    echo "--- Node.js version ($NODE_VERSION) is too old or not found. ---"
     if command -v brew &> /dev/null; then
+        echo "--- Installing Node 22 via Homebrew... ---"
         brew install node@22
         brew link --overwrite node@22
+        export PATH="/usr/local/opt/node@22/bin:$PATH"
     else
-        echo "!!! WARNING: Homebrew not found. Cannot update Node.js. Build might fail. ---"
+        echo "!!! ERROR: Node.js not found and Homebrew is missing. Cannot proceed. ---"
+        exit 1
     fi
 fi
 
