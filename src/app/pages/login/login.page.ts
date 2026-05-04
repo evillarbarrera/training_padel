@@ -171,10 +171,10 @@ export class LoginPage implements OnInit {
       });
 
       console.log('Apple response:', result);
-      const email = result.response.email;
+      const email = result.response.email || '';
       const user = result.response.user;
 
-      if (email && user) {
+      if (user) {
         this.mysql.appleCheck(email, user).subscribe({
           next: (res) => {
             this.isLoading = false;
@@ -184,7 +184,7 @@ export class LoginPage implements OnInit {
               this.notificationService.updateTokenForUser();
               this.redirectBasedOnRole(res.rol);
             } else {
-              this.showError('Usuario no registrado. Regístrate con este email primero.');
+              this.showError('Usuario no registrado. Regístrate con tu correo primero y vincularemos tu cuenta.');
             }
           },
           error: (err) => {
@@ -194,10 +194,8 @@ export class LoginPage implements OnInit {
           }
         });
       } else {
-        // En Apple, el email solo se devuelve la primera vez que el usuario se conecta.
         this.isLoading = false;
-        const msg = !email ? 'No se pudo obtener el email de Apple.' : 'No se pudo obtener el identificador de usuario de Apple.';
-        this.showError(msg + ' Inténtalo de nuevo o usa otro método.');
+        this.showError('No se pudo obtener el identificador de usuario de Apple. Inténtalo de nuevo.');
       }
     } catch (err: any) {
       this.isLoading = false;
