@@ -220,20 +220,31 @@ export class MysqlService {
     return this.http.get<any[]>(`${this.api}/clubes/get_disponibilidad.php?cancha_id=${canchaId}&fecha=${fecha}`, { headers: this.getHeaders() });
   }
 
+  getDisponibilidadClub(clubId: number, fecha: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/clubes/get_disponibilidad.php?club_id=${clubId}&fecha=${fecha}`, { headers: this.getHeaders() });
+  }
+
   addReservaClub(reserva: any): Observable<any> {
     return this.http.post<any>(`${this.api}/clubes/add_reserva.php`, reserva, { headers: this.getHeaders() });
   }
 
-  getTorneosPublicos(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.api}/torneos/get_torneos_public.php`, { headers: this.getHeaders() });
+  getTorneosPublicos(region?: string, comuna?: string): Observable<any[]> {
+    let url = `${this.api}/torneos/get_torneos_public.php`;
+    const params = [];
+    if (region) params.push(`region=${region}`);
+    if (comuna) params.push(`comuna=${comuna}`);
+    if (params.length > 0) url += `?${params.join('&')}`;
+    return this.http.get<any[]>(url, { headers: this.getHeaders() });
   }
 
   saveMatchResult(data: any): Observable<any> {
     return this.http.post<any>(`${this.api}/clubes/save_match_result.php`, data, { headers: this.getHeaders() });
   }
 
-  getMisPartidos(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.api}/clubes/get_mis_partidos.php`, { headers: this.getHeaders() });
+  getMisPartidos(clubId?: number): Observable<any[]> {
+    let url = `${this.api}/clubes/get_mis_partidos.php`;
+    if (clubId) url += `?club_id=${clubId}`;
+    return this.http.get<any[]>(url, { headers: this.getHeaders() });
   }
 
   enrollInTournament(data: { torneo_id: number, jugador1_id: number, jugador2_id: number }): Observable<any> {

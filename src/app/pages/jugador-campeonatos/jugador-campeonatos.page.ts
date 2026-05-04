@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
-  IonContent, IonIcon, IonButton,
-  AlertController, LoadingController, ToastController, IonModal
+  IonContent, IonIcon, IonButton, IonSpinner,
+  AlertController, LoadingController, ToastController, IonModal,
+  IonFab, IonFabButton
 } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
 import { Router } from '@angular/router';
@@ -12,7 +13,8 @@ import {
   locationOutline, searchOutline, trophyOutline, 
   arrowBack, heartOutline, shareOutline, chevronForward,
   addCircleOutline, closeOutline, personAddOutline,
-  star
+  star, tennisballOutline, calendarOutline, chevronDown,
+  peopleOutline, mapOutline
 } from 'ionicons/icons';
 import { environment } from '../../../environments/environment';
 
@@ -23,18 +25,30 @@ import { environment } from '../../../environments/environment';
   standalone: true,
   imports: [
     CommonModule, FormsModule, 
-    IonContent, IonIcon, IonButton, IonModal
+    IonContent, IonIcon, IonButton, IonModal, IonSpinner,
+    IonFab, IonFabButton
   ]
 })
 export class JugadorCampeonatosPage implements OnInit {
   clubes: any[] = [];
   torneos: any[] = [];
   selectedClub: any = null;
+  selectedTab: 'americanos' | 'torneos' = 'americanos';
   loading = true;
   searchTerm: string = '';
   userRegion: string = '';
 
-  // Partner Selection
+  americanosList: any[] = [];
+  torneosList: any[] = [];
+  
+  // Filters
+  selectedRegion: string = '';
+  selectedComuna: string = '';
+  regiones: string[] = [];
+  comunas: string[] = [];
+  allComunas: string[] = []; // Full list for reference
+  
+  // Partner Selection (Keep for enrollment)
   showPartnerModal = false;
   partnerSearchTerm = '';
   partnerResults: any[] = [];
@@ -44,10 +58,19 @@ export class JugadorCampeonatosPage implements OnInit {
   defaultClubImages: string[] = [
     'https://images.unsplash.com/photo-1626224484214-4051d388915e?q=80&w=800&auto=format&fit=crop',
     'https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?q=80&w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=800&auto=format&fit=crop'
+    'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1614032683471-bd620839e802?q=80&w=800&auto=format&fit=crop'
   ];
 
-  heroBackground: string = 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=800&auto=format&fit=crop';
+  heroBackground: string = 'https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?q=80&w=1200&auto=format&fit=crop';
+
+  goBack() {
+    if (this.selectedClub) {
+      this.selectedClub = null;
+    } else {
+      this.router.navigate(['/jugador-home']);
+    }
+  }
 
   constructor(
     private mysql: MysqlService, 
@@ -60,7 +83,8 @@ export class JugadorCampeonatosPage implements OnInit {
       locationOutline, searchOutline, trophyOutline, 
       arrowBack, heartOutline, shareOutline, chevronForward,
       addCircleOutline, closeOutline, personAddOutline,
-      star
+      star, tennisballOutline, calendarOutline, chevronDown,
+      peopleOutline, mapOutline
     });
   }
 
@@ -83,62 +107,119 @@ export class JugadorCampeonatosPage implements OnInit {
 
   loadClubesConTorneos() {
     this.loading = true;
+    const today = new Date().toISOString().split('T')[0];
+    
     // We get all tournaments first to know which clubs have them
     this.mysql.getTorneosPublicos().subscribe((allTorneos: any[]) => {
-      this.torneos = allTorneos;
-      const clubsWithT = new Set(allTorneos.map(t => Number(t.club_id)));
-      
-      this.mysql.getClubes().subscribe((res: any[]) => {
-        this.clubes = res
-          .filter(c => clubsWithT.has(Number(c.id)))
-          .map((c, index) => {
-            if (c.logo && c.logo.trim() !== '' && c.logo !== 'null') {
-              c.logoUrl = c.logo.startsWith('http') ? c.logo : `${environment.apiUrl.replace('/dev','').replace('/prd','')}/${c.logo}`;
-            } else {
-              const randomIndex = index % this.defaultClubImages.length;
-              c.logoUrl = this.defaultClubImages[randomIndex];
-            }
-            return c;
-          });
-        this.sortClubes();
-        this.loading = false;
+      // 1. Filter tournaments to only include active/future ones
+      const activeTorneos = allTorneos.filter(t => {
+        if (t.table_source === 'americanos') {
+          return t.fecha >= today;
+        }
+        // V2 tournaments are already filtered by API (inscripciones_abiertas = 1)
+        return true; 
       });
+
+      this.torneos = activeTorneos;
+      const clubsWithT = new Set(activeTorneos.map(t => Number(t.club_id)));
+      
+        this.mysql.getClubes().subscribe((res: any[]) => {
+          this.clubes = res
+            .filter(c => clubsWithT.has(Number(c.id)))
+            .map((c, index) => {
+              if (c.logo && c.logo.trim() !== '' && c.logo !== 'null') {
+                c.logoUrl = c.logo.startsWith('http') ? c.logo : `${environment.apiUrl.replace('/dev','').replace('/prd','')}/${c.logo}`;
+              } else {
+                const randomIndex = index % this.defaultClubImages.length;
+                c.logoUrl = this.defaultClubImages[randomIndex];
+              }
+              return c;
+            });
+
+          // Extract unique Regions and Comunas for filters
+          this.regiones = [...new Set(this.clubes.map(c => c.region).filter(r => r))].sort();
+          this.allComunas = [...new Set(this.clubes.map(c => c.comuna).filter(c => c))].sort();
+          this.comunas = [...this.allComunas];
+
+          this.sortClubes();
+          this.loading = false;
+        });
     });
   }
 
   sortClubes() {
-    if (!this.userRegion || this.clubes.length === 0) return;
+    if (this.clubes.length === 0) return;
     this.clubes.sort((a, b) => {
-      const aInRegion = a.region === this.userRegion ? 1 : 0;
-      const bInRegion = b.region === this.userRegion ? 1 : 0;
-      return bInRegion - aInRegion;
+      // Priority 1: Selected Region
+      if (this.selectedRegion) {
+        const aInR = a.region === this.selectedRegion ? 1 : 0;
+        const bInR = b.region === this.selectedRegion ? 1 : 0;
+        if (aInR !== bInR) return bInR - aInR;
+      }
+      
+      // Priority 2: User Profile Region (if no region selected)
+      if (this.userRegion && !this.selectedRegion) {
+        const aInUserR = a.region === this.userRegion ? 1 : 0;
+        const bInUserR = b.region === this.userRegion ? 1 : 0;
+        if (aInUserR !== bInUserR) return bInUserR - aInUserR;
+      }
+      
+      return a.nombre.localeCompare(b.nombre);
     });
   }
 
-  get filteredClubes() {
-    if (!this.searchTerm || this.searchTerm.trim() === '') return this.clubes;
-    const term = this.searchTerm.toLowerCase().trim();
-    return this.clubes.filter(c => 
-      (c.nombre && c.nombre.toLowerCase().includes(term)) || 
-      (c.direccion && c.direccion.toLowerCase().includes(term))
-    );
-  }
-
-  get torneosDelClub() {
-    if (!this.selectedClub) return [];
-    return this.torneos.filter(t => Number(t.club_id) === Number(this.selectedClub.id));
-  }
-
-  goBack() {
-    if (this.selectedClub) {
-      this.selectedClub = null;
+  onFilterChange() {
+    // If region changes, filter comunas available
+    if (this.selectedRegion) {
+      this.comunas = [...new Set(
+        this.clubes
+          .filter(c => c.region === this.selectedRegion)
+          .map(c => c.comuna)
+          .filter(cm => cm)
+      )].sort();
+      // Reset selected comuna if it's no longer in the list
+      if (!this.comunas.includes(this.selectedComuna)) {
+        this.selectedComuna = '';
+      }
     } else {
-      this.router.navigate(['/jugador-home']);
+      this.comunas = [...this.allComunas];
     }
+    this.sortClubes();
+  }
+
+  get filteredClubes() {
+    let filtered = this.clubes;
+
+    if (this.selectedRegion) {
+      filtered = filtered.filter(c => c.region === this.selectedRegion);
+    }
+
+    if (this.selectedComuna) {
+      filtered = filtered.filter(c => c.comuna === this.selectedComuna);
+    }
+
+    if (this.searchTerm && this.searchTerm.trim() !== '') {
+      const term = this.searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(c => 
+        (c.nombre && c.nombre.toLowerCase().includes(term)) || 
+        (c.direccion && c.direccion.toLowerCase().includes(term))
+      );
+    }
+
+    return filtered;
   }
 
   onSelectClub(club: any) {
     this.selectedClub = club;
+    const today = new Date().toISOString().split('T')[0];
+    const allForClub = this.torneos.filter(t => Number(t.club_id) === Number(club.id));
+    
+    // Filter out past Americanos
+    this.americanosList = allForClub.filter(t => 
+      t.table_source === 'americanos' && t.fecha >= today
+    );
+    
+    this.torneosList = allForClub.filter(t => t.table_source === 'v2');
   }
 
   async openEnrollment(torneo: any) {

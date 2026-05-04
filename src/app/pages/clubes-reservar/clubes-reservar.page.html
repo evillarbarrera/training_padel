@@ -1,194 +1,171 @@
-<!-- 1. UNIFIED FLOATING BACK BUTTON -->
-<div class="floating-back-btn" (click)="goBack()">
-  <ion-icon name="arrow-back"></ion-icon>
-</div>
-
-<ion-content [fullscreen]="true" class="ion-padding-bottom">
+<ion-content [fullscreen]="true">
   
-  <!-- A. CLUB DISCOVERY LIST (PLAYTOMIC STYLE) -->
-    <div class="discovery-container" *ngIf="!selectedClub">
-    <div class="search-header-playtomic">
-        <div class="search-input-wrapper">
-            <ion-icon name="search-outline"></ion-icon>
-            <input type="text" [(ngModel)]="searchTerm" placeholder="Arturo Prat 169, Machalí...">
-            <ion-icon name="heart-outline" class="right-icon"></ion-icon>
-        </div>
-        
-        <!-- NEW: MIS PARTIDOS QUICK ACCESS -->
-        <div class="quick-access-matches animate-up" (click)="goToMisPartidos()">
-           <div class="qa-content">
-              <div class="qa-icon"><ion-icon name="trophy-outline"></ion-icon></div>
-              <div class="qa-text">
-                 <h4>Mis Partidos</h4>
-                 <p>Gestiona tus duplas y resultados</p>
-              </div>
-           </div>
-           <ion-icon name="chevron-forward" class="qa-arrow"></ion-icon>
-        </div>
-
-        <div class="priority-label" *ngIf="userRegion">
-            <span>Explorando en {{ userRegion }}</span>
-        </div>
+  <!-- 1. DISCOVERY VIEW (LIST) -->
+  <div *ngIf="!selectedClub" class="animate-up">
+    <div class="header-search-v5">
+      <h1>Búsqueda</h1>
     </div>
 
-    <div class="club-list-playtomic">
-      <div *ngIf="loading" class="skeleton-container">
-        <div class="skeleton-card" *ngFor="let i of [1,2,3]"></div>
+    <div class="search-filters-container">
+      <div class="search-bar-v5">
+        <ion-icon name="search-outline"></ion-icon>
+        <input type="text" [(ngModel)]="searchTerm" placeholder="Busca tu club...">
+        <div class="search-actions">
+          <ion-icon name="send-outline"></ion-icon>
+          <ion-icon name="heart-outline"></ion-icon>
+        </div>
       </div>
 
-      <div class="playtomic-card animate-up" *ngFor="let club of filteredClubes" (click)="onSelectClub(club)">
-        <div class="p-card-image">
-          <img [src]="club.logoUrl" (error)="club.logoUrl = heroBackground">
-          <div class="p-overlay"></div>
-          <h3 class="p-club-name">{{ club.nombre }}</h3>
-          <ion-icon name="heart-outline" class="p-fav-icon"></ion-icon>
+      <div class="quick-filters-row">
+        <div class="filter-pill" (click)="openRegionPicker()">
+          <ion-icon name="location-outline"></ion-icon>
+          {{ selectedRegion || 'Región' }} <ion-icon name="chevron-down-outline"></ion-icon>
         </div>
-        <div class="p-card-detail">
-          <p class="p-loc">{{ club.direccion || 'Om - Machalí' }}</p>
-          <div class="p-availability-line">
-            <span class="p-price">1h desde <strong>$14.000</strong></span>
+        <div class="filter-pill" (click)="openComunaPicker()">
+          <ion-icon name="map-outline"></ion-icon>
+          {{ selectedComuna || 'Comuna' }} <ion-icon name="chevron-down-outline"></ion-icon>
+        </div>
+      </div>
+
+      <div class="my-matches-btn-row animate-up">
+        <button class="nike-btn-outline-full" (click)="router.navigate(['/jugador-partidos'])">
+          <ion-icon name="tennisball-outline"></ion-icon>
+          MIS PARTIDOS
+        </button>
+      </div>
+    </div>
+
+    <div class="club-discovery-list">
+      <div class="club-card-v5 animate-up" 
+           *ngFor="let club of filteredClubes" 
+           (click)="onSelectClub(club)">
+        <div class="club-banner-wrap" [style.background-image]="'url(' + club.logoUrl + '), url(assets/fondo-cancha.png)'">
+          <div class="banner-overlay"></div>
+          <ion-icon name="heart-outline" class="fav-btn"></ion-icon>
+          <h2 class="club-title-overlay">{{ club.nombre }}</h2>
+          <div class="price-badge">
+            <span class="p-label">Desde</span>
+            <span class="p-val">$14.000</span>
           </div>
         </div>
+        <div class="club-body-v5">
+          <p class="club-loc">{{ club.region }} • {{ club.comuna }}</p>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- B. CLUB DETAIL (PLAYTOMIC STYLE) -->
-  <div *ngIf="selectedClub" class="club-detail-playtomic animate-fade">
-    
-    <!-- HEADER IMAGE -->
-    <div class="detail-hero">
-        <img [src]="selectedClub.logoUrl" (error)="selectedClub.logoUrl = heroBackground">
-        <ion-icon name="share-outline" class="share-icon"></ion-icon>
-    </div>
+  <!-- 2. NEW DETAIL VIEW (PLAYTOMIC V6) -->
+  <div *ngIf="selectedClub" class="animate-up">
+    <!-- HERO IMAGE -->
+    <div class="detail-hero-v6" [style.background-image]="'url(' + selectedClub.logoUrl + '), url(assets/fondo-cancha.png)'"></div>
 
-    <!-- CLUB INFO -->
-    <div class="detail-info-block">
-        <div class="title-row">
-            <h1>{{ selectedClub.nombre }}</h1>
-            <ion-icon name="heart-outline"></ion-icon>
+    <div class="detail-content-card">
+        <!-- CLUB HEADER -->
+        <div class="club-info-header">
+            <h2>{{ selectedClub.nombre }}</h2>
+            <ion-icon name="heart-outline" class="fav-icon-btn"></ion-icon>
         </div>
-        <p class="address-txt">{{ selectedClub.direccion }}</p>
-    </div>
+        <p class="address-text">{{ selectedClub.direccion }}<br>{{ selectedClub.comuna }}, {{ selectedClub.region }}</p>
 
-    <!-- DETAIL TABS (Simplified) -->
-    <div class="detail-tabs-wrapper">
-        <div class="p-tabs">
-            <div class="p-tab" [class.active]="activeSubTab === 'reservar'" (click)="activeSubTab = 'reservar'">Reservar</div>
-            <div class="p-tab" [class.active]="activeSubTab === 'eventos'" (click)="activeSubTab = 'eventos'">Torneos</div>
+        <!-- NIKE TABS -->
+        <div class="nike-tabs-v6">
+            <div class="tab-item active">Reservar</div>
         </div>
-    </div>
 
-    <!-- CONTENT: RESERVAR -->
-    <div class="segment-body" *ngIf="activeSubTab === 'reservar'">
-        
-        <!-- DATE SCROLLER -->
-        <div class="p-date-scroller">
-            <div class="p-date-track">
-                <div class="p-date-item" *ngFor="let day of weekDays" 
+        <!-- DATE SELECTOR -->
+        <div class="date-selector-row">
+            <div class="calendar-btn">
+                <ion-icon name="calendar-outline"></ion-icon>
+            </div>
+            <div class="dates-strip-v6">
+                <div class="date-v6" 
+                     *ngFor="let day of weekDays" 
                      [class.active]="selectedFecha === day.fullDate"
                      (click)="onSelectDate(day.fullDate)">
-                    <span class="p-day-name">{{ day.nombre }}</span>
-                    <div class="p-day-circle">{{ day.numero }}</div>
-                    <span class="p-month-name">Abr.</span>
+                    <span class="d-name">{{ day.nombre.slice(0,3) }}</span>
+                    <div class="d-num">{{ day.numero }}</div>
                 </div>
             </div>
         </div>
 
-        <!-- COURTS AVAILABILITY LIST (ACCORDION STYLE) -->
-        <div class="p-direct-courts-list">
-            <div class="p-section-header-row">
-                <div class="p-section-title">Reserva una pista</div>
-                <div class="show-occupied-toggle" (click)="showOccupied = !showOccupied">
-                    <span>Ver ocupados</span>
-                    <div class="mini-toggle" [class.active]="showOccupied">
-                        <div class="toggle-dot"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="p-court-booking-block" *ngFor="let cancha of canchas" [class.is-expanded]="cancha.expanded">
-                <div class="p-court-header" (click)="toggleCancha(cancha)">
-                    <div class="c-info">
-                        <h4>{{ cancha.nombre }}</h4>
-                        <p>Interior | Cristal | Dobles</p>
-                    </div>
-                    <ion-icon [name]="cancha.expanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
-                </div>
+        <!-- FILTER TOGGLE -->
+        <div class="filter-toggle-row">
+            <span>Mostrar solo las horas disponibles</span>
+            <ion-toggle [checked]="true" mode="ios"></ion-toggle>
+        </div>
 
-                <div class="p-court-body-expand" *ngIf="cancha.expanded">
-                    <div class="p-court-slots">
-                        <!-- Slots: Render based on availability and toggle -->
-                        <ng-container *ngFor="let h of horarios">
-                           <!-- Slot Disponible -->
-                           <div class="p-slot-chip" *ngIf="h.disponible" (click)="reservar(h)">
-                               {{ h.hora_inicio.slice(0,5) }}
-                           </div>
-                           <!-- Slot Ocupado (Solo si showOccupied) -->
-                           <div class="p-slot-chip is-occupied" *ngIf="!h.disponible && showOccupied">
-                               {{ h.hora_inicio.slice(0,5) }}
-                           </div>
-                        </ng-container>
+        <!-- CIRCULAR HOURS (SMALLER) -->
+        <div class="time-grid-v6" *ngIf="!loading">
+            <div class="time-item-v6" 
+                 *ngFor="let slot of horarios"
+                 [class.active]="selectedSlot === slot"
+                 (click)="onSelectSlot(slot)">
+                {{ formatTime(slot.hora) }}
+            </div>
+        </div>
+
+        <div *ngIf="loading" style="text-align: center; padding: 40px;">
+            <ion-spinner name="crescent" color="dark"></ion-spinner>
+        </div>
+
+        <!-- COURT LIST -->
+        <div *ngIf="!loading && selectedSlot">
+            <h3 class="section-title-v6">Reserva una pista</h3>
+            <p class="section-desc-v6">Crea un partido privado donde puedes invitar a tus amigos</p>
+            
+            <div class="court-list-v6">
+                <div class="court-item-v6 animate-up" 
+                     *ngFor="let c of selectedSlot.canchas"
+                     [class.disabled]="!c.disponible">
+                    <div class="c-info">
+                        <h4>{{ c.cancha_nombre }}</h4>
+                        <p>{{ c.ubicacion || 'Exterior' }} | {{ c.tipo_suelo || 'Cristal' }}</p>
+                        
+                        <!-- DURATION CHIPS PER COURT -->
+                        <div class="court-durations" *ngIf="c.disponible">
+                            <span class="dur-chip" [class.active]="c.selectedDur === 60" (click)="c.selectedDur = 60">60'</span>
+                            <span class="dur-chip" [class.active]="!c.selectedDur || c.selectedDur === 90" (click)="c.selectedDur = 90">90'</span>
+                            <span class="dur-chip" [class.active]="c.selectedDur === 120" (click)="c.selectedDur = 120">120'</span>
+                        </div>
                     </div>
                     
-                    <div class="p-no-slots" *ngIf="(horarios | json) === '[]' || !hasAvailableSlots()">
-                        Sin horarios disponibles para hoy
-                    </div>
+                    <div class="reserve-mini-btn" *ngIf="c.disponible" (click)="reservar(selectedSlot, c)">RESERVAR</div>
+                    <div class="reserve-mini-btn disabled" *ngIf="!c.disponible">NO DISPONIBLE</div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- CONTENT: TORNEOS (EVENTOS) -->
-    <div class="segment-body" *ngIf="activeSubTab === 'eventos'">
-        <div class="p-direct-courts-list">
-            <div class="p-section-header-row">
-                <div class="p-section-title">Próximos Campeonatos</div>
-            </div>
-
-            <!-- Torneos List -->
-            <div *ngIf="torneos.length === 0 && americanos.length === 0" class="p-no-slots">
-                No hay campeonatos programados en este club.
-            </div>
-
-            <div class="playtomic-card tournament-card animate-up" *ngFor="let t of torneos">
-                <div class="p-card-image mini">
-                    <img [src]="t.imagen || heroBackground">
-                    <div class="p-overlay"></div>
-                    <div class="t-badge">TORNEO</div>
-                </div>
-                <div class="p-card-detail">
-                    <h3>{{ t.nombre }}</h3>
-                    <p class="p-loc">{{ t.fecha_inicio | date:'d MMM' }} - {{ t.fecha_fin | date:'d MMM' }}</p>
-                    <div class="p-availability-line">
-                        <span class="p-price">Desde <strong>${{ t.precio || '0' }}</strong></span>
-                    </div>
-                    <ion-button expand="block" fill="solid" color="dark" class="nike-btn-black" style="margin-top: 15px;">
-                        Inscribirse
-                    </ion-button>
-                </div>
-            </div>
-
-            <div class="playtomic-card tournament-card animate-up" *ngFor="let a of americanos">
-                <div class="p-card-image mini">
-                    <img [src]="a.imagen || heroBackground">
-                    <div class="p-overlay"></div>
-                    <div class="t-badge orange">AMERICANO</div>
-                </div>
-                <div class="p-card-detail">
-                    <h3>{{ a.nombre }}</h3>
-                    <p class="p-loc">{{ a.fecha_inicio | date:'d MMM' }} • {{ a.hora_inicio }}</p>
-                    <div class="p-availability-line">
-                        <span class="p-price">Precio <strong>${{ a.precio || '0' }}</strong></span>
-                    </div>
-                    <ion-button expand="block" fill="solid" color="dark" class="nike-btn-black" style="margin-top: 15px;">
-                        Inscribirse
-                    </ion-button>
-                </div>
-            </div>
-        </div>
-    </div>
-
   </div>
+
+  <!-- SUCCESS MODAL PREMIUM -->
+  <div class="success-overlay-pro animate-up" *ngIf="showSuccessModal">
+    <div class="success-card-pro animate-up">
+        <div class="icon-wrap">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+        </div>
+        <h2>¡Reserva Lista!</h2>
+        <p>Tu cancha ha sido reservada con éxito. Ya puedes invitar a tus amigos.</p>
+        
+        <div class="res-summary-box" *ngIf="lastReserva">
+            <span class="s-label">Club</span>
+            <span class="s-val">{{ lastReserva.club }}</span>
+            <span class="s-label">Pista y Horario</span>
+            <span class="s-val">{{ lastReserva.pista }} • {{ lastReserva.hora }}</span>
+        </div>
+
+        <div class="action-btns">
+            <button class="nike-btn-pro" (click)="goToEditMatch()">EDITAR PARTIDO</button>
+            <button class="nike-btn-outline" (click)="closeSuccessModal()">Volver al Inicio</button>
+        </div>
+    </div>
+  </div>
+
+  <!-- FLOATING BACK BUTTON (GENERAL PATTERN) -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 5px; margin-right: 15px;" *ngIf="!showSuccessModal">
+    <ion-fab-button (click)="goBack()" class="back-fab">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 
 </ion-content>

@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
   IonContent, IonIcon, IonButton,
-  AlertController
+  AlertController, ActionSheetController, LoadingController,
+  IonSegment, IonSegmentButton, IonSpinner,
+  IonFab, IonFabButton, IonToggle
 } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -13,7 +15,10 @@ import {
   timeOutline, arrowForwardOutline, trophyOutline, 
   star, arrowForward, arrowBack, heartOutline,
   shareOutline, notificationsOutline, chevronDownOutline,
-  chevronUpOutline
+  chevronUpOutline, tennisballOutline, lockClosedOutline, close,
+  sendOutline, informationCircleOutline, mapOutline,
+  chevronForwardOutline, checkmarkCircleOutline,
+  chevronBackOutline
 } from 'ionicons/icons';
 import { environment } from '../../../environments/environment';
 
@@ -24,83 +29,87 @@ import { environment } from '../../../environments/environment';
   standalone: true,
   imports: [
     CommonModule, FormsModule, 
-    IonContent, IonIcon, IonButton
+    IonContent, IonIcon, IonButton,
+    IonSegment, IonSegmentButton, IonSpinner,
+    IonFab, IonFabButton, IonToggle
   ]
 })
 export class ClubesReservarPage implements OnInit {
   clubes: any[] = [];
-  canchas: any[] = [];
-  horarios: any[] = [];
-  torneos: any[] = [];
-  americanos: any[] = [];
+  horarios: any[] = []; // Now grouped by time: { hora, canchas: [] }
+  misPartidos: any[] = [];
 
   selectedClub: any = null;
-  selectedCancha: any = null;
   selectedFecha: string = '';
   weekDays: any[] = [];
   activeSubTab: string = 'reservar';
+  activeMatchSubTab: 'proximos' | 'historial' = 'proximos';
+  selectedSlot: any = null;
+  showCourtModal: boolean = false;
+  showSuccessModal: boolean = false;
+  showOccupied: boolean = false;
+  apiBaseUrl: string = 'https://api.padelmanager.cl';
   
+  partidosProximos: any[] = [];
+  partidosHistorial: any[] = [];
+  paginatedHistorial: any[] = [];
+  historyPage: number = 1;
+  pageSize: number = 5;
   searchTerm: string = '';
-  userRegion: string = '';
-  showOccupied: boolean = true;
+  
+  // NEW FILTERS
+  selectedRegion: string = '';
+  selectedComuna: string = '';
+  regiones: string[] = [];
+  comunas: string[] = [];
+  
+  // CACHE & SPEED
+  disponibilidadCache: Map<string, any[]> = new Map();
   loading = true;
-  viewMode: 'reservar' | 'campeonatos' = 'reservar';
-  clubsWithTournaments: Set<number> = new Set();
+  selectedDuration: number = 90; // Default to 90 min
+
+  setDuration(dur: number) {
+    this.selectedDuration = dur;
+  }
 
   defaultClubImages: string[] = [
-    'https://images.unsplash.com/photo-1626224484214-4051d388915e?q=80&w=800&auto=format&fit=crop', // Padel 1
-    'https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?q=80&w=800&auto=format&fit=crop', // Padel 2
-    'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=800&auto=format&fit=crop'  // Padel 3
+    'https://images.unsplash.com/photo-1626224484214-4051d388915e?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=800&auto=format&fit=crop'
   ];
 
-  brandLogo: string = 'https://api.padelmanager.cl/assets/img/logo.png';
+  brandLogo: string = 'assets/logo-transparent.png';
   heroBackground: string = 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=800&auto=format&fit=crop';
 
   constructor(
     private mysql: MysqlService, 
-    private router: Router,
+    public router: Router,
     private route: ActivatedRoute,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private actionSheetCtrl: ActionSheetController,
+    private loadingCtrl: LoadingController,
+    private cdr: ChangeDetectorRef
   ) {
     addIcons({ 
       locationOutline, searchOutline, calendarOutline, 
       timeOutline, arrowForwardOutline, trophyOutline, 
       star, arrowForward, arrowBack, heartOutline,
       shareOutline, notificationsOutline, chevronDownOutline,
-      chevronUpOutline
+      chevronUpOutline, tennisballOutline, lockClosedOutline, close,
+      sendOutline, informationCircleOutline,
+      mapOutline: 'map-outline',
+      chevronForwardOutline, checkmarkCircleOutline,
+      chevronBackOutline
     });
   }
 
-  hasAvailableSlots(): boolean {
-    return this.horarios.some(h => h.disponible);
-  }
+  lastReserva: any = null;
 
   ngOnInit() {
-    this.route.queryParams.subscribe(params => {
-      if (params['view'] === 'campeonatos') {
-        this.viewMode = 'campeonatos';
-      } else {
-        this.viewMode = 'reservar';
-      }
-    });
-
     this.selectedFecha = this.getLocalISODate(new Date());
     this.generateWeekDays();
-    this.loadUserProfile();
-    this.loadGlobalTournaments();
     this.loadClubes();
-  }
-
-  loadGlobalTournaments() {
-    this.mysql.getTorneosPublicos().subscribe(res => {
-      res.forEach((t: any) => {
-        if (t.club_id) this.clubsWithTournaments.add(Number(t.club_id));
-      });
-    });
-  }
-
-  goToMisPartidos() {
-    this.router.navigate(['/jugador-partidos']);
+    this.loadUserProfile();
   }
 
   loadUserProfile() {
@@ -108,8 +117,11 @@ export class ClubesReservarPage implements OnInit {
     if (userId) {
       this.mysql.getPerfil(userId).subscribe(res => {
         if (res.success && res.user) {
-          this.userRegion = res.user.region || '';
-          this.sortClubesByUserRegion();
+          if (res.user.region && !this.selectedRegion) {
+            this.selectedRegion = res.user.region;
+            this.updateComunas();
+            this.cdr.detectChanges();
+          }
         }
       });
     }
@@ -126,7 +138,7 @@ export class ClubesReservarPage implements OnInit {
     const days = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
     const result = [];
     const today = new Date();
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 14; i++) {
       const d = new Date();
       d.setDate(today.getDate() + i);
       result.push({
@@ -142,57 +154,147 @@ export class ClubesReservarPage implements OnInit {
     this.loading = true;
     this.mysql.getClubes().subscribe({
       next: (res: any[]) => {
-        // 🔒 Filtro de Seguridad: Solo mostrar clubes con el módulo de reservas activado
         this.clubes = res
           .filter(c => Number(c.reservas_activas) === 1)
           .map((c, index) => {
-            if (c.logo && c.logo.trim() !== '' && c.logo !== 'null') {
-              c.logoUrl = c.logo.startsWith('http') ? c.logo : `${environment.apiUrl.replace('/dev','').replace('/prd','')}/${c.logo}`;
+            // Robust logo assignment
+            if (c.logo && c.logo !== 'null' && c.logo.trim() !== '') {
+              // Ensure path is correct
+              const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
+              c.logoUrl = c.logo.startsWith('http') ? c.logo : `${cleanApiUrl}/${c.logo}`;
             } else {
-              // Assign a random high-quality default image
+              // Generic high-quality padel image
               const randomIndex = index % this.defaultClubImages.length;
               c.logoUrl = this.defaultClubImages[randomIndex];
             }
             return c;
           });
-        this.sortClubesByUserRegion();
+        
+        // Populate regions
+        const regionsSet = new Set(this.clubes.map(c => c.region).filter(r => !!r));
+        this.regiones = Array.from(regionsSet).sort();
+        
+        this.updateComunas();
         this.loading = false;
       },
       error: () => this.loading = false
     });
   }
 
-  sortClubesByUserRegion() {
-    if (!this.userRegion || this.clubes.length === 0) return;
-    this.clubes.sort((a, b) => {
-      const aInRegion = a.region === this.userRegion ? 1 : 0;
-      const bInRegion = b.region === this.userRegion ? 1 : 0;
-      return bInRegion - aInRegion;
+  updateComunas() {
+    if (this.selectedRegion) {
+      const comunasSet = new Set(
+        this.clubes
+          .filter(c => c.region === this.selectedRegion)
+          .map(c => c.comuna)
+          .filter(com => !!com)
+      );
+      this.comunas = Array.from(comunasSet).sort();
+    } else {
+      this.comunas = [];
+    }
+  }
+
+  async openRegionPicker() {
+    const inputs = this.regiones.map(r => ({
+      name: 'region',
+      type: 'radio' as const,
+      label: r,
+      value: r,
+      checked: this.selectedRegion === r
+    }));
+
+    const alert = await this.alertCtrl.create({
+      header: 'Seleccionar Región',
+      inputs: [
+        { name: 'region', type: 'radio', label: 'Todas', value: '', checked: this.selectedRegion === '' },
+        ...inputs
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { 
+          text: 'Seleccionar', 
+          handler: (val) => {
+            this.selectedRegion = val;
+            this.selectedComuna = ''; // Reset comuna when region changes
+            this.updateComunas();
+          } 
+        }
+      ],
+      mode: 'ios'
     });
+    await alert.present();
+  }
+
+  async openComunaPicker() {
+    if (!this.selectedRegion) {
+      const toast = await this.alertCtrl.create({
+        header: 'Aviso',
+        message: 'Primero selecciona una región',
+        buttons: ['OK'],
+        mode: 'ios'
+      });
+      await toast.present();
+      return;
+    }
+
+    const inputs = this.comunas.map(c => ({
+      name: 'comuna',
+      type: 'radio' as const,
+      label: c,
+      value: c,
+      checked: this.selectedComuna === c
+    }));
+
+    const alert = await this.alertCtrl.create({
+      header: 'Seleccionar Comuna',
+      inputs: [
+        { name: 'comuna', type: 'radio', label: 'Todas', value: '', checked: this.selectedComuna === '' },
+        ...inputs
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { 
+          text: 'Seleccionar', 
+          handler: (val) => {
+            this.selectedComuna = val;
+          } 
+        }
+      ],
+      mode: 'ios'
+    });
+    await alert.present();
   }
 
   get filteredClubes() {
     let list = this.clubes;
     
-    // Filter by View Mode
-    if (this.viewMode === 'campeonatos') {
-      list = list.filter(c => this.clubsWithTournaments.has(Number(c.id)));
+    // Filter by Region
+    if (this.selectedRegion) {
+      list = list.filter(c => c.region === this.selectedRegion);
+    }
+    
+    // Filter by Comuna
+    if (this.selectedComuna) {
+      list = list.filter(c => c.comuna === this.selectedComuna);
     }
 
-    if (!this.searchTerm || this.searchTerm.trim() === '') {
-      return list;
+    // Filter by Search Term
+    if (this.searchTerm && this.searchTerm.trim() !== '') {
+      const term = this.searchTerm.toLowerCase().trim();
+      list = list.filter(c => 
+        (c.nombre && c.nombre.toLowerCase().includes(term)) || 
+        (c.direccion && c.direccion.toLowerCase().includes(term))
+      );
     }
-    const term = this.searchTerm.toLowerCase().trim();
-    return list.filter(c => 
-      (c.nombre && c.nombre.toLowerCase().includes(term)) || 
-      (c.direccion && c.direccion.toLowerCase().includes(term)) ||
-      (c.region && c.region.toLowerCase().includes(term))
-    );
+    
+    return list;
   }
 
   goBack() {
     if (this.selectedClub) {
       this.selectedClub = null;
+      this.showSuccessModal = false;
     } else {
       this.router.navigate(['/jugador-home']);
     }
@@ -201,47 +303,106 @@ export class ClubesReservarPage implements OnInit {
   onSelectClub(club: any) {
     this.selectedClub = club;
     this.activeSubTab = 'reservar';
-    this.mysql.getCanchas(club.id).subscribe((res: any[]) => {
-      this.canchas = res.map(c => ({ ...c, expanded: false })); // Closed by default
-      if (res.length > 0) this.onSelectCancha(this.canchas[0]);
-    });
-    this.loadTorneosClub();
-  }
-
-  toggleCancha(cancha: any) {
-    cancha.expanded = !cancha.expanded;
-    if (cancha.expanded) {
-      this.onSelectCancha(cancha);
-    }
-  }
-
-  loadTorneosClub() {
-    if (!this.selectedClub) return;
-    this.mysql.getTorneosPublicos().subscribe((res: any[]) => {
-      const clubMatches = res.filter((t: any) => t.club_id === this.selectedClub.id);
-      this.torneos = clubMatches.filter((t: any) => t.tipo !== 'Americano');
-      this.americanos = clubMatches.filter((t: any) => t.tipo === 'Americano');
-    });
-  }
-
-  onSelectCanchaById(event: any) {
-    const canchaId = event.detail.value;
-    const cancha = this.canchas.find(c => c.id === canchaId);
-    if (cancha) {
-      this.onSelectCancha(cancha);
-    }
-  }
-
-  onSelectCancha(cancha: any) {
-    this.selectedCancha = cancha;
+    this.showSuccessModal = false;
     this.loadDisponibilidad();
+    this.loadMisPartidosClub();
+  }
+
+  loadMisPartidosClub() {
+    if (!this.selectedClub) return;
+    this.mysql.getMisPartidos(this.selectedClub.id).subscribe(res => {
+      this.partidosProximos = res.filter((p: any) => !p.jugado);
+      this.partidosHistorial = res.filter((p: any) => p.jugado);
+      this.resetHistoryPagination();
+    });
+  }
+
+  resetHistoryPagination() {
+    this.historyPage = 1;
+    this.paginatedHistorial = this.partidosHistorial.slice(0, this.pageSize);
+  }
+
+  loadMoreHistory() {
+    const nextBatch = this.partidosHistorial.slice(
+      this.historyPage * this.pageSize, 
+      (this.historyPage + 1) * this.pageSize
+    );
+    this.paginatedHistorial = [...this.paginatedHistorial, ...nextBatch];
+    this.historyPage++;
+  }
+
+  hasMoreHistory(): boolean {
+    return this.paginatedHistorial.length < this.partidosHistorial.length;
+  }
+
+  async onSelectSlot(slot: any) {
+    this.selectedSlot = slot;
+    this.showCourtModal = true;
+  }
+
+  get filteredCourtsForModal() {
+    if (!this.selectedSlot) return [];
+    return this.showOccupied 
+      ? this.selectedSlot.canchas 
+      : this.selectedSlot.canchas.filter((c: any) => c.disponible);
+  }
+
+  onConfirmCourtSelection(cancha: any) {
+    if (!cancha.disponible) return;
+    this.showCourtModal = false;
+    this.reservar(this.selectedSlot, cancha);
   }
 
   loadDisponibilidad() {
-    if (!this.selectedCancha || !this.selectedFecha) return;
-    this.mysql.getDisponibilidadCancha(this.selectedCancha.id, this.selectedFecha).subscribe((res: any[]) => {
-      this.horarios = res;
+    if (!this.selectedClub || !this.selectedFecha) return;
+    
+    const cacheKey = `${this.selectedClub.id}_${this.selectedFecha}`;
+    
+    // 1. INSTANT LOAD FROM CACHE
+    if (this.disponibilidadCache.has(cacheKey)) {
+      this.horarios = this.disponibilidadCache.get(cacheKey)!;
+      this.autoSelectFirstSlot();
+      // Optional: Load in background to refresh, but don't show spinner
+      this.fetchAvailabilitySilent(cacheKey);
+    } else {
+      // 2. SHOW SPINNER FOR NEW REQUESTS
+      this.loading = true;
+      this.selectedSlot = null;
+      this.mysql.getDisponibilidadClub(this.selectedClub.id, this.selectedFecha).subscribe({
+        next: (res: any[]) => {
+          this.disponibilidadCache.set(cacheKey, res);
+          this.horarios = res;
+          this.autoSelectFirstSlot();
+          this.loading = false;
+        },
+        error: () => this.loading = false
+      });
+    }
+  }
+
+  private fetchAvailabilitySilent(cacheKey: string) {
+    this.mysql.getDisponibilidadClub(this.selectedClub.id, this.selectedFecha).subscribe({
+      next: (res: any[]) => {
+        this.disponibilidadCache.set(cacheKey, res);
+        this.horarios = res;
+        this.autoSelectFirstSlot();
+      }
     });
+  }
+
+  private autoSelectFirstSlot() {
+    if (this.horarios.length > 0) {
+      // Keep previous slot if it still exists in new data, or select first available
+      const currentHora = this.selectedSlot?.hora;
+      const sameSlot = this.horarios.find(h => h.hora === currentHora);
+      
+      if (sameSlot) {
+        this.selectedSlot = sameSlot;
+      } else {
+        const firstAvailable = this.horarios.find(h => this.hasAvailableInSlot(h));
+        this.selectedSlot = firstAvailable || this.horarios[0];
+      }
+    }
   }
 
   onSelectDate(date: string) {
@@ -249,61 +410,70 @@ export class ClubesReservarPage implements OnInit {
     this.loadDisponibilidad();
   }
 
-  async reservar(slot: any) {
-    if (!slot.disponible) return;
+  toggleTimeSlot(slot: any) {
+    slot.expanded = !slot.expanded;
+  }
+
+  async reservar(slot: any, cancha: any) {
+    if (!cancha.disponible) return;
     
     const alert = await this.alertCtrl.create({
       header: 'Confirmar Reserva',
-      message: `¿Deseas reservar el horario de las ${slot.hora_inicio.slice(0,5)} en ${this.selectedCancha.nombre}?`,
+      message: `¿Deseas reservar en ${cancha.cancha_nombre} a las ${slot.hora.slice(0,5)}?`,
       buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
+        { text: 'Cancelar', role: 'cancel' },
         {
           text: 'Confirmar',
-          handler: () => {
-             this.confirmarReserva(slot);
-          }
+          handler: () => this.confirmarReserva(slot, cancha)
         }
       ],
       mode: 'ios'
     });
-
     await alert.present();
   }
 
-  private confirmarReserva(slot: any) {
+  private async confirmarReserva(slot: any, cancha: any) {
     const userId = Number(localStorage.getItem('userId'));
-    const [h, m] = slot.hora_inicio.split(':');
-    const duration = 90; 
-    const totalMin = parseInt(h) * 60 + parseInt(m) + duration;
-    const hEnd = Math.floor(totalMin / 60).toString().padStart(2, '0');
-    const mEnd = (totalMin % 60).toString().padStart(2, '0');
-
     const payload = {
-      cancha_id: this.selectedCancha.id,
+      cancha_id: cancha.cancha_id,
       usuario_id: userId,
       jugador_id: userId,
       fecha: this.selectedFecha,
-      hora_inicio: slot.hora_inicio,
-      hora_fin: `${hEnd}:${mEnd}:00`,
-      duracion: duration,
+      hora_inicio: slot.hora,
+      hora_fin: cancha.hora_fin,
+      duracion: cancha.selectedDur || 90, 
       estado: 'Confirmada'
     };
 
+    const loader = await this.loadingCtrl.create({
+      message: 'Procesando reserva...',
+      mode: 'ios'
+    });
+    await loader.present();
+
     this.mysql.addReservaClub(payload).subscribe({
-      next: async () => {
-        const okAlert = await this.alertCtrl.create({
-          header: '¡Éxito!',
-          message: 'Tu cancha ha sido reservada con éxito.',
-          buttons: ['OK'],
-          mode: 'ios'
-        });
-        await okAlert.present();
+      next: async (res: any) => {
+        console.log('Reserva exitosa:', res);
+        loader.dismiss();
+        
+        // 1. CAPTURE DATA FOR SUMMARY
+        this.lastReserva = {
+          id: res.id || res.reserva_id, // Capture created ID
+          club: this.selectedClub.nombre,
+          pista: cancha.cancha_nombre,
+          hora: `${this.formatTime(slot.hora)}`
+        };
+
+        // 2. SHOW SUCCESS MODAL
+        this.showSuccessModal = true;
+        this.cdr.detectChanges();
+        
+        // Recargamos datos de fondo
         this.loadDisponibilidad();
+        this.loadMisPartidosClub();
       },
       error: async (err: any) => {
+        loader.dismiss();
         const errAlert = await this.alertCtrl.create({
           header: 'Error',
           message: err.error?.error || 'No se pudo completar la reserva',
@@ -313,5 +483,28 @@ export class ClubesReservarPage implements OnInit {
         await errAlert.present();
       }
     });
+  }
+
+  goToEditMatch() {
+    if (this.lastReserva && this.lastReserva.id) {
+       this.showSuccessModal = false;
+       this.router.navigate(['/partido-detalle', this.lastReserva.id]);
+    } else {
+       this.closeSuccessModal();
+    }
+  }
+
+  closeSuccessModal() {
+    this.showSuccessModal = false;
+    this.selectedClub = null; // Return to discovery
+    this.cdr.detectChanges();
+  }
+
+  formatTime(time: string) {
+    return time.slice(0, 5);
+  }
+
+  hasAvailableInSlot(slot: any): boolean {
+    return slot.canchas.some((c: any) => c.disponible);
   }
 }

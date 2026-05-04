@@ -128,50 +128,50 @@
             <span class="v2-status-dot pulse"></span>
          </div>
          
-         <!-- HERO BUTTONS GRID -->
-         <div class="hero-actions-grid">
-            <!-- HERO 1: RESERVAR CANCHA -->
-            <div class="hero-booking-action animate-pulse" (click)="goToReservarCancha()">
-               <div class="hero-btn-content">
-                 <div class="hero-icon-wrap">🎾</div>
-                 <div class="hero-text-wrap">
-                   <h3>Reservar Cancha</h3>
-                   <p>Clubes y Disponibilidad</p>
-                 </div>
-               </div>
-               <ion-icon name="arrow-forward"></ion-icon>
-            </div>
+         <div class="actions-grid-v2" style="margin-bottom: 25px;">
+             <!-- BOTÓN SECUNDARIO (AGENDAR CLASE) -->
+             <div class="action-btn-v2" (click)="goToAgenda()">
+                <div class="a-icon bg-soft"><ion-icon name="calendar-outline"></ion-icon></div>
+                <span class="a-label">Agendar Clase</span>
+             </div>
+             
+             <div class="action-btn-v2" (click)="goToMisClases()">
+                <div class="a-icon bg-soft"><ion-icon name="time-outline"></ion-icon></div>
+                <span class="a-label">Mi Agenda</span>
+             </div>
+             
+             <div class="action-btn-v2" (click)="misHabilidades()">
+                <div class="a-icon bg-soft"><ion-icon name="ribbon-outline"></ion-icon></div>
+                <span class="a-label">Tu Nivel</span>
+             </div>
+          </div>
 
-            <!-- HERO 2: CAMPEONATOS -->
-            <div class="hero-booking-action tournament-hero animate-pop delay-1" (click)="goToCampeonatos()">
-               <div class="hero-btn-content">
-                 <div class="hero-icon-wrap trophy">🏆</div>
-                 <div class="hero-text-wrap">
-                   <h3>Campeonatos</h3>
-                   <p>Torneos y Americanos</p>
-                 </div>
-               </div>
-               <ion-icon name="arrow-forward"></ion-icon>
-            </div>
-         </div>
-
-         <div class="actions-grid-v2">
-            <!-- BOTÓN SECUNDARIO (AGENDAR CLASE) -->
-            <div class="action-btn-v2" (click)="goToAgenda()">
-               <div class="a-icon bg-soft"><ion-icon name="calendar-outline"></ion-icon></div>
-               <span class="a-label">Agendar Clase</span>
-            </div>
-            
-            <div class="action-btn-v2" (click)="goToMisClases()">
-               <div class="a-icon bg-soft"><ion-icon name="time-outline"></ion-icon></div>
-               <span class="a-label">Mi Agenda</span>
-            </div>
-            
-            <div class="action-btn-v2" (click)="misHabilidades()">
-               <div class="a-icon bg-soft"><ion-icon name="ribbon-outline"></ion-icon></div>
-               <span class="a-label">Tu Nivel</span>
-            </div>
-         </div>
+          <!-- HERO BUTTONS GRID -->
+          <div class="hero-actions-grid">
+             <!-- HERO 1: RESERVAR CANCHA -->
+             <div class="hero-booking-action animate-pulse" (click)="goToReservarCancha()">
+                <div class="hero-btn-content">
+                  <div class="hero-icon-wrap">🎾</div>
+                  <div class="hero-text-wrap">
+                    <h3>Reservar Cancha</h3>
+                    <p>Clubes y Disponibilidad</p>
+                  </div>
+                </div>
+                <ion-icon name="arrow-forward"></ion-icon>
+             </div>
+ 
+             <!-- HERO 2: CAMPEONATOS -->
+             <div class="hero-booking-action tournament-hero animate-pop delay-1" (click)="goToCampeonatos()">
+                <div class="hero-btn-content">
+                  <div class="hero-icon-wrap trophy">🏆</div>
+                  <div class="hero-text-wrap">
+                    <h3>Campeonatos</h3>
+                    <p>Torneos y Americanos</p>
+                  </div>
+                </div>
+                <ion-icon name="arrow-forward"></ion-icon>
+             </div>
+          </div>
       </div>
 
     </div>

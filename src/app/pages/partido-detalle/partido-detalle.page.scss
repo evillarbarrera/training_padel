@@ -1,0 +1,153 @@
+:host {
+  --nike-black: #000000;
+  --nike-white: #ffffff;
+  --nike-gray: #f8f8fa;
+  --nike-text-gray: #8e8e93;
+  --nike-neon: #ccff00;
+  --nike-border: #f1f1f7;
+  --nike-navy: #0f172a;
+}
+
+ion-content {
+  --background: #f4f5f9;
+  --color: var(--nike-black);
+  font-family: 'Outfit', sans-serif;
+}
+
+// 1. HERO HEADER
+.match-hero-v7 {
+  height: 220px; background-size: cover; background-position: center; position: relative;
+  &::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 60%); }
+}
+
+.main-scroll-container {
+    margin-top: -40px; border-radius: 40px 40px 0 0; background: #f4f5f9; position: relative; z-index: 10; padding: 25px 20px 120px;
+}
+
+// 2. MAIN MATCH CARD
+.match-main-card {
+    background: white; border-radius: 32px; padding: 30px 25px; margin-bottom: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+    
+    .status-alert-pill {
+        background: #eff6ff; color: #2563eb; border-radius: 12px; padding: 12px 20px; display: inline-flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; margin-bottom: 25px; width: 100%;
+        ion-icon { font-size: 18px; }
+    }
+
+    .match-type-header {
+        display: flex; align-items: center; gap: 15px; margin-bottom: 12px;
+        ion-icon { font-size: 24px; color: var(--nike-navy); }
+        h2 { margin: 0; font-size: 24px; font-weight: 950; text-transform: uppercase; letter-spacing: -1px; color: var(--nike-navy); }
+    }
+    .match-date-full { font-size: 15px; color: var(--nike-text-gray); font-weight: 600; margin-bottom: 25px; display: block; }
+
+    .meta-details-row {
+        display: flex; justify-content: space-between; padding-top: 20px; border-top: 1px solid var(--nike-border);
+        .meta-item {
+            text-align: center; flex: 1;
+            .m-label { font-size: 11px; font-weight: 800; color: var(--nike-text-gray); text-transform: uppercase; margin-bottom: 6px; display: block; }
+            .m-val { font-size: 18px; font-weight: 950; color: var(--nike-navy); }
+        }
+    }
+}
+
+// 3. SECONDARY INFO CARDS
+.info-strip-card {
+    background: white; border-radius: 20px; padding: 18px 25px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    .i-left { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 800; color: var(--nike-navy); ion-icon { font-size: 18px; opacity: 0.7; } }
+    .i-right { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #10b981; ion-icon { font-size: 16px; } }
+}
+
+.competitive-card {
+    background: white; border-radius: 24px; padding: 22px 25px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    .c-content { h3 { margin: 0; font-size: 17px; font-weight: 950; color: var(--nike-navy); } p { margin: 5px 0 0; font-size: 12px; color: var(--nike-text-gray); font-weight: 600; } }
+    ion-icon { font-size: 20px; color: var(--nike-text-gray); }
+}
+
+// 4. PLAYERS SECTION
+.players-section {
+    background: white; border-radius: 32px; padding: 30px 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+    .p-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; h2 { margin: 0; font-size: 20px; font-weight: 950; color: var(--nike-navy); } .edit-link { font-size: 14px; font-weight: 800; color: #2563eb; text-decoration: none; } }
+}
+
+.players-grid-v7 {
+    display: grid; grid-template-columns: 1fr 1px 1fr; gap: 20px; align-items: stretch;
+    .divider-v { background: var(--nike-border); width: 1px; height: 100%; }
+    
+    .team-column {
+        display: flex; flex-direction: column; gap: 30px;
+        .team-label { font-size: 16px; font-weight: 950; color: var(--nike-navy); margin-bottom: 15px; display: block; }
+    }
+}
+
+.player-slot-v7 {
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px;
+    .avatar-wrap {
+        width: 72px; height: 72px; border-radius: 50%; background: var(--nike-gray); border: 2px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: relative; overflow: visible;
+        img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .lvl-badge { position: absolute; bottom: -5px; right: -5px; background: var(--nike-neon); color: var(--nike-navy); font-size: 10px; font-weight: 950; padding: 3px 6px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .plus-btn { width: 100%; height: 100%; border-radius: 50%; border: 2px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #94a3b8; }
+    }
+    .p-name { font-size: 14px; font-weight: 800; color: var(--nike-navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; }
+    .p-status { font-size: 11px; font-weight: 600; color: var(--nike-text-gray); }
+    .inv-btn { font-size: 12px; font-weight: 800; color: #2563eb; margin-top: -5px; }
+}
+
+// 5. BACK BUTTON (PATTERN)
+.back-fab-v7 {
+  --background: #ffffff;
+  --color: #000000;
+  --border-radius: 50%;
+  --box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  width: 60px; height: 60px;
+  ion-icon { font-size: 24px; }
+}
+
+.animate-up { animation: up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes up { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+// SEARCH MODAL (COMPACT BOTTOM SHEET)
+ion-modal {
+  --border-radius: 40px 40px 0 0;
+  --height: 60%;
+  --background: #ffffff;
+}
+
+.search-modal-container {
+    padding: 15px 25px 30px; height: 100%; display: flex; flex-direction: column;
+    
+    // Grab Handle for Bottom Sheet feel
+    .grab-handle {
+        width: 40px; height: 5px; background: #e2e8f0; border-radius: 10px; margin: 0 auto 20px;
+    }
+
+    .s-header { 
+        display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; 
+        h2 { margin: 0; font-size: 20px; font-weight: 950; color: var(--nike-navy); letter-spacing: -0.5px; } 
+        .close-btn { font-size: 24px; color: var(--nike-navy); opacity: 0.5; } 
+    }
+    
+    .search-input-wrap {
+        background: var(--nike-gray); border-radius: 16px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; border: 1px solid var(--nike-border);
+        ion-icon { font-size: 18px; color: var(--nike-text-gray); }
+        input { background: transparent; border: none; width: 100%; font-size: 14px; font-weight: 700; outline: none; color: var(--nike-navy); }
+    }
+
+    .results-list {
+        flex: 1; overflow-y: auto;
+        .res-item {
+            display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid var(--nike-border); transition: all 0.2s ease;
+            &:active { opacity: 0.6; transform: translateX(5px); }
+            .r-avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+            .r-info { flex: 1; .r-name { font-size: 15px; font-weight: 950; color: var(--nike-navy); display: block; margin-bottom: 2px; } .r-role { font-size: 11px; font-weight: 700; color: var(--nike-text-gray); text-transform: uppercase; } }
+            .r-badge { background: var(--nike-neon); color: var(--nike-navy); font-size: 10px; font-weight: 950; padding: 5px 10px; border-radius: 10px; }
+            .r-coach { background: var(--nike-navy); color: var(--nike-neon); }
+        }
+    }
+
+    .modal-empty-state {
+        text-align: center; padding: 40px 20px; display: flex; flex-direction: column; align-items: center;
+        .empty-icon-circle { width: 80px; height: 80px; background: var(--nike-gray); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; ion-icon { font-size: 32px; color: var(--nike-text-gray); } }
+        h3 { font-size: 18px; font-weight: 950; color: var(--nike-navy); margin: 0 0 10px; }
+        p { font-size: 14px; color: var(--nike-text-gray); font-weight: 600; line-height: 1.5; margin: 0; }
+    }
+}

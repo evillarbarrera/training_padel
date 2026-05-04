@@ -245,8 +245,11 @@ export class JugadorReservasPage implements OnInit {
       })
     ).subscribe(({ reservas, perfil }) => {
       if (reservas) {
-        this.reservasIndividuales = reservas.reservas_individuales || [];
-        this.entrenamientosGrupales = (reservas.entrenamientos_grupales || []).map((eg: any) => ({
+        const todayStr = new Date().toISOString().split('T')[0];
+        this.reservasIndividuales = (reservas.reservas_individuales || []).filter((r:any) => r.fecha >= todayStr);
+        this.entrenamientosGrupales = (reservas.entrenamientos_grupales || [])
+          .filter((eg:any) => eg.fecha >= todayStr)
+          .map((eg: any) => ({
           ...eg,
           genero: this.detectarGenero(eg.pack_nombre || '', eg.categoria || '')
         }));
@@ -296,11 +299,13 @@ export class JugadorReservasPage implements OnInit {
     this.cargando = true;
     this.mysqlService.getReservasJugador(this.jugadorId).subscribe({
       next: (res: any) => {
-        const ahora = new Date();
+        const todayStr = new Date().toISOString().split('T')[0];
 
-        // Mostrar todas las reservas que entrega la API (que ya vienen filtradas por fecha relevante)
-        this.reservasIndividuales = res.reservas_individuales || [];
-        this.entrenamientosGrupales = (res.entrenamientos_grupales || []).map((eg: any) => ({
+        // Filter by date to ensure only upcoming/today sessions are shown
+        this.reservasIndividuales = (res.reservas_individuales || []).filter((r:any) => r.fecha >= todayStr);
+        this.entrenamientosGrupales = (res.entrenamientos_grupales || [])
+          .filter((eg:any) => eg.fecha >= todayStr)
+          .map((eg: any) => ({
           ...eg,
           genero: this.detectarGenero(eg.pack_nombre || '', eg.categoria || '')
         }));

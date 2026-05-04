@@ -1,151 +1,137 @@
+:host {
+  --nike-black: #000000;
+  --nike-white: #ffffff;
+  --nike-gray: #f8f8fa;
+  --nike-text-gray: #8e8e93;
+  --nike-neon: #ccff00;
+  --nike-border: #f1f1f7;
+  --nike-navy: #0f172a;
+}
+
 ion-content {
-    --background: #f8fafc;
+  --background: #fff;
+  --color: var(--nike-black);
+  font-family: 'Outfit', sans-serif;
 }
 
-// 0. FLOATING BACK BUTTON
-.floating-back-btn {
-    position: fixed; top: 50px; left: 15px; z-index: 999;
-    width: 44px; height: 44px; background: rgba(255,255,255,0.8);
-    backdrop-filter: blur(10px); border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: #0f172a; font-size: 24px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
-
-// 1. SEARCH HEADER
-.search-header-playtomic {
-    padding: 65px 20px 25px;
-    background: linear-gradient(180deg, #fff 0%, #f1f5f9 100%);
-    border-bottom: 2px solid #e2e8f0;
-
-    .search-input-wrapper {
-        display: flex; align-items: center; background: #fff; border-radius: 18px; 
-        padding: 12px 18px; gap: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.04);
-        border: 1px solid #f1f5f9;
-        input { border: none; background: transparent; flex: 1; font-size: 15px; color: #0f172a; outline: none; font-weight: 500; }
-        ion-icon { color: #6366f1; font-size: 20px; }
+// 1. DISCOVERY VIEW (APP PATTERN)
+.header-v2-discovery {
+  position: relative; padding: 80px 25px 100px; background-size: cover; background-position: center; overflow: hidden;
+  .h-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(15,23,42,0.6) 100%); z-index: 1; }
+  .h-content { 
+    position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: flex-start;
+    .h-left { 
+      .h-pre { font-size: 10px; font-weight: 950; color: var(--nike-neon); letter-spacing: 2px; margin-bottom: 6px; }
+      .h-title { font-size: 34px; font-weight: 950; color: #fff; letter-spacing: -1.5px; margin: 0; line-height: 1; }
     }
-
-    .priority-label {
-        margin-top: 15px; font-size: 13px; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 6px;
-        &::before { content: '•'; color: #ccff00; font-size: 20px; }
+    .h-avatar-mini { 
+      width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--nike-neon); overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      img { width: 100%; height: 100%; object-fit: cover; }
     }
+  }
 }
 
-// 2. DISCOVERY LIST
-.club-list-playtomic {
-    padding: 15px 0 40px;
+.discovery-body-v6 {
+  margin-top: -40px; position: relative; z-index: 10; background: #f4f7fa; border-radius: 40px 40px 0 0; padding: 30px 20px 100px; min-height: 500px;
+
+  .filters-row-v6 {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;
+    .filter-item-v6 {
+      background: #fff; border-radius: 18px; padding: 12px 15px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+      ion-icon { color: var(--nike-navy); opacity: 0.5; font-size: 18px; }
+      select { background: transparent; border: none; width: 100%; font-size: 13px; font-weight: 800; color: var(--nike-navy); outline: none; -webkit-appearance: none; }
+    }
+  }
+
+  .search-bar-v6 { 
+    background: #fff; border-radius: 20px; display: flex; align-items: center; padding: 15px 20px; gap: 12px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+    ion-icon { color: var(--nike-navy); font-size: 20px; opacity: 0.5; }
+    input { background: transparent; border: none; width: 100%; font-size: 15px; font-weight: 700; outline: none; }
+  }
 }
 
-.playtomic-card {
-    margin-bottom: 30px;
-    background: #fff;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.06);
-    border-radius: 24px;
-    overflow: hidden;
+.club-discovery-list {
+  padding: 10px 20px 120px;
+  .loading-state { text-align: center; padding: 40px; }
+  .club-card-v5 {
+    background: white; border-radius: 28px; overflow: hidden; margin-bottom: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.06); transition: all 0.3s ease;
+    &:active { transform: scale(0.97); }
+    .card-image-v5 {
+      height: 200px; background-image: linear-gradient(180deg, #f8fafc, #f1f5f9); background-size: cover; background-position: center; position: relative;
+      .card-overlay-v5 { position: absolute; inset: 0; background: linear-gradient(180deg, transparent, rgba(15,23,42,0.5)); }
+      .club-badges-v5 { position: absolute; top: 20px; left: 20px; .badge-v5 { background: var(--nike-neon); color: var(--nike-navy); padding: 6px 12px; border-radius: 10px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; } }
+    }
+    .card-info-v5 {
+      padding: 20px 22px;
+      .info-header {
+        display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+        h3 { margin: 0; font-size: 20px; font-weight: 900; color: var(--nike-navy); letter-spacing: -0.5px; }
+        .rating-v5 { display: flex; align-items: center; gap: 4px; ion-icon { color: #f59e0b; font-size: 16px; } span { font-weight: 800; font-size: 14px; color: var(--nike-navy); } }
+      }
+      .address-v5 { margin: 0; font-size: 13px; color: var(--nike-text-gray); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    }
+  }
+}
 
-    .p-card-image {
-        position: relative; height: 200px; overflow: hidden;
-        img { width: 100%; height: 100%; object-fit: cover; }
-        .p-overlay { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(15,23,42,0.8) 0%, transparent 60%); }
-        .p-club-name { position: absolute; bottom: 20px; left: 20px; margin: 0; color: #fff; font-size: 24px; font-weight: 900; letter-spacing: -1px; }
-        
-        .tournaments-badge {
-            position: absolute; top: 20px; right: 20px; background: #ccff00; color: #000;
-            padding: 8px 15px; border-radius: 12px; font-size: 11px; font-weight: 950;
-            display: flex; align-items: center; gap: 6px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+// 2. DETAIL VIEW
+.detail-hero-v6 { 
+  height: 250px; background-size: cover; background-position: center; position: relative; 
+  .hero-overlay-v6 { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(15,23,42,0.7), transparent); }
+  .fab-back-v6.right { 
+    position: absolute; top: 50px; right: 20px; z-index: 100;
+    width: 44px; height: 44px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-size: 24px; color: var(--nike-navy); backdrop-filter: blur(10px);
+  }
+}
+.detail-content-card {
+  margin-top: -30px; background: white; border-top-left-radius: 32px; border-top-right-radius: 32px; position: relative; z-index: 10; padding: 30px 25px 120px;
+  .club-info-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; h2 { margin: 0; font-size: 28px; font-weight: 950; color: var(--nike-navy); } .fav-icon-btn { font-size: 24px; color: var(--nike-navy); } }
+  .address-text { font-size: 14px; color: var(--nike-text-gray); font-weight: 600; margin-bottom: 30px; }
+  
+  .nike-tabs-v6 {
+    display: flex; gap: 25px; border-bottom: 1px solid var(--nike-border); margin-bottom: 30px;
+    .tab-item { padding: 12px 5px; font-size: 15px; font-weight: 900; color: var(--nike-text-gray); &.active { color: var(--nike-navy); border-bottom: 3px solid var(--nike-navy); } }
+  }
+
+  .section-title-v6 { font-size: 18px; font-weight: 950; color: var(--nike-navy); margin-bottom: 6px; }
+  .section-desc-v6 { font-size: 13px; color: var(--nike-text-gray); font-weight: 600; margin-bottom: 25px; }
+
+  .empty-state-v6 { text-align: center; padding: 50px 20px; color: var(--nike-text-gray); ion-icon { font-size: 40px; margin-bottom: 15px; opacity: 0.3; } p { font-weight: 600; font-size: 14px; } }
+
+  .tournament-list-v6 {
+    .t-card-v6 {
+      background: var(--nike-gray); border-radius: 24px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--nike-border);
+      .t-poster { height: 140px; background-size: cover; background-position: center; border-radius: 18px; margin-bottom: 15px; }
+      .t-main {
+        display: flex; justify-content: space-between; align-items: center;
+        .t-info {
+          h4 { margin: 0 0 6px; font-size: 17px; font-weight: 900; color: var(--nike-navy); }
+          .t-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--nike-text-gray); ion-icon { font-size: 14px; } .dot { opacity: 0.5; } }
+          .t-price { margin-top: 8px; font-size: 14px; font-weight: 900; color: var(--nike-navy); }
         }
+        .join-btn { background: var(--nike-navy); color: var(--nike-neon); padding: 12px 20px; border-radius: 12px; font-size: 11px; font-weight: 900; letter-spacing: 1px; }
+      }
+      .t-footer { margin-top: 15px; padding-top: 15px; border-top: 1px dashed rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; .p-count { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; color: var(--nike-text-gray); } .t-status { font-size: 10px; font-weight: 950; color: #10b981; } }
     }
-
-    .p-card-detail {
-        padding: 18px 20px;
-        .p-loc { margin: 0; font-size: 13px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    }
-
-    &.tournament-card {
-        margin: 0 20px 20px;
-        .p-card-image.mini {
-            height: 140px;
-            .t-badge {
-                position: absolute; top: 15px; left: 15px; 
-                background: #ccff00; color: #000; padding: 6px 12px;
-                border-radius: 10px; font-size: 10px; font-weight: 950;
-                &.orange { background: #ff7a00; color: #fff; }
-            }
-        }
-        .p-card-detail {
-            h3 { margin: 0; font-size: 18px; font-weight: 950; color: #0f172a; }
-            .p-loc { margin: 5px 0 12px !important; }
-            .p-availability-line {
-                background: #f8fafc; border-radius: 16px; padding: 15px; margin-bottom: 15px;
-                display: flex; align-items: center; justify-content: center;
-                .p-price { font-size: 14px; color: #1e293b; strong { color: #000; font-weight: 950; } }
-            }
-        }
-    }
+  }
 }
 
-// 3. DETAIL VIEW
-.club-detail-playtomic {
-    .detail-hero {
-        position: relative; height: 230px;
-        img { width: 100%; height: 100%; object-fit: cover; }
-        .share-icon { 
-            position: absolute; top: 50px; right: 20px; color: #0f172a; font-size: 26px; 
-            background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); padding: 8px; border-radius: 50%;
-        }
+// 3. PARTNER MODAL
+.partner-modal {
+  padding: 20px 25px 40px; height: 100%; display: flex; flex-direction: column;
+  .grab-handle { width: 40px; height: 5px; background: #e2e8f0; border-radius: 10px; margin: 0 auto 20px; }
+  .p-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; h2 { margin: 0; font-size: 22px; font-weight: 950; color: var(--nike-navy); } ion-icon { font-size: 24px; color: var(--nike-navy); opacity: 0.5; } }
+  .p-search { background: var(--nike-gray); border-radius: 16px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; margin-bottom: 25px; border: 1px solid var(--nike-border); ion-icon { color: var(--nike-text-gray); } input { background: transparent; border: none; width: 100%; outline: none; font-weight: 700; color: var(--nike-navy); } }
+  .p-results {
+    flex: 1; overflow-y: auto;
+    .p-item {
+      display: flex; align-items: center; gap: 15px; padding: 12px 0; border-bottom: 1px solid var(--nike-border);
+      img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
+      .p-info { flex: 1; .n { font-size: 15px; font-weight: 900; color: var(--nike-navy); display: block; } .r { font-size: 11px; color: var(--nike-text-gray); font-weight: 700; text-transform: uppercase; } }
+      ion-icon { color: var(--nike-navy); font-size: 20px; }
     }
-
-    .detail-info-block {
-        padding: 25px 20px; background: #fff; border-radius: 0 0 30px 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-        h1 { margin: 0; font-size: 30px; font-weight: 950; color: #0f172a; letter-spacing: -1.5px; }
-        .address-txt { margin: 10px 0 0; font-size: 14px; color: #475569; font-weight: 600; opacity: 0.8; }
-    }
-
-    .p-direct-courts-list {
-        padding: 30px 0;
-        .p-section-header-row { padding: 0 20px; margin-bottom: 20px; .p-section-title { font-size: 22px; font-weight: 950; } }
-    }
+    .empty-res { text-align: center; padding: 40px; color: var(--nike-text-gray); font-weight: 700; }
+  }
 }
 
-// 4. MODAL SEARCH
-.search-player-modal {
-    --height: 90%;
-    --border-radius: 30px 30px 0 0;
-    .search-modal-container {
-        height: 100%; display: flex; flex-direction: column; background: #fff;
-        .search-header {
-            padding: 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f1f5f9;
-            ion-icon { font-size: 22px; color: #6366f1; }
-            input { flex: 1; border: none; font-size: 17px; font-weight: 600; outline: none; }
-        }
-        .search-results-content {
-            .player-result-item {
-                display: flex; align-items: center; padding: 15px 20px; gap: 15px; border-bottom: 1px solid #f8fafc;
-                .p-avatar-wrap {
-                    position: relative; width: 48px; height: 48px;
-                    .p-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-                    .p-lvl { position: absolute; bottom: -2px; right: -2px; background: #ccff00; color: #000; font-size: 9px; font-weight: 950; padding: 2px 5px; border-radius: 6px; border: 2px solid #fff; }
-                }
-                .p-info { flex: 1; .p-name { font-size: 15px; font-weight: 800; } .p-cat { font-size: 12px; color: #64748b; } }
-                ion-icon { font-size: 24px; color: #6366f1; }
-            }
-        }
-    }
-}
-
-.nike-btn-black {
-    --background: #000; --color: #fff; --border-radius: 16px; --padding-top: 18px; --padding-bottom: 18px;
-    font-weight: 950; text-transform: uppercase; letter-spacing: 1px; font-size: 12px;
-}
-
-.empty-state {
-    padding: 60px 40px; text-align: center; color: #94a3b8;
-    ion-icon { font-size: 64px; opacity: 0.2; margin-bottom: 20px; }
-    p { font-size: 16px; font-weight: 700; }
-}
-
-.animate-up { animation: up 0.7s cubic-bezier(0.23, 1, 0.32, 1) both; }
-.animate-fade { animation: fade 0.4s ease both; }
-@keyframes up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.animate-up { animation: up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes up { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }

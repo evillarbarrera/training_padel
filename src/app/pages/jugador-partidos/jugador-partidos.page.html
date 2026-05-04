@@ -1,16 +1,8 @@
 <ion-content [fullscreen]="true">
-  <!-- FLOATING BACK BUTTON -->
-  <div class="fab-back-btn" (click)="goBack()">
-    <ion-icon name="arrow-back"></ion-icon>
-  </div>
-
-  <ion-refresher slot="fixed" (ionRefresh)="loadPartidos($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
-
-  <div class="stats-hero animate-fade">
+  
+  <div class="stats-hero">
     <div class="hero-bg-image">
-       <img src="https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?q=80&w=1200" alt="Padel Background">
+       <img src="assets/fondo-cancha.png" alt="Padel Background">
        <div class="hero-overlay"></div>
     </div>
     
@@ -26,439 +18,116 @@
             <span class="s-lbl">VICTORIAS</span>
           </div>
           <div class="stat-card">
-            <span class="s-val">{{ categoriaMasJugada }}</span>
-            <span class="s-lbl">CATEGORÍA</span>
+            <span class="s-val">{{ victorias > 0 ? (victorias / totalJugados * 100 | number:'1.0-0') : 0 }}%</span>
+            <span class="s-lbl">EFICIENCIA</span>
           </div>
-        </div>
-
-        <!-- Nivel AI Badge -->
-        <div class="level-ai-card animate-up">
-           <div class="lc-left">
-              <ion-icon name="sparkles-outline"></ion-icon>
-              <div>
-                <h3>Nivel Estimado</h3>
-                <p>Basado en tus últimos encuentros</p>
-              </div>
-           </div>
-           <div class="lc-right">
-              <span class="l-val">{{ categoriaMasJugada }}</span>
-           </div>
         </div>
     </div>
   </div>
 
-  <div class="matches-container">
-    <!-- TAB SELECTOR -->
-    <!-- TAB SELECTOR (REFINED) -->
-    <div class="ios-tabs-selector-premium">
-       <div class="tab-item" [class.active]="selectedTab === 'proximos'" (click)="selectedTab = 'proximos'">
-          PRÓXIMOS
-          <div class="tab-indicator" *ngIf="proximos.length > 0">{{ proximos.length }}</div>
-       </div>
-       <div class="tab-item" [class.active]="selectedTab === 'historial'" (click)="selectedTab = 'historial'">
-          HISTORIAL
-       </div>
-    </div>
-
-    <!-- PRÓXIMOS PARTIDOS TAB (EXPERT UX) -->
-    <div class="section-block animate-fade" *ngIf="selectedTab === 'proximos'">
-      <div *ngIf="proximos.length === 0 && !loading" class="empty-state-premium">
-        <div class="empty-icon"><ion-icon name="calendar-clear-outline"></ion-icon></div>
-        <h3>No hay partidos pronto</h3>
-        <p>Reserva una cancha o únete a un partido público para empezar a jugar.</p>
-        <ion-button fill="clear" color="primary" (click)="goToReservar()">Explorar Clubes</ion-button>
+  <div class="nike-tabs-container">
+    <div class="nike-tabs-row">
+      <div class="tab-item" [class.active]="selectedTab === 'proximos'" (click)="selectedTab = 'proximos'">
+        PRÓXIMOS
+        <div class="tab-badge" *ngIf="proximos.length > 0">{{ proximos.length }}</div>
       </div>
-
-      <div class="match-card-premium upcoming animate-up" *ngFor="let p of proximos" (click)="openMatchDetail(p)">
-        <div class="m-card-top">
-           <div class="m-date-badge">
-              <span class="m-day">{{ p.fecha | date:'d' }}</span>
-              <span class="m-month">{{ p.fecha | date:'MMM' | uppercase }}</span>
-           </div>
-           <div class="m-main-info">
-              <div class="m-club-row">
-                 <span class="m-club-name">{{ p.club_nombre }}</span>
-                 <ion-icon name="chevron-forward" class="m-arrow"></ion-icon>
-              </div>
-              <div class="m-time-meta">
-                 <ion-icon name="time-outline"></ion-icon>
-                 <span>{{ p.hora_inicio.slice(0,5) }} - {{ p.hora_fin.slice(0,5) }} HRS</span>
-              </div>
-           </div>
-        </div>
-
-        <div class="m-card-bottom">
-           <div class="m-player-stack">
-              <div class="p-avatar-circle" [style.z-index]="4" [title]="p.jugador1_nombre">
-                 <img [src]="p.jugador1_foto || 'assets/avatar.png'">
-              </div>
-              <div class="p-avatar-circle" [style.z-index]="3" [title]="p.jugador2_nombre" *ngIf="p.jugador2_id">
-                 <img [src]="p.jugador2_foto || 'assets/avatar.png'">
-              </div>
-              <div class="p-avatar-placeholder" [style.z-index]="2" *ngIf="!p.jugador2_id">
-                 <ion-icon name="add"></ion-icon>
-              </div>
-              <div class="p-avatar-circle" [style.z-index]="1" [title]="p.jugador3_nombre" *ngIf="p.jugador3_id">
-                 <img [src]="p.jugador3_foto || 'assets/avatar.png'">
-              </div>
-              <div class="p-avatar-placeholder" [style.z-index]="0" *ngIf="!p.jugador3_id">
-                 <ion-icon name="add"></ion-icon>
-              </div>
-           </div>
-           
-           <div class="m-status-pill" [class.complete]="isMatchComplete(p)">
-              <span *ngIf="isMatchComplete(p)">COMPLETO</span>
-              <span *ngIf="!isMatchComplete(p)">FALTAN {{ getMissingPlayersCount(p) }}</span>
-           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- HISTORIAL TAB (EXPERT UX) -->
-    <div class="section-block animate-fade" *ngIf="selectedTab === 'historial'">
-      <!-- History Header with compact filters -->
-      <div class="history-filters-premium">
-         <div class="f-pill active">Todos</div>
-         <div class="f-pill">Victorias</div>
-         <div class="f-pill">Clubes <ion-icon name="chevron-down"></ion-icon></div>
-      </div>
-
-      <div *ngIf="jugados.length === 0 && !loading" class="empty-state-premium">
-        <div class="empty-icon"><ion-icon name="trophy-outline"></ion-icon></div>
-        <h3>Sin historial aún</h3>
-        <p>Tus resultados aparecerán aquí después de jugar.</p>
-      </div>
-
-      <div class="match-card-premium played animate-up" *ngFor="let p of jugados">
-        <div class="m-card-played-content">
-           <div class="m-played-left">
-              <span class="m-played-date">{{ p.fecha | date:'dd/MM/yyyy' }}</span>
-              <h4 class="m-played-club">{{ p.club_nombre }}</h4>
-              <span class="m-played-cat" *ngIf="p.categoria">{{ p.categoria }}</span>
-           </div>
-
-           <div class="m-played-right">
-              <div class="result-badge-premium" *ngIf="p.resultado_registrado" [class.win]="isUserWinner(p)">
-                 <span class="r-text">{{ isUserWinner(p) ? 'W' : 'L' }}</span>
-                 <span class="r-score">{{ p.marcador }}</span>
-              </div>
-              
-              <ion-button fill="solid" class="btn-load-result" *ngIf="!p.resultado_registrado" (click)="openResultModal(p)">
-                 SUBIR RESULTADO
-              </ion-button>
-           </div>
-        </div>
-        
-        <div class="m-played-footer" *ngIf="p.resultado_registrado">
-           <div class="winner-info" *ngIf="p.id_ganador">
-              <ion-icon name="ribbon"></ion-icon>
-              <span>Ganó Dupla {{ p.id_ganador === 1 ? 'A' : 'B' }}</span>
-           </div>
-           <ion-icon name="ellipsis-horizontal" class="more-dots"></ion-icon>
-        </div>
+      <div class="tab-item" [class.active]="selectedTab === 'historial'" (click)="selectedTab = 'historial'">
+        HISTORIAL
       </div>
     </div>
   </div>
 
-  <!-- MODAL: CARGAR RESULTADO (Expert UX v3) -->
-  <ion-modal [isOpen]="showResultModal" (didDismiss)="showResultModal = false" class="ios-match-detail-premium">
-    <ng-template>
-      <div class="premium-modal-v3">
-        <!-- Brand Header -->
-        <div class="v3-header">
-           <div class="v3-header-top">
-              <ion-button fill="clear" (click)="showResultModal = false" class="v3-back-btn">
-                 <ion-icon name="arrow-back"></ion-icon>
-              </ion-button>
-              <div class="v3-inscription-pill">
-                 <ion-icon name="trophy"></ion-icon>
-                 <span>Finalizado</span>
-              </div>
-           </div>
+  <div class="matches-list">
+    
+    <!-- PRÓXIMOS -->
+    <div *ngIf="selectedTab === 'proximos'" class="animate-up">
+      <div *ngIf="proximos.length === 0 && !loading" style="text-align: center; padding: 40px; color: #8e8e93;">
+        No tienes partidos programados
+      </div>
+
+      <div class="match-card-v8" *ngFor="let p of proximos" (click)="router.navigate(['/partido-detalle', p.id])">
+        <div class="m-header">
+          <div class="m-date">
+            <span class="d-num">{{ p.fecha | date:'dd' }}</span>
+            <span class="d-mon">{{ p.fecha | date:'MMM' | uppercase }}</span>
+          </div>
+          <div class="m-info">
+            <h3>{{ p.club_nombre }}</h3>
+            <div class="m-meta">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>{{ p.hora_inicio.slice(0,5) }} HRS</span>
+            </div>
+          </div>
         </div>
-
-        <div class="v3-scroll-content">
-           <!-- Club Info -->
-           <div class="v3-match-hero-card">
-              <div class="vh-club-info">
-                 <img [src]="selectedMatch?.club_logo ? 'https://api.padelmanager.cl/' + selectedMatch.club_logo : 'assets/avatar.png'" class="vh-logo">
-                 <div class="vh-text">
-                    <h3>{{ selectedMatch?.club_nombre }}</h3>
-                    <p>Subir Resultado Final</p>
-                 </div>
-              </div>
-
-              <!-- 3 SET SCORING AREA -->
-              <div class="v3-scoring-container">
-                 <div class="v3-score-header">
-                    <span>SET 1</span>
-                    <span>SET 2</span>
-                    <span>SET 3</span>
-                 </div>
-                 
-                 <!-- Team A Row -->
-                 <div class="v3-score-row" [class.winner]="idGanador === 1">
-                    <div class="v3-team-info">
-                       <span class="t-name">EQUIPO A (TÚ)</span>
-                       <ion-icon name="ribbon" *ngIf="idGanador === 1"></ion-icon>
-                    </div>
-                    <div class="v3-set-inputs">
-                       <input type="number" [(ngModel)]="set1A" (change)="updateGanadorManual()" placeholder="0">
-                       <input type="number" [(ngModel)]="set2A" (change)="updateGanadorManual()" placeholder="0">
-                       <input type="number" [(ngModel)]="set3A" (change)="updateGanadorManual()" placeholder="0">
-                    </div>
-                 </div>
-
-                 <!-- Team B Row -->
-                 <div class="v3-score-row" [class.winner]="idGanador === 2">
-                    <div class="v3-team-info">
-                       <span class="t-name">EQUIPO B (RIVAL)</span>
-                       <ion-icon name="ribbon" *ngIf="idGanador === 2"></ion-icon>
-                    </div>
-                    <div class="v3-set-inputs">
-                       <input type="number" [(ngModel)]="set1B" (change)="updateGanadorManual()" placeholder="0">
-                       <input type="number" [(ngModel)]="set2B" (change)="updateGanadorManual()" placeholder="0">
-                       <input type="number" [(ngModel)]="set3B" (change)="updateGanadorManual()" placeholder="0">
-                    </div>
-                 </div>
-              </div>
-           </div>
-
-           <!-- Summary Section -->
-           <div class="v3-friendly-banner win" *ngIf="idGanador === 1">
-              <div class="fb-icon"><ion-icon name="sparkles"></ion-icon></div>
-              <div class="fb-text">
-                 <strong>¡Felicitaciones por la victoria!</strong>
-                 <p>Este resultado mejorará tu ranking en la academia.</p>
-              </div>
-           </div>
-
-           <!-- Save Button -->
-           <div class="v3-footer-actions">
-              <ion-button expand="block" class="v3-save-btn" (click)="saveResult()">
-                 Guardar y Notificar
-              </ion-button>
-              <p>Al guardar el resultado, se notificará a todos los jugadores del partido.</p>
-           </div>
+        <div class="m-footer">
+          <div class="player-stack">
+            <div class="p-avatar" *ngFor="let i of [1,2,3,4]">
+               <img *ngIf="p['jugador' + i + '_foto']" [src]="p['jugador' + i + '_foto']">
+               <div *ngIf="!p['jugador' + i + '_foto']" class="p-avatar placeholder"><ion-icon name="add"></ion-icon></div>
+            </div>
+          </div>
+          <div class="status-badge">
+            {{ isMatchComplete(p) ? 'Completo' : 'Faltan ' + getMissingPlayersCount(p) }}
+          </div>
         </div>
       </div>
-    </ng-template>
-  </ion-modal>
+    </div>
 
-  <!-- MODAL: BUSCAR JUGADOR (Expert UX Redesign) -->
-  <ion-modal [isOpen]="showSearchModal" (didDismiss)="showSearchModal = false" class="search-player-modal-premium">
-    <ng-template>
-      <div class="search-modal-premium-container">
-        <!-- Modern Header -->
-        <div class="s-header-premium">
-           <div class="s-input-wrapper">
-              <ion-icon name="search-outline" class="s-search-icon"></ion-icon>
-              <input type="text" placeholder="Busca tu próximo compañero..." [(ngModel)]="playerSearchTerm" (keyup)="onPlayerSearch()">
-              <div class="s-close-circle" (click)="showSearchModal = false">
-                 <ion-icon name="close"></ion-icon>
-              </div>
-           </div>
+    <!-- HISTORIAL -->
+    <div *ngIf="selectedTab === 'historial'" class="animate-up">
+      <div *ngIf="paginatedJugados.length === 0 && !loading" style="text-align: center; padding: 40px; color: #8e8e93;">
+        Aún no tienes historial de partidos
+      </div>
+
+      <div class="match-card-v8" *ngFor="let p of paginatedJugados">
+        <div class="m-header">
+          <div class="m-date">
+            <span class="d-num">{{ p.fecha | date:'dd' }}</span>
+            <span class="d-mon">{{ p.fecha | date:'MMM' | uppercase }}</span>
+          </div>
+          <div class="m-info">
+            <h3>{{ p.club_nombre }}</h3>
+            <div class="m-meta">
+              <ion-icon name="trophy-outline"></ion-icon>
+              <span>{{ p.categoria || 'Open' }}</span>
+            </div>
+          </div>
         </div>
+        <div class="m-footer">
+          <div class="player-stack" *ngIf="p.marcador">
+             <span style="font-size: 14px; font-weight: 950; color: #000;">{{ p.marcador }}</span>
+          </div>
+          <div class="status-badge" [class.win]="isWinner(p)" [class.loss]="!isWinner(p)">
+            {{ isWinner(p) ? 'Victoria' : 'Derrota' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGINATION CONTROLS (NIKE PREMIUM) -->
+      <div class="pagination-pills-container" *ngIf="totalPages > 1">
+        <button class="page-pill prev" (click)="prevPage()" [disabled]="currentPage === 1">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+          ANTERIOR
+        </button>
         
-        <ion-content class="s-results-premium-content">
-           <div class="p-result-card animate-fade" *ngFor="let p of playerResults; let i = index" 
-                [style.animation-delay]="(i * 0.05) + 's'"
-                (click)="selectPlayer(p)">
-              
-              <div class="p-avatar-main">
-                 <img [src]="p.foto_perfil || 'assets/avatar.png'" class="p-img">
-                 <div class="p-lvl-badge" 
-                      [class.cat-gold]="p.categoria?.includes('1') || p.categoria?.includes('2')"
-                      [class.cat-silver]="p.categoria?.includes('3') || p.categoria?.includes('4')"
-                      [class.cat-bronze]="p.categoria?.includes('5') || p.categoria?.includes('Iniciante')">
-                   {{ p.categoria?.slice(0,3) || '4ta' }}
-                 </div>
-              </div>
-
-              <div class="p-details">
-                 <span class="p-name-txt">{{ p.nombre }}</span>
-                 <div class="p-meta">
-                    <span class="p-tag"><ion-icon name="ribbon-outline"></ion-icon> {{ p.categoria || 'Nivel 4.0' }}</span>
-                    <span class="p-tag-dot">•</span>
-                    <span class="p-tag">Machalí</span>
-                 </div>
-              </div>
-
-              <div class="p-action-btn">
-                 <ion-icon name="add"></ion-icon>
-              </div>
-           </div>
-           
-           <!-- Empty State -->
-           <div class="s-empty-state" *ngIf="playerResults.length === 0 && playerSearchTerm.length > 1">
-              <div class="empty-icon-wrap">
-                 <ion-icon name="person-add-outline"></ion-icon>
-              </div>
-              <h3>No encontramos a nadie</h3>
-              <p>Prueba con otro nombre o invita <br> por enlace de WhatsApp.</p>
-           </div>
-
-           <!-- Initial State -->
-           <div class="s-empty-state" *ngIf="playerSearchTerm.length <= 1">
-              <div class="empty-icon-wrap">
-                 <ion-icon name="search-outline"></ion-icon>
-              </div>
-              <h3>Busca jugadores</h3>
-              <p>Ingresa el nombre del jugador para agregarlo a tu partido.</p>
-           </div>
-        </ion-content>
-      </div>
-    </ng-template>
-  </ion-modal>
-
-  <!-- MODAL: DETALLE PARTIDO (Expert UX v3 - Friendly & Easy) -->
-  <ion-modal [isOpen]="showDetailModal" (didDismiss)="showDetailModal = false" class="ios-match-detail-premium">
-    <ng-template>
-      <div class="premium-modal-v3">
-        <!-- New Vibrant Header -->
-        <div class="v3-header">
-           <div class="v3-header-top">
-              <ion-button fill="clear" (click)="showDetailModal = false" class="v3-back-btn">
-                 <ion-icon name="arrow-back"></ion-icon>
-              </ion-button>
-              <div class="v3-inscription-pill">
-                 <ion-icon name="checkmark-circle"></ion-icon>
-                 <span>Estás Inscrito</span>
-              </div>
-              <div class="v3-actions">
-                 <ion-icon name="share-social-outline" (click)="shareMatch()"></ion-icon>
-              </div>
-           </div>
+        <div class="page-indicator">
+          <span class="current">{{ currentPage }}</span>
+          <span class="divider">/</span>
+          <span class="total">{{ totalPages }}</span>
         </div>
 
-        <div class="v3-scroll-content">
-          <!-- Match Hero Card -->
-          <div class="v3-match-hero-card">
-             <div class="vh-club-info">
-                <img [src]="selectedMatch?.club_logo ? 'https://api.padelmanager.cl/' + selectedMatch.club_logo : 'assets/avatar.png'" class="vh-logo">
-                <div class="vh-text">
-                   <h3>{{ selectedMatch?.club_nombre }}</h3>
-                   <p>{{ selectedMatch?.fecha | date:'EEEE, d MMM':'':'es-ES' | uppercase }}</p>
-                </div>
-             </div>
-             
-             <div class="vh-stats-row">
-                <div class="vh-stat">
-                   <ion-icon name="time-outline"></ion-icon>
-                   <div class="vh-val-grp">
-                      <span class="v">{{ selectedMatch?.hora_inicio?.slice(0,5) }}</span>
-                      <span class="l">Hora</span>
-                   </div>
-                </div>
-                <div class="vh-stat">
-                   <ion-icon name="ribbon-outline"></ion-icon>
-                   <div class="vh-val-grp">
-                      <span class="v">{{ selectedMatch?.categoria || 'Open' }}</span>
-                      <span class="l">Nivel</span>
-                   </div>
-                </div>
-                <div class="vh-stat">
-                   <ion-icon name="wallet-outline"></ion-icon>
-                   <div class="vh-val-grp">
-                      <span class="v">$0</span>
-                      <span class="l">Precio</span>
-                   </div>
-                </div>
-             </div>
-          </div>
-
-          <!-- Competitive Banner (Friendly) -->
-          <div class="v3-friendly-banner" *ngIf="selectedMatch?.estado === 'Programado'">
-             <div class="fb-icon"><ion-icon name="trending-up-outline"></ion-icon></div>
-             <div class="fb-text">
-                <strong>Partido Competitivo</strong>
-                <p>Este resultado suma puntos a tu nivel personal.</p>
-             </div>
-          </div>
-
-          <!-- Teams Section (Friendly Logic) -->
-          <div class="v3-teams-section">
-             <div class="v3-section-header">
-                <h3>EQUIPOS</h3>
-                <span class="v3-edit-btn">Gestionar</span>
-             </div>
-
-             <div class="v3-teams-container">
-                <!-- TEAM A (TU EQUIPO) -->
-                <div class="v3-team-box team-a">
-                   <div class="v3-team-label">EQUIPO A</div>
-                   <div class="v3-player-row">
-                      <!-- Player 1 (You) -->
-                      <div class="v3-p-card active">
-                         <div class="v3-avatar-wrap">
-                            <img [src]="fotoPerfil || 'assets/avatar.png'" class="v3-img">
-                            <div class="v3-badge you">TÚ</div>
-                         </div>
-                         <span class="v3-name">{{ selectedMatch?.jugador1_nombre?.split(' ')[0] }}</span>
-                      </div>
-                      
-                      <!-- Player 2 (Partner) -->
-                      <div class="v3-p-card" *ngIf="selectedMatch?.jugador2_id">
-                        <div class="v3-avatar-wrap">
-                           <img [src]="selectedMatch?.jugador2_foto || 'assets/avatar.png'" class="v3-img">
-                           <div class="v3-badge">{{ selectedMatch?.jugador2_categoria?.slice(0,3) || '4ta' }}</div>
-                        </div>
-                        <span class="v3-name">{{ selectedMatch?.jugador2_nombre?.split(' ')[0] }}</span>
-                      </div>
-                      <div class="v3-p-card invite" *ngIf="!selectedMatch?.jugador2_id" (click)="openSearch(2)">
-                         <div class="v3-invite-circle"><ion-icon name="person-add"></ion-icon></div>
-                         <span class="v3-name">INVITAR</span>
-                      </div>
-                   </div>
-                </div>
-
-                <div class="v3-vs-badge">VS</div>
-
-                <!-- TEAM B (RIVALES) -->
-                <div class="v3-team-box team-b">
-                   <div class="v3-team-label">EQUIPO B</div>
-                   <div class="v3-player-row">
-                      <!-- Player 3 -->
-                      <div class="v3-p-card" *ngIf="selectedMatch?.jugador3_id">
-                        <div class="v3-avatar-wrap">
-                           <img [src]="selectedMatch?.jugador3_foto || 'assets/avatar.png'" class="v3-img">
-                           <div class="v3-badge">{{ selectedMatch?.jugador3_categoria?.slice(0,3) || '4ta' }}</div>
-                        </div>
-                        <span class="v3-name">{{ selectedMatch?.jugador3_nombre?.split(' ')[0] }}</span>
-                      </div>
-                      <div class="v3-p-card invite" *ngIf="!selectedMatch?.jugador3_id" (click)="openSearch(3)">
-                        <div class="v3-invite-circle"><ion-icon name="person-add"></ion-icon></div>
-                        <span class="v3-name">INVITAR</span>
-                      </div>
-
-                      <!-- Player 4 -->
-                      <div class="v3-p-card" *ngIf="selectedMatch?.jugador4_id">
-                        <div class="v3-avatar-wrap">
-                           <img [src]="selectedMatch?.jugador4_foto || 'assets/avatar.png'" class="v3-img">
-                           <div class="v3-badge">{{ selectedMatch?.jugador4_categoria?.slice(0,3) || '4ta' }}</div>
-                        </div>
-                        <span class="v3-name">{{ selectedMatch?.jugador4_nombre?.split(' ')[0] }}</span>
-                      </div>
-                      <div class="v3-p-card invite" *ngIf="!selectedMatch?.jugador4_id" (click)="openSearch(4)">
-                        <div class="v3-invite-circle"><ion-icon name="person-add"></ion-icon></div>
-                        <span class="v3-name">INVITAR</span>
-                      </div>
-                   </div>
-                </div>
-             </div>
-          </div>
-
-          <!-- Quick Actions Footer -->
-          <div class="v3-footer-actions animate-up">
-             <ion-button expand="block" class="v3-share-btn" (click)="shareMatch()">
-                <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
-                Compartir Partido
-             </ion-button>
-             <p>Invita a tus amigos para completar el partido más rápido.</p>
-          </div>
-        </div>
+        <button class="page-pill next" (click)="nextPage()" [disabled]="currentPage === totalPages">
+          SIGUIENTE
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+        </button>
       </div>
-    </ng-template>
-  </ion-modal>
+    </div>
+
+  </div>
+
+  <!-- FLOATING BACK BUTTON -->
+  <div class="fab-back-v8" (click)="goBack()">
+    <ion-icon name="chevron-back-outline"></ion-icon>
+  </div>
 
 </ion-content>

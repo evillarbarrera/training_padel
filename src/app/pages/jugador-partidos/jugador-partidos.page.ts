@@ -64,6 +64,13 @@ export class JugadorPartidosPage implements OnInit {
   set2B: number | null = null;
   set3A: number | null = null;
   set3B: number | null = null;
+  
+  // Pagination for History
+  paginatedJugados: any[] = [];
+  currentPage = 1;
+  pageSize = 5;
+  totalPages = 1;
+
   idGanador: number | null = null;
   
   // Player Search Modal
@@ -75,7 +82,7 @@ export class JugadorPartidosPage implements OnInit {
 
   constructor(
     private mysqlService: MysqlService,
-    private router: Router,
+    public router: Router,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
     private loadingCtrl: LoadingController,
@@ -142,6 +149,30 @@ export class JugadorPartidosPage implements OnInit {
     }
     if (this.filterFecha) {
         this.jugados = this.jugados.filter(p => p.fecha === this.filterFecha);
+    }
+
+    // Apply Pagination
+    this.totalPages = Math.ceil(this.jugados.length / this.pageSize);
+    this.paginate();
+  }
+
+  paginate() {
+    const start = (this.currentPage - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    this.paginatedJugados = this.jugados.slice(start, end);
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.paginate();
+    }
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.paginate();
     }
   }
 

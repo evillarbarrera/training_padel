@@ -23,7 +23,6 @@ import {
   AlertController
 } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
-import { Browser } from '@capacitor/browser';
 import { addIcons } from 'ionicons';
 import {
   personOutline,
@@ -312,8 +311,8 @@ export class PerfilPage implements OnInit {
         {
           text: 'Sí, Eliminar',
           role: 'destructive',
-          handler: async () => {
-            await Browser.open({ url: `https://api.padelmanager.cl/delete-account?user_id=${this.userId}` });
+          handler: () => {
+            window.open(`https://api.padelmanager.cl/delete-account?user_id=${this.userId}`, '_system');
           }
         }
       ]
@@ -340,12 +339,12 @@ export class PerfilPage implements OnInit {
     await alert.present();
   }
 
-  async openPrivacy() {
-    await Browser.open({ url: 'https://api.padelmanager.cl/privacy.html' });
+  openPrivacy() {
+    window.open('https://api.padelmanager.cl/privacy.html', '_system');
   }
 
-  async openTerms() {
-    await Browser.open({ url: 'https://api.padelmanager.cl/terms.html' });
+  openTerms() {
+    window.open('https://api.padelmanager.cl/terms.html', '_system');
   }
 
 }

@@ -1,0 +1,169 @@
+<ion-content [fullscreen]="true">
+  
+  <!-- HERO HEADER -->
+  <div class="match-hero-v7" [style.background-image]="'url(assets/fondo-cancha.png)'"></div>
+
+  <div class="main-scroll-container animate-up">
+    
+    <!-- MAIN MATCH CARD -->
+    <div class="match-main-card">
+        <div class="status-alert-pill">
+            <ion-icon name="information-circle"></ion-icon>
+            Estás inscrito a este partido
+        </div>
+
+        <div class="match-type-header">
+            <ion-icon name="tennisball-outline"></ion-icon>
+            <h2>PÁDEL</h2>
+        </div>
+        <span class="match-date-full" *ngIf="match">
+            {{ match.fecha | date:'EEEE, d MMMM' : '' : 'es' }} {{ formatTime(match.hora_inicio) }} - {{ formatTime(match.hora_fin) }}
+        </span>
+
+        <div class="meta-details-row">
+            <div class="meta-item">
+                <span class="m-label">Precio</span>
+                <span class="m-val">${{ match?.precio || '5.250' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATUS STRIPS -->
+    <div class="info-strip-card">
+        <div class="i-left">
+            <ion-icon name="lock-closed-outline"></ion-icon>
+            Partido Privado
+        </div>
+        <div class="i-right">
+            <ion-icon name="checkmark-circle"></ion-icon>
+            Pista reservada
+        </div>
+    </div>
+
+    <div class="competitive-card">
+        <div class="c-content">
+            <h3>Competitivo</h3>
+            <p>El resultado de este partido afectará al nivel</p>
+        </div>
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+    </div>
+
+    <!-- PLAYERS SECTION -->
+    <div class="players-section">
+        <div class="p-header">
+            <h2>Jugadores</h2>
+            <a href="javascript:void(0)" class="edit-link">Editar</a>
+        </div>
+
+        <div class="players-grid-v7" *ngIf="match">
+            <div class="team-column">
+                <span class="team-label">A</span>
+                <div class="player-slot-v7">
+                    <div class="avatar-wrap">
+                        <img [src]="match.jugador1_foto || 'assets/avatar.png'">
+                        <div class="lvl-badge">2,5</div>
+                    </div>
+                    <span class="p-name">{{ match.jugador1_nombre || 'Tú' }}</span>
+                </div>
+                <div class="player-slot-v7">
+                    <div class="avatar-wrap" (click)="openInvite(2)">
+                        <img *ngIf="match.jugador2_id" [src]="match.jugador2_foto || 'assets/avatar.png'">
+                        <div class="plus-btn" *ngIf="!match.jugador2_id">
+                            <ion-icon name="add"></ion-icon>
+                        </div>
+                    </div>
+                    <span class="p-name" *ngIf="match.jugador2_id">{{ match.jugador2_nombre }}</span>
+                    <span class="inv-btn" *ngIf="!match.jugador2_id" (click)="openInvite(2)">Invitar</span>
+                </div>
+            </div>
+
+            <div class="divider-v"></div>
+
+            <div class="team-column">
+                <span class="team-label">B</span>
+                <div class="player-slot-v7">
+                    <div class="avatar-wrap" (click)="openInvite(3)">
+                        <img *ngIf="match.jugador3_id" [src]="match.jugador3_foto || 'assets/avatar.png'">
+                        <div class="plus-btn" *ngIf="!match.jugador3_id">
+                            <ion-icon name="add"></ion-icon>
+                        </div>
+                    </div>
+                    <span class="p-name" *ngIf="match.jugador3_id">{{ match.jugador3_nombre }}</span>
+                    <span class="inv-btn" *ngIf="!match.jugador3_id" (click)="openInvite(3)">Invitar</span>
+                </div>
+                <div class="player-slot-v7">
+                    <div class="avatar-wrap" (click)="openInvite(4)">
+                        <img *ngIf="match.jugador4_id" [src]="match.jugador4_foto || 'assets/avatar.png'">
+                        <div class="plus-btn" *ngIf="!match.jugador4_id">
+                            <ion-icon name="add"></ion-icon>
+                        </div>
+                    </div>
+                    <span class="p-name" *ngIf="match.jugador4_id">{{ match.jugador4_nombre }}</span>
+                    <span class="inv-btn" *ngIf="!match.jugador4_id" (click)="openInvite(4)">Invitar</span>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- SEARCH MODAL -->
+  <ion-modal [isOpen]="showSearchModal" (didDismiss)="showSearchModal = false">
+    <ng-template>
+      <div class="search-modal-container">
+        <div class="grab-handle"></div>
+        <div class="s-header">
+          <h2>Invitar Jugador</h2>
+          <ion-icon name="close-outline" class="close-btn" (click)="showSearchModal = false"></ion-icon>
+        </div>
+
+        <div class="search-input-wrap">
+          <ion-icon name="search-outline"></ion-icon>
+          <input type="text" [(ngModel)]="playerSearchTerm" (input)="onSearch()" placeholder="Nombre, email o entrenador...">
+        </div>
+
+        <div class="results-list">
+          <div class="res-item animate-up" *ngFor="let p of playerResults" (click)="selectPlayer(p)">
+            <img [src]="p.foto_perfil || 'assets/avatar.png'" class="r-avatar">
+            <div class="r-info">
+              <span class="r-name">{{ p.nombre }}</span>
+              <span class="r-role">{{ p.rol === 'coach' ? 'Entrenador' : 'Jugador' }}</span>
+            </div>
+            <div class="r-badge" [class.r-coach]="p.rol === 'coach'">
+              {{ p.rol === 'coach' ? 'PRO' : 'LVL 2.5' }}
+            </div>
+          </div>
+
+          <div *ngIf="searching" style="text-align: center; padding: 20px;">
+            <ion-spinner name="crescent" color="dark"></ion-spinner>
+          </div>
+
+          <!-- INITIAL / EMPTY STATE (EXPERT UX) -->
+          <div *ngIf="!searching && playerSearchTerm.length < 3" class="modal-empty-state animate-up">
+            <div class="empty-icon-circle">
+                <ion-icon name="search-outline"></ion-icon>
+            </div>
+            <h3>Busca a tu equipo</h3>
+            <p>Encuentra jugadores o entrenadores inscritos para unirse al partido.</p>
+          </div>
+
+          <!-- NO RESULTS -->
+          <div *ngIf="!searching && playerSearchTerm.length >= 3 && playerResults.length === 0" class="modal-empty-state animate-up">
+            <div class="empty-icon-circle">
+                <ion-icon name="person-outline"></ion-icon>
+            </div>
+            <h3>Sin resultados</h3>
+            <p>No pudimos encontrar a "{{ playerSearchTerm }}".</p>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- FLOATING BACK BUTTON -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 5px; margin-right: 15px;">
+    <ion-fab-button (click)="goBack()" class="back-fab-v7">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

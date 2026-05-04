@@ -1,252 +1,89 @@
+:host {
+  --nike-black: #000000;
+  --nike-white: #ffffff;
+  --nike-gray: #f8f8fa;
+  --nike-text-gray: #8e8e93;
+  --nike-neon: #ccff00;
+  --nike-border: #f1f1f7;
+  --nike-navy: #0f172a;
+}
+
 ion-content {
-    --background: #f8fafc;
+  --background: #fff;
+  --color: var(--nike-black);
+  font-family: 'Outfit', sans-serif;
 }
 
-// 0. FLOATING BACK BUTTON (Premium Pop)
-.floating-back-btn {
-    position: fixed; top: 50px; left: 15px; z-index: 999;
-    width: 44px; height: 44px; background: rgba(255,255,255,0.8);
-    backdrop-filter: blur(10px); border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: #0f172a; font-size: 24px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+// LIST VIEW
+.header-search-v5 { padding: 60px 25px 20px; background: white; h1 { margin: 0; font-size: 28px; font-weight: 950; letter-spacing: -1px; text-transform: uppercase; } }
+.search-filters-container {
+  padding: 0 25px 20px;
+  .search-bar-v5 { background: var(--nike-gray); border-radius: 20px; display: flex; align-items: center; padding: 15px 20px; gap: 12px; margin-bottom: 20px; border: 1px solid var(--nike-border); ion-icon { color: var(--nike-black); font-size: 20px; opacity: 0.6; } input { background: transparent; border: none; width: 100%; font-size: 15px; font-weight: 600; outline: none; } .search-actions { display: flex; gap: 12px; ion-icon { opacity: 0.8; } } }
+  .quick-filters-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; &::-webkit-scrollbar { display: none; } .filter-pill { background: var(--nike-navy); color: #fff; padding: 10px 18px; border-radius: 14px; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 8px; white-space: nowrap; ion-icon { font-size: 16px; color: var(--nike-neon); } } }
+  .my-matches-btn-row {
+    margin-top: 15px;
+    .nike-btn-outline-full {
+      width: 100%; padding: 16px; border-radius: 16px; border: 1px solid var(--nike-border); background: transparent; color: var(--nike-navy); font-size: 13px; font-weight: 950; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s ease;
+      &:active { background: var(--nike-gray); transform: scale(0.98); }
+      ion-icon { font-size: 18px; color: var(--nike-navy); }
+    }
+  }
 }
 
-// 1. SEARCH HEADER (Glossy Look)
-.search-header-playtomic {
-    padding: 65px 20px 25px;
-    background: linear-gradient(180deg, #fff 0%, #f1f5f9 100%);
-    border-bottom: 2px solid #e2e8f0;
-
-    .search-input-wrapper {
-        display: flex; align-items: center; background: #fff; border-radius: 18px; 
-        padding: 12px 18px; gap: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.04);
-        border: 1px solid #f1f5f9;
-        input { border: none; background: transparent; flex: 1; font-size: 15px; color: #0f172a; outline: none; font-weight: 500; }
-        ion-icon { color: #6366f1; font-size: 20px; }
-        .right-icon { color: #0f172a; opacity: 0.6; }
-    }
-
-    .priority-label {
-        margin-top: 15px; font-size: 13px; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 6px;
-        &::before { content: '•'; color: #ccff00; font-size: 20px; }
-    }
-
-    .quick-access-matches {
-        margin-top: 20px;
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        border-radius: 18px; padding: 15px 20px;
-        display: flex; align-items: center; justify-content: space-between;
-        color: #fff; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
-        border: 1px solid rgba(255,255,255,0.1);
-        cursor: pointer;
-        transition: transform 0.2s;
-        &:active { transform: scale(0.97); }
-
-        .qa-content {
-            display: flex; align-items: center; gap: 15px;
-            .qa-icon {
-                width: 40px; height: 40px; background: rgba(204, 255, 0, 0.2);
-                border-radius: 12px; display: flex; align-items: center; justify-content: center;
-                color: #ccff00; font-size: 20px;
-            }
-            .qa-text {
-                h4 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: -0.3px; }
-                p { margin: 2px 0 0; font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 600; }
-            }
-        }
-        .qa-arrow { font-size: 20px; color: rgba(255,255,255,0.4); }
-    }
+.club-discovery-list { padding: 10px 20px 120px; }
+.club-card-v5 {
+  background: white; border-radius: 24px; overflow: hidden; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+  .club-banner-wrap { height: 220px; position: relative; background-size: cover; background-position: center; .banner-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.7) 100%); } .fav-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; color: #fff; } .club-title-overlay { position: absolute; bottom: 20px; left: 20px; margin: 0; color: #fff; font-size: 26px; font-weight: 950; letter-spacing: -1px; } .price-badge { position: absolute; bottom: 20px; right: 20px; text-align: right; color: #fff; .p-label { font-size: 10px; opacity: 0.8; font-weight: 700; } .p-val { font-size: 20px; font-weight: 950; display: block; } } }
+  .club-body-v5 { padding: 18px 20px; .club-loc { margin: 0; font-size: 14px; color: var(--nike-text-gray); font-weight: 600; } }
 }
 
-// 2. DISCOVERY LIST (Elevated Cards)
-.club-list-playtomic {
-    padding: 15px 0 40px;
+// DETAIL VIEW
+.detail-hero-v6 { height: 250px; background-size: cover; background-position: center; position: relative; }
+.detail-content-card {
+  margin-top: -30px; background: white; border-top-left-radius: 32px; border-top-right-radius: 32px; position: relative; z-index: 10; padding: 30px 25px 120px;
+  .club-info-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; h2 { margin: 0; font-size: 32px; font-weight: 950; letter-spacing: -1.5px; color: var(--nike-navy); } .fav-icon-btn { font-size: 28px; color: var(--nike-navy); } }
+  .address-text { font-size: 14px; color: var(--nike-text-gray); line-height: 1.5; font-weight: 600; margin-bottom: 30px; }
+  .nike-tabs-v6 { display: flex; gap: 25px; border-bottom: 1px solid var(--nike-border); margin-bottom: 30px; .tab-item { padding: 12px 5px; font-size: 16px; font-weight: 800; color: var(--nike-navy); border-bottom: 3px solid var(--nike-navy); } }
+  .date-selector-row { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; .calendar-btn { width: 55px; height: 75px; border: 1px solid var(--nike-border); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--nike-navy); } .dates-strip-v6 { display: flex; gap: 10px; overflow-x: auto; padding: 5px 0; &::-webkit-scrollbar { display: none; } .date-v6 { flex: 0 0 50px; height: 75px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; .d-name { font-size: 10px; font-weight: 800; color: var(--nike-text-gray); text-transform: uppercase; } .d-num { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; } &.active { .d-name { color: var(--nike-navy); } .d-num { background: var(--nike-navy); color: #fff; } } } } }
+  .filter-toggle-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; span { font-size: 14px; font-weight: 700; color: var(--nike-text-gray); } ion-toggle { --handle-background: #fff; --handle-background-checked: #fff; --track-background-checked: var(--nike-navy); } }
+  .time-grid-v6 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 35px; .time-item-v6 { aspect-ratio: 1; border: 1px solid var(--nike-border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; color: var(--nike-navy); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); &.active { background: var(--nike-navy); color: #fff; border-color: var(--nike-navy); transform: scale(1.1); box-shadow: 0 5px 15px rgba(15,23,42,0.2); } } }
+  .section-title-v6 { font-size: 20px; font-weight: 950; color: var(--nike-navy); margin-bottom: 8px; }
+  .section-desc-v6 { font-size: 13px; color: var(--nike-text-gray); font-weight: 600; margin-bottom: 25px; }
+
+  .court-durations {
+    display: flex; gap: 6px; margin-top: 10px;
+    .dur-chip {
+      padding: 5px 10px; border-radius: 6px; background: var(--nike-gray); border: 1px solid var(--nike-border); font-size: 10px; font-weight: 800; color: var(--nike-navy); transition: all 0.2s ease;
+      &.active { background: var(--nike-navy); color: var(--nike-neon); border-color: var(--nike-navy); }
+    }
+  }
+
+  .court-list-v6 { display: flex; flex-direction: column; .court-item-v6 { padding: 18px 0; border-bottom: 1px solid var(--nike-border); display: flex; justify-content: space-between; align-items: center; .c-info { h4 { margin: 0; font-size: 16px; font-weight: 900; color: var(--nike-navy); } p { margin: 4px 0 0; font-size: 12px; color: var(--nike-text-gray); font-weight: 600; } } .reserve-mini-btn { background: var(--nike-navy); color: var(--nike-neon); padding: 8px 16px; border-radius: 10px; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; &.disabled { background: #f1f5f9; color: #94a3b8; } } } }
 }
 
-.playtomic-card {
-    margin-bottom: 30px;
-    background: #fff;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.06);
-    border-radius: 0 0 24px 24px;
-
-    .p-card-image {
-        position: relative; height: 240px; overflow: hidden;
-        img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
-        .p-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; background: linear-gradient(0deg, rgba(15,23,42,0.9) 0%, transparent 100%); }
-        .p-club-name { position: absolute; bottom: 20px; left: 20px; margin: 0; color: #fff; font-size: 28px; font-weight: 900; letter-spacing: -1.2px; text-shadow: 0 4px 10px rgba(0,0,0,0.4); }
-        .p-fav-icon { position: absolute; top: 20px; right: 20px; color: #fff; font-size: 28px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
-        &:active img { transform: scale(1.05); }
-    }
-
-    .p-card-detail {
-        padding: 20px;
-        .p-loc { margin: 0 0 15px; font-size: 14px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .p-availability-line {
-            background: rgba(99, 102, 241, 0.05); border-radius: 16px; padding: 18px; display: flex; align-items: center; gap: 15px;
-            border: 1px dashed rgba(99, 102, 241, 0.2);
-            &::before { content: 'i'; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); color: #fff; border-radius: 50%; font-size: 12px; font-weight: 900; }
-            .p-price { font-size: 15px; color: #1e293b; strong { font-weight: 900; color: #000; } }
-            &::after { flex: 1; font-size: 14px; color: #475569; font-weight: 600; text-align: right; }
-        }
-    }
+// SUCCESS MODAL PREMIUM
+.success-overlay-pro {
+  position: fixed; inset: 0; background: rgba(15,23,42,0.95); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 25px;
+  .success-card-pro {
+    background: white; width: 100%; max-width: 400px; border-radius: 40px; padding: 40px 30px; text-align: center;
+    .icon-wrap { width: 100px; height: 100px; background: var(--nike-neon); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; ion-icon { font-size: 50px; color: var(--nike-navy); } }
+    h2 { font-size: 32px; font-weight: 950; letter-spacing: -1.5px; margin: 0 0 15px; color: var(--nike-navy); text-transform: uppercase; }
+    p { font-size: 16px; color: var(--nike-text-gray); font-weight: 600; line-height: 1.5; margin-bottom: 35px; }
+    .res-summary-box { background: var(--nike-gray); border-radius: 24px; padding: 20px; margin-bottom: 35px; text-align: left; .s-label { font-size: 11px; font-weight: 800; color: var(--nike-text-gray); text-transform: uppercase; margin-bottom: 4px; display: block; } .s-val { font-size: 16px; font-weight: 900; color: var(--nike-navy); margin-bottom: 12px; display: block; &:last-child { margin-bottom: 0; } } }
+    .action-btns { display: flex; flex-direction: column; gap: 12px; .nike-btn-pro { background: var(--nike-navy); color: var(--nike-neon); padding: 20px; border-radius: 18px; font-size: 15px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; } .nike-btn-outline { background: transparent; color: var(--nike-navy); padding: 15px; border-radius: 18px; font-size: 14px; font-weight: 800; } }
+  }
 }
 
-// 3. DETAIL PLAYTOMIC
-.club-detail-playtomic {
-
-    .detail-hero {
-        position: relative; height: 230px;
-        img { width: 100%; height: 100%; object-fit: cover; }
-        .share-icon { 
-            position: absolute; top: 50px; right: 20px; color: #0f172a; font-size: 26px; 
-            background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); padding: 8px; border-radius: 50%;
-        }
-    }
-
-    .detail-info-block {
-        padding: 25px 20px; background: #fff; border-radius: 0 0 30px 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-        .title-row {
-            display: flex; justify-content: space-between; align-items: center;
-            h1 { margin: 0; font-size: 30px; font-weight: 950; color: #0f172a; letter-spacing: -1.5px; }
-            ion-icon { font-size: 28px; color: #ef4444; }
-        }
-        .address-txt { margin: 10px 0 0; font-size: 14px; color: #475569; font-weight: 600; line-height: 1.5; opacity: 0.8; }
-    }
-
-    .detail-tabs-wrapper {
-        margin-top: 20px; background: #fff; border-bottom: 2px solid #f1f5f9;
-        .p-tabs {
-            display: flex; gap: 30px; padding: 0 25px;
-            .p-tab {
-                padding: 18px 0; font-size: 16px; font-weight: 900; color: #94a3b8; border-bottom: 4px solid transparent;
-                &.active { color: #0f172a; border-color: #ccff00; }
-            }
-        }
-    }
-
-    .p-date-scroller {
-        padding: 25px 0; background: #fff; border-bottom: 1px solid #f1f5f9; overflow-x: auto;
-        .p-date-track {
-            display: flex; gap: 18px; padding: 0 20px;
-            .p-date-item {
-                display: flex; flex-direction: column; align-items: center; gap: 10px;
-                .p-day-name { font-size: 12px; font-weight: 800; color: #64748b; }
-                .p-day-circle {
-                    width: 52px; height: 52px; border-radius: 50%; border: 2px solid #f1f5f9;
-                    display: flex; align-items: center; justify-content: center;
-                    font-size: 17px; font-weight: 950; color: #0f172a;
-                    background: #fff;
-                }
-                .p-month-name { font-size: 11px; font-weight: 800; color: #94a3b8; }
-                &.active {
-                    .p-day-circle { background: #0f172a; border-color: #ccff00; color: #fff; transform: scale(1.15); }
-                }
-            }
-        }
-    }
-
-    .p-direct-courts-list {
-        padding: 25px 20px 40px; background: #f8fafc;
-        
-        .p-section-header-row {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;
-            .p-section-title { font-size: 22px; font-weight: 950; color: #0f172a; margin: 0; }
-            
-            .show-occupied-toggle {
-                display: flex; align-items: center; gap: 8px;
-                span { font-size: 11px; font-weight: 900; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
-                
-                .mini-toggle {
-                    width: 34px; height: 18px; background: #e2e8f0; border-radius: 20px; position: relative;
-                    transition: all 0.3s;
-                    .toggle-dot { 
-                        position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; 
-                        background: #fff; border-radius: 50%; transition: all 0.3s;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                    }
-                    &.active {
-                        background: #ccff00;
-                        .toggle-dot { left: calc(100% - 15px); }
-                    }
-                }
-            }
-        }
-        
-        .p-court-booking-block {
-            margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 18px;
-            box-shadow: 0 8px 15px rgba(0,0,0,0.02); border: 1px solid #f1f5f9;
-            transition: all 0.3s ease;
-
-            &.is-expanded { border-left: 5px solid #ccff00; box-shadow: 0 12px 30px rgba(0,0,0,0.05); }
-
-            .p-court-header {
-                display: flex; align-items: center; justify-content: space-between;
-                .c-info {
-                    h4 { margin: 0; font-size: 17px; font-weight: 800; color: #0f172a; }
-                    p { margin: 3px 0 0; font-size: 12px; color: #6366f1; font-weight: 800; }
-                }
-                ion-icon { font-size: 20px; color: #94a3b8; }
-            }
-
-            .p-court-body-expand {
-                padding-top: 20px;
-                .p-court-slots {
-                    display: grid;
-                    grid-template-columns: repeat(6, 1fr); // HIGHEST DENSITY
-                    gap: 8px;
-                    
-                    .p-slot-chip {
-                        aspect-ratio: 1 / 1; width: 100%; border-radius: 50%; 
-                        border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center;
-                        font-size: 10px; font-weight: 950; color: #0f172a;
-                        background: #fff;
-                        transition: all 0.2s;
-                        &:active { background: #0f172a; color: #ccff00; transform: scale(0.85); }
-
-                        &.is-occupied {
-                            background: #f1f5f9; border-color: #f1f5f9; color: #94a3b8; opacity: 0.6;
-                            &::after { content: '•'; position: absolute; bottom: 5px; font-size: 14px; color: #ef4444; }
-                        }
-                    }
-                }
-                .p-no-slots { font-size: 13px; color: #94a3b8; font-weight: 500; text-align: center; padding: 15px 0; }
-            }
-        }
-    }
+// BACK BUTTON (GENERAL PATTERN: WHITE CIRCLE + BLACK ICON)
+.back-fab {
+  --background: #ffffff;
+  --color: #000000;
+  --border-radius: 50%;
+  --box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+  width: 60px;
+  height: 60px;
+  ion-icon { font-size: 24px; }
 }
 
-// 4. TOURNAMENTS
-.tournament-card {
-    border-radius: 24px !important;
-    overflow: hidden;
-    .p-card-image.mini {
-        height: 140px;
-        .t-badge {
-            position: absolute; top: 15px; left: 15px; 
-            background: #ccff00; color: #000; padding: 6px 12px;
-            border-radius: 10px; font-size: 10px; font-weight: 950;
-            letter-spacing: 0.5px; z-index: 2; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            &.orange { background: #ff7a00; color: #fff; }
-        }
-    }
-    .p-card-detail {
-        padding: 15px 20px;
-        h3 { margin: 0; font-size: 18px; font-weight: 950; color: #0f172a; letter-spacing: -0.5px; }
-        .p-loc { margin: 5px 0 12px !important; font-size: 13px !important; }
-        .p-availability-line {
-            padding: 12px 15px;
-            &::before { content: '🏆'; background: transparent; font-size: 16px; }
-        }
-    }
-}
-
-.events-elite-list {
-    padding: 20px; background: #f8fafc;
-}
-
-// ANIMATIONS
-.animate-up { animation: up 0.7s cubic-bezier(0.23, 1, 0.32, 1) both; }
-.animate-fade { animation: fade 0.4s ease both; }
-@keyframes up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.animate-up { animation: up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes up { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
