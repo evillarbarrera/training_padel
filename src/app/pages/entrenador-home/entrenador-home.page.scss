@@ -1370,7 +1370,11 @@ ion-fab {
   margin-bottom: 30px;
   
   .v2-card-header {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 25px;
+    padding: 0 4px;
     .v2-subtitle { font-size: 11px; font-weight: 950; color: #000; text-transform: uppercase; letter-spacing: 1.5px; margin: 0; opacity: 0.8; }
     .v2-status-dot { width: 8px; height: 8px; background: #CCFF00; border-radius: 50%; box-shadow: 0 0 10px #CCFF00; &.pulse { animation: dot-pulse 2s infinite; } }
   }
@@ -1378,47 +1382,54 @@ ion-fab {
 
 .actions-grid-v2 {
   display: grid;
-  grid-template-columns: 1.2fr 0.9fr 0.9fr; 
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 20px;
+  row-gap: 25px;
+  margin-bottom: 10px;
 
   .action-btn-v2 {
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 12px;
+    transition: all 0.2s ease;
+
     &:active .a-icon { transform: scale(0.92); }
 
     .a-icon {
-      width: 58px; height: 58px;
-      border-radius: 20px;
-      display: flex; align-items: center; justify-content: center;
+      width: 62px; 
+      height: 62px;
+      border-radius: 22px;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
       
       &.bg-hero { 
         background: #CCFF00; 
-        ion-icon { 
-          color: #000 !important; 
-          --color: #000 !important; 
-          position: relative;
-          z-index: 10;
-        } 
         box-shadow: 0 8px 20px rgba(204, 255, 0, 0.3); 
+        ion-icon { color: #000; }
       }
       &.bg-soft { 
-        background: #f2f2f7; 
-        ion-icon { 
-          color: #000 !important; 
-          --color: #000 !important; 
-          position: relative;
-          z-index: 10;
-        } 
-        border: 1px solid rgba(0,0,0,0.02); 
+        background: #f8f8fa; 
+        border: 1px solid #f1f1f7;
+        ion-icon { color: #000; }
       }
       ion-icon { 
-        font-size: 26px; color: #000 !important; --color: #000 !important; 
-        position: relative; z-index: 10;
+        font-size: 26px;
       }
     }
 
-    &.hero-action { span { color: #000; font-weight: 950; } }
-    span { font-size: 10px; font-weight: 800; color: #555; letter-spacing: -0.2px; text-align: center; }
+    &.hero-action span { color: #000; font-weight: 950; }
+    span { 
+      font-size: 11px; 
+      font-weight: 800; 
+      color: #555; 
+      letter-spacing: -0.2px; 
+      text-align: center;
+      text-transform: uppercase;
+    }
   }
 }
 
@@ -1458,4 +1469,82 @@ ion-fab {
   0% { transform: scale(0.9); opacity: 0.5; }
   50% { transform: scale(1.1); opacity: 1; }
   100% { transform: scale(0.9); opacity: 0.5; }
+}
+
+/* -- HERO ACTIONS GRID -- */
+.hero-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 1px solid #f2f2f7;
+
+  .hero-booking-action {
+    background: #ccff00;
+    background: linear-gradient(135deg, #ccff00 0%, #a8e600 100%);
+    padding: 22px 18px;
+    border-radius: 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 155px;
+    box-shadow: 0 12px 30px rgba(204, 255, 0, 0.25);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+
+    &:active { transform: scale(0.96); box-shadow: 0 5px 15px rgba(204, 255, 0, 0.15); }
+
+    .hero-btn-content {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
+
+      .hero-icon-wrap {
+        width: 48px;
+        height: 48px;
+        background: rgba(0,0,0,0.06);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        &.trophy { background: rgba(255,255,255,0.1); }
+      }
+
+      .hero-text-wrap {
+        margin-top: 20px;
+        h3 { margin: 0; color: #000; font-weight: 950; font-size: 16px; letter-spacing: -0.5px; text-transform: uppercase; line-height: 1.1; }
+        p { margin: 4px 0 0; color: rgba(0,0,0,0.6); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+      }
+    }
+
+    ion-icon[name="arrow-forward"] {
+      position: absolute;
+      top: 22px;
+      right: 18px;
+      color: #000;
+      font-size: 20px;
+      opacity: 0.4;
+    }
+
+    &.tournament-hero {
+      background: #111;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+      
+      .hero-icon-wrap { 
+        background: rgba(255, 255, 255, 0.1); 
+        font-size: 24px;
+        box-shadow: inset 0 0 10px rgba(255,255,255,0.05);
+      }
+      .hero-text-wrap {
+        h3 { color: #ffffff !important; }
+        p { color: #94a3b8 !important; }
+      }
+      ion-icon[name="arrow-forward"] { color: #ccff00; opacity: 1; }
+    }
+  }
 }

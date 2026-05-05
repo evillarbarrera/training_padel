@@ -31,6 +31,10 @@
         PRÓXIMOS
         <div class="tab-badge" *ngIf="proximos.length > 0">{{ proximos.length }}</div>
       </div>
+      <div class="tab-item" [class.active]="selectedTab === 'pendientes'" (click)="selectedTab = 'pendientes'">
+        EVALUAR
+        <div class="tab-badge" *ngIf="pendientes.length > 0" style="background: #ef4444;">{{ pendientes.length }}</div>
+      </div>
       <div class="tab-item" [class.active]="selectedTab === 'historial'" (click)="selectedTab = 'historial'">
         HISTORIAL
       </div>
@@ -54,7 +58,9 @@
           <div class="m-info">
             <h3>{{ p.club_nombre }}</h3>
             <div class="m-meta">
-              <ion-icon name="time-outline"></ion-icon>
+              <ion-icon name="location-outline"></ion-icon>
+              <span>{{ p.cancha_nombre || 'Cancha por asignar' }}</span>
+              <ion-icon name="time-outline" style="margin-left: 10px;"></ion-icon>
               <span>{{ p.hora_inicio.slice(0,5) }} HRS</span>
             </div>
           </div>
@@ -68,6 +74,38 @@
           </div>
           <div class="status-badge">
             {{ isMatchComplete(p) ? 'Completo' : 'Faltan ' + getMissingPlayersCount(p) }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POR EVALUAR (PENDIENTES) -->
+    <div *ngIf="selectedTab === 'pendientes'" class="animate-up">
+      <div *ngIf="pendientes.length === 0 && !loading" style="text-align: center; padding: 40px; color: #8e8e93;">
+        No tienes partidos pendientes de resultado.
+      </div>
+
+      <div class="match-card-v8" *ngFor="let p of pendientes">
+        <div class="m-header">
+          <div class="m-date">
+            <span class="d-num">{{ p.fecha | date:'dd' }}</span>
+            <span class="d-mon">{{ p.fecha | date:'MMM' | uppercase }}</span>
+          </div>
+          <div class="m-info">
+            <h3>{{ p.club_nombre }}</h3>
+            <div class="m-meta">
+              <ion-icon name="location-outline"></ion-icon>
+              <span>{{ p.cancha_nombre || 'Cancha por asignar' }}</span>
+              <ion-icon name="time-outline" style="margin-left: 10px;"></ion-icon>
+              <span>{{ p.hora_inicio.slice(0,5) }} HRS</span>
+            </div>
+          </div>
+        </div>
+        <div class="m-footer">
+          <div class="player-stack" style="flex: 1;">
+             <ion-button size="small" fill="solid" (click)="openResultModal(p)" style="--background: #ccff00; --color: #0f172a; font-weight: 900; --border-radius: 8px; margin: 0; width: 100%; box-shadow: none;">
+                REGISTRAR RESULTADO
+             </ion-button>
           </div>
         </div>
       </div>
@@ -88,7 +126,9 @@
           <div class="m-info">
             <h3>{{ p.club_nombre }}</h3>
             <div class="m-meta">
-              <ion-icon name="trophy-outline"></ion-icon>
+              <ion-icon name="location-outline"></ion-icon>
+              <span>{{ p.cancha_nombre || 'Cancha por asignar' }}</span>
+              <ion-icon name="trophy-outline" style="margin-left: 10px;"></ion-icon>
               <span>{{ p.categoria || 'Open' }}</span>
             </div>
           </div>
@@ -97,8 +137,14 @@
           <div class="player-stack" *ngIf="p.marcador">
              <span style="font-size: 14px; font-weight: 950; color: #000;">{{ p.marcador }}</span>
           </div>
-          <div class="status-badge" [class.win]="isWinner(p)" [class.loss]="!isWinner(p)">
+          <div class="player-stack" *ngIf="!p.marcador">
+             <ion-button size="small" fill="clear" (click)="openResultModal(p)" style="--color: #000; font-weight: 700; --padding-start: 0; margin: 0; height: 25px;">Ingresar Resultado</ion-button>
+          </div>
+          <div class="status-badge" [class.win]="isWinner(p)" [class.loss]="!isWinner(p)" *ngIf="p.marcador">
             {{ isWinner(p) ? 'Victoria' : 'Derrota' }}
+          </div>
+          <div class="status-badge" style="background: #eee; color: #888;" *ngIf="!p.marcador">
+            Sin resultado
           </div>
         </div>
       </div>
@@ -124,6 +170,68 @@
     </div>
 
   </div>
+
+  <!-- RESULT MODAL -->
+  <ion-modal [isOpen]="showResultModal" (didDismiss)="showResultModal = false" class="premium-result-modal">
+    <ng-template>
+      <div class="result-modal-container">
+        
+        <div class="modal-header">
+          <h2>Registrar Marcador</h2>
+          <div class="close-btn" (click)="showResultModal = false">
+            <ion-icon name="close-outline"></ion-icon>
+          </div>
+        </div>
+
+        <div class="modal-body">
+          <div class="category-selector">
+            <label>Categoría</label>
+            <div class="select-wrapper">
+              <select [(ngModel)]="categoria">
+                <option value="Amistoso">Amistoso (Práctica)</option>
+                <option value="Iniciacion">Iniciación (Principiante)</option>
+                <option value="Intermedio">Intermedio (Amateur)</option>
+                <option value="Competitivo">Competitivo (Avanzado)</option>
+                <option value="Open">Open (Libre / Pro)</option>
+              </select>
+              <ion-icon name="chevron-down-outline"></ion-icon>
+            </div>
+          </div>
+
+          <div class="scoreboard-container">
+            <div class="sb-header-row">
+              <div class="sb-col empty"></div>
+              <div class="sb-col">S1</div>
+              <div class="sb-col">S2</div>
+              <div class="sb-col">S3</div>
+            </div>
+
+            <!-- Nosotros -->
+            <div class="sb-row">
+              <div class="team-label">Tú / Eq.1</div>
+              <div class="score-input"><input type="number" [(ngModel)]="set1A" placeholder="-"></div>
+              <div class="score-input"><input type="number" [(ngModel)]="set2A" placeholder="-"></div>
+              <div class="score-input"><input type="number" [(ngModel)]="set3A" placeholder="-"></div>
+            </div>
+
+            <!-- Rivales -->
+            <div class="sb-row mt-3">
+              <div class="team-label">Rivales</div>
+              <div class="score-input"><input type="number" [(ngModel)]="set1B" placeholder="-"></div>
+              <div class="score-input"><input type="number" [(ngModel)]="set2B" placeholder="-"></div>
+              <div class="score-input"><input type="number" [(ngModel)]="set3B" placeholder="-"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-save-result" (click)="saveResult()">
+            GUARDAR RESULTADO
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
 
   <!-- FLOATING BACK BUTTON -->
   <div class="fab-back-v8" (click)="goBack()">

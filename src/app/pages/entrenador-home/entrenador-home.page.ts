@@ -23,7 +23,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, add, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline, close, locationOutline, cardOutline, flashOutline, logoWhatsapp, timeOutline, alertCircleOutline, pricetagsOutline, statsChartOutline, informationCircleOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, add, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline, close, locationOutline, cardOutline, flashOutline, logoWhatsapp, timeOutline, alertCircleOutline, pricetagsOutline, statsChartOutline, informationCircleOutline, tennisballOutline, trophyOutline, chevronForward } from 'ionicons/icons';
 
 import { environment } from 'src/environments/environment';
 
@@ -110,7 +110,10 @@ export class EntrenadorHomePage {
       alertCircleOutline,
       pricetagsOutline,
       statsChartOutline,
-      informationCircleOutline
+      informationCircleOutline,
+      tennisballOutline,
+      trophyOutline,
+      chevronForward
     });
   }
 
@@ -443,6 +446,14 @@ export class EntrenadorHomePage {
 
   goToPerfil() {
     this.router.navigate(['/perfil']);
+  }
+  
+  goToReservas() {
+    this.router.navigate(['/clubes-reservar']);
+  }
+  
+  goToTorneos() {
+    this.router.navigate(['/jugador-campeonatos']);
   }
 
   openFinance() {

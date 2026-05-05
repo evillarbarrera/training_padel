@@ -74,6 +74,7 @@ export class ClubesReservarPage implements OnInit {
 
   defaultClubImage: string = 'assets/fondo-cancha.png';
   heroBackground: string = 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=800&auto=format&fit=crop';
+  userPhoto: string = 'assets/avatar.png';
 
   constructor(
     private mysql: MysqlService, 
@@ -111,9 +112,16 @@ export class ClubesReservarPage implements OnInit {
     if (userId) {
       this.mysql.getPerfil(userId).subscribe(res => {
         if (res.success && res.user) {
-          if (res.user.region && !this.selectedRegion) {
-            this.selectedRegion = res.user.region;
+          const region = res.direccion?.region || res.user?.region;
+          if (region && !this.selectedRegion) {
+            this.selectedRegion = region;
             this.updateComunas();
+            this.cdr.detectChanges();
+          }
+          const photo = res.user.foto_perfil || res.user.foto;
+          if (photo) {
+            const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
+            this.userPhoto = photo.startsWith('http') ? photo : `${cleanApiUrl}/prd/${photo}`;
             this.cdr.detectChanges();
           }
         }
@@ -289,7 +297,12 @@ export class ClubesReservarPage implements OnInit {
       this.selectedClub = null;
       this.showSuccessModal = false;
     } else {
-      this.router.navigate(['/jugador-home']);
+      const role = localStorage.getItem('userRole');
+      if (role === 'entrenador') {
+        this.router.navigate(['/entrenador-home']);
+      } else {
+        this.router.navigate(['/jugador-home']);
+      }
     }
   }
 

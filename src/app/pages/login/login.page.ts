@@ -78,6 +78,7 @@ export class LoginPage implements OnInit {
             if (res && res.token && res.id) {
               localStorage.setItem('token', res.token);
               localStorage.setItem('userId', res.id.toString());
+              localStorage.setItem('userRole', res.rol); // Store role
               this.notificationService.updateTokenForUser();
 
               if (this.recordar) {
@@ -130,6 +131,7 @@ export class LoginPage implements OnInit {
               // Usuario existe, loguear
               if (res.token) localStorage.setItem('token', res.token);
               localStorage.setItem('userId', res.id.toString());
+              localStorage.setItem('userRole', res.rol); // Store role
               this.notificationService.updateTokenForUser();
               this.redirectBasedOnRole(res.rol);
             } else {
@@ -181,6 +183,7 @@ export class LoginPage implements OnInit {
             if (res.exists) {
               if (res.token) localStorage.setItem('token', res.token);
               localStorage.setItem('userId', res.id.toString());
+              localStorage.setItem('userRole', res.rol); // Store role
               this.notificationService.updateTokenForUser();
               this.redirectBasedOnRole(res.rol);
             } else {

@@ -1,8 +1,11 @@
 <ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
-  <!-- 1. DISCOVERY VIEW (LIST OF CLUBS) -->
-  <div *ngIf="!selectedClub" class="animate-up">
-    <!-- Header V2 Style Pattern -->
+  <!-- TOP-LEVEL TABS: MIS TORNEOS vs BUSCAR -->
+  <div *ngIf="!selectedClub && !selectedMiTorneo" class="animate-up">
+    <!-- Header -->
     <div class="header-v2-discovery" [style.background-image]="'url(' + heroBackground + ')'">
       <div class="h-overlay"></div>
       <div class="h-content">
@@ -12,72 +15,295 @@
         </div>
         <div class="h-right">
           <div class="h-avatar-mini">
-            <img src="assets/avatar.png" alt="Avatar">
+            <img [src]="userPhoto" alt="Avatar">
           </div>
         </div>
       </div>
     </div>
 
     <div class="discovery-body-v6">
-      <div class="filters-row-v6">
-        <div class="filter-item-v6">
-          <ion-icon name="map-outline"></ion-icon>
-          <select [(ngModel)]="selectedRegion" (change)="onFilterChange()">
-            <option value="">Todas las Regiones</option>
-            <option *ngFor="let r of regiones" [value]="r">{{ r }}</option>
-          </select>
+      <!-- Main Tabs: Mis Torneos / Buscar Torneos -->
+      <div class="main-switch-tabs">
+        <div class="switch-tab" [class.active]="mainView === 'mis-torneos'" (click)="mainView = 'mis-torneos'">
+          <ion-icon name="trophy-outline"></ion-icon>
+          MIS TORNEOS
         </div>
-        <div class="filter-item-v6">
-          <ion-icon name="location-outline"></ion-icon>
-          <select [(ngModel)]="selectedComuna" (change)="onFilterChange()">
-            <option value="">Todas las Comunas</option>
-            <option *ngFor="let c of comunas" [value]="c">{{ c }}</option>
-          </select>
+        <div class="switch-tab" [class.active]="mainView === 'buscar'" (click)="mainView = 'buscar'">
+          <ion-icon name="search-outline"></ion-icon>
+          BUSCAR
         </div>
       </div>
 
-      <div class="search-bar-v6">
-        <ion-icon name="search-outline"></ion-icon>
-        <input type="text" [(ngModel)]="searchTerm" placeholder="Nombre del club...">
-      </div>
-
-      <div class="club-discovery-list">
-        <div *ngIf="loading" class="loading-state">
+      <!-- ====================== -->
+      <!-- MIS TORNEOS VIEW -->
+      <!-- ====================== -->
+      <div *ngIf="mainView === 'mis-torneos'" class="animate-up">
+        <div *ngIf="loadingMisTorneos" class="loading-state">
           <ion-spinner name="crescent"></ion-spinner>
         </div>
 
-        <div class="club-card-v5 animate-up" *ngFor="let club of filteredClubes" (click)="onSelectClub(club)">
-          <div class="card-image-v5" [style.background-image]="'url(' + club.logoUrl + ')'">
-            <div class="card-overlay-v5"></div>
-            <div class="club-badges-v5">
-              <span class="badge-v5 premium">OPEN</span>
+        <div *ngIf="!loadingMisTorneos && misTorneos.length === 0" class="empty-state-v6">
+          <ion-icon name="trophy-outline"></ion-icon>
+          <p>No estás inscrito en ningún torneo aún</p>
+          <button class="cta-search" (click)="mainView = 'buscar'">Buscar Torneos</button>
+        </div>
+
+        <div *ngIf="!loadingMisTorneos && misTorneos.length > 0">
+          <!-- Sub-tabs: En Curso / Historial -->
+          <div class="mis-sub-tabs">
+            <div class="sub-tab" [class.active]="misTab === 'activos'" (click)="misTab = 'activos'">
+              <ion-icon name="tennisball-outline"></ion-icon>
+              En Curso
+              <span class="sub-count" *ngIf="misTorneosActivos.length > 0">{{ misTorneosActivos.length }}</span>
+            </div>
+            <div class="sub-tab" [class.active]="misTab === 'historial'" (click)="misTab = 'historial'">
+              <ion-icon name="time-outline"></ion-icon>
+              Historial
+              <span class="sub-count" *ngIf="misTorneosHistorial.length > 0">{{ misTorneosHistorial.length }}</span>
             </div>
           </div>
-          <div class="card-info-v5">
-            <div class="info-header">
-              <h3>{{ club.nombre }}</h3>
-              <div class="rating-v5">
-                <ion-icon name="star"></ion-icon>
-                <span>4.9</span>
+
+          <!-- EN CURSO LIST -->
+          <div class="mis-torneos-list" *ngIf="misTab === 'activos'">
+            <div *ngIf="misTorneosActivos.length === 0" class="empty-state-v6">
+              <ion-icon name="tennisball-outline"></ion-icon>
+              <p>No tienes torneos en curso</p>
+            </div>
+            <div class="mi-torneo-card animate-up" *ngFor="let t of misTorneosActivos; let i = index" 
+                 [style.animation-delay]="i * 0.08 + 's'" (click)="openMiTorneo(t)">
+              <div class="mt-left">
+                <div class="mt-type-badge" [class.americano]="t.tipo_torneo === 'americano'" [class.oficial]="t.tipo_torneo === 'oficial'">
+                  {{ t.tipo_torneo === 'americano' ? 'AM' : 'OF' }}
+                </div>
+              </div>
+              <div class="mt-center">
+                <h4>{{ t.nombre }}</h4>
+                <p class="mt-club">{{ t.club_nombre }}</p>
+                <div class="mt-meta">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <span>{{ t.fecha | date:'dd MMM yyyy' }}</span>
+                  <span class="mt-pareja" *ngIf="t.nombre_pareja">• {{ t.nombre_pareja }}</span>
+                </div>
+              </div>
+              <div class="mt-right">
+                <div class="mt-status activo">{{ getTorneoStatusLabel(t) }}</div>
+                <div class="mt-matches-count">{{ t.partidos?.length || 0 }} partidos</div>
+                <ion-icon name="chevron-forward"></ion-icon>
               </div>
             </div>
-            <p class="address-v5">
-              <ion-icon name="location-outline"></ion-icon>
-              {{ club.direccion }}
-            </p>
+          </div>
+
+          <!-- HISTORIAL LIST -->
+          <div class="mis-torneos-list" *ngIf="misTab === 'historial'">
+            <div *ngIf="misTorneosHistorial.length === 0" class="empty-state-v6">
+              <ion-icon name="time-outline"></ion-icon>
+              <p>Aún no tienes torneos en el historial</p>
+            </div>
+            
+            <div class="mi-torneo-card animate-up historial" *ngFor="let t of paginatedHistorial; let i = index" 
+                 [style.animation-delay]="i * 0.08 + 's'" (click)="openMiTorneo(t)">
+              <div class="mt-left">
+                <div class="mt-type-badge" [class.americano]="t.tipo_torneo === 'americano'" [class.oficial]="t.tipo_torneo === 'oficial'">
+                  {{ t.tipo_torneo === 'americano' ? 'AM' : 'OF' }}
+                </div>
+              </div>
+              <div class="mt-center">
+                <h4>{{ t.nombre }}</h4>
+                <p class="mt-club">{{ t.club_nombre }}</p>
+                <div class="mt-meta">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <span>{{ t.fecha | date:'dd MMM yyyy' }}</span>
+                  <span class="mt-pareja" *ngIf="t.nombre_pareja">• {{ t.nombre_pareja }}</span>
+                </div>
+              </div>
+              <div class="mt-right">
+                <div class="mt-status cerrado">Finalizado</div>
+                <div class="mt-matches-count">{{ t.partidos?.length || 0 }} partidos</div>
+                <ion-icon name="chevron-forward"></ion-icon>
+              </div>
+            </div>
+
+            <!-- LOAD MORE BUTTON -->
+            <div class="load-more-container" *ngIf="historyLimit < misTorneosHistorial.length">
+              <button class="load-more-btn" (click)="loadMoreHistory()">
+                Ver más historial ({{ misTorneosHistorial.length - historyLimit }} restantes)
+                <ion-icon name="chevron-down"></ion-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================== -->
+      <!-- BUSCAR TORNEOS VIEW -->
+      <!-- ====================== -->
+      <div *ngIf="mainView === 'buscar'" class="animate-up">
+        <div class="filters-row-v6">
+          <div class="filter-item-v6">
+            <ion-icon name="map-outline"></ion-icon>
+            <select [(ngModel)]="selectedRegion" (change)="onFilterChange()">
+              <option value="">Todas las Regiones</option>
+              <option *ngFor="let r of regiones" [value]="r">{{ r }}</option>
+            </select>
+          </div>
+          <div class="filter-item-v6">
+            <ion-icon name="location-outline"></ion-icon>
+            <select [(ngModel)]="selectedComuna" (change)="onFilterChange()">
+              <option value="">Todas las Comunas</option>
+              <option *ngFor="let c of comunas" [value]="c">{{ c }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="search-bar-v6">
+          <ion-icon name="search-outline"></ion-icon>
+          <input type="text" [(ngModel)]="searchTerm" placeholder="Nombre del club...">
+        </div>
+
+        <div class="club-discovery-list">
+          <div *ngIf="loading" class="loading-state">
+            <ion-spinner name="crescent"></ion-spinner>
+          </div>
+
+          <div class="club-card-v5 animate-up" *ngFor="let club of filteredClubes" (click)="onSelectClub(club)">
+            <div class="card-image-v5" [style.background-image]="'url(' + club.logoUrl + ')'">
+              <div class="card-overlay-v5"></div>
+              <div class="club-badges-v5">
+                <span class="badge-v5 premium">OPEN</span>
+              </div>
+            </div>
+            <div class="card-info-v5">
+              <div class="info-header">
+                <h3>{{ club.nombre }}</h3>
+                <div class="rating-v5">
+                  <ion-icon name="star"></ion-icon>
+                  <span>4.9</span>
+                </div>
+              </div>
+              <p class="address-v5">
+                <ion-icon name="location-outline"></ion-icon>
+                {{ club.direccion }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 2. DETAIL VIEW (CLUB TOURNAMENTS) -->
+  <!-- ========================================== -->
+  <!-- MI TORNEO DETAIL VIEW -->
+  <!-- ========================================== -->
+  <div *ngIf="selectedMiTorneo && !selectedClub" class="animate-up">
+    <div class="mi-torneo-detail-header">
+      <div class="mtd-overlay"></div>
+      <div class="mtd-content">
+        <div class="mtd-info">
+          <span class="mtd-badge" [class.americano]="selectedMiTorneo.tipo_torneo === 'americano'">
+            {{ selectedMiTorneo.tipo_torneo === 'americano' ? 'AMERICANO' : 'TORNEO OFICIAL' }}
+          </span>
+          <h1>{{ selectedMiTorneo.nombre }}</h1>
+          <p>{{ selectedMiTorneo.club_nombre }} • {{ selectedMiTorneo.fecha | date:'dd MMM yyyy' }}</p>
+          <p class="mtd-pareja" *ngIf="selectedMiTorneo.nombre_pareja">🎾 {{ selectedMiTorneo.nombre_pareja }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mi-torneo-detail-body">
+
+      <!-- PRÓXIMO PARTIDO -->
+      <div class="section-block" *ngIf="miTorneoProximo">
+        <div class="section-label">
+          <ion-icon name="time-outline"></ion-icon>
+          PRÓXIMO PARTIDO
+        </div>
+        <div class="next-match-card">
+          <div class="nm-teams">
+            <div class="nm-team">
+              <span class="nm-name">{{ getMatchTeamNames(miTorneoProximo).team1 }}</span>
+            </div>
+            <div class="nm-vs">VS</div>
+            <div class="nm-team">
+              <span class="nm-name">{{ getMatchTeamNames(miTorneoProximo).team2 }}</span>
+            </div>
+          </div>
+          <div class="nm-info">
+            <span *ngIf="miTorneoProximo.ronda">Ronda {{ miTorneoProximo.ronda }}</span>
+            <span *ngIf="miTorneoProximo.grupo_nombre">{{ miTorneoProximo.grupo_nombre }}</span>
+            <span *ngIf="miTorneoProximo.categoria_nombre">{{ miTorneoProximo.categoria_nombre }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!miTorneoProximo && miTorneoHistorial.length > 0" class="all-played-badge">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        Todos los partidos han sido jugados
+      </div>
+
+      <!-- HISTORIAL DE PARTIDOS -->
+      <div class="section-block">
+        <div class="section-label">
+          <ion-icon name="ribbon-outline"></ion-icon>
+          HISTORIAL DE PARTIDOS
+        </div>
+
+        <div *ngIf="miTorneoHistorial.length === 0" class="empty-matches">
+          <p>Aún no hay partidos jugados</p>
+        </div>
+
+        <div class="match-history-list">
+          <div class="mh-card animate-up" *ngFor="let m of miTorneoHistorial; let i = index"
+               [style.animation-delay]="i * 0.06 + 's'"
+               [class.win]="getMatchResult(m) === 'win'"
+               [class.loss]="getMatchResult(m) === 'loss'"
+               [class.draw]="getMatchResult(m) === 'draw'">
+            <div class="mh-indicator">
+              <div class="mh-dot"></div>
+            </div>
+            <div class="mh-content">
+              <div class="mh-teams">
+                <span class="mh-t1">{{ getMatchTeamNames(m).team1 }}</span>
+                <span class="mh-score">{{ getMatchScore(m) }}</span>
+                <span class="mh-t2">{{ getMatchTeamNames(m).team2 }}</span>
+              </div>
+              <div class="mh-meta">
+                <span *ngIf="m.ronda" class="mh-ronda">R{{ m.ronda }}</span>
+                <span *ngIf="m.grupo_nombre">{{ m.grupo_nombre }}</span>
+                <span *ngIf="m.categoria_nombre">{{ m.categoria_nombre }}</span>
+                <span class="mh-result-label" [class]="getMatchResult(m)">
+                  {{ getMatchResult(m) === 'win' ? '✓ Victoria' : getMatchResult(m) === 'loss' ? '✕ Derrota' : '= Empate' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TODOS LOS PARTIDOS DEL TORNEO -->
+      <div class="section-block" *ngIf="miTorneoPartidos.length > miTorneoHistorial.length + (miTorneoProximo ? 1 : 0)">
+        <div class="section-label">
+          <ion-icon name="tennisball-outline"></ion-icon>
+          OTROS PARTIDOS DEL TORNEO
+        </div>
+        <div class="match-history-list">
+          <div class="mh-card other animate-up" *ngFor="let m of miTorneoPartidos; let i = index"
+               [style.animation-delay]="i * 0.04 + 's'">
+            <div class="mh-content" *ngIf="!m.es_mi_partido || (m.resultado_t1 !== null && getMatchResult(m) !== 'pending')">
+              <!-- Already shown above, skip -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================= -->
+  <!-- 2. CLUB DETAIL VIEW -->
+  <!-- ======================= -->
   <div *ngIf="selectedClub" class="animate-up">
     <div class="detail-hero-v6" [style.background-image]="'url(' + selectedClub.logoUrl + '), url(assets/fondo-cancha.png)'">
         <div class="hero-overlay-v6"></div>
-        <div class="fab-back-v6 right" (click)="goBack()">
-            <ion-icon name="close-outline"></ion-icon>
-        </div>
     </div>
     
     <div class="detail-content-card">
@@ -119,7 +345,7 @@
                   <span>{{ t.hora_inicio.slice(0,5) }} HRS</span>
                 </div>
                 <div class="t-price">
-                  <span class="p-amount">{{ t.precio_persona > 0 ? '$' + (t.precio_persona | number) : 'Gratis' }}</span>
+                  <span class="p-amount">{{ t.precio > 0 ? '$' + (t.precio | number) : 'Gratis' }}</span>
                   <span class="p-unit">/ persona</span>
                 </div>
               </div>
@@ -157,7 +383,7 @@
                     <span>{{ t.fecha_inicio | date:'dd MMM' }} - {{ t.fecha_fin | date:'dd MMM' }}</span>
                   </div>
                   <div class="t-price">
-                    <span class="p-amount">{{ t.costo_inscripcion > 0 ? '$' + (t.costo_inscripcion | number) : 'Gratis' }}</span>
+                    <span class="p-amount">{{ t.precio > 0 ? '$' + (t.precio | number) : 'Gratis' }}</span>
                     <span class="p-unit">/ pareja</span>
                   </div>
                 </div>

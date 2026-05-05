@@ -245,6 +245,33 @@
                <span>Agendar</span>
             </div>
          </div>
+
+         <!-- HERO BUTTONS GRID (Player Style) -->
+         <div class="hero-actions-grid">
+            <!-- HERO 1: RESERVAR CANCHA -->
+            <div class="hero-booking-action animate-pulse" (click)="goToReservas()">
+               <div class="hero-btn-content">
+                 <div class="hero-icon-wrap">🎾</div>
+                 <div class="hero-text-wrap">
+                   <h3>Reservar Cancha</h3>
+                   <p>Clubes y Disponibilidad</p>
+                 </div>
+               </div>
+               <ion-icon name="arrow-forward"></ion-icon>
+            </div>
+
+            <!-- HERO 2: MIS TORNEOS -->
+            <div class="hero-booking-action tournament-hero animate-pop delay-1" (click)="goToTorneos()">
+               <div class="hero-btn-content">
+                 <div class="hero-icon-wrap trophy">🏆</div>
+                 <div class="hero-text-wrap">
+                   <h3>Mis Torneos</h3>
+                   <p>Torneos y Americanos</p>
+                 </div>
+               </div>
+               <ion-icon name="arrow-forward"></ion-icon>
+            </div>
+         </div>
       </div>
 
     </div>
@@ -284,6 +311,16 @@
           <div class="grid-item" (click)="onControlItemClick('/disponibilidad-entrenador')">
             <div class="icon-circle time"><ion-icon name="time-outline"></ion-icon></div>
             <span>Mi Disponibilidad</span>
+          </div>
+
+          <div class="grid-item" (click)="onControlItemClick('/clubes-reservar')">
+            <div class="icon-circle calendar"><ion-icon name="tennisball-outline"></ion-icon></div>
+            <span>Reservar Cancha</span>
+          </div>
+
+          <div class="grid-item" (click)="onControlItemClick('/jugador-campeonatos')">
+            <div class="icon-circle profile"><ion-icon name="trophy-outline"></ion-icon></div>
+            <span>Mis Torneos</span>
           </div>
 
           <!-- Ventas y Packs (Feature Request) -->

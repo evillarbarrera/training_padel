@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
   IonContent, IonIcon, 
-  IonButton, IonRefresher, IonRefresherContent, IonModal,
+  IonButton, IonModal,
   AlertController, ToastController, LoadingController
 } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
@@ -16,7 +16,8 @@ import {
   chevronForward, sparklesOutline, peopleOutline,
   lockClosedOutline, checkmarkCircle, ellipsisVertical,
   shareOutline, pencilOutline, ribbon, calendarClearOutline,
-  ellipsisHorizontal, add, chevronDown, personAddOutline
+  ellipsisHorizontal, add, chevronDown, personAddOutline,
+  closeOutline, timeOutline
 } from 'ionicons/icons';
 import { NavController } from '@ionic/angular';
 
@@ -27,8 +28,7 @@ import { NavController } from '@ionic/angular';
   standalone: true,
   imports: [
     CommonModule, FormsModule, 
-    IonContent, IonIcon, IonButton, 
-    IonRefresher, IonRefresherContent,
+    IonContent, IonIcon, IonButton,
     IonModal
   ]
 })
@@ -36,6 +36,7 @@ export class JugadorPartidosPage implements OnInit {
   partidos: any[] = [];
   jugados: any[] = [];
   proximos: any[] = [];
+  pendientes: any[] = [];
   loading = true;
   userId = Number(localStorage.getItem('userId'));
 
@@ -46,7 +47,7 @@ export class JugadorPartidosPage implements OnInit {
   categoriaMasJugada = 'N/A';
 
   // Tabs
-  selectedTab: 'proximos' | 'historial' = 'proximos';
+  selectedTab: 'proximos' | 'pendientes' | 'historial' = 'proximos';
 
   // Filters
   filterClub = '';
@@ -95,7 +96,8 @@ export class JugadorPartidosPage implements OnInit {
       chevronForward, sparklesOutline, peopleOutline,
       lockClosedOutline, checkmarkCircle, ellipsisVertical,
       shareOutline, pencilOutline, ribbon, calendarClearOutline,
-      ellipsisHorizontal, add, chevronDown, personAddOutline
+      ellipsisHorizontal, add, chevronDown, personAddOutline,
+      closeOutline, timeOutline
     });
   }
 
@@ -104,7 +106,7 @@ export class JugadorPartidosPage implements OnInit {
   }
 
   loadPartidos(event?: any) {
-    this.loading = !event;
+    this.loading = true;
     this.mysqlService.getMisPartidos().subscribe({
       next: (res: any[]) => {
         this.partidos = res;
@@ -121,12 +123,10 @@ export class JugadorPartidosPage implements OnInit {
         this.clubesList = Array.from(cMap.entries()).map(([id, nombre]) => ({ id, nombre }));
 
         this.loading = false;
-        if (event) event.target.complete();
       },
       error: (err) => {
         console.error('Error loading matches:', err);
         this.loading = false;
-        if (event) event.target.complete();
       }
     });
 
@@ -145,8 +145,31 @@ export class JugadorPartidosPage implements OnInit {
   }
 
   updateLists() {
-    this.jugados = this.partidos.filter(p => p.jugado);
     this.proximos = this.partidos.filter(p => !p.jugado).sort((a,b) => a.fecha.localeCompare(b.fecha));
+    
+    const now = new Date();
+    let tempJugados: any[] = [];
+    this.pendientes = [];
+
+    this.partidos.filter(p => p.jugado).forEach(p => {
+       if (!p.resultado_registrado) {
+          const matchDateStr = p.fecha + 'T' + (p.hora_fin || '00:00:00');
+          const matchDate = new Date(matchDateStr);
+          const diffDays = (now.getTime() - matchDate.getTime()) / (1000 * 3600 * 24);
+          if (diffDays <= 2) {
+              this.pendientes.push(p);
+          } else {
+              tempJugados.push(p);
+          }
+       } else {
+          tempJugados.push(p);
+       }
+    });
+
+    this.pendientes.sort((a,b) => b.fecha.localeCompare(a.fecha));
+    tempJugados.sort((a,b) => b.fecha.localeCompare(a.fecha));
+
+    this.jugados = tempJugados;
 
     // Apply Filters to Historial
     if (this.filterClub) {
@@ -209,7 +232,7 @@ export class JugadorPartidosPage implements OnInit {
 
   openResultModal(match: any) {
     this.selectedMatch = match;
-    this.categoria = match.categoria || '';
+    this.categoria = match.categoria || 'Amistoso';
     
     // Reset scores
     this.set1A = null; this.set1B = null;
@@ -326,7 +349,7 @@ export class JugadorPartidosPage implements OnInit {
             loader.dismiss();
             this.showResultModal = false;
             this.loadPartidos();
-            this.showSuccessToast();
+            this.showSuccessToast(this.idGanador === 1);
         },
         error: (err) => {
             loader.dismiss();
@@ -335,19 +358,33 @@ export class JugadorPartidosPage implements OnInit {
     });
   }
 
-  async showSuccessToast() {
-    const toast = await this.toastCtrl.create({
-        message: '¡Puntos registrados con éxito!',
-        duration: 2500,
-        position: 'top',
-        color: 'success',
-        icon: 'checkmark-circle-outline'
+  async showSuccessToast(won: boolean = true) {
+    const title = won ? '¡VICTORIA! 🏆' : '¡A SEGUIR ENTRENANDO! 💪';
+    const msg = won 
+        ? '¡Felicitaciones! Has sumado puntos importantes a tu historial.' 
+        : '¡Ánimo! Registraste el partido, a prepararse para la revancha.';
+        
+    const alert = await this.alertCtrl.create({
+        header: title,
+        message: msg,
+        buttons: [{
+          text: 'Continuar',
+          role: 'confirm',
+          cssClass: won ? 'btn-success-alert' : 'btn-dark-alert'
+        }],
+        cssClass: 'premium-feedback-alert'
     });
-    toast.present();
+    
+    await alert.present();
   }
 
   goBack() {
-    this.router.navigate(['/jugador-home']);
+    const role = localStorage.getItem('userRole');
+    if (role === 'entrenador') {
+      this.router.navigate(['/entrenador-home']);
+    } else {
+      this.router.navigate(['/jugador-home']);
+    }
   }
 
   // PLAYER SEARCH LOGIC

@@ -33,13 +33,16 @@ ion-content {
 
 // 2. TABS SELECTOR (NIKE STYLE)
 .nike-tabs-container {
-  padding: 25px 25px 10px; background: white; margin-top: -30px; border-top-left-radius: 32px; border-top-right-radius: 32px; position: relative; z-index: 10;
+  padding: 25px 20px 10px; background: white; margin-top: -30px; border-top-left-radius: 32px; border-top-right-radius: 32px; position: relative; z-index: 10;
   .nike-tabs-row {
-    display: flex; gap: 30px; border-bottom: 1px solid var(--nike-border);
+    display: flex; justify-content: space-between; border-bottom: 1px solid var(--nike-border); gap: 5px;
     .tab-item {
-      padding: 12px 5px; font-size: 15px; font-weight: 900; color: var(--nike-text-gray); position: relative;
-      &.active { color: var(--nike-navy); &::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: var(--nike-navy); } }
-      .tab-badge { position: absolute; top: 0; right: -15px; background: var(--nike-navy); color: white; font-size: 9px; padding: 2px 6px; border-radius: 8px; }
+      flex: 1; padding: 14px 0; font-size: 12px; font-weight: 900; color: var(--nike-text-gray); position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: color 0.2s;
+      &.active { 
+        color: var(--nike-navy); 
+        &::after { content: ''; position: absolute; bottom: -1px; left: 15%; width: 70%; height: 3px; background: var(--nike-navy); border-radius: 3px 3px 0 0; } 
+      }
+      .tab-badge { background: var(--nike-navy); color: white; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 12px; min-width: 18px; display: flex; justify-content: center; }
     }
   }
 }
@@ -98,3 +101,183 @@ ion-content {
 
 .animate-up { animation: up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
 @keyframes up { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+// --- PREMIUM RESULT MODAL ---
+.premium-result-modal {
+  --height: auto;
+  --max-height: 90vh;
+  --border-radius: 24px 24px 0 0;
+  align-items: flex-end;
+  
+  --modal-bg: #f8f8fa;
+  --modal-white: #ffffff;
+  --modal-text-dark: #0f172a;
+  --modal-text-gray: #8e8e93;
+  --modal-border: #e2e8f0;
+  --modal-input-bg: #f1f5f9;
+  --modal-btn-bg: #0f172a;
+  --modal-btn-text: #ccff00;
+}
+
+.result-modal-container {
+  background: var(--modal-bg);
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 24px 10px;
+    background: var(--modal-white);
+    border-radius: 24px 24px 0 0;
+
+    h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 950;
+      color: var(--modal-text-dark);
+      letter-spacing: -0.5px;
+    }
+
+    .close-btn {
+      width: 36px;
+      height: 36px;
+      background: var(--modal-input-bg);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      ion-icon {
+        font-size: 20px;
+        color: var(--modal-text-dark);
+      }
+    }
+  }
+
+  .modal-body {
+    padding: 20px 24px;
+    flex: 1;
+    background: var(--modal-white);
+
+    .category-selector {
+      margin-bottom: 25px;
+      label {
+        display: block;
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--modal-text-gray);
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        letter-spacing: 0.5px;
+      }
+      .select-wrapper {
+        position: relative;
+        select {
+          width: 100%;
+          padding: 16px;
+          border: 1px solid var(--modal-border);
+          border-radius: 16px;
+          font-size: 16px;
+          font-weight: 700;
+          color: var(--modal-text-dark);
+          appearance: none;
+          background: var(--modal-input-bg);
+          outline: none;
+          display: block;
+        }
+        ion-icon {
+          position: absolute;
+          right: 16px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 20px;
+          color: var(--modal-text-gray);
+          pointer-events: none;
+        }
+      }
+    }
+
+    .scoreboard-container {
+      background: var(--modal-white);
+      border: 1px solid var(--modal-border);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+
+      .sb-header-row {
+        display: flex;
+        margin-bottom: 15px;
+        .sb-col {
+          flex: 1;
+          text-align: center;
+          font-size: 12px;
+          font-weight: 800;
+          color: var(--modal-text-gray);
+          text-transform: uppercase;
+          &.empty { flex: 1.5; text-align: left; }
+        }
+      }
+
+      .sb-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        &.mt-3 { margin-top: 15px; margin-bottom: 0; }
+        
+        .team-label {
+          flex: 1.5;
+          font-size: 15px;
+          font-weight: 900;
+          color: var(--modal-text-dark);
+        }
+        
+        .score-input {
+          flex: 1;
+          padding: 0 4px;
+          input {
+            width: 100%;
+            padding: 12px 0;
+            text-align: center;
+            border: 1px solid var(--modal-border);
+            background: var(--modal-input-bg);
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: 950;
+            color: var(--modal-text-dark);
+            outline: none;
+            transition: all 0.2s ease;
+            &:focus {
+              background: var(--modal-white);
+              border-color: var(--modal-text-dark);
+            }
+            &::placeholder { color: #aaa; }
+          }
+        }
+      }
+    }
+  }
+
+  .modal-footer {
+    padding: 20px 24px 30px;
+    background: var(--modal-white);
+
+    .btn-save-result {
+      width: 100%;
+      padding: 18px;
+      background: var(--modal-btn-bg);
+      color: var(--modal-btn-text);
+      border: none;
+      border-radius: 16px;
+      font-size: 15px;
+      font-weight: 950;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.15);
+      transition: transform 0.2s;
+      &:active { transform: scale(0.98); }
+    }
+  }
+}

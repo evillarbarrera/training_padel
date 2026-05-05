@@ -266,4 +266,8 @@ export class MysqlService {
   updateReserva(data: any): Observable<any> {
     return this.http.post<any>(`${this.api}/clubes/update_reserva.php`, data, { headers: this.getHeaders() });
   }
+
+  getMisTorneosCompleto(userId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/torneos/get_mis_torneos_completo.php?user_id=${userId}`, { headers: this.getHeaders() });
+  }
 }

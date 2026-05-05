@@ -14,7 +14,381 @@ ion-content {
   font-family: 'Outfit', sans-serif;
 }
 
-// 1. DISCOVERY VIEW (APP PATTERN)
+// ========================================
+// MAIN SWITCH TABS (MIS TORNEOS / BUSCAR)
+// ========================================
+.main-switch-tabs {
+  display: flex;
+  background: #fff;
+  border-radius: 20px;
+  padding: 5px;
+  margin-bottom: 25px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.04);
+  border: 1px solid var(--nike-border);
+
+  .switch-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: var(--nike-text-gray);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+    ion-icon { font-size: 16px; }
+
+    &.active {
+      background: var(--nike-navy);
+      color: var(--nike-neon);
+      box-shadow: 0 8px 20px rgba(15,23,42,0.3);
+    }
+  }
+}
+
+// ========================================
+// MIS TORNEOS LIST
+// ========================================
+.mis-sub-tabs {
+  display: flex;
+  gap: 12px;
+  padding: 10px 16px;
+  margin-bottom: 15px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  &::-webkit-scrollbar { display: none; }
+
+  .sub-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: white;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 22px;
+    color: var(--nike-text-gray);
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+    appearance: none;
+    -webkit-appearance: none;
+
+    ion-icon { 
+      font-size: 18px; 
+      transition: transform 0.3s ease;
+    }
+
+    .sub-count {
+      background: rgba(0,0,0,0.05);
+      color: #888;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 900;
+      margin-left: 4px;
+    }
+
+    &:active { transform: scale(0.96); }
+
+    &.active {
+      background: var(--nike-navy);
+      color: white;
+      border-color: var(--nike-navy);
+      box-shadow: 0 8px 18px rgba(5, 12, 28, 0.2);
+      ion-icon { transform: scale(1.1); }
+      .sub-count {
+        background: rgba(204, 255, 0, 0.25);
+        color: var(--nike-neon);
+      }
+    }
+  }
+}
+
+.mi-torneo-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border-radius: 22px;
+  padding: 18px;
+  margin-bottom: 14px;
+  border: 1px solid var(--nike-border);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.03);
+  transition: all 0.2s ease;
+
+  &:active { transform: scale(0.97); }
+
+  &.historial {
+    opacity: 0.85;
+    background: #fbfbfb;
+    .mt-type-badge { filter: grayscale(0.4); }
+  }
+
+  .mt-left {
+    .mt-type-badge {
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 950; letter-spacing: 0.5px;
+      &.americano { background: rgba(204, 255, 0, 0.2); color: var(--nike-navy); }
+      &.oficial { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+    }
+  }
+
+  .mt-center {
+    flex: 1; min-width: 0;
+    h4 {
+      margin: 0 0 4px;
+      font-size: 15px; font-weight: 900;
+      color: var(--nike-navy);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .mt-club { margin: 0 0 6px; font-size: 12px; font-weight: 700; color: var(--nike-text-gray); }
+    .mt-meta {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 700; color: var(--nike-text-gray);
+      ion-icon { font-size: 13px; }
+      .mt-pareja { opacity: 0.7; }
+    }
+  }
+
+  .mt-right {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+    .mt-status {
+      font-size: 9px; font-weight: 950; letter-spacing: 0.5px;
+      padding: 4px 10px; border-radius: 10px;
+      &.activo { background: #dcfce7; color: #166534; }
+      &.cerrado { background: #fef3c7; color: #92400e; }
+    }
+    .mt-matches-count { font-size: 10px; font-weight: 800; color: var(--nike-text-gray); }
+    ion-icon { font-size: 16px; color: var(--nike-text-gray); opacity: 0.4; }
+  }
+}
+
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 30px;
+
+  .load-more-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    color: var(--nike-navy);
+    padding: 14px 24px;
+    border-radius: 22px;
+    font-size: 13px;
+    font-weight: 800;
+    border: 1px solid var(--nike-border);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+    transition: all 0.2s ease;
+
+    ion-icon { font-size: 18px; color: var(--nike-text-gray); }
+    
+    &:active {
+      transform: scale(0.96);
+      background: var(--nike-gray);
+    }
+  }
+}
+
+.cta-search {
+  margin-top: 15px;
+  background: var(--nike-navy); color: var(--nike-neon);
+  padding: 14px 28px; border-radius: 14px;
+  font-size: 12px; font-weight: 900; letter-spacing: 1px;
+  border: none;
+}
+
+// ========================================
+// MI TORNEO DETAIL VIEW
+// ========================================
+.mi-torneo-detail-header {
+  position: relative;
+  padding: 70px 25px 40px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #334155 100%);
+  overflow: hidden;
+
+  .mtd-overlay {
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 10px);
+    opacity: 0.5;
+  }
+
+  .mtd-content { position: relative; z-index: 2; }
+
+  .mtd-back {
+    width: 40px; height: 40px;
+    background: rgba(255,255,255,0.1); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px; backdrop-filter: blur(10px);
+    ion-icon { color: #fff; font-size: 20px; }
+  }
+
+  .mtd-info {
+    .mtd-badge {
+      display: inline-block;
+      padding: 5px 12px; border-radius: 8px;
+      font-size: 10px; font-weight: 950; letter-spacing: 1px;
+      background: rgba(204, 255, 0, 0.2); color: var(--nike-neon);
+      margin-bottom: 12px;
+
+      &.americano { background: rgba(204, 255, 0, 0.3); }
+    }
+
+    h1 { margin: 0 0 8px; font-size: 28px; font-weight: 950; color: #fff; letter-spacing: -1px; line-height: 1.1; }
+    p { margin: 0; font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.6); }
+    .mtd-pareja { margin-top: 8px !important; color: var(--nike-neon) !important; font-weight: 800 !important; }
+  }
+}
+
+.mi-torneo-detail-body {
+  background: #f4f7fa;
+  border-radius: 30px 30px 0 0;
+  margin-top: -20px;
+  position: relative; z-index: 10;
+  padding: 30px 20px 120px;
+  min-height: 400px;
+}
+
+.section-block {
+  margin-bottom: 30px;
+}
+
+.section-label {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 950; letter-spacing: 1.5px;
+  color: var(--nike-navy); margin-bottom: 15px;
+  ion-icon { font-size: 16px; opacity: 0.6; }
+}
+
+// NEXT MATCH CARD
+.next-match-card {
+  background: linear-gradient(135deg, var(--nike-navy) 0%, #1e293b 100%);
+  border-radius: 24px;
+  padding: 25px 20px;
+  box-shadow: 0 15px 35px rgba(15,23,42,0.25);
+
+  .nm-teams {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    .nm-team {
+      flex: 1; text-align: center;
+      .nm-name { font-size: 13px; font-weight: 800; color: #fff; line-height: 1.3; }
+    }
+
+    .nm-vs {
+      font-size: 14px; font-weight: 950;
+      color: var(--nike-neon);
+      padding: 6px 12px;
+      background: rgba(204, 255, 0, 0.15);
+      border-radius: 10px;
+    }
+  }
+
+  .nm-info {
+    margin-top: 15px; padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+    span {
+      font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 8px;
+    }
+  }
+}
+
+.all-played-badge {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: #dcfce7; color: #166534;
+  padding: 14px 20px; border-radius: 16px;
+  font-size: 13px; font-weight: 800;
+  margin-bottom: 25px;
+  ion-icon { font-size: 18px; }
+}
+
+// MATCH HISTORY LIST
+.match-history-list {
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.mh-card {
+  display: flex; align-items: stretch; gap: 12px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid var(--nike-border);
+  transition: all 0.2s ease;
+
+  .mh-indicator {
+    width: 4px; border-radius: 4px; flex-shrink: 0;
+    .mh-dot { width: 100%; height: 100%; border-radius: 4px; background: #e2e8f0; }
+  }
+
+  &.win .mh-indicator .mh-dot { background: #10b981; }
+  &.loss .mh-indicator .mh-dot { background: #ef4444; }
+  &.draw .mh-indicator .mh-dot { background: #f59e0b; }
+
+  .mh-content {
+    flex: 1;
+
+    .mh-teams {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+
+      .mh-t1, .mh-t2 {
+        flex: 1;
+        font-size: 12px; font-weight: 800; color: var(--nike-navy);
+        line-height: 1.3;
+      }
+      .mh-t2 { text-align: right; }
+
+      .mh-score {
+        font-size: 16px; font-weight: 950; color: var(--nike-navy);
+        padding: 4px 10px;
+        background: var(--nike-gray);
+        border-radius: 10px;
+        flex-shrink: 0;
+      }
+    }
+
+    .mh-meta {
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+
+      span {
+        font-size: 10px; font-weight: 700; color: var(--nike-text-gray);
+        background: var(--nike-gray); padding: 3px 8px; border-radius: 6px;
+      }
+
+      .mh-result-label {
+        font-weight: 900;
+        &.win { background: #dcfce7; color: #166534; }
+        &.loss { background: #fee2e2; color: #991b1b; }
+        &.draw { background: #fef3c7; color: #92400e; }
+      }
+    }
+  }
+
+  &.other { opacity: 0.5; }
+}
+
+.empty-matches {
+  text-align: center; padding: 30px;
+  p { font-size: 13px; font-weight: 700; color: var(--nike-text-gray); }
+}
+
+// ========================================
+// 1. DISCOVERY VIEW (EXISTING)
+// ========================================
 .header-v2-discovery {
   position: relative; padding: 80px 25px 100px; background-size: cover; background-position: center; overflow: hidden;
   .h-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(15,23,42,0.6) 100%); z-index: 1; }
@@ -39,7 +413,7 @@ ion-content {
     .filter-item-v6 {
       background: #fff; border-radius: 18px; padding: 12px 15px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);
       ion-icon { color: var(--nike-navy); opacity: 0.5; font-size: 18px; }
-      select { background: transparent; border: none; width: 100%; font-size: 13px; font-weight: 800; color: var(--nike-navy); outline: none; -webkit-appearance: none; }
+      select { background: transparent; border: none; width: 100%; font-size: 13px; font-weight: 800; color: var(--nike-navy); outline: none; appearance: none; -webkit-appearance: none; }
     }
   }
 
@@ -51,7 +425,7 @@ ion-content {
 }
 
 .club-discovery-list {
-  padding: 10px 20px 120px;
+  padding: 10px 0 120px;
   .loading-state { text-align: center; padding: 40px; }
   .club-card-v5 {
     background: white; border-radius: 28px; overflow: hidden; margin-bottom: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.06); transition: all 0.3s ease;
