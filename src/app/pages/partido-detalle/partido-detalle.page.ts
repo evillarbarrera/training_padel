@@ -15,7 +15,7 @@ import {
 } from 'ionicons/icons';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MysqlService } from '../../services/mysql.service';
-import { NavController as NavCtrl } from '@ionic/angular';
+import { environment } from '../../../environments/environment';
 
 registerLocaleData(localeEs);
 
@@ -61,6 +61,13 @@ export class PartidoDetallePage implements OnInit {
       this.matchId = Number(id);
       this.loadMatch();
     }
+  }
+
+  getProfileImage(url: string | null) {
+    if (!url || url === 'null') return 'assets/avatar.png';
+    if (url.startsWith('http')) return url;
+    const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
+    return `${cleanApiUrl}/${url}`;
   }
 
   async loadMatch() {

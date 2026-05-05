@@ -72,13 +72,7 @@ export class ClubesReservarPage implements OnInit {
     this.selectedDuration = dur;
   }
 
-  defaultClubImages: string[] = [
-    'https://images.unsplash.com/photo-1626224484214-4051d388915e?q=80&w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?q=80&w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=800&auto=format&fit=crop'
-  ];
-
-  brandLogo: string = 'assets/logo-transparent.png';
+  defaultClubImage: string = 'assets/fondo-cancha.png';
   heroBackground: string = 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=800&auto=format&fit=crop';
 
   constructor(
@@ -164,8 +158,7 @@ export class ClubesReservarPage implements OnInit {
               c.logoUrl = c.logo.startsWith('http') ? c.logo : `${cleanApiUrl}/${c.logo}`;
             } else {
               // Generic high-quality padel image
-              const randomIndex = index % this.defaultClubImages.length;
-              c.logoUrl = this.defaultClubImages[randomIndex];
+              c.logoUrl = this.defaultClubImage;
             }
             return c;
           });

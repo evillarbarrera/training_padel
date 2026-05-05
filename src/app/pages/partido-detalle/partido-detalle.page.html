@@ -60,14 +60,14 @@
                 <span class="team-label">A</span>
                 <div class="player-slot-v7">
                     <div class="avatar-wrap">
-                        <img [src]="match.jugador1_foto || 'assets/avatar.png'">
+                        <img [src]="getProfileImage(match.jugador1_foto)">
                         <div class="lvl-badge">2,5</div>
                     </div>
                     <span class="p-name">{{ match.jugador1_nombre || 'Tú' }}</span>
                 </div>
                 <div class="player-slot-v7">
                     <div class="avatar-wrap" (click)="openInvite(2)">
-                        <img *ngIf="match.jugador2_id" [src]="match.jugador2_foto || 'assets/avatar.png'">
+                        <img *ngIf="match.jugador2_id" [src]="getProfileImage(match.jugador2_foto)">
                         <div class="plus-btn" *ngIf="!match.jugador2_id">
                             <ion-icon name="add"></ion-icon>
                         </div>
@@ -83,7 +83,7 @@
                 <span class="team-label">B</span>
                 <div class="player-slot-v7">
                     <div class="avatar-wrap" (click)="openInvite(3)">
-                        <img *ngIf="match.jugador3_id" [src]="match.jugador3_foto || 'assets/avatar.png'">
+                        <img *ngIf="match.jugador3_id" [src]="getProfileImage(match.jugador3_foto)">
                         <div class="plus-btn" *ngIf="!match.jugador3_id">
                             <ion-icon name="add"></ion-icon>
                         </div>
@@ -93,7 +93,7 @@
                 </div>
                 <div class="player-slot-v7">
                     <div class="avatar-wrap" (click)="openInvite(4)">
-                        <img *ngIf="match.jugador4_id" [src]="match.jugador4_foto || 'assets/avatar.png'">
+                        <img *ngIf="match.jugador4_id" [src]="getProfileImage(match.jugador4_foto)">
                         <div class="plus-btn" *ngIf="!match.jugador4_id">
                             <ion-icon name="add"></ion-icon>
                         </div>

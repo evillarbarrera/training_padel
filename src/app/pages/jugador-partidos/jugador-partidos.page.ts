@@ -7,6 +7,7 @@ import {
   AlertController, ToastController, LoadingController
 } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
+import { environment } from '../../../environments/environment';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
 import { 
@@ -131,9 +132,16 @@ export class JugadorPartidosPage implements OnInit {
 
     this.mysqlService.getPerfil(this.userId).subscribe(res => {
       if (res.success && res.user.foto_perfil) {
-        this.fotoPerfil = res.user.foto_perfil;
+        this.fotoPerfil = this.getProfileImage(res.user.foto_perfil);
       }
     });
+  }
+
+  getProfileImage(url: string | null) {
+    if (!url || url === 'null') return 'assets/avatar.png';
+    if (url.startsWith('http')) return url;
+    const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
+    return `${cleanApiUrl}/${url}`;
   }
 
   updateLists() {

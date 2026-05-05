@@ -55,12 +55,7 @@ export class JugadorCampeonatosPage implements OnInit {
   selectedPartner: any = null;
   selectedTournament: any = null;
 
-  defaultClubImages: string[] = [
-    'https://images.unsplash.com/photo-1626224484214-4051d388915e?q=80&w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?q=80&w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1614032683471-bd620839e802?q=80&w=800&auto=format&fit=crop'
-  ];
+  defaultClubImage: string = 'assets/fondo-cancha.png';
 
   heroBackground: string = 'https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?q=80&w=1200&auto=format&fit=crop';
 
@@ -130,8 +125,7 @@ export class JugadorCampeonatosPage implements OnInit {
               if (c.logo && c.logo.trim() !== '' && c.logo !== 'null') {
                 c.logoUrl = c.logo.startsWith('http') ? c.logo : `${environment.apiUrl.replace('/dev','').replace('/prd','')}/${c.logo}`;
               } else {
-                const randomIndex = index % this.defaultClubImages.length;
-                c.logoUrl = this.defaultClubImages[randomIndex];
+                c.logoUrl = this.defaultClubImage;
               }
               return c;
             });
@@ -222,10 +216,43 @@ export class JugadorCampeonatosPage implements OnInit {
     this.torneosList = allForClub.filter(t => t.table_source === 'v2');
   }
 
+  selectedCategoriaId: number = 0;
+  enrollmentStep: 'category' | 'partner' = 'partner';
+  availableCategorias: any[] = [];
+
   async openEnrollment(torneo: any) {
     this.selectedTournament = torneo;
     this.selectedPartner = null;
-    this.showPartnerModal = true;
+    this.partnerSearchTerm = '';
+    this.partnerResults = [];
+    
+    if (torneo.table_source === 'v2') {
+      const loader = await this.loadingCtrl.create({ message: 'Cargando...' });
+      await loader.present();
+      
+      this.mysql.getTorneoCategorias(torneo.id).subscribe(async (categorias) => {
+        loader.dismiss();
+        if (!categorias || categorias.length === 0) {
+          this.presentAlert('Aviso', 'Este torneo aún no tiene categorías disponibles.');
+          return;
+        }
+        
+        this.availableCategorias = categorias;
+        this.enrollmentStep = 'category';
+        this.showPartnerModal = true;
+      }, err => {
+        loader.dismiss();
+        this.presentAlert('Error', 'No se pudieron cargar las categorías');
+      });
+    } else {
+      this.enrollmentStep = 'partner';
+      this.showPartnerModal = true;
+    }
+  }
+
+  selectCategory(catId: number) {
+    this.selectedCategoriaId = catId;
+    this.enrollmentStep = 'partner';
   }
 
   onPartnerSearch() {
@@ -265,35 +292,70 @@ export class JugadorCampeonatosPage implements OnInit {
     await loader.present();
 
     const myId = Number(localStorage.getItem('userId'));
-    const data = {
-      torneo_id: Number(this.selectedTournament.id),
-      jugador1_id: myId,
-      jugador2_id: Number(this.selectedPartner.id)
-    };
 
-    this.mysql.enrollInTournament(data).subscribe({
-      next: (res) => {
-        loader.dismiss();
-        if (res.success) {
-          this.toastCtrl.create({
-            message: '¡Inscripción realizada con éxito!',
-            duration: 3000,
-            color: 'success',
-            position: 'top'
-          }).then(t => t.present());
-          this.showPartnerModal = false;
-          this.goBack();
-        } else {
-          this.presentAlert('Atención', res.error || 'No se pudo completar la inscripción.');
+    if (this.selectedTournament.table_source === 'v2') {
+      const myName = localStorage.getItem('userNombre') || 'Jugador';
+      const dataV2 = {
+        categoria_id: this.selectedCategoriaId,
+        jugador1_id: myId,
+        jugador2_id: Number(this.selectedPartner.id),
+        nombre_pareja: `${myName} / ${this.selectedPartner.nombre}`
+      };
+
+      this.mysql.enrollInTournamentV2(dataV2).subscribe({
+        next: (res) => {
+          loader.dismiss();
+          if (res.success) {
+            this.toastCtrl.create({
+              message: res.mensaje || '¡Inscripción realizada con éxito!',
+              duration: 3000,
+              color: 'success',
+              position: 'top'
+            }).then(t => t.present());
+            this.showPartnerModal = false;
+            this.goBack();
+          } else {
+            this.presentAlert('Atención', res.error || 'No se pudo completar la inscripción.');
+          }
+        },
+        error: (err) => {
+          loader.dismiss();
+          console.error('Enrollment error:', err);
+          const msg = err.error?.error || err.error?.mensaje || 'Error de conexión con el servidor.';
+          this.presentAlert('Error', msg);
         }
-      },
-      error: (err) => {
-        loader.dismiss();
-        console.error('Enrollment error:', err);
-        const msg = err.error?.error || 'Error de conexión con el servidor.';
-        this.presentAlert('Error', msg);
-      }
-    });
+      });
+    } else {
+      const data = {
+        torneo_id: Number(this.selectedTournament.id),
+        jugador1_id: myId,
+        jugador2_id: Number(this.selectedPartner.id)
+      };
+
+      this.mysql.enrollInTournament(data).subscribe({
+        next: (res) => {
+          loader.dismiss();
+          if (res.success) {
+            this.toastCtrl.create({
+              message: '¡Inscripción realizada con éxito!',
+              duration: 3000,
+              color: 'success',
+              position: 'top'
+            }).then(t => t.present());
+            this.showPartnerModal = false;
+            this.goBack();
+          } else {
+            this.presentAlert('Atención', res.error || 'No se pudo completar la inscripción.');
+          }
+        },
+        error: (err) => {
+          loader.dismiss();
+          console.error('Enrollment error:', err);
+          const msg = err.error?.error || 'Error de conexión con el servidor.';
+          this.presentAlert('Error', msg);
+        }
+      });
+    }
   }
 
   async presentAlert(title: string, message: string) {

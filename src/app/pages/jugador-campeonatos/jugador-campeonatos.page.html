@@ -169,33 +169,61 @@
     </div>
   </div>
 
-  <!-- PARTNER MODAL -->
+  <!-- ENROLLMENT MODAL -->
   <ion-modal [isOpen]="showPartnerModal" (didDismiss)="showPartnerModal = false" [initialBreakpoint]="0.7" [breakpoints]="[0, 0.7, 0.9]">
     <ng-template>
       <ion-content class="ion-padding-bottom">
         <div class="partner-modal">
           <div class="grab-handle"></div>
-          <div class="p-header">
-            <h2>Elegir Pareja</h2>
-            <ion-icon name="close-outline" (click)="showPartnerModal = false"></ion-icon>
-          </div>
-          <div class="p-search">
-            <ion-icon name="search-outline"></ion-icon>
-            <input type="text" [(ngModel)]="partnerSearchTerm" (input)="onPartnerSearch()" placeholder="Nombre de tu compañero...">
-          </div>
-          <div class="p-results">
-            <div class="p-item animate-up" *ngFor="let user of partnerResults" (click)="selectPartner(user)">
-              <img [src]="user.foto_perfil || 'assets/avatar.png'">
-              <div class="p-info">
-                <span class="n">{{ user.nombre }}</span>
-                <span class="r">Nivel: {{ user.nivel || 'N/A' }}</span>
+          
+          <!-- STEP 1: CATEGORY -->
+          <ng-container *ngIf="enrollmentStep === 'category'">
+            <div class="p-header">
+              <h2>Elegir Categoría</h2>
+              <ion-icon name="close-outline" (click)="showPartnerModal = false"></ion-icon>
+            </div>
+            <div class="p-results cat-list">
+              <div class="cat-card animate-up" *ngFor="let cat of availableCategorias; let i = index" [style.animation-delay]="i * 0.05 + 's'" (click)="selectCategory(cat.id)">
+                <div class="cat-icon">
+                  <ion-icon name="trophy-outline"></ion-icon>
+                </div>
+                <div class="cat-info">
+                  <h3>{{ cat.nombre }}</h3>
+                  <span class="cat-meta">Toque para seleccionar</span>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="go-icon"></ion-icon>
               </div>
-              <ion-icon name="person-add-outline"></ion-icon>
             </div>
-            <div *ngIf="partnerSearchTerm.length >= 3 && partnerResults.length === 0" class="empty-res">
-              No se encontraron jugadores
+          </ng-container>
+
+          <!-- STEP 2: PARTNER -->
+          <ng-container *ngIf="enrollmentStep === 'partner'">
+            <div class="p-header">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <ion-icon name="arrow-back-outline" *ngIf="selectedTournament?.table_source === 'v2'" (click)="enrollmentStep = 'category'" style="font-size: 24px; color: var(--nike-navy); opacity: 0.8;"></ion-icon>
+                <h2 style="margin: 0;">Elegir Pareja</h2>
+              </div>
+              <ion-icon name="close-outline" (click)="showPartnerModal = false"></ion-icon>
             </div>
-          </div>
+            <div class="p-search">
+              <ion-icon name="search-outline"></ion-icon>
+              <input type="text" [(ngModel)]="partnerSearchTerm" (input)="onPartnerSearch()" placeholder="Nombre de tu compañero...">
+            </div>
+            <div class="p-results">
+              <div class="p-item animate-up" *ngFor="let user of partnerResults; let i = index" [style.animation-delay]="i * 0.05 + 's'" (click)="selectPartner(user)">
+                <img [src]="user.foto_perfil || 'assets/avatar.png'">
+                <div class="p-info">
+                  <span class="n">{{ user.nombre }}</span>
+                  <span class="r">Nivel: {{ user.nivel || 'N/A' }}</span>
+                </div>
+                <ion-icon name="person-add-outline"></ion-icon>
+              </div>
+              <div *ngIf="partnerSearchTerm.length >= 3 && partnerResults.length === 0" class="empty-res">
+                No se encontraron jugadores
+              </div>
+            </div>
+          </ng-container>
+
         </div>
       </ion-content>
     </ng-template>

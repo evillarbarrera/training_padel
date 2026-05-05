@@ -250,6 +250,14 @@ export class MysqlService {
   enrollInTournament(data: { torneo_id: number, jugador1_id: number, jugador2_id: number }): Observable<any> {
     return this.http.post<any>(`${this.api}/torneos/join_torneo.php`, data, { headers: this.getHeaders() });
   }
+
+  enrollInTournamentV2(data: any): Observable<any> {
+    return this.http.post<any>(`${this.api}/torneos/join_torneo_v2.php`, data, { headers: this.getHeaders() });
+  }
+
+  getTorneoCategorias(torneo_id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/torneos/get_categorias.php?torneo_id=${torneo_id}`, { headers: this.getHeaders() });
+  }
   
   getUsuarios(search: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.api}/user/get_users.php?search=${search}`, { headers: this.getHeaders() });

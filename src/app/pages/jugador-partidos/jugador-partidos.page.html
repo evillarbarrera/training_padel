@@ -62,7 +62,7 @@
         <div class="m-footer">
           <div class="player-stack">
             <div class="p-avatar" *ngFor="let i of [1,2,3,4]">
-               <img *ngIf="p['jugador' + i + '_foto']" [src]="p['jugador' + i + '_foto']">
+               <img *ngIf="p['jugador' + i + '_foto']" [src]="getProfileImage(p['jugador' + i + '_foto'])">
                <div *ngIf="!p['jugador' + i + '_foto']" class="p-avatar placeholder"><ion-icon name="add"></ion-icon></div>
             </div>
           </div>
