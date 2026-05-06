@@ -175,9 +175,12 @@ export class LoginPage implements OnInit {
       console.log('Apple response:', result);
       const email = result.response.email || '';
       const user = result.response.user;
+      const givenName = result.response.givenName || '';
+      const familyName = result.response.familyName || '';
+      const fullName = (givenName + ' ' + familyName).trim() || 'Usuario Apple';
 
       if (user) {
-        this.mysql.appleCheck(email, user).subscribe({
+        this.mysql.appleCheck(email, user, fullName).subscribe({
           next: (res) => {
             this.isLoading = false;
             if (res.exists) {
