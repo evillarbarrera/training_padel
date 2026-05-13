@@ -114,12 +114,30 @@ export class LoginPage implements OnInit {
     }
   }
 
+  async ionViewWillEnter() {
+    // Initialize Google Auth for iOS to prevent crashes
+    if (this.platform.is('ios') || this.platform.is('ipad')) {
+      try {
+        await GoogleAuth.initialize({
+          clientId: '786145270372-e637i46g6uu1kekcr1ioqdka901acud7.apps.googleusercontent.com',
+        });
+      } catch (e) {
+        console.warn('Google Auth already initialized or failed:', e);
+      }
+    }
+  }
+
   async loginWithGoogle() {
     if (this.isLoading) return;
     this.isLoading = true;
     this.error = '';
 
     try {
+      // Ensure initialized before sign in
+      if (this.platform.is('ios') || this.platform.is('ipad')) {
+        await GoogleAuth.initialize();
+      }
+      
       const googleUser = await GoogleAuth.signIn(); 
       console.log('Google user:', googleUser);
 
@@ -135,8 +153,8 @@ export class LoginPage implements OnInit {
               this.notificationService.updateTokenForUser();
               this.redirectBasedOnRole(res.rol);
             } else {
-              // Usuario no existe, mostrar error o redirigir a registro
-              this.showError('Usuario no registrado. Regístrate con este email primero.');
+              // Auto-registro para Google también si es necesario (Recomendado por Apple)
+              this.showError('Cuenta no encontrada. Por favor regístrate primero.');
             }
           },
           error: (err) => {
@@ -151,7 +169,8 @@ export class LoginPage implements OnInit {
     } catch (err: any) {
       this.isLoading = false;
       console.error('Google sign in error:', err);
-      if (err.error !== 'popup_closed_by_user') {
+      // Evitar alertas innecesarias si el usuario cancela
+      if (err.error !== 'popup_closed_by_user' && err.message !== 'arg 0 is not an object') {
         this.showError('Error al iniciar sesión con Google.');
       }
     }
@@ -173,8 +192,11 @@ export class LoginPage implements OnInit {
       });
 
       console.log('Apple response:', result);
-      const email = result.response.email || '';
+      
+      // Apple solo envía email y nombre la PRIMERA vez.
+      // Debemos confiar en el campo 'user' (Apple ID) para el backend.
       const user = result.response.user;
+      const email = result.response.email || '';
       const givenName = result.response.givenName || '';
       const familyName = result.response.familyName || '';
       const fullName = (givenName + ' ' + familyName).trim() || 'Usuario Apple';
@@ -183,31 +205,38 @@ export class LoginPage implements OnInit {
         this.mysql.appleCheck(email, user, fullName).subscribe({
           next: (res) => {
             this.isLoading = false;
-            if (res.exists) {
+            if (res.success && res.exists) {
               if (res.token) localStorage.setItem('token', res.token);
               localStorage.setItem('userId', res.id.toString());
-              localStorage.setItem('userRole', res.rol); // Store role
+              localStorage.setItem('userRole', res.rol);
               this.notificationService.updateTokenForUser();
               this.redirectBasedOnRole(res.rol);
             } else {
-              this.showError('Usuario no registrado. Regístrate con tu correo primero y vincularemos tu cuenta.');
+              // Si success es true pero exists es false, significa que el backend no pudo crearla automáticamente
+              this.showError(res.error || 'No se pudo vincular tu cuenta de Apple. Intenta con otro método.');
             }
           },
           error: (err) => {
             this.isLoading = false;
             console.error('Apple check error:', err);
-            this.showError('Error al verificar cuenta Apple.');
+            this.showError('Error de conexión con el servidor de autenticación.');
           }
         });
       } else {
         this.isLoading = false;
-        this.showError('No se pudo obtener el identificador de usuario de Apple. Inténtalo de nuevo.');
+        this.showError('No se recibió el identificador de Apple. Inténtalo de nuevo.');
       }
     } catch (err: any) {
       this.isLoading = false;
-      console.error('Apple sign in error:', err);
-      if (err.error !== 'popup_closed_by_user') {
-        this.showError('Error al iniciar sesión con Apple.');
+      console.error('Apple sign in error details:', err);
+      
+      const isCancelled = err.error === 'popup_closed_by_user' || 
+                          err.message === 'user_cancelled' || 
+                          err.message === 'Sign in with Apple was cancelled';
+      
+      if (!isCancelled) {
+        const detail = err.message || err.error || JSON.stringify(err);
+        this.showError(`Error Apple: ${detail}`);
       }
     }
   }

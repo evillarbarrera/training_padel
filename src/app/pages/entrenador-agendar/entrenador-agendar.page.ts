@@ -379,11 +379,12 @@ export class EntrenadorAgendarPage implements OnInit {
         const loading = await this.loadingCtrl.create({ message: 'Agregando jugador...' });
         await loading.present();
 
-        this.entrenamientoService.addJugadorAPack(this.selectedSlot.slot.reserva_id, player.id).subscribe({
+        // Usamos el nuevo método por sesión (reserva_id) en lugar del pack completo
+        this.entrenamientoService.addJugadorAReserva(this.selectedSlot.slot.reserva_id, player.id).subscribe({
             next: (res: any) => {
                 loading.dismiss();
                 if (res.success) {
-                    this.mostrarToast('✅ Jugador agregado al grupo');
+                    this.mostrarToast('✅ Jugador agregado a esta sesión');
                     this.searchQueryMini = '';
                     this.searchResultsMini = [];
                     // Refresh current participants
@@ -661,52 +662,25 @@ export class EntrenadorAgendarPage implements OnInit {
                             break;
                         }
                     }
-                    if (!fId || fId === 0) {
-                        for(const k in primerJugador) {
-                            if (k.toLowerCase().includes('id') && !k.toLowerCase().includes('jugador') && !k.toLowerCase().includes('usuario')) {
-                                const val = primerJugador[k];
-                                if (val && !isNaN(Number(val)) && Number(val) > 0 && Number(val) !== Number(primerJugador.jugador_id || primerJugador.id)) {
-                                    fId = val;
-                                    break;
-                                }
-                            }
-                        }
-                    }
                     fJugadorId = primerJugador.pack_jugador_id || primerJugador.id_pack_jugador || fId || 0;
-
-                    // Fallback List By Name Match
-                    if ((!fId || fId === 0) && primerJugador.pack_nombre && (primerJugador.creditos_reales > 0 || primerJugador.sesiones_restantes > 0)) {
-                        const foundInCatalog = (this.packsDisponibles || []).find((p: any) => (p.nombre || p.titulo) === primerJugador.pack_nombre);
-                        if (foundInCatalog) {
-                            fId = foundInCatalog.id || foundInCatalog.pack_id || 0;
-                            fJugadorId = fId;
-                        }
-                    }
-                }
-
-                if (!fId || Number(fId) === 0) {
-                    if (!this.packAAsignar) {
-                        loading.dismiss();
-                        this.mostrarToast(`Error: No se detectó un identificador de Pack válido.`);
-                        return;
-                    }
                 }
 
                 const payloadReserva: any = {
-                    entrenador_id: String(this.entrenadorId),
-                    pack_id: String(fId),
-                    pack_jugador_id: String(fJugadorId),
+                    entrenador_id: Number(this.entrenadorId),
+                    pack_id: Number(fId),
+                    pack_jugador_id: Number(fJugadorId),
                     fecha: this.selectedSlot.dateStr,
                     hora_inicio: this.selectedSlot.hour,
                     hora_fin: this.getHoraFin(this.selectedSlot.hour),
-                    jugador_id: primerJugador ? String(primerJugador.jugador_id || primerJugador.id) : '0',
+                    jugador_id: primerJugador ? Number(primerJugador.jugador_id || primerJugador.id) : 0,
                     jugador_nombre: primerJugador ? (primerJugador.jugador_nombre || 'Alumno') : 'Clase Abierta',
                     estado: 'reservado',
-                    recurrencia: String(this.recurrencia || 1),
+                    recurrencia: Number(this.recurrencia || 1),
                     tipo: this.tipoClaseSeleccionado,
-                    club_id: String(this.selectedSlot.slot.club_id || this.selectedClubId || 1),
-                    malla_id: String(this.planificacionId || 0),
-                    clase_id: String(this.claseMallaId || 0),
+                    reserva_tipo: this.tipoClaseSeleccionado === 'grupal' ? 'pack_grupal' : 'individual',
+                    club_id: Number(this.selectedSlot.slot.club_id || this.selectedClubId || 1),
+                    malla_id: Number(this.planificacionId || 0),
+                    clase_id: Number(this.claseMallaId || 0),
                     clase_titulo: this.clasesDisponibles.find(c => c.id == this.claseMallaId)?.titulo || ''
                 };
 

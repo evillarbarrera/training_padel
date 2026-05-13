@@ -234,6 +234,12 @@ export class EntrenamientoService {
       headers: this.getHeaders()
     });
   }
+
+  addJugadorAReserva(reservaId: number, jugadorId: number): Observable<any> {
+    return this.http.post(`${this.api}/entrenador/add_jugador_reserva.php`, { reserva_id: reservaId, jugador_id: jugadorId }, {
+      headers: this.getHeaders()
+    });
+  }
 }
 
 

@@ -279,7 +279,7 @@
                     </div>
 
                     <!-- SECCIÓN: Participantes (Solo Grupal) -->
-                    <div class="participants-section animate-up" *ngIf="selectedSlot.slot.reserva_tipo?.toLowerCase().includes('grupal') || selectedSlot.slot.capacidad_maxima" style="background: #f8fafc; border-radius: 16px; padding: 15px; margin: 15px 0; border: 1px solid #e2e8f0;">
+                    <div class="participants-section animate-up" *ngIf="(selectedSlot.slot.tipo || '').toLowerCase().includes('grupal') || (selectedSlot.slot.reserva_tipo || '').toLowerCase().includes('grupal') || (selectedSlot.slot.pack_id && selectedSlot.slot.pack_id != '0')" style="background: #f8fafc; border-radius: 16px; padding: 15px; margin: 15px 0; border: 1px solid #e2e8f0;">
                         <div class="ps-header" style="margin-bottom: 12px;">
                             <ion-icon name="people-outline" style="vertical-align: middle; margin-right: 5px; color: #64748b;"></ion-icon>
                             <b style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase;">Participantes ({{ participantesGrupo.length }}/{{ selectedSlot.slot.capacidad_maxima || 6 }})</b>
