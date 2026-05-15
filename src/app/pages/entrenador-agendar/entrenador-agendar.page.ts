@@ -17,6 +17,7 @@ import {
     closeOutline, personCircleOutline, addCircleOutline, trashOutline, createOutline, addOutline
 } from 'ionicons/icons';
 import { environment } from 'src/environments/environment';
+import { NotificationService } from '../../services/notification.service';
 
 registerLocaleData(localeEs);
 
@@ -145,7 +146,8 @@ export class EntrenadorAgendarPage implements OnInit {
         private entrenamientoService: EntrenamientoService,
         private alertCtrl: AlertController,
         private loadingCtrl: LoadingController,
-        private toastCtrl: ToastController
+        private toastCtrl: ToastController,
+        private notificationService: NotificationService
     ) {
         addIcons({
             chevronBackOutline, calendarOutline, timeOutline, checkmarkCircleOutline,

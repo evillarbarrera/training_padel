@@ -30,9 +30,8 @@ export class NotificationService {
         }
 
         if (permStatus.receive === 'granted') {
-          await PushNotifications.register();
-
           // Escuchar cuando el celular nos da el Token Físico FCM / APNs
+          // IMPORTANTE: Agregar el listener ANTES de registrar
           PushNotifications.addListener('registration', (token) => {
             let finalToken = token.value;
 
@@ -68,6 +67,8 @@ export class NotificationService {
               });
             }
           });
+
+          await PushNotifications.register();
 
           // Manejar errores de registro
           PushNotifications.addListener('registrationError', (error: any) => {
