@@ -730,19 +730,50 @@ export class EntrenadorAgendarPage implements OnInit {
 
         const alert = await this.alertCtrl.create({
             header: 'Cancelar Clase',
-            message: `¿Deseas cancelar la clase de ${this.selectedSlot.slot.jugador_nombre}?`,
+            message: `¿Deseas cancelar TODA la clase y liberar el horario?`,
             buttons: [
                 { text: 'Atrás', role: 'cancel' },
                 {
-                    text: 'Cancelar Clase',
+                    text: 'Confirmar Cancelación',
                     handler: () => {
                         this.entrenamientoService.cancelarReserva(resId).subscribe({
                             next: () => {
-                                this.mostrarToast('Clase cancelada');
+                                this.mostrarToast('Clase cancelada exitosamente');
                                 this.cerrarModal();
                                 this.loadDisponibilidad();
                             },
-                            error: () => this.mostrarToast('Error cancelando')
+                            error: () => this.mostrarToast('Error al cancelar')
+                        });
+                    }
+                }
+            ]
+        });
+        await alert.present();
+    }
+
+    async quitarJugador(p: any) {
+        const resId = this.selectedSlot?.slot?.reserva_id;
+        if (!resId) return;
+
+        const alert = await this.alertCtrl.create({
+            header: 'Quitar Alumno',
+            message: `¿Deseas quitar a ${p.nombre || p.jugador_nombre} de esta clase?`,
+            buttons: [
+                { text: 'No', role: 'cancel' },
+                {
+                    text: 'Quitar',
+                    handler: () => {
+                        this.entrenamientoService.cancelarReserva(resId, p.id || p.jugador_id).subscribe({
+                            next: () => {
+                                this.mostrarToast('Alumno removido');
+                                // Refresh participants list
+                                this.participantesGrupo = this.participantesGrupo.filter(x => (x.id || x.jugador_id) !== (p.id || p.jugador_id));
+                                if (this.participantesGrupo.length === 0) {
+                                    this.cerrarModal();
+                                    this.loadDisponibilidad();
+                                }
+                            },
+                            error: () => this.mostrarToast('Error al remover')
                         });
                     }
                 }
