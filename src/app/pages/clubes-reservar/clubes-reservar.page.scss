@@ -98,3 +98,59 @@ ion-content {
 
 .animate-up { animation: up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
 @keyframes up { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+/* -- FAVORITE HEART TOGGLES -- */
+.search-actions ion-icon.active {
+  color: #ff3b30 !important;
+  opacity: 1 !important;
+}
+
+.fav-btn.active {
+  color: #ff3b30 !important;
+  filter: drop-shadow(0 2px 5px rgba(255, 59, 48, 0.4));
+}
+
+.fav-icon-btn.active {
+  color: #ff3b30 !important;
+}
+
+/* -- DURATION SELECTOR V6 -- */
+.duration-selector-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 15px;
+  margin-bottom: 25px;
+  background: #f8f8fa;
+  border-radius: 16px;
+  padding: 10px 14px;
+  border: 1px solid rgba(0,0,0,0.02);
+
+  .ds-label {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--nike-navy, #0f172a);
+  }
+
+  .ds-pills {
+    display: flex;
+    gap: 6px;
+
+    .ds-pill {
+      font-size: 12px;
+      font-weight: 900;
+      color: #8e8e93;
+      padding: 6px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: transparent;
+
+      &.active {
+        background: #000;
+        color: #CCFF00;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      }
+    }
+  }
+}

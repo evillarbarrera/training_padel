@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">PadelManager</string>
-    <string name="title_activity_main">PadelManager</string>
+    <string name="app_name">PadelBlox</string>
+    <string name="title_activity_main">PadelBlox</string>
     <string name="package_name">cl.padelacademy.app</string>
     <string name="custom_url_scheme">cl.padelacademy.app</string>
     <string name="google_client_id">786145270372-e637i46g6uu1kekcr1ioqdka901acud7.apps.googleusercontent.com</string>

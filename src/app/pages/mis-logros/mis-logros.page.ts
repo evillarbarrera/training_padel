@@ -5,7 +5,9 @@ import {
   IonIcon,
   IonButton,
   IonRefresher,
-  IonRefresherContent
+  IonRefresherContent,
+  IonFab,
+  IonFabButton
 } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
@@ -26,7 +28,9 @@ import { MysqlService } from '../../services/mysql.service';
     IonIcon,
     IonButton,
     IonRefresher,
-    IonRefresherContent
+    IonRefresherContent,
+    IonFab,
+    IonFabButton
   ]
 })
 export class MisLogrosPage implements OnInit {

@@ -70,59 +70,24 @@
         <ion-icon name="chevron-forward" class="nc-arrow"></ion-icon>
       </div>
 
-      <!-- 1. TU PROGRESO V2 (EL REY DEL DASHBOARD) -->
-      <div class="progress-v2 delay-1">
-        <div class="p-header">
-           <h3 class="v2-title">Tu Progreso</h3>
-           <div class="p-pts" (click)="goToLogros()">Nivel {{ logrosDesbloqueados > 0 ? logrosDesbloqueados : 1 }} <ion-icon name="chevron-forward"></ion-icon></div>
-        </div>
-        
-        <div class="p-metrics">
-           <div class="p-metric-item highlight" (click)="abrirModalPacks()">
-             <div class="m-val">{{ clasesPendientes }}</div>
-             <div class="m-lbl">Pendientes</div>
-           </div>
-           <div class="p-metric-item">
-             <div class="m-val">{{ clasesDisponibles }}</div>
-             <div class="m-lbl">Créditos</div>
-           </div>
-           <div class="p-metric-item">
-             <div class="m-val">{{ clasesReservadas }}</div>
-             <div class="m-lbl">Reservadas</div>
-           </div>
-        </div>
-
-        <div class="p-divider"></div>
-
-        <div class="p-logros-section" (click)="goToLogros()">
-           <div class="p-l-header">
-             <span>Progreso de Insignias</span>
-             <span class="pct">{{ logrosPorcentaje }}%</span>
-           </div>
-           <div class="p-l-bar"><div class="p-l-fill" [style.width.%]="logrosPorcentaje"></div></div>
-           <div class="p-l-badges">
-              <div class="mini-badge" *ngFor="let logro of (logros.length ? logros.slice(0, 5) : [1,2,3,4,5])" 
-                   [class.locked]="logro.desbloqueado === false" 
-                   [style.--bc]="logro.color_badge || '#e5e5ea'">
-                {{ logro.icono || '🔒' }}
-              </div>
-              <div class="mini-badge-more" *ngIf="logros.length > 5">+{{ logros.length - 5 }}</div>
-           </div>
+      <!-- BOTÓN VER PROGRESO Y ENTRENAMIENTO -->
+      <div class="progreso-trigger-container" (click)="abrirModalProgreso()">
+        <div class="progreso-trigger-content">
+          <div class="pt-left">
+            <div class="pt-icon-badge">
+              <ion-icon name="bar-chart-outline"></ion-icon>
+            </div>
+            <div class="pt-text">
+              <h3>Revisar tu progreso y entrenamiento</h3>
+              <p>Habilidades, nivel y sesiones activas</p>
+            </div>
+          </div>
+          <ion-icon name="chevron-forward" class="pt-arrow"></ion-icon>
         </div>
       </div>
 
-      <!-- 2. DAILY TIP V2 (SEGUNDO LUGAR) -->
-      <div class="daily-tip-v2 delay-1" *ngIf="dailyTip">
-         <div class="t-icon"><ion-icon name="sparkles-outline"></ion-icon></div>
-         <div class="t-content">
-            <span class="t-badge">TIP DEL COACH</span>
-            <h4>{{ dailyTip.titulo }}</h4>
-            <p>{{ dailyTip.mensaje }}</p>
-         </div>
-      </div>
-
-      <!-- 3. ACCIONES RÁPIDAS V2 (ORDEN PREMIUM UX) -->
-      <div class="actions-v2-card delay-2">
+      <!-- 1. ACCIONES RÁPIDAS V2 (ORDEN PREMIUM UX) -->
+      <div class="actions-v2-card delay-1">
          <div class="v2-card-header">
             <h4 class="v2-subtitle">Centro de Mando</h4>
             <span class="v2-status-dot pulse"></span>
@@ -138,11 +103,6 @@
              <div class="action-btn-v2" (click)="goToMisClases()">
                 <div class="a-icon bg-soft"><ion-icon name="time-outline"></ion-icon></div>
                 <span class="a-label">Mi Agenda</span>
-             </div>
-             
-             <div class="action-btn-v2" (click)="misHabilidades()">
-                <div class="a-icon bg-soft"><ion-icon name="ribbon-outline"></ion-icon></div>
-                <span class="a-label">Tu Nivel</span>
              </div>
           </div>
 
@@ -173,6 +133,18 @@
              </div>
           </div>
       </div>
+
+      <!-- 2. DAILY TIP V2 (SEGUNDO LUGAR) -->
+      <div class="daily-tip-v2 delay-1" *ngIf="dailyTip">
+         <div class="t-icon"><ion-icon name="sparkles-outline"></ion-icon></div>
+         <div class="t-content">
+            <span class="t-badge">TIP DEL COACH</span>
+            <h4>{{ dailyTip.titulo }}</h4>
+            <p>{{ dailyTip.mensaje }}</p>
+         </div>
+      </div>
+
+
 
     </div>
   </ng-container>
@@ -550,6 +522,101 @@
       </ion-content>
     </ng-template>
   </ion-modal>
+
+  <!-- Modal Progreso y Entrenamiento (Bottom Sheet) -->
+  <ion-modal id="progreso-entrenamiento-modal" [isOpen]="isProgresoModalOpen" (didDismiss)="cerrarModalProgreso()" initialBreakpoint="0.75"
+    [breakpoints]="[0, 0.5, 0.75, 0.95]" class="custom-bottom-sheet">
+    <ng-template>
+      <ion-content class="progreso-modal-content">
+        <div class="drag-handle"></div>
+        
+        <div class="pm-header">
+          <div class="pm-title-group">
+            <span class="pm-tag">RENDIMIENTO DEPORTIVO</span>
+            <h2>Tu Progreso</h2>
+          </div>
+          <button (click)="cerrarModalProgreso()" class="pm-close-btn">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="pm-body">
+          
+          <!-- LEVEL SECTION HERO -->
+          <div class="pm-level-hero" (click)="goToLogros()">
+            <div class="lh-left">
+              <div class="lh-icon-badge">🏆</div>
+              <div class="lh-text">
+                <span class="lh-sub">Rango Actual</span>
+                <h3>Nivel {{ logrosDesbloqueados > 0 ? logrosDesbloqueados : 1 }}</h3>
+              </div>
+            </div>
+            <div class="lh-action-btn">
+              <span>Ver Logros</span>
+              <ion-icon name="chevron-forward"></ion-icon>
+            </div>
+          </div>
+
+          <!-- METRICS GRID -->
+          <div class="pm-metrics-grid">
+            <div class="pm-metric-card pending-card" (click)="abrirModalPacks()">
+              <div class="mc-icon"><ion-icon name="time-outline"></ion-icon></div>
+              <div class="mc-value">{{ clasesPendientes }}</div>
+              <div class="mc-label">Pendientes</div>
+              <div class="mc-arrow"><ion-icon name="chevron-forward"></ion-icon></div>
+            </div>
+            
+            <div class="pm-metrics-subgrid">
+              <div class="pm-metric-card mini-card">
+                <span class="mc-label">Créditos</span>
+                <span class="mc-value">{{ clasesDisponibles }}</span>
+              </div>
+              <div class="pm-metric-card mini-card">
+                <span class="mc-label">Reservadas</span>
+                <span class="mc-value">{{ clasesReservadas }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- BADGES SECTION -->
+          <div class="pm-section-card" (click)="goToLogros()">
+            <div class="pm-section-header">
+              <h4>Logros e Insignias</h4>
+              <span class="pm-section-pct">{{ logrosPorcentaje }}%</span>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="pm-progress-container">
+              <div class="pm-progress-bar">
+                <div class="pm-progress-fill" [style.width.%]="logrosPorcentaje"></div>
+              </div>
+            </div>
+
+            <!-- Mini Badges Row -->
+            <div class="pm-badges-row">
+              <div class="pm-mini-badge" *ngFor="let logro of (logros.length ? logros.slice(0, 5) : [1,2,3,4,5])" 
+                   [class.locked]="logro.desbloqueado === false" 
+                   [style.--badge-color]="logro.color_badge || '#e5e5ea'">
+                <span class="pm-badge-emoji">{{ logro.icono || '🔒' }}</span>
+              </div>
+              <div class="pm-mini-badge-more" *ngIf="logros.length > 5">+{{ logros.length - 5 }}</div>
+            </div>
+          </div>
+
+          <!-- LEVEL UP BUTTON -->
+          <button class="pm-action-button" (click)="misHabilidades()">
+            <div class="ab-content">
+              <ion-icon name="ribbon-outline" class="ab-icon"></ion-icon>
+              <span>Habilidades y Nivel</span>
+            </div>
+            <ion-icon name="chevron-forward-outline" class="ab-arrow"></ion-icon>
+          </button>
+
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
 
   <!-- 🏅 Achievement Unlocked Toast -->
   <div class="achievement-toast-overlay" *ngIf="showAchievementToast" (click)="dismissAchievementToast()">

@@ -1,0 +1,237 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="nike-toolbar">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="chevron-back-outline" slot="icon-only" color="dark"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="nike-title">PUNTOS POR CLUB</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="clubes-puntos-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="dashboard-container">
+    <div class="header-intro" *ngIf="!selectedClub">
+      <h2>Mis Billeteras de Puntos</h2>
+      <p>Selecciona un club para ver tus puntos acumulados, canjear sus premios disponibles y generar tu código QR de canje.</p>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-center" *ngIf="loading && clubBalances.length === 0">
+      <ion-spinner name="crescent" color="success"></ion-spinner>
+      <p>Cargando tus clubes...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state-container" *ngIf="!loading && clubBalances.length === 0">
+      <div class="empty-icon-wrapper">
+        <ion-icon name="pricetags-outline"></ion-icon>
+      </div>
+      <h3>Sin puntos acumulados</h3>
+      <p>Aún no has acumulado puntos en ningún club. ¡Participa en torneos y partidos para sumar tus primeros puntos!</p>
+    </div>
+
+    <!-- Club Balances Grid/List (Only show if no club selected) -->
+    <div class="club-grid animate-up" *ngIf="clubBalances.length > 0 && !selectedClub">
+      <div class="club-card" *ngFor="let club of clubBalances" (click)="selectClub(club)">
+        <div class="club-header">
+          <div class="club-avatar">
+            <img [src]="club.club_logo || 'assets/pelota.png'" onerror="this.src='assets/pelota.png'" alt="Club Logo" />
+          </div>
+          <div class="club-info">
+            <h3>{{ club.club_name }}</h3>
+            <span class="club-type" *ngIf="club.club_id === 0">Global</span>
+            <span class="club-type" *ngIf="club.club_id > 0">Club de Pádel</span>
+          </div>
+          <div class="club-points-badge">
+            <span class="points-num">{{ club.balance | number }}</span>
+            <span class="points-lbl">PTS</span>
+          </div>
+        </div>
+        <div class="club-card-footer">
+          <span>Ver premios y tarjeta QR</span>
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+        </div>
+      </div>
+    </div>
+
+    <!-- Club Details Section (Shown when a club is selected) -->
+    <div class="club-details-panel animate-up" *ngIf="selectedClub">
+      <div class="panel-header">
+        <button class="back-list-btn" (click)="closeDetails()">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+          <span>Volver a Clubes</span>
+        </button>
+      </div>
+
+      <!-- DIGITAL CARD INSIDE PANEL (Club-Specific - Compact) -->
+      <div class="loyalty-card-container compact">
+        <div class="glass-loyalty-card small-card">
+          <div class="card-glow"></div>
+          
+          <!-- Card Header (Branding & Membership Type) -->
+          <div class="card-header">
+            <div class="logo-wrapper">
+              <img [src]="selectedClub.club_logo || 'assets/pelota.png'" onerror="this.src='assets/pelota.png'" class="card-logo-img" alt="Club Logo" />
+              <span class="card-logo-text">{{ selectedClub.club_name }}</span>
+            </div>
+            <span class="card-type-badge">{{ profile.rol === 'entrenador' || profile.rol === 'entrenador_padel' ? 'PRO COACH' : 'PLAYER PASS' }}</span>
+          </div>
+
+          <!-- Card Holder Profile Row -->
+          <div class="card-holder-row">
+            <div class="player-avatar-wrapper">
+              <img [src]="profile.foto_perfil || 'assets/avatar.png'" class="player-avatar-img" alt="Foto Perfil" />
+            </div>
+            <div class="player-info">
+              <h3 class="player-name">{{ profile.nombre || 'Jugador' }}</h3>
+              <span class="player-category" *ngIf="profile.categoria">Categoría: {{ profile.categoria }}</span>
+              <span class="player-category" *ngIf="!profile.categoria">Categoría: Cuarta</span>
+            </div>
+            <div class="wallet-badge-section">
+              <span class="balance-title">MIS PUNTOS</span>
+              <div class="balance-value-wrapper">
+                <span class="balance-value">{{ selectedClub.balance | number }}</span>
+                <span class="pts-label">PTS</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scan Zone (Centered QR Code with scanner framing) -->
+          <div class="scan-zone">
+            <div class="qr-scanner-frame">
+              <div class="corner top-left"></div>
+              <div class="corner top-right"></div>
+              <div class="corner bottom-left"></div>
+              <div class="corner bottom-right"></div>
+              
+              <div class="qr-box">
+                <img *ngIf="qrCodeUrl" [src]="qrCodeUrl" class="qr-image" alt="QR Code" />
+                <div *ngIf="!qrCodeUrl" class="qr-placeholder">
+                  <ion-spinner name="crescent" color="success"></ion-spinner>
+                </div>
+              </div>
+            </div>
+            
+            <div class="qr-timer-badge">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>Código dinámico {{ selectedClub.club_name }} ({{ qrTimeLeft }}s)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Catálogo de Premios -->
+      <div class="details-section">
+        <h4 class="section-subtitle">
+          <ion-icon name="gift-outline"></ion-icon>
+          Premios Canjeables en este Club
+        </h4>
+        <div class="rewards-grid">
+          <div class="reward-square-card animate-up" *ngFor="let reward of rewardsList">
+            <div class="reward-img-container">
+              <img [src]="reward.image" class="reward-product-img" [alt]="reward.name" />
+              <span class="reward-cost-badge">{{ reward.cost }} PTS</span>
+            </div>
+            <div class="reward-info-container">
+              <h5 class="reward-title">{{ reward.name }}</h5>
+              <button 
+                class="redeem-action-btn-square"
+                [class.disabled]="selectedClub.balance < reward.cost"
+                [disabled]="selectedClub.balance < reward.cost"
+                (click)="abrirPopupCanje(reward)">
+                {{ selectedClub.balance < reward.cost ? 'Faltan pts' : 'Canjear' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Mis Cupones en este Club -->
+      <div class="details-section">
+        <h4 class="section-subtitle">
+          <ion-icon name="pricetag-outline"></ion-icon>
+          Mis Cupones en este Club
+        </h4>
+        
+        <div class="coupons-container" *ngIf="getFilteredCoupons().length > 0">
+          <div class="ticket-coupon" *ngFor="let coupon of getFilteredCoupons()" [class.used]="coupon.status === 'used'">
+            <div class="ticket-stripe"></div>
+            <div class="ticket-content">
+              <div class="ticket-left">
+                <h5>{{ coupon.reward_name }}</h5>
+                <span class="cost">{{ coupon.points_cost }} PTS</span>
+                <span class="date">Canjeado: {{ coupon.created_at | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="ticket-right">
+                <span class="code-title">CÓDIGO</span>
+                <span class="code-value">{{ coupon.coupon_code }}</span>
+                <span class="status-pill" [class.pending]="coupon.status === 'pending'" [class.used]="coupon.status === 'used'">
+                  {{ coupon.status === 'pending' ? 'PENDIENTE' : 'ENTREGADO' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-section-message" *ngIf="getFilteredCoupons().length === 0">
+          <p>No has canjeado premios para este club todavía.</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- DYNAMIC CONFIRMATION MODAL -->
+  <ion-modal [isOpen]="isRedeemModalOpen" (didDismiss)="cerrarPopupCanje()" class="redeem-confirmation-modal">
+    <ng-template>
+      <div class="modal-wrapper">
+        <div class="modal-header">
+          <h3>Confirmar Canje</h3>
+          <button class="modal-close-btn" (click)="cerrarPopupCanje()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+        
+        <div class="modal-body" *ngIf="selectedReward">
+          <!-- Product image -->
+          <div class="modal-product-img-wrapper">
+            <img [src]="selectedReward.image" class="modal-product-img" [alt]="selectedReward.name" />
+          </div>
+          
+          <!-- Product info -->
+          <h4 class="modal-product-title">{{ selectedReward.name }}</h4>
+          <p class="modal-product-description">{{ selectedReward.description }}</p>
+          
+          <!-- Points math container -->
+          <div class="points-calculation-card">
+            <div class="calc-row">
+              <span class="calc-label">Mis Puntos en {{ selectedClub.club_name }}:</span>
+              <span class="calc-val">{{ selectedClub.balance | number }} pts</span>
+            </div>
+            <div class="calc-row discount">
+              <span class="calc-label">Puntos a Canjear:</span>
+              <span class="calc-val">-{{ selectedReward.cost | number }} pts</span>
+            </div>
+            <div class="calc-divider"></div>
+            <div class="calc-row total">
+              <span class="calc-label">Puntos Restantes:</span>
+              <span class="calc-val">{{ remainingPoints | number }} pts</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button class="modal-btn cancel" (click)="cerrarPopupCanje()">Cancelar</button>
+          <button class="modal-btn confirm" (click)="confirmarCanjeModal()">Canjear</button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>

@@ -274,4 +274,33 @@ export class MysqlService {
   getMisTorneosCompleto(userId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.api}/torneos/get_mis_torneos_completo.php?user_id=${userId}`, { headers: this.getHeaders() });
   }
+
+  getWallet(userId: number): Observable<any> {
+    return this.http.get<any>(`${this.api}/wallet/get_wallet.php?user_id=${userId}`, { headers: this.getHeaders() });
+  }
+
+  getWalletTransactions(userId: number): Observable<any> {
+    return this.http.get<any>(`${this.api}/wallet/get_transactions.php?user_id=${userId}`, { headers: this.getHeaders() });
+  }
+
+  generateQRCode(userId: number, clubId: number = 0): Observable<any> {
+    return this.http.post<any>(`${this.api}/wallet/generate_qr.php`, { user_id: userId, club_id: clubId }, { headers: this.getHeaders() });
+  }
+
+  buyPoints(userId: number, packageId: number): Observable<any> {
+    return this.http.post<any>(`${this.api}/wallet/buy_points.php`, { user_id: userId, package_id: packageId }, { headers: this.getHeaders() });
+  }
+
+  redeemCoupon(userId: number, rewardId: number, clubId: number = 0): Observable<any> {
+    return this.http.post<any>(`${this.api}/wallet/redeem_coupon.php`, { user_id: userId, reward_id: rewardId, club_id: clubId }, { headers: this.getHeaders() });
+  }
+
+  getUserCoupons(userId: number): Observable<any> {
+    return this.http.get<any>(`${this.api}/wallet/get_user_coupons.php?user_id=${userId}`, { headers: this.getHeaders() });
+  }
+
+  processClubRedemption(couponCode: string, action: string): Observable<any> {
+    return this.http.post<any>(`${this.api}/wallet/process_club_redemption.php`, { coupon_code: couponCode, action: action }, { headers: this.getHeaders() });
+  }
 }
+

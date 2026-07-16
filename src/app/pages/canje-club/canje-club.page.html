@@ -1,0 +1,103 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="nike-toolbar">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="chevron-back-outline" slot="icon-only" color="dark"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="nike-title">VALIDAR CUPONES</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="canje-content">
+  <div class="dashboard-container">
+    <div class="header-intro">
+      <h2>Módulo de Canje</h2>
+      <p>Ingresa el código alfanumérico provisto por el jugador para verificar e invalidar el cupón al entregar el premio.</p>
+    </div>
+
+    <!-- Search Card -->
+    <div class="search-card">
+      <div class="input-row">
+        <div class="search-input-wrapper">
+          <ion-icon name="barcode-outline" class="input-icon"></ion-icon>
+          <input 
+            type="text" 
+            [(ngModel)]="couponCode" 
+            placeholder="Código del Cupón (Ej: PB-3A8F2E)"
+            (keyup.enter)="verifyCoupon()"
+            class="coupon-search-input" />
+          <button class="clear-btn" *ngIf="couponCode || couponData" (click)="clearSearch()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+        <button class="verify-btn" (click)="verifyCoupon()" [disabled]="loading">
+          <span *ngIf="!loading">Verificar</span>
+          <ion-spinner name="crescent" *ngIf="loading" color="light" class="small-spinner"></ion-spinner>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading Center -->
+    <div class="loading-center" *ngIf="loading && !couponData">
+      <ion-spinner name="crescent" color="success"></ion-spinner>
+      <p>Consultando cupón en el servidor...</p>
+    </div>
+
+    <!-- Coupon Info Card -->
+    <div class="coupon-result-card animate-up" *ngIf="couponData">
+      <div class="result-header">
+        <h4 class="result-title">INFORMACIÓN DEL CANJE</h4>
+        <span class="status-pill" [class.pending]="couponData.status === 'pending'" [class.used]="couponData.status === 'used'">
+          {{ couponData.status === 'pending' ? 'PENDIENTE' : 'ENTREGADO' }}
+        </span>
+      </div>
+
+      <!-- Ticket component representation -->
+      <div class="ticket-visual" [class.ticket-used]="couponData.status === 'used'">
+        <div class="ticket-top-border"></div>
+        <div class="ticket-body">
+          <div class="ticket-row">
+            <span class="lbl">Jugador / Cliente</span>
+            <span class="val name">{{ couponData.player_name }}</span>
+          </div>
+          <div class="ticket-row">
+            <span class="lbl">Premio Canjeado</span>
+            <span class="val reward-title">🎁 {{ couponData.reward_name }}</span>
+          </div>
+          <div class="ticket-row-double">
+            <div class="ticket-col">
+              <span class="lbl">Costo en Puntos</span>
+              <span class="val points-cost">{{ couponData.points_cost }} PTS</span>
+            </div>
+            <div class="ticket-col">
+              <span class="lbl">Fecha Canje</span>
+              <span class="val date">{{ couponData.created_at | date:'dd/MM/yyyy, HH:mm' }}</span>
+            </div>
+          </div>
+          <div class="ticket-divider"></div>
+          <div class="ticket-code-row">
+            <span class="lbl">CÓDIGO DE CUPÓN</span>
+            <span class="coupon-code">{{ couponData.coupon_code }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action CTAs -->
+      <div class="action-footer" *ngIf="couponData.status === 'pending'">
+        <button class="confirm-delivery-btn" (click)="confirmRedemption()" [disabled]="loading">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          Confirmar Entrega de Premio
+        </button>
+      </div>
+
+      <div class="success-message" *ngIf="couponData.status === 'used'">
+        <ion-icon name="checkmark-circle-outline" class="success-check"></ion-icon>
+        <div class="msg-text">
+          <h5>Premio Entregado</h5>
+          <p>Este cupón ya fue verificado y el premio fue entregado al jugador.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

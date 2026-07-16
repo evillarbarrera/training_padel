@@ -7,12 +7,12 @@
       <!-- Logo integrado en la parte superior del card -->
       <div class="logo-container">
         <div class="logo-ring">
-          <img src="assets/logo-circular.png" class="brand-logo" alt="PadelManager" />
+          <img src="assets/logo-circular.png" class="brand-logo" alt="PadelBlox" />
         </div>
       </div>
 
       <!-- Brand Name -->
-      <h1 class="brand-name">Padel<span>Manager</span></h1>
+      <h1 class="brand-name">Padel<span>Blox</span></h1>
       <p class="brand-tagline">Tu academia, tu ritmo</p>
 
       <!-- Divider -->
@@ -53,7 +53,7 @@
             Google
           </ion-button>
   
-          <ion-button expand="block" fill="solid" class="apple-btn" (click)="loginWithApple()"
+          <ion-button *ngIf="!platform.is('android')" expand="block" fill="solid" class="apple-btn" (click)="loginWithApple()"
             [disabled]="isLoading">
             <ion-icon name="logo-apple" slot="start"></ion-icon>
             Apple
@@ -86,7 +86,7 @@
       <div class="recover-container">
         <div class="logo-container small">
           <div class="logo-ring">
-            <img src="assets/logo-circular.png" class="brand-logo" alt="PadelManager" />
+            <img src="assets/logo-circular.png" class="brand-logo" alt="PadelBlox" />
           </div>
         </div>
         <h2 class="recover-title">Recuperar Contraseña</h2>

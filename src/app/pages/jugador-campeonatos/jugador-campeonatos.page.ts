@@ -298,7 +298,8 @@ export class JugadorCampeonatosPage implements OnInit {
             .filter(c => clubsWithT.has(Number(c.id)))
             .map((c, index) => {
               if (c.logo && c.logo.trim() !== '' && c.logo !== 'null') {
-                c.logoUrl = c.logo.startsWith('http') ? c.logo : `${environment.apiUrl.replace('/dev','').replace('/prd','')}/${c.logo}`;
+                const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
+                c.logoUrl = c.logo.startsWith('http') ? c.logo : `${cleanApiUrl}/prd/${c.logo}`;
               } else {
                 c.logoUrl = this.defaultClubImage;
               }

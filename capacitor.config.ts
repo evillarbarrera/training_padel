@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'cl.padelacademy.app',
-  appName: 'PadelManager',
+  appName: 'PadelBlox',
   webDir: 'www',
   plugins: {
     GoogleAuth: {

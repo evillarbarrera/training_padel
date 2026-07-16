@@ -67,7 +67,7 @@ export class PartidoDetallePage implements OnInit {
     if (!url || url === 'null') return 'assets/avatar.png';
     if (url.startsWith('http')) return url;
     const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
-    return `${cleanApiUrl}/${url}`;
+    return `${cleanApiUrl}/prd/${url}`;
   }
 
   async loadMatch() {

@@ -71,6 +71,18 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/perfil/perfil.page').then(m => m.PerfilPage)
   },
   {
+    path: 'tarjeta-digital',
+    loadComponent: () => import('./pages/tarjeta-digital/tarjeta-digital.page').then(m => m.TarjetaDigitalPage)
+  },
+  {
+    path: 'mis-clubes-puntos',
+    loadComponent: () => import('./pages/mis-clubes-puntos/mis-clubes-puntos.page').then(m => m.MisClubesPuntosPage)
+  },
+  {
+    path: 'canje-club',
+    loadComponent: () => import('./pages/canje-club/canje-club.page').then(m => m.CanjeClubPage)
+  },
+  {
     path: 'mis-habilidades',
     loadComponent: () => import('./pages/mis-habilidades/mis-habilidades.page').then(m => m.MisHabilidadesPage)
   },

@@ -11,7 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { addIcons } from 'ionicons';
 import { settingsOutline, homeOutline, calendarOutline, logOutOutline, peopleOutline, locationOutline, searchOutline, closeOutline, checkmarkCircleOutline, personOutline, mailOutline, addOutline, callOutline, mapOutline, warningOutline } from 'ionicons/icons';
-import { chevronBackOutline, ticketOutline } from 'ionicons/icons';
+import { chevronBackOutline, ticketOutline, tennisballOutline } from 'ionicons/icons';
 import { NotificationService } from '../../services/notification.service';
 
 @Component({
@@ -30,8 +30,8 @@ export class JugadorReservasPage implements OnInit {
   jugadorNombre = '...';
   fotoPerfil = '';
 
-  // Vista actual
-  vistaActual: 'agendar' | 'mis-entrenamientos' = 'mis-entrenamientos';
+  vistaActual: 'agendar' | 'mis-entrenamientos' | 'mis-partidos' = 'mis-entrenamientos';
+  misPartidos: any[] = [];
 
   // Para agendar
   profesores: any[] = [];
@@ -138,7 +138,7 @@ export class JugadorReservasPage implements OnInit {
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
     private loadingCtrl: LoadingController,
-    private router: Router,
+    public router: Router,
     private route: ActivatedRoute,
     private notificationService: NotificationService
   ) {
@@ -159,7 +159,8 @@ export class JugadorReservasPage implements OnInit {
       callOutline,
       mapOutline,
       warningOutline,
-      ticketOutline
+      ticketOutline,
+      tennisballOutline
     });
   }
 
@@ -224,12 +225,18 @@ export class JugadorReservasPage implements OnInit {
   fetchAllData(event?: any) {
     this.cargando = true;
 
-    // Paralelizar Perfil y Reservas para máxima velocidad
+    // Paralelizar Perfil, Reservas y Partidos para máxima velocidad
     forkJoin({
       reservas: this.mysqlService.getReservasJugador(this.jugadorId).pipe(
         catchError(err => {
           console.error('Error refresh reservas:', err);
           return of({ reservas_individuales: [], entrenamientos_grupales: [] });
+        })
+      ),
+      partidos: this.mysqlService.getMisPartidos().pipe(
+        catchError(err => {
+          console.error('Error refresh partidos:', err);
+          return of([]);
         })
       ),
       perfil: this.mysqlService.getPerfil(this.jugadorId).pipe(
@@ -243,7 +250,7 @@ export class JugadorReservasPage implements OnInit {
         this.cargando = false;
         if (event) event.target.complete();
       })
-    ).subscribe(({ reservas, perfil }) => {
+    ).subscribe(({ reservas, partidos, perfil }) => {
       if (reservas) {
         const todayStr = new Date().toISOString().split('T')[0];
         this.reservasIndividuales = (reservas.reservas_individuales || []).filter((r:any) => r.fecha >= todayStr);
@@ -253,6 +260,11 @@ export class JugadorReservasPage implements OnInit {
           ...eg,
           genero: this.detectarGenero(eg.pack_nombre || '', eg.categoria || '')
         }));
+      }
+
+      if (partidos) {
+        const todayStr = new Date().toISOString().split('T')[0];
+        this.misPartidos = (partidos || []).filter((p: any) => p.fecha >= todayStr);
       }
 
       if (perfil) {
@@ -297,19 +309,24 @@ export class JugadorReservasPage implements OnInit {
 
   cargarMisEntrenamientos() {
     this.cargando = true;
-    this.mysqlService.getReservasJugador(this.jugadorId).subscribe({
-      next: (res: any) => {
+    forkJoin({
+      reservas: this.mysqlService.getReservasJugador(this.jugadorId).pipe(
+        catchError(err => of({ reservas_individuales: [], entrenamientos_grupales: [] }))
+      ),
+      partidos: this.mysqlService.getMisPartidos().pipe(
+        catchError(err => of([]))
+      )
+    }).subscribe({
+      next: ({ reservas, partidos }) => {
         const todayStr = new Date().toISOString().split('T')[0];
-
-        // Filter by date to ensure only upcoming/today sessions are shown
-        this.reservasIndividuales = (res.reservas_individuales || []).filter((r:any) => r.fecha >= todayStr);
-        this.entrenamientosGrupales = (res.entrenamientos_grupales || [])
+        this.reservasIndividuales = (reservas.reservas_individuales || []).filter((r:any) => r.fecha >= todayStr);
+        this.entrenamientosGrupales = (reservas.entrenamientos_grupales || [])
           .filter((eg:any) => eg.fecha >= todayStr)
           .map((eg: any) => ({
-          ...eg,
-          genero: this.detectarGenero(eg.pack_nombre || '', eg.categoria || '')
-        }));
-
+            ...eg,
+            genero: this.detectarGenero(eg.pack_nombre || '', eg.categoria || '')
+          }));
+        this.misPartidos = (partidos || []).filter((p: any) => p.fecha >= todayStr);
         this.cargando = false;
       },
       error: (err) => {
@@ -1218,13 +1235,32 @@ export class JugadorReservasPage implements OnInit {
     toast.present();
   }
 
-  cambiarVista(vista: 'agendar' | 'mis-entrenamientos') {
+  cambiarVista(vista: 'agendar' | 'mis-entrenamientos' | 'mis-partidos') {
     this.vistaActual = vista;
-    if (vista === 'mis-entrenamientos') {
+    if (vista === 'mis-entrenamientos' || vista === 'mis-partidos') {
       this.cargarMisEntrenamientos();
     } else if (vista === 'agendar') {
       this.checkBookingRestriction();
     }
+  }
+
+  getProfileImage(url: string | null) {
+    if (!url || url === 'null') return 'assets/avatar.png';
+    if (url.startsWith('http')) return url;
+    const cleanApiUrl = 'https://api.padelmanager.cl';
+    return `${cleanApiUrl}/${url}`;
+  }
+
+  isMatchComplete(p: any): boolean {
+    return !!(p.jugador1_id && p.jugador2_id && p.jugador3_id && p.jugador4_id);
+  }
+
+  getMissingPlayersCount(p: any): number {
+    let count = 0;
+    if (!p.jugador2_id) count++;
+    if (!p.jugador3_id) count++;
+    if (!p.jugador4_id) count++;
+    return count;
   }
 
   checkBookingRestriction(entrenadorId?: number) {

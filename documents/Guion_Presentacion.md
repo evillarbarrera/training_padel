@@ -1,13 +1,13 @@
-# Guion de Presentación: PadelManager
+# Guion de Presentación: PadelBlox
 
 ## Introducción (Slide 1)
-"Hola a todos. Mi nombre es [Tu Nombre] y hoy vengo a presentarles PadelManager. El pádel ha explotado en popularidad, pero la forma en que se gestiona sigue estancada en el pasado. Nosotros venimos a cambiar eso."
+"Hola a todos. Mi nombre es [Tu Nombre] y hoy vengo a presentarles PadelBlox. El pádel ha explotado en popularidad, pero la forma en que se gestiona sigue estancada en el pasado. Nosotros venimos a cambiar eso."
 
 ## El Problema (Slide 2)
 "Imaginen esto: Un jugador quiere mejorar, pero encontrar un buen entrenador cerca es una odisea de mensajes de WhatsApp y horarios desactualizados. Por otro lado, el entrenador pierde horas organizando su agenda en un cuaderno o Excel, y si un alumno le cancela a última hora, pierde el dinero. Es un ecosistema amateur para un deporte que se está profesionalizando masivamente."
 
 ## La Solución (Slide 3)
-"PadelManager es la respuesta. Hemos creado una plataforma 'All-in-One' que cabe en el bolsillo. 
+"PadelBlox es la respuesta. Hemos creado una plataforma 'All-in-One' que cabe en el bolsillo. 
 Para el alumno: geolocalización para encontrar al coach más cercano en segundos y herramientas para ver su progreso real.
 Para el entrenador: automatizamos su agenda, sus pagos y le damos herramientas profesionales.
 Ya no es solo 'dar una clase', es gestionar una carrera deportiva."

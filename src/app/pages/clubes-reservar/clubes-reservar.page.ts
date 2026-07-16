@@ -13,7 +13,7 @@ import { addIcons } from 'ionicons';
 import { 
   locationOutline, searchOutline, calendarOutline, 
   timeOutline, arrowForwardOutline, trophyOutline, 
-  star, arrowForward, arrowBack, heartOutline,
+  star, arrowForward, arrowBack, heartOutline, heart,
   shareOutline, notificationsOutline, chevronDownOutline,
   chevronUpOutline, tennisballOutline, lockClosedOutline, close,
   sendOutline, informationCircleOutline, mapOutline,
@@ -88,7 +88,7 @@ export class ClubesReservarPage implements OnInit {
     addIcons({ 
       locationOutline, searchOutline, calendarOutline, 
       timeOutline, arrowForwardOutline, trophyOutline, 
-      star, arrowForward, arrowBack, heartOutline,
+      star, arrowForward, arrowBack, heartOutline, heart,
       shareOutline, notificationsOutline, chevronDownOutline,
       chevronUpOutline, tennisballOutline, lockClosedOutline, close,
       sendOutline, informationCircleOutline,
@@ -156,6 +156,7 @@ export class ClubesReservarPage implements OnInit {
     this.loading = true;
     this.mysql.getClubes().subscribe({
       next: (res: any[]) => {
+        const favorites = JSON.parse(localStorage.getItem('fav_clubes') || '[]');
         this.clubes = res
           .filter(c => Number(c.reservas_activas) === 1)
           .map((c, index) => {
@@ -163,11 +164,12 @@ export class ClubesReservarPage implements OnInit {
             if (c.logo && c.logo !== 'null' && c.logo.trim() !== '') {
               // Ensure path is correct
               const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
-              c.logoUrl = c.logo.startsWith('http') ? c.logo : `${cleanApiUrl}/${c.logo}`;
+              c.logoUrl = c.logo.startsWith('http') ? c.logo : `${cleanApiUrl}/prd/${c.logo}`;
             } else {
               // Generic high-quality padel image
               c.logoUrl = this.defaultClubImage;
             }
+            c.isFavorite = favorites.includes(c.id);
             return c;
           });
         
@@ -267,9 +269,38 @@ export class ClubesReservarPage implements OnInit {
     await alert.present();
   }
 
+  showOnlyFavorites = false;
+
+  toggleShowOnlyFavorites() {
+    this.showOnlyFavorites = !this.showOnlyFavorites;
+  }
+
+  toggleFavorite(club: any, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    club.isFavorite = !club.isFavorite;
+    
+    let favorites = JSON.parse(localStorage.getItem('fav_clubes') || '[]');
+    if (club.isFavorite) {
+      if (!favorites.includes(club.id)) {
+        favorites.push(club.id);
+      }
+    } else {
+      favorites = favorites.filter((id: any) => id !== club.id);
+    }
+    localStorage.setItem('fav_clubes', JSON.stringify(favorites));
+    this.cdr.detectChanges();
+  }
+
   get filteredClubes() {
     let list = this.clubes;
     
+    // Filter by Favorites
+    if (this.showOnlyFavorites) {
+      list = list.filter(c => c.isFavorite);
+    }
+
     // Filter by Region
     if (this.selectedRegion) {
       list = list.filter(c => c.region === this.selectedRegion);
@@ -438,16 +469,25 @@ export class ClubesReservarPage implements OnInit {
     await alert.present();
   }
 
+  calcularHoraFin(horaInicio: string, duracionMinutos: number): string {
+    const [hh, mm] = horaInicio.split(':').map(Number);
+    let totalMinutes = hh * 60 + mm + duracionMinutos;
+    const endH = Math.floor(totalMinutes / 60) % 24;
+    const endM = totalMinutes % 60;
+    return `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}:00`;
+  }
+
   private async confirmarReserva(slot: any, cancha: any) {
     const userId = Number(localStorage.getItem('userId'));
+    const horaFin = this.calcularHoraFin(slot.hora, this.selectedDuration);
     const payload = {
       cancha_id: cancha.cancha_id,
       usuario_id: userId,
       jugador_id: userId,
       fecha: this.selectedFecha,
       hora_inicio: slot.hora,
-      hora_fin: cancha.hora_fin,
-      duracion: cancha.selectedDur || 90, 
+      hora_fin: horaFin,
+      duracion: this.selectedDuration, 
       estado: 'Confirmada'
     };
 

@@ -1695,3 +1695,31 @@
     }
   }
 }
+
+/* --- MATCH CARD V8 --- */
+.match-card-v8 {
+  background: white; border-radius: 24px; padding: 22px; margin-bottom: 20px; border: 1px solid var(--nike-border, #e2e8f0); box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+  .m-header {
+    display: flex; gap: 18px; margin-bottom: 20px;
+    .m-date {
+      width: 50px; height: 60px; background: var(--nike-gray, #f8f8fa); border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      .d-num { font-size: 18px; font-weight: 950; color: var(--nike-navy, #0f172a); }
+      .d-mon { font-size: 9px; font-weight: 800; color: var(--nike-text-gray, #8e8e93); text-transform: uppercase; }
+    }
+    .m-info {
+      flex: 1; h3 { margin: 0 0 6px; font-size: 18px; font-weight: 900; color: var(--nike-navy, #0f172a); }
+      .m-meta { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; color: var(--nike-text-gray, #8e8e93); ion-icon { font-size: 14px; } }
+    }
+  }
+  .m-footer {
+    display: flex; justify-content: space-between; align-items: center; padding-top: 18px; border-top: 1px solid var(--nike-border, #e2e8f0);
+    .player-stack {
+      display: flex; .p-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; margin-right: -10px; background: var(--nike-gray, #f8f8fa); img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; } &.placeholder { display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--nike-text-gray, #8e8e93); } }
+    }
+    .status-badge {
+      font-size: 11px; font-weight: 900; color: #2563eb; background: #eff6ff; padding: 6px 12px; border-radius: 10px; text-transform: uppercase;
+      &.win { background: #ecfdf5; color: #10b981; }
+      &.loss { background: #fef2f2; color: #ef4444; }
+    }
+  }
+}

@@ -1,0 +1,111 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="nike-toolbar">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="chevron-back-outline" slot="icon-only" color="dark"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="nike-title">MI TARJETA DIGITAL</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="tarjeta-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="dashboard-container">
+
+    <!-- Tarjeta Digital PadelBlox (Billetera de Fidelización & QR) -->
+    <div class="loyalty-card-container">
+      <div class="glass-loyalty-card">
+        <div class="card-glow"></div>
+        
+        <!-- Card Header (Branding & Membership Type) -->
+        <div class="card-header">
+          <div class="logo-wrapper">
+            <img src="assets/pelota.png" class="card-logo-img" alt="PadelBlox Logo" />
+            <span class="card-logo-text">PadelBlox</span>
+          </div>
+          <span class="card-type-badge">{{ profile.rol === 'entrenador' || profile.rol === 'entrenador_padel' ? 'PRO COACH' : 'PLAYER PASS' }}</span>
+        </div>
+
+        <!-- Card Holder Profile Row -->
+        <div class="card-holder-row">
+          <div class="player-avatar-wrapper">
+            <img [src]="profile.foto_perfil || 'assets/avatar.png'" class="player-avatar-img" alt="Foto Perfil" />
+          </div>
+          <div class="player-info">
+            <h3 class="player-name">{{ profile.nombre || 'Cargando jugador...' }}</h3>
+            <span class="player-category" *ngIf="profile.categoria">Categoría: {{ profile.categoria }}</span>
+            <span class="player-category" *ngIf="!profile.categoria">Categoría: Cuarta</span>
+          </div>
+          <div class="wallet-badge-section">
+            <span class="balance-title">MIS PUNTOS</span>
+            <div class="balance-value-wrapper">
+              <span class="balance-value">{{ walletBalance | number }}</span>
+              <span class="pts-label">PTS</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scan Zone (Centered QR Code with scanner framing) -->
+        <div class="scan-zone">
+          <div class="qr-scanner-frame">
+            <div class="corner top-left"></div>
+            <div class="corner top-right"></div>
+            <div class="corner bottom-left"></div>
+            <div class="corner bottom-right"></div>
+            
+            <div class="qr-box">
+              <img *ngIf="qrCodeUrl" [src]="qrCodeUrl" class="qr-image" alt="QR Code" />
+              <div *ngIf="!qrCodeUrl" class="qr-placeholder">
+                <ion-spinner name="crescent"></ion-spinner>
+              </div>
+            </div>
+          </div>
+          
+          <div class="qr-timer-badge">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>Código de verificación dinámico ({{ qrTimeLeft }}s)</span>
+          </div>
+        </div>
+
+        <!-- Card Action Button (Opens the per-club rewards catalog) -->
+        <div class="card-actions" style="display: flex; flex-direction: column; width: 100%;">
+          <button (click)="verPremios()" class="card-action-btn redeem-btn" style="width: 100%; margin: 0;">
+            <ion-icon name="gift-outline"></ion-icon>
+            Ver Premios por Club
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historial de Transacciones de Billetera -->
+    <div class="section-card loyalty-history-card">
+      <h3 class="section-title">
+        <ion-icon name="wallet-outline"></ion-icon>
+        Historial de Puntos
+      </h3>
+      <div class="transactions-list" *ngIf="transactions.length > 0">
+        <div class="transaction-item" *ngFor="let tx of transactions">
+          <div class="tx-icon-wrapper" [class.tx-earn]="tx.amount_points > 0" [class.tx-redeem]="tx.amount_points < 0">
+            <ion-icon [name]="tx.amount_points > 0 ? 'add-circle-outline' : 'gift-outline'"></ion-icon>
+          </div>
+          <div class="tx-details">
+            <p class="tx-desc">{{ tx.description }}</p>
+            <span class="tx-date">{{ tx.created_at | date:'dd MMM yyyy, HH:mm' }}</span>
+          </div>
+          <div class="tx-points" [class.points-positive]="tx.amount_points > 0" [class.points-negative]="tx.amount_points < 0">
+            {{ tx.amount_points > 0 ? '+' : '' }}{{ tx.amount_points }} pts
+          </div>
+        </div>
+      </div>
+      <div class="transactions-empty" *ngIf="transactions.length === 0">
+        <p>No tienes transacciones de puntos todavía.</p>
+        <span>¡Participa en torneos y partidos para acumular puntos!</span>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

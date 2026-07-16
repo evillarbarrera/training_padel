@@ -29,6 +29,12 @@
           Mis Clases
         </ion-label>
       </ion-segment-button>
+      <ion-segment-button value="mis-partidos" (click)="cambiarVista('mis-partidos')">
+        <ion-label>
+          <ion-icon name="tennisball-outline"></ion-icon>
+          Mis Partidos
+        </ion-label>
+      </ion-segment-button>
       <ion-segment-button value="agendar" (click)="cambiarVista('agendar')">
         <ion-label>
           <ion-icon name="add-circle-outline"></ion-icon>
@@ -173,6 +179,59 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- VISTA 3: MIS PARTIDOS -->
+  <div *ngIf="vistaActual === 'mis-partidos'" class="mis-partidos-view animate-up" style="padding: 20px 24px 100px;">
+    
+    <!-- Loading -->
+    <div *ngIf="cargando" class="loading-state" style="text-align: center; padding: 40px;">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!cargando && misPartidos.length === 0" class="empty-state animate-fade-in" style="text-align: center; padding: 45px 25px;">
+      <div class="empty-icon-box" style="width: 80px; height: 80px; background: #f8f8fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+        <ion-icon name="tennisball-outline" style="font-size: 40px; color: #8e8e93;"></ion-icon>
+      </div>
+      <h3 style="font-size: 20px; font-weight: 950; margin: 0 0 10px; color: #000; letter-spacing: -0.5px;">SIN PARTIDOS PROGRAMADOS</h3>
+      <p style="font-size: 13px; color: #8e8e93; line-height: 1.4; margin: 0 0 25px;">No tienes partidos reservados próximamente. ¡Busca una pista y empieza a jugar!</p>
+      <ion-button (click)="router.navigate(['/clubes-reservar'])" class="nike-btn-neon" style="--background: #CCFF00; --color: #000; font-weight: 900; --border-radius: 16px; margin: 0;">
+        BUSCAR CLUB Y CANCHA
+      </ion-button>
+    </div>
+
+    <!-- Matches List -->
+    <div *ngIf="!cargando && misPartidos.length > 0" class="partidos-section animate-up">
+      <div class="match-card-v8" *ngFor="let p of misPartidos" (click)="router.navigate(['/partido-detalle', p.id])">
+        <div class="m-header">
+          <div class="m-date">
+            <span class="d-num">{{ p.fecha | date:'dd' }}</span>
+            <span class="d-mon">{{ p.fecha | date:'MMM' | uppercase }}</span>
+          </div>
+          <div class="m-info">
+            <h3>{{ p.club_nombre }}</h3>
+            <div class="m-meta">
+              <ion-icon name="location-outline"></ion-icon>
+              <span>{{ p.cancha_nombre || 'Cancha por asignar' }}</span>
+              <ion-icon name="time-outline" style="margin-left: 10px;"></ion-icon>
+              <span>{{ p.hora_inicio.slice(0,5) }} HRS</span>
+            </div>
+          </div>
+        </div>
+        <div class="m-footer">
+          <div class="player-stack">
+            <div class="p-avatar" *ngFor="let i of [1,2,3,4]">
+               <img *ngIf="p['jugador' + i + '_foto']" [src]="getProfileImage(p['jugador' + i + '_foto'])">
+               <div *ngIf="!p['jugador' + i + '_foto']" class="p-avatar placeholder"><ion-icon name="add"></ion-icon></div>
+            </div>
+          </div>
+          <div class="status-badge">
+            {{ isMatchComplete(p) ? 'Completo' : 'Faltan ' + getMissingPlayersCount(p) }}
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div *ngIf="vistaActual === 'agendar'" class="agendar-nueva-view">

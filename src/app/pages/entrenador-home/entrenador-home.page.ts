@@ -11,7 +11,6 @@ import {
   IonFabButton,
   IonIcon,
   IonButton,
-  IonSpinner,
   IonBadge,
   IonRefresher,
   IonRefresherContent,
@@ -23,7 +22,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, add, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline, close, locationOutline, cardOutline, flashOutline, logoWhatsapp, timeOutline, alertCircleOutline, pricetagsOutline, statsChartOutline, informationCircleOutline, tennisballOutline, trophyOutline, chevronForward } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, add, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline, close, locationOutline, cardOutline, flashOutline, logoWhatsapp, timeOutline, alertCircleOutline, pricetagsOutline, statsChartOutline, informationCircleOutline, tennisballOutline, trophyOutline, chevronForward, barcodeOutline } from 'ionicons/icons';
 
 import { environment } from 'src/environments/environment';
 
@@ -35,7 +34,6 @@ import { environment } from 'src/environments/environment';
     IonFabButton,
     IonIcon,
     IonButton,
-    IonSpinner,
     IonBadge,
     IonModal
   ],
@@ -113,7 +111,8 @@ export class EntrenadorHomePage {
       informationCircleOutline,
       tennisballOutline,
       trophyOutline,
-      chevronForward
+      chevronForward,
+      barcodeOutline
     });
   }
 
@@ -494,6 +493,20 @@ export class EntrenadorHomePage {
           icon: 'person-outline',
           handler: () => {
             this.router.navigate(['/perfil']);
+          }
+        },
+        {
+          text: 'Tarjeta Digital',
+          icon: 'card-outline',
+          handler: () => {
+            this.router.navigate(['/tarjeta-digital']);
+          }
+        },
+        {
+          text: 'Canjear Puntos Club',
+          icon: 'barcode-outline',
+          handler: () => {
+            this.router.navigate(['/canje-club']);
           }
         },
         {

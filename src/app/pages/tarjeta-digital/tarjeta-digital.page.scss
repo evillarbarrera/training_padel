@@ -1,0 +1,587 @@
+/* --- DIGITAL QR CARD & LOYALTY WALLET STYLES --- */
+ion-content {
+  --background: #f8fafc;
+}
+
+.nike-toolbar {
+  --background: #ffffff;
+  --color: #000000;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.nike-title {
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #000000;
+  text-align: center;
+}
+
+.dashboard-container {
+  padding: 18px;
+}
+
+.loyalty-card-container {
+  margin-bottom: 24px;
+}
+
+.glass-loyalty-card {
+  position: relative;
+  background: linear-gradient(135deg, rgba(20, 20, 20, 0.98) 0%, rgba(38, 38, 38, 0.98) 100%);
+  border-radius: 32px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35), 
+              inset 0 1px 2px rgba(255, 255, 255, 0.25);
+  color: white;
+  overflow: hidden;
+
+  .card-glow {
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 260px;
+    height: 260px;
+    background: radial-gradient(circle, rgba(0, 255, 127, 0.22) 0%, rgba(0, 255, 127, 0) 70%);
+    z-index: 0;
+    pointer-events: none;
+    animation: rotateGlow 10s linear infinite;
+  }
+
+  /* Card Header */
+  .card-header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+
+    .logo-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .card-logo-img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 6px rgba(0, 255, 127, 0.5));
+      }
+
+      .card-logo-text {
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: -0.5px;
+        text-transform: uppercase;
+        color: #ffffff;
+      }
+    }
+
+    .card-type-badge {
+      background: rgba(0, 255, 127, 0.08);
+      color: #00ff7f;
+      border: 1px solid rgba(0, 255, 127, 0.25);
+      padding: 5px 12px;
+      border-radius: 12px;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+  }
+
+  /* Card Holder Row */
+  .card-holder-row {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+
+    .player-avatar-wrapper {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 2px solid #00ff7f;
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: 0 4px 15px rgba(0, 255, 127, 0.3);
+
+      .player-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .player-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+
+      .player-name {
+        font-size: 15px;
+        font-weight: 900;
+        margin: 0;
+        color: #ffffff;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .player-category {
+        font-size: 11px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 2px;
+      }
+    }
+
+    .wallet-badge-section {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      .balance-title {
+        font-size: 8px;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.4);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+      }
+
+      .balance-value-wrapper {
+        display: flex;
+        align-items: baseline;
+        justify-content: flex-end;
+        gap: 3px;
+
+        .balance-value {
+          font-size: 22px;
+          font-weight: 950;
+          color: #ffffff;
+          text-shadow: 0 0 15px rgba(0, 255, 127, 0.35);
+        }
+
+        .pts-label {
+          font-size: 10px;
+          font-weight: 900;
+          color: #00ff7f;
+        }
+      }
+    }
+  }
+
+  /* Scan Zone & QR Framing */
+  .scan-zone {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 24px;
+
+    .qr-scanner-frame {
+      position: relative;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+
+      /* Frame Corners */
+      .corner {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border: 3px solid #00ff7f;
+        pointer-events: none;
+
+        &.top-left {
+          top: 8px;
+          left: 8px;
+          border-right: none;
+          border-bottom: none;
+          border-top-left-radius: 12px;
+        }
+
+        &.top-right {
+          top: 8px;
+          right: 8px;
+          border-left: none;
+          border-bottom: none;
+          border-top-right-radius: 12px;
+        }
+
+        &.bottom-left {
+          bottom: 8px;
+          left: 8px;
+          border-right: none;
+          border-top: none;
+          border-bottom-left-radius: 12px;
+        }
+
+        &.bottom-right {
+          bottom: 8px;
+          right: 8px;
+          border-left: none;
+          border-top: none;
+          border-bottom-right-radius: 12px;
+        }
+      }
+
+      .qr-box {
+        width: 140px;
+        height: 140px;
+        background: white;
+        border-radius: 16px;
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+
+        .qr-image {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+      }
+    }
+
+    .qr-timer-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(0, 255, 127, 0.08);
+      color: #00ff7f;
+      border: 1px solid rgba(0, 255, 127, 0.2);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 10px;
+      font-weight: 800;
+      margin-top: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      ion-icon {
+        font-size: 12px;
+      }
+    }
+  }
+
+  /* Actions */
+  .card-actions {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 18px;
+    display: flex;
+    justify-content: center;
+
+    .card-action-btn.redeem-btn {
+      width: 100%;
+      height: 48px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      margin: 0;
+      border-radius: 14px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #00ff7f;
+      color: #111111;
+      border: none;
+      box-shadow: 0 6px 20px rgba(0, 255, 127, 0.35);
+      transition: all 0.25s ease;
+      cursor: pointer;
+
+      ion-icon {
+        font-size: 18px;
+      }
+
+      &:active {
+        background: #00dd6f;
+        transform: translateY(1px);
+        box-shadow: 0 4px 15px rgba(0, 255, 127, 0.25);
+      }
+    }
+  }
+}
+
+@keyframes rotateGlow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- SECTION CARDS --- */
+.section-card {
+  background: white;
+  border-radius: 32px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #64748b;
+
+    ion-icon {
+      font-size: 18px;
+      color: black;
+    }
+  }
+}
+
+/* --- LOYALTY HISTORY --- */
+.loyalty-history-card {
+  .transactions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 8px;
+  }
+
+  .transaction-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #f1f5f9;
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .tx-icon-wrapper {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      ion-icon {
+        font-size: 20px;
+      }
+
+      &.tx-earn {
+        background: rgba(0, 255, 127, 0.1);
+        color: #00b050;
+      }
+
+      &.tx-redeem {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+      }
+    }
+
+    .tx-details {
+      flex: 1;
+
+      .tx-desc {
+        font-size: 13px;
+        font-weight: 800;
+        color: #111111;
+        margin: 0 0 2px 0;
+        line-height: 1.3;
+      }
+
+      .tx-date {
+        font-size: 11px;
+        color: #64748b;
+        font-weight: 600;
+      }
+    }
+
+    .tx-points {
+      font-size: 14px;
+      font-weight: 900;
+      white-space: nowrap;
+
+      &.points-positive {
+        color: #00b050;
+      }
+
+      &.points-negative {
+        color: #ef4444;
+      }
+    }
+  }
+
+  .transactions-empty {
+    text-align: center;
+    padding: 30px 10px;
+    color: #64748b;
+
+    p {
+      font-size: 14px;
+      font-weight: 800;
+      color: #111111;
+      margin: 0 0 4px 0;
+    }
+
+    span {
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.3;
+      display: block;
+    }
+  }
+}
+
+/* --- ACTIVE COUPONS TICKET STYLING --- */
+.active-coupons-card {
+  .coupons-subtitle {
+    font-size: 12px;
+    color: #64748b;
+    margin: -10px 0 16px 0;
+    font-weight: 500;
+  }
+
+  .coupons-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .coupon-item {
+    position: relative;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+
+    &.coupon-used {
+      opacity: 0.6;
+      filter: grayscale(1);
+      
+      .coupon-status-badge {
+        background: #e2e8f0;
+        color: #64748b;
+      }
+    }
+
+    .coupon-ticket-border {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: #00ff7f;
+    }
+
+    .coupon-main {
+      display: flex;
+      padding: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .coupon-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .coupon-reward-title {
+        font-size: 14px;
+        font-weight: 800;
+        color: #1e293b;
+      }
+
+      .coupon-cost-subtitle {
+        font-size: 11px;
+        font-weight: 700;
+        color: #00b050;
+      }
+
+      .coupon-date-label {
+        font-size: 10px;
+        font-weight: 500;
+        color: #94a3b8;
+      }
+    }
+
+    .coupon-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      padding-left: 12px;
+      border-left: 1px dashed #e2e8f0;
+
+      .coupon-code-label {
+        font-size: 8px;
+        font-weight: 900;
+        color: #94a3b8;
+        letter-spacing: 1px;
+      }
+
+      .coupon-code-value {
+        font-family: monospace;
+        font-size: 15px;
+        font-weight: 900;
+        color: #0f172a;
+        background: #f8fafc;
+        padding: 4px 8px;
+        border-radius: 6px;
+        letter-spacing: 0.5px;
+        border: 1px solid #f1f5f9;
+      }
+
+      .coupon-status-badge {
+        font-size: 8px;
+        font-weight: 950;
+        padding: 2px 6px;
+        border-radius: 8px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-top: 4px;
+
+        &.status-pending {
+          background: rgba(0, 255, 127, 0.1);
+          color: #00b050;
+          border: 1px solid rgba(0, 255, 127, 0.2);
+        }
+
+        &.status-used {
+          background: #f1f5f9;
+          color: #64748b;
+        }
+      }
+    }
+  }
+}

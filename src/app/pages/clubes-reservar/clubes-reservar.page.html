@@ -19,7 +19,10 @@
         <input type="text" [(ngModel)]="searchTerm" placeholder="Busca tu club...">
         <div class="search-actions">
           <ion-icon name="send-outline"></ion-icon>
-          <ion-icon name="heart-outline"></ion-icon>
+          <ion-icon [name]="showOnlyFavorites ? 'heart' : 'heart-outline'" 
+                    [class.active]="showOnlyFavorites" 
+                    (click)="toggleShowOnlyFavorites()">
+          </ion-icon>
         </div>
       </div>
 
@@ -48,7 +51,11 @@
            (click)="onSelectClub(club)">
         <div class="club-banner-wrap" [style.background-image]="'url(' + club.logoUrl + '), url(assets/fondo-cancha.png)'">
           <div class="banner-overlay"></div>
-          <ion-icon name="heart-outline" class="fav-btn"></ion-icon>
+          <ion-icon [name]="club.isFavorite ? 'heart' : 'heart-outline'" 
+                    [class.active]="club.isFavorite" 
+                    class="fav-btn" 
+                    (click)="toggleFavorite(club, $event)">
+          </ion-icon>
           <h2 class="club-title-overlay">{{ club.nombre }}</h2>
           <div class="price-badge">
             <span class="p-label">Desde</span>
@@ -71,7 +78,11 @@
         <!-- CLUB HEADER -->
         <div class="club-info-header">
             <h2>{{ selectedClub.nombre }}</h2>
-            <ion-icon name="heart-outline" class="fav-icon-btn"></ion-icon>
+            <ion-icon [name]="selectedClub.isFavorite ? 'heart' : 'heart-outline'" 
+                      [class.active]="selectedClub.isFavorite" 
+                      class="fav-icon-btn" 
+                      (click)="toggleFavorite(selectedClub)">
+            </ion-icon>
         </div>
         <p class="address-text">{{ selectedClub.direccion }}<br>{{ selectedClub.comuna }}, {{ selectedClub.region }}</p>
 
@@ -93,6 +104,16 @@
                     <span class="d-name">{{ day.nombre.slice(0,3) }}</span>
                     <div class="d-num">{{ day.numero }}</div>
                 </div>
+            </div>
+        </div>
+
+        <!-- DURATION SELECTOR V6 -->
+        <div class="duration-selector-row">
+            <span class="ds-label">Duración:</span>
+            <div class="ds-pills">
+                <div class="ds-pill" [class.active]="selectedDuration === 60" (click)="setDuration(60)">60 Min</div>
+                <div class="ds-pill" [class.active]="selectedDuration === 90" (click)="setDuration(90)">90 Min</div>
+                <div class="ds-pill" [class.active]="selectedDuration === 120" (click)="setDuration(120)">120 Min</div>
             </div>
         </div>
 
@@ -129,12 +150,7 @@
                         <h4>{{ c.cancha_nombre }}</h4>
                         <p>{{ c.ubicacion || 'Exterior' }} | {{ c.tipo_suelo || 'Cristal' }}</p>
                         
-                        <!-- DURATION CHIPS PER COURT -->
-                        <div class="court-durations" *ngIf="c.disponible">
-                            <span class="dur-chip" [class.active]="c.selectedDur === 60" (click)="c.selectedDur = 60">60'</span>
-                            <span class="dur-chip" [class.active]="!c.selectedDur || c.selectedDur === 90" (click)="c.selectedDur = 90">90'</span>
-                            <span class="dur-chip" [class.active]="c.selectedDur === 120" (click)="c.selectedDur = 120">120'</span>
-                        </div>
+
                     </div>
                     
                     <div class="reserve-mini-btn" *ngIf="c.disponible" (click)="reservar(selectedSlot, c)">RESERVAR</div>

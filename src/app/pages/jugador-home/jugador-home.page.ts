@@ -20,7 +20,7 @@ import {
   calendarNumberOutline, trophyOutline, barChartOutline,
   sparklesOutline, videocamOutline, chevronDownOutline, locationOutline,
   notificationsOutline, closeOutline, ribbonOutline, lockClosedOutline,
-  chevronForwardOutline, arrowForward, timeOutline
+  chevronForwardOutline, arrowForward, timeOutline, cardOutline
 } from 'ionicons/icons';
 import { ActionSheetController, LoadingController, AlertController } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
@@ -78,6 +78,7 @@ export class JugadorHomePage implements OnInit {
   achievementToast: any = null;
 
   modalPacksOpen = false;
+  isProgresoModalOpen = false;
 
   constructor(
     private router: Router,
@@ -112,7 +113,8 @@ export class JugadorHomePage implements OnInit {
       'lock-closed-outline': lockClosedOutline,
       'chevron-forward-outline': chevronForwardOutline,
       'arrow-forward': arrowForward,
-      'time-outline': timeOutline
+      'time-outline': timeOutline,
+      'card-outline': cardOutline
     });
   }
 
@@ -139,7 +141,8 @@ export class JugadorHomePage implements OnInit {
         // Try to get photo from stats first
         if (res.foto_perfil) {
           const foto = res.foto_perfil;
-          this.fotoPerfil = foto.startsWith('http') ? foto : `${environment.apiUrl.replace('/prd','').replace('/dev','')}/${foto.startsWith('/') ? foto.substring(1) : foto}`;
+          const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
+          this.fotoPerfil = foto.startsWith('http') ? foto : `${cleanApiUrl}/prd/${foto.startsWith('/') ? foto.substring(1) : foto}`;
         }
 
         // Datos de Packs
@@ -233,15 +236,29 @@ export class JugadorHomePage implements OnInit {
   }
 
   misHabilidades() {
+    this.cerrarModalProgreso();
     this.router.navigate(['/mis-habilidades']);
   }
 
   abrirModalPacks() {
+    this.cerrarModalProgreso();
     this.modalPacksOpen = true;
   }
 
   cerrarModalPacks() {
     this.modalPacksOpen = false;
+  }
+
+  abrirModalProgreso() {
+    this.isProgresoModalOpen = true;
+  }
+
+  cerrarModalProgreso() {
+    this.isProgresoModalOpen = false;
+    const modal = document.getElementById('progreso-entrenamiento-modal');
+    if (modal) {
+      (modal as any).dismiss();
+    }
   }
 
   analizarVideo() {
@@ -328,6 +345,13 @@ export class JugadorHomePage implements OnInit {
             this.router.navigate(['/perfil']);
           }
         },
+        /* {
+          text: 'Tarjeta Digital',
+          icon: 'card-outline',
+          handler: () => {
+            this.router.navigate(['/tarjeta-digital']);
+          }
+        }, */
         {
           text: 'Cerrar sesión',
           icon: 'log-out-outline',
@@ -383,6 +407,7 @@ export class JugadorHomePage implements OnInit {
   }
 
   goToLogros() {
+    this.cerrarModalProgreso();
     this.router.navigate(['/mis-logros']);
   }
 
