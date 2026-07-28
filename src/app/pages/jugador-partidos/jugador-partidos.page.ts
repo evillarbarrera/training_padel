@@ -109,7 +109,7 @@ export class JugadorPartidosPage implements OnInit {
     this.loading = true;
     this.mysqlService.getMisPartidos().subscribe({
       next: (res: any[]) => {
-        this.partidos = res;
+        this.partidos = (res || []).filter(p => p.estado !== 'Cancelada' && p.estado !== 'Cancelado');
         this.updateLists();
         this.calculateStats();
         

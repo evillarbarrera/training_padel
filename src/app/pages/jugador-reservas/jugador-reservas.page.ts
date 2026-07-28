@@ -13,6 +13,7 @@ import { addIcons } from 'ionicons';
 import { settingsOutline, homeOutline, calendarOutline, logOutOutline, peopleOutline, locationOutline, searchOutline, closeOutline, checkmarkCircleOutline, personOutline, mailOutline, addOutline, callOutline, mapOutline, warningOutline } from 'ionicons/icons';
 import { chevronBackOutline, ticketOutline, tennisballOutline } from 'ionicons/icons';
 import { NotificationService } from '../../services/notification.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-jugador-reservas',
@@ -194,11 +195,7 @@ export class JugadorReservasPage implements OnInit {
           const p3 = userData.link_foto;
           let fotoRaw = p1 || p2 || p3;
 
-          if (fotoRaw && fotoRaw.length > 5 && !fotoRaw.includes('imagen_defecto')) {
-            this.fotoPerfil = fotoRaw.startsWith('http') ? fotoRaw : `https://api.padelmanager.cl/${fotoRaw.startsWith('/') ? fotoRaw.substring(1) : fotoRaw}`;
-          } else {
-            this.fotoPerfil = 'assets/avatar.png';
-          }
+          this.fotoPerfil = this.getProfileImage(fotoRaw && !fotoRaw.includes('imagen_defecto') ? fotoRaw : null);
 
           const dir = res.direccion || userData.direccion;
           this.regionSeleccionada = dir.region || '';
@@ -264,28 +261,20 @@ export class JugadorReservasPage implements OnInit {
 
       if (partidos) {
         const todayStr = new Date().toISOString().split('T')[0];
-        this.misPartidos = (partidos || []).filter((p: any) => p.fecha >= todayStr);
+        this.misPartidos = (partidos || []).filter((p: any) => p.fecha >= todayStr && p.estado !== 'Cancelada' && p.estado !== 'Cancelado');
       }
 
       if (perfil) {
         const userData = perfil.user || perfil;
         if (userData.nombre) this.jugadorNombre = userData.nombre;
         const fotoRaw = userData.foto_perfil || userData.foto || userData.link_foto;
-        if (fotoRaw && fotoRaw.length > 5) {
-          this.fotoPerfil = fotoRaw.startsWith('http') ? fotoRaw : `https://api.padelmanager.cl/${fotoRaw.startsWith('/') ? fotoRaw.substring(1) : fotoRaw}`;
-        }
+        this.fotoPerfil = this.getProfileImage(fotoRaw);
 
         if (perfil.direccion || userData.direccion) {
           const dir = perfil.direccion || userData.direccion;
           this.regionSeleccionada = dir.region || '';
           this.comunaSeleccionada = dir.comuna || '';
         }
-      }
-
-      // Descubrimiento en segundo plano si es necesario
-      if (this.vistaActual === 'agendar' || !this.entrenadores || this.entrenadores.length === 0) {
-        this.cargarEntrenadores();
-        this.checkBookingRestriction();
       }
     });
   }
@@ -326,7 +315,7 @@ export class JugadorReservasPage implements OnInit {
             ...eg,
             genero: this.detectarGenero(eg.pack_nombre || '', eg.categoria || '')
           }));
-        this.misPartidos = (partidos || []).filter((p: any) => p.fecha >= todayStr);
+        this.misPartidos = (partidos || []).filter((p: any) => p.fecha >= todayStr && p.estado !== 'Cancelada' && p.estado !== 'Cancelado');
         this.cargando = false;
       },
       error: (err) => {
@@ -1247,8 +1236,8 @@ export class JugadorReservasPage implements OnInit {
   getProfileImage(url: string | null) {
     if (!url || url === 'null') return 'assets/avatar.png';
     if (url.startsWith('http')) return url;
-    const cleanApiUrl = 'https://api.padelmanager.cl';
-    return `${cleanApiUrl}/${url}`;
+    const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
+    return `${cleanApiUrl}/prd/${url.startsWith('/') ? url.substring(1) : url}`;
   }
 
   isMatchComplete(p: any): boolean {

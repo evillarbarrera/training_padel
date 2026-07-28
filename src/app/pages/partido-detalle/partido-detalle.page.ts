@@ -3,7 +3,7 @@ import { CommonModule, registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
 import { FormsModule } from '@angular/forms';
 import { 
-  IonContent, IonIcon, IonFab, IonFabButton,
+  IonContent, IonIcon, IonFab, IonFabButton, IonButton,
   LoadingController, AlertController, ToastController,
   IonModal, IonSpinner, NavController
 } from '@ionic/angular/standalone';
@@ -24,7 +24,7 @@ registerLocaleData(localeEs);
   templateUrl: './partido-detalle.page.html',
   styleUrls: ['./partido-detalle.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonContent, IonIcon, IonFab, IonFabButton, IonModal, IonSpinner]
+  imports: [CommonModule, FormsModule, IonContent, IonIcon, IonFab, IonFabButton, IonModal, IonSpinner, IonButton]
 })
 export class PartidoDetallePage implements OnInit {
   matchId: number | null = null;
@@ -176,5 +176,78 @@ export class PartidoDetallePage implements OnInit {
       }
     };
     this.mysql.enviarNotificacion(notification).subscribe();
+  }
+
+  isOwner(): boolean {
+    return this.match && Number(this.match.usuario_id) === this.userId;
+  }
+
+  canCancel(): boolean {
+    if (!this.match || !this.match.fecha || !this.match.hora_inicio) return false;
+    if (!this.isOwner()) return false;
+    
+    try {
+      const timeStr = this.match.hora_inicio.includes(':') ? this.match.hora_inicio : '00:00:00';
+      const matchDateTime = new Date(`${this.match.fecha}T${timeStr}`);
+      const now = new Date();
+      
+      const diffMs = matchDateTime.getTime() - now.getTime();
+      const diffHours = diffMs / (1000 * 60 * 60);
+      
+      return diffHours >= 12;
+    } catch (e) {
+      console.error('Error calculating canCancel:', e);
+      return false;
+    }
+  }
+
+  async confirmarCancelacion() {
+    const alert = await this.alertCtrl.create({
+      header: 'Cancelar Reserva',
+      message: '¿Estás seguro de que deseas cancelar la reserva de esta cancha? Esta acción no se puede deshacer y liberará la pista.',
+      buttons: [
+        {
+          text: 'Volver',
+          role: 'cancel'
+        },
+        {
+          text: 'Sí, Cancelar',
+          handler: () => {
+            this.ejecutarCancelacion();
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  async ejecutarCancelacion() {
+    if (!this.match || !this.match.id) return;
+    const loader = await this.loadingCtrl.create({ message: 'Cancelando reserva...' });
+    await loader.present();
+
+    this.mysql.cancelarReservaClub(this.match.id).subscribe({
+      next: () => {
+        loader.dismiss();
+        this.toastCtrl.create({
+          message: 'Reserva cancelada exitosamente',
+          duration: 2000,
+          color: 'success',
+          position: 'top'
+        }).then(t => t.present());
+        
+        this.goBack();
+      },
+      error: (err) => {
+        loader.dismiss();
+        console.error('Error al cancelar reserva:', err);
+        const errMsg = err.error?.error || 'No se pudo cancelar la reserva';
+        this.alertCtrl.create({
+          header: 'Error',
+          message: errMsg,
+          buttons: ['OK']
+        }).then(a => a.present());
+      }
+    });
   }
 }

@@ -93,6 +93,14 @@ export class MysqlService {
     return this.http.post<any>(`${this.api}/entrenador/cancelar_reserva.php`, { reserva_id: reservaId }, { headers: this.getHeaders() });
   }
 
+  cancelarReservaClub(reservaId: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.api}/clubes/cancel_reserva.php`,
+      { reserva_id: reservaId },
+      { headers: this.getHeaders() }
+    );
+  }
+
   cancelarReservaJugador(reservaId: number, jugadorId: number): Observable<any> {
     const payload = {
       reserva_id: reservaId,

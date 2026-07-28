@@ -108,6 +108,18 @@
             </div>
         </div>
     </div>
+
+    <!-- CANCELLATION CARD -->
+    <div class="cancellation-card" *ngIf="isOwner()">
+        <ion-button *ngIf="canCancel()" expand="block" fill="outline" color="danger" class="btn-cancel-reserva" (click)="confirmarCancelacion()">
+            Cancelar Reserva de Cancha
+        </ion-button>
+        
+        <div *ngIf="!canCancel()" class="cancel-warning-box">
+            <ion-icon name="information-circle"></ion-icon>
+            <p>Para cancelar esta cancha debes hacerlo con al menos 12 horas de anticipación. De lo contrario, tendrás que comunicarte con el club.</p>
+        </div>
+    </div>
   </div>
 
   <!-- SEARCH MODAL -->
