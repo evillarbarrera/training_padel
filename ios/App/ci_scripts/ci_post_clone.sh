@@ -61,7 +61,6 @@ npm cache clean --force
 # Eliminamos temporalmente ngrok para evitar fallos en el postinstall
 # Usamos un comando que no falle si la entrada no existe
 echo "--- Running npm install ---"
-grep -v "ngrok" package.json > package.json.tmp && mv package.json.tmp package.json
 
 # 4. Configurar Sharp para usar binarios precompilados y evitar errores de vips
 export SHARP_IGNORE_GLOBAL_LIBVIPS=1
