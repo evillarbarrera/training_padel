@@ -133,9 +133,7 @@
             </div>
         </div>
 
-        <div *ngIf="loading" style="text-align: center; padding: 40px;">
-            <ion-spinner name="crescent" color="dark"></ion-spinner>
-        </div>
+        <app-padel-loader *ngIf="loading"></app-padel-loader>
 
         <!-- COURT LIST -->
         <div *ngIf="!loading && selectedSlot">
@@ -143,18 +141,31 @@
             <p class="section-desc-v6">Crea un partido privado donde puedes invitar a tus amigos</p>
             
             <div class="court-list-v6">
-                <div class="court-item-v6 animate-up" 
-                     *ngFor="let c of selectedSlot.canchas"
-                     [class.disabled]="!c.disponible">
-                    <div class="c-info">
-                        <h4>{{ c.cancha_nombre }}</h4>
-                        <p>{{ c.ubicacion || 'Exterior' }} | {{ c.tipo_suelo || 'Cristal' }}</p>
+                <ng-container *ngFor="let c of selectedSlot.canchas">
+                    <div class="court-item-v6 animate-up" 
+                         *ngIf="getCourtPrice(c) > 0"
+                         [class.disabled]="!c.disponible">
+                        <div class="c-info">
+                            <h4>{{ c.cancha_nombre }}</h4>
+                            <p>{{ c.ubicacion || 'Exterior' }} | {{ c.tipo_suelo || 'Cristal' }}</p>
+                            <div class="court-price-row">
+                                <div class="price-breakdown">
+                                    <span class="c-price-total">Total: <strong>${{ getCourtPrice(c) | number:'1.0-0' }}</strong></span>
+                                    <span class="c-price-per-player">(${{ (getCourtPrice(c) / 4) | number:'1.0-0' }} por jugador)</span>
+                                </div>
+                                <span class="rate-badge" [class.peak]="c.es_horario_alto">
+                                    {{ c.nombre_tarifa || (c.es_horario_alto ? '⚡ Horario Alto' : '🌿 Horario Bajo') }}
+                                </span>
+                            </div>
+                        </div>
                         
-
+                        <div class="reserve-mini-btn" *ngIf="c.disponible" (click)="reservar(selectedSlot, c)">RESERVAR</div>
+                        <div class="reserve-mini-btn disabled" *ngIf="!c.disponible">NO DISPONIBLE</div>
                     </div>
-                    
-                    <div class="reserve-mini-btn" *ngIf="c.disponible" (click)="reservar(selectedSlot, c)">RESERVAR</div>
-                    <div class="reserve-mini-btn disabled" *ngIf="!c.disponible">NO DISPONIBLE</div>
+                </ng-container>
+
+                <div *ngIf="getCourtsWithPriceForSlot(selectedSlot).length === 0" style="text-align: center; padding: 25px; color: #8e8e93; font-size: 13px; font-weight: 700;">
+                    No hay pistas disponibles con tarifa para esta duración.
                 </div>
             </div>
         </div>
@@ -175,6 +186,8 @@
             <span class="s-val">{{ lastReserva.club }}</span>
             <span class="s-label">Pista y Horario</span>
             <span class="s-val">{{ lastReserva.pista }} • {{ lastReserva.hora }}</span>
+            <span class="s-label">Precio</span>
+            <span class="s-val">Total: ${{ lastReserva.precio | number:'1.0-0' }} (${{ lastReserva.precioJugador | number:'1.0-0' }} / jugador)</span>
         </div>
 
         <div class="action-btns">

@@ -22,6 +22,8 @@ import {
 } from 'ionicons/icons';
 import { environment } from '../../../environments/environment';
 
+import { PadelLoaderComponent } from '../../components/padel-loader/padel-loader.component';
+
 @Component({
   selector: 'app-clubes-reservar',
   templateUrl: './clubes-reservar.page.html',
@@ -31,7 +33,8 @@ import { environment } from '../../../environments/environment';
     CommonModule, FormsModule, 
     IonContent, IonIcon, IonButton,
     IonSegment, IonSegmentButton, IonSpinner,
-    IonFab, IonFabButton, IonToggle
+    IonFab, IonFabButton, IonToggle,
+    PadelLoaderComponent
   ]
 })
 export class ClubesReservarPage implements OnInit {
@@ -390,6 +393,24 @@ export class ClubesReservarPage implements OnInit {
     this.reservar(this.selectedSlot, cancha);
   }
 
+  filterPastHoursIfToday(res: any[]): any[] {
+    if (!res || !Array.isArray(res)) return [];
+    
+    const todayISO = this.getLocalISODate(new Date());
+    if (this.selectedFecha !== todayISO) {
+      return res;
+    }
+
+    const now = new Date();
+    const hh = now.getHours().toString().padStart(2, '0');
+    const mm = now.getMinutes().toString().padStart(2, '0');
+    const currentTimeStr = `${hh}:${mm}:00`;
+
+    return res.filter(slot => {
+      return slot.hora >= currentTimeStr;
+    });
+  }
+
   loadDisponibilidad() {
     if (!this.selectedClub || !this.selectedFecha) return;
     
@@ -397,7 +418,8 @@ export class ClubesReservarPage implements OnInit {
     
     // 1. INSTANT LOAD FROM CACHE
     if (this.disponibilidadCache.has(cacheKey)) {
-      this.horarios = this.disponibilidadCache.get(cacheKey)!;
+      const cached = this.disponibilidadCache.get(cacheKey)!;
+      this.horarios = this.filterPastHoursIfToday(cached);
       this.autoSelectFirstSlot();
       // Optional: Load in background to refresh, but don't show spinner
       this.fetchAvailabilitySilent(cacheKey);
@@ -408,7 +430,7 @@ export class ClubesReservarPage implements OnInit {
       this.mysql.getDisponibilidadClub(this.selectedClub.id, this.selectedFecha).subscribe({
         next: (res: any[]) => {
           this.disponibilidadCache.set(cacheKey, res);
-          this.horarios = res;
+          this.horarios = this.filterPastHoursIfToday(res);
           this.autoSelectFirstSlot();
           this.loading = false;
         },
@@ -421,7 +443,7 @@ export class ClubesReservarPage implements OnInit {
     this.mysql.getDisponibilidadClub(this.selectedClub.id, this.selectedFecha).subscribe({
       next: (res: any[]) => {
         this.disponibilidadCache.set(cacheKey, res);
-        this.horarios = res;
+        this.horarios = this.filterPastHoursIfToday(res);
         this.autoSelectFirstSlot();
       }
     });
@@ -451,12 +473,39 @@ export class ClubesReservarPage implements OnInit {
     slot.expanded = !slot.expanded;
   }
 
+  getCourtPrice(cancha: any): number {
+    if (!cancha) return 0;
+    const dur = this.selectedDuration;
+    if (cancha.precio_slot_60 !== undefined && cancha.precio_slot_60 !== null) {
+      if (dur === 60) return Number(cancha.precio_slot_60 || 0);
+      if (dur === 120) return Number(cancha.precio_slot_120 || 0);
+      return Number(cancha.precio_slot_90 || 0);
+    }
+    const isAlto = cancha.es_horario_alto;
+    if (dur === 60) {
+      const pAlto = Number(cancha.precio_60_alto);
+      return (isAlto && pAlto > 0) ? pAlto : Number(cancha.precio_60 || 0);
+    } else if (dur === 120) {
+      const pAlto = Number(cancha.precio_120_alto);
+      return (isAlto && pAlto > 0) ? pAlto : Number(cancha.precio_120 || 0);
+    } else {
+      const pAlto = Number(cancha.precio_90_alto);
+      return (isAlto && pAlto > 0) ? pAlto : Number(cancha.precio_90 || 0);
+    }
+  }
+
   async reservar(slot: any, cancha: any) {
     if (!cancha.disponible) return;
     
+    const precioCalculado = this.getCourtPrice(cancha);
+    const precioPorJugador = Math.round(precioCalculado / 4);
+    const tipoHorario = cancha.nombre_tarifa || (cancha.es_horario_alto ? '⚡ Horario Alto' : '🌿 Horario Bajo');
+    const precioTotalFormatted = '$' + Math.round(precioCalculado).toLocaleString('es-CL');
+    const precioJugadorFormatted = '$' + precioPorJugador.toLocaleString('es-CL');
+
     const alert = await this.alertCtrl.create({
       header: 'Confirmar Reserva',
-      message: `¿Deseas reservar en ${cancha.cancha_nombre} a las ${slot.hora.slice(0,5)}?`,
+      message: `¿Deseas reservar ${cancha.cancha_nombre} a las ${slot.hora.slice(0,5)}?\n\n• Precio Total: ${precioTotalFormatted}\n• Por jugador (x4): ${precioJugadorFormatted}\n• Tarifa: ${tipoHorario}`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
@@ -480,6 +529,8 @@ export class ClubesReservarPage implements OnInit {
   private async confirmarReserva(slot: any, cancha: any) {
     const userId = Number(localStorage.getItem('userId'));
     const horaFin = this.calcularHoraFin(slot.hora, this.selectedDuration);
+    const precioCalculado = this.getCourtPrice(cancha);
+
     const payload = {
       cancha_id: cancha.cancha_id,
       usuario_id: userId,
@@ -488,6 +539,7 @@ export class ClubesReservarPage implements OnInit {
       hora_inicio: slot.hora,
       hora_fin: horaFin,
       duracion: this.selectedDuration, 
+      precio: precioCalculado,
       estado: 'Confirmada'
     };
 
@@ -507,7 +559,10 @@ export class ClubesReservarPage implements OnInit {
           id: res.id || res.reserva_id, // Capture created ID
           club: this.selectedClub.nombre,
           pista: cancha.cancha_nombre,
-          hora: `${this.formatTime(slot.hora)}`
+          hora: `${this.formatTime(slot.hora)}`,
+          precio: precioCalculado,
+          precioJugador: Math.round(precioCalculado / 4),
+          tipoHorario: cancha.es_horario_alto ? 'Horario Alto' : 'Horario Bajo'
         };
 
         // 2. SHOW SUCCESS MODAL
@@ -551,6 +606,11 @@ export class ClubesReservarPage implements OnInit {
   }
 
   hasAvailableInSlot(slot: any): boolean {
-    return slot.canchas.some((c: any) => c.disponible);
+    return slot.canchas.some((c: any) => c.disponible && this.getCourtPrice(c) > 0);
+  }
+
+  getCourtsWithPriceForSlot(slot: any): any[] {
+    if (!slot || !slot.canchas) return [];
+    return slot.canchas.filter((c: any) => this.getCourtPrice(c) > 0);
   }
 }

@@ -8,6 +8,8 @@ import { addIcons } from 'ionicons';
 import { searchOutline, addCircleOutline, timeOutline, peopleOutline, personOutline, chevronBackOutline, informationCircleOutline } from 'ionicons/icons';
 import { MysqlService } from '../../services/mysql.service';
 
+import { PadelLoaderComponent } from '../../components/padel-loader/padel-loader.component';
+
 @Component({
   selector: 'app-entrenador-agenda',
   standalone: true,
@@ -26,7 +28,8 @@ import { MysqlService } from '../../services/mysql.service';
     IonFabButton,
     IonAvatar,
     IonBadge,
-    IonSpinner
+    IonSpinner,
+    PadelLoaderComponent
   ]
 })
 export class EntrenadorAgendaPage {

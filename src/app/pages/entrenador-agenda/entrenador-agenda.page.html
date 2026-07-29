@@ -25,9 +25,7 @@
         <span class="count-badge">{{ entrenamientosFiltrados.length }} SESIONES</span>
       </div>
 
-      <div *ngIf="isLoading" class="loading-state">
-        <ion-spinner name="crescent"></ion-spinner>
-      </div>
+      <app-padel-loader *ngIf="isLoading"></app-padel-loader>
 
       <div class="sessions-list" *ngIf="!isLoading">
         <div class="nike-card session-premium-card animate-up"

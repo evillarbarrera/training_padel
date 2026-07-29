@@ -89,8 +89,10 @@ export class EntrenadorEntrenamientosPage implements OnInit {
   generarFechas() {
     const nombresDias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const hoy = new Date();
+    let hoyFechaStr = '';
 
-    for (let i = 0; i < 14; i++) {
+    this.dias = [];
+    for (let i = -7; i < 14; i++) {
       const fecha = new Date();
       fecha.setDate(hoy.getDate() + i);
 
@@ -102,6 +104,10 @@ export class EntrenadorEntrenamientosPage implements OnInit {
 
       const diaNumero = fecha.getDay(); // 0 (Sun) to 6 (Sat)
 
+      if (i === 0) {
+        hoyFechaStr = fechaStr;
+      }
+
       this.dias.push({
         nombre: i === 0 ? 'Hoy' : nombresDias[diaNumero],
         fecha: fechaStr,
@@ -109,7 +115,7 @@ export class EntrenadorEntrenamientosPage implements OnInit {
         data: []
       });
     }
-    this.diaSeleccionado = this.dias[0].fecha;
+    this.diaSeleccionado = hoyFechaStr || this.dias[0].fecha;
   }
 
   cargarAgenda(event?: any) {

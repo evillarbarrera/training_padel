@@ -29,12 +29,6 @@
           Mis Clases
         </ion-label>
       </ion-segment-button>
-      <ion-segment-button value="mis-partidos" (click)="cambiarVista('mis-partidos')">
-        <ion-label>
-          <ion-icon name="tennisball-outline"></ion-icon>
-          Mis Partidos
-        </ion-label>
-      </ion-segment-button>
       <ion-segment-button value="agendar" (click)="cambiarVista('agendar')">
         <ion-label>
           <ion-icon name="add-circle-outline"></ion-icon>
@@ -48,9 +42,7 @@
   <div *ngIf="vistaActual === 'mis-entrenamientos'" class="mis-entrenamientos-view">
 
     <!-- Loading -->
-    <div *ngIf="cargando" class="loading-state">
-      <ion-spinner name="crescent"></ion-spinner>
-    </div>
+    <app-padel-loader *ngIf="cargando"></app-padel-loader>
 
     <!-- Empty State -->
     <div *ngIf="!cargando && reservasIndividuales.length === 0 && entrenamientosGrupales.length === 0"
@@ -241,7 +233,7 @@
       <div class="filters-row">
         <div class="filter-selector">
           <ion-icon name="location-outline"></ion-icon>
-          <ion-select [(ngModel)]="regionSeleccionada" (ionChange)="updateComunas()" placeholder="REGION"
+          <ion-select [value]="regionSeleccionada" (ionChange)="onRegionSelectChange($event)" placeholder="REGION"
             interface="popover">
             <ion-select-option value="">TODAS LAS REGIONES</ion-select-option>
             <ion-select-option *ngFor="let r of regions" [value]="r.name">{{r.name}}</ion-select-option>
@@ -249,12 +241,19 @@
         </div>
         <div class="filter-selector">
           <ion-icon name="search-outline"></ion-icon>
-          <ion-select [(ngModel)]="comunaSeleccionada" (ionChange)="onComunaChange()" placeholder="COMUNA"
+          <ion-select [value]="comunaSeleccionada" (ionChange)="onComunaSelectChange($event)" placeholder="COMUNA"
             interface="popover">
             <ion-select-option value="">TODAS LAS COMUNAS</ion-select-option>
             <ion-select-option *ngFor="let c of filteredComunas" [value]="c">{{c}}</ion-select-option>
           </ion-select>
         </div>
+        <button type="button" class="btn-clear-filters" *ngIf="regionSeleccionada || comunaSeleccionada" (click)="limpiarFiltrosUbicacion()">
+          ✕ Limpiar
+        </button>
+      </div>
+
+      <div class="active-location-banner" *ngIf="regionSeleccionada || comunaSeleccionada">
+        <span>📍 Filtrando por: <strong>{{ comunaSeleccionada ? comunaSeleccionada + (regionSeleccionada ? ', ' : '') : '' }}{{ regionSeleccionada }}</strong></span>
       </div>
     </div>
 
@@ -282,15 +281,13 @@
 
         <div *ngIf="entrenadores.length === 0" class="empty-trainers-mobile">
           <ion-icon name="alert-circle-outline" style="font-size: 32px; opacity: 0.5;"></ion-icon>
-          <p>No hay entrenadores disponibles en esta zona.</p>
+          <p>No hay entrenadores disponibles para esta región/comuna.</p>
+          <button type="button" class="btn-clear-filters" style="margin-top: 10px;" (click)="limpiarFiltrosUbicacion()">Ver todas las zonas</button>
         </div>
       </div>
 
       <!-- Loading Coaches -->
-      <div class="discovery-loading" *ngIf="isLoadingDiscovery">
-        <ion-spinner name="crescent"></ion-spinner>
-        <p>BUSCANDO COACHES...</p>
-      </div>
+      <app-padel-loader *ngIf="isLoadingDiscovery" size="medium"></app-padel-loader>
     </div>
 
     <!-- ESCENARIO B: No tiene Créditos Y NO tiene Reservas Futuras -->
@@ -429,16 +426,7 @@
     </div>
 
     <!-- Loading Availability -->
-    <div class="availability-loading-state animate-up" *ngIf="cargando">
-      <div class="loading-icon-wrapper">
-        <ion-icon name="time-outline" class="loading-main-icon"></ion-icon>
-        <ion-spinner name="crescent" class="loading-spinner-overlay"></ion-spinner>
-      </div>
-      <div class="loading-text">
-        <h4>Buscando horarios</h4>
-        <p>Estamos consultando la agenda del coach...</p>
-      </div>
-    </div>
+    <app-padel-loader *ngIf="cargando" size="medium"></app-padel-loader>
 
   </div>
 

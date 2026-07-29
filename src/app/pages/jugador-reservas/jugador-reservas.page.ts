@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { EntrenamientoService } from '../../services/entrenamiento.service';
@@ -15,13 +15,16 @@ import { chevronBackOutline, ticketOutline, tennisballOutline } from 'ionicons/i
 import { NotificationService } from '../../services/notification.service';
 import { environment } from '../../../environments/environment';
 
+import { PadelLoaderComponent } from '../../components/padel-loader/padel-loader.component';
+
 @Component({
   selector: 'app-jugador-reservas',
   standalone: true,
   imports: [
     IonicModule,
     CommonModule,
-    FormsModule
+    FormsModule,
+    PadelLoaderComponent
   ],
   templateUrl: './jugador-reservas.page.html',
   styleUrls: ['./jugador-reservas.page.scss'],
@@ -141,7 +144,8 @@ export class JugadorReservasPage implements OnInit {
     private loadingCtrl: LoadingController,
     public router: Router,
     private route: ActivatedRoute,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private cdRef: ChangeDetectorRef
   ) {
     addIcons({
       settingsOutline,
@@ -198,14 +202,14 @@ export class JugadorReservasPage implements OnInit {
           this.fotoPerfil = this.getProfileImage(fotoRaw && !fotoRaw.includes('imagen_defecto') ? fotoRaw : null);
 
           const dir = res.direccion || userData.direccion;
-          this.regionSeleccionada = dir.region || '';
-          const selectedRegionObj = this.regions.find(r => r.name === this.regionSeleccionada);
-          if (selectedRegionObj) {
-            this.filteredComunas = this.allComunas[selectedRegionObj.id] || [];
-            this.comunaSeleccionada = dir.comuna || '';
+          if (dir) {
+            this.regionSeleccionada = typeof dir === 'object' ? (dir.region || '') : '';
+            this.comunaSeleccionada = typeof dir === 'object' ? (dir.comuna || '') : '';
           }
+          this.updateComunas(true);
+        } else {
+          this.cargarEntrenadores();
         }
-        this.cargarEntrenadores();
         if (event) event.target.complete();
       },
       error: () => {
@@ -272,29 +276,79 @@ export class JugadorReservasPage implements OnInit {
 
         if (perfil.direccion || userData.direccion) {
           const dir = perfil.direccion || userData.direccion;
-          this.regionSeleccionada = dir.region || '';
-          this.comunaSeleccionada = dir.comuna || '';
+          this.regionSeleccionada = typeof dir === 'object' ? (dir.region || '') : '';
+          this.comunaSeleccionada = typeof dir === 'object' ? (dir.comuna || '') : '';
+          this.updateComunas(true);
+        } else {
+          this.cargarEntrenadores();
         }
+      } else {
+        this.cargarEntrenadores();
       }
     });
   }
 
-  updateComunas(keepComuna = false): void {
-    const selectedRegion = this.regions.find(r => r.name === this.regionSeleccionada);
-    if (selectedRegion) {
-      this.filteredComunas = this.allComunas[selectedRegion.id] || [];
-      if (!keepComuna) this.comunaSeleccionada = '';
-    } else {
-      this.filteredComunas = [];
-    }
+  getAllUniqueComunas(): string[] {
+    const set = new Set<string>();
+    Object.values(this.allComunas).forEach((list: any) => {
+      if (Array.isArray(list)) {
+        list.forEach(c => set.add(c));
+      }
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'es'));
+  }
+
+  onRegionSelectChange(event: any): void {
+    const val = event && event.detail ? event.detail.value : event;
+    this.regionSeleccionada = val || '';
+    this.updateComunas(false);
+  }
+
+  onComunaSelectChange(event: any): void {
+    const val = event && event.detail ? event.detail.value : event;
+    this.comunaSeleccionada = val || '';
+    this.cdRef.detectChanges();
     this.cargarEntrenadores();
+  }
+
+  updateComunas(keepComuna = false): void {
+    if (!this.regionSeleccionada) {
+      this.filteredComunas = this.getAllUniqueComunas();
+      if (!keepComuna) this.comunaSeleccionada = '';
+      this.cdRef.detectChanges();
+      this.cargarEntrenadores();
+      return;
+    }
+
+    const regLower = this.regionSeleccionada.toLowerCase().trim();
+    const selectedRegion = this.regions.find(r => {
+      const nameLower = r.name.toLowerCase().trim();
+      return nameLower === regLower || regLower.includes(nameLower) || nameLower.includes(regLower);
+    });
+
+    if (selectedRegion) {
+      this.regionSeleccionada = selectedRegion.name;
+      this.filteredComunas = this.allComunas[selectedRegion.id] || [];
+    } else {
+      this.filteredComunas = this.getAllUniqueComunas();
+    }
+
+    if (!keepComuna) {
+      this.comunaSeleccionada = '';
+    }
+    this.cdRef.detectChanges();
+    this.cargarEntrenadores();
+  }
+
+  limpiarFiltrosUbicacion(): void {
+    this.regionSeleccionada = '';
+    this.comunaSeleccionada = '';
+    this.updateComunas(false);
   }
 
   onComunaChange(): void {
     this.cargarEntrenadores();
   }
-
-
 
   cargarMisEntrenamientos() {
     this.cargando = true;
@@ -329,28 +383,54 @@ export class JugadorReservasPage implements OnInit {
     this.isLoadingDiscovery = true;
     this.packsService.getAllPacks(undefined, undefined, 50, this.regionSeleccionada || undefined, this.comunaSeleccionada || undefined).subscribe({
       next: (res: any[]) => {
-        const map = new Map();
-        res.forEach(p => {
-          if (p.entrenador_id && !map.has(p.entrenador_id)) {
-            map.set(p.entrenador_id, {
-              id: p.entrenador_id,
-              nombre: p.entrenador_nombre,
-              foto: p.entrenador_foto,
-              descripcion: p.entrenador_descripcion,
-              comuna: p.trainer_comuna,
-              telefono: p.entrenador_telefono
-            });
-          }
-        });
-        this.entrenadores = Array.from(map.values());
+        let coaches = this.extractCoachesFromPacks(res);
+
+        // Fallback 1: If 0 results with server region/comuna filter, fetch all packs and filter client-side
+        if (coaches.length === 0) {
+          this.packsService.getAllPacks(undefined, undefined, 100).subscribe({
+            next: (allPacks: any[]) => {
+              let allCoaches = this.extractCoachesFromPacks(allPacks);
+              
+              if (this.comunaSeleccionada || this.regionSeleccionada) {
+                const regKey = (this.regionSeleccionada || '').toLowerCase().replace(/región|del|de|la|los|las|gral\.|bernardo|libertador/g, '').trim();
+                const comKey = (this.comunaSeleccionada || '').toLowerCase().trim();
+                
+                let filtered = allCoaches.filter(c => {
+                  const cCom = (c.comuna || '').toLowerCase();
+                  const cDesc = (c.descripcion || '').toLowerCase();
+                  const cName = (c.nombre || '').toLowerCase();
+                  const matchCom = comKey ? (cCom.includes(comKey) || cDesc.includes(comKey)) : true;
+                  const matchReg = regKey ? (cCom.includes(regKey) || cDesc.includes(regKey) || cName.includes(regKey)) : true;
+                  return matchCom && matchReg;
+                });
+
+                if (filtered.length > 0) {
+                  coaches = filtered;
+                } else if (allCoaches.length > 0) {
+                  coaches = allCoaches;
+                }
+              } else {
+                coaches = allCoaches;
+              }
+              this.entrenadores = coaches;
+              this.isLoadingDiscovery = false;
+            },
+            error: () => {
+              this.entrenadores = coaches;
+              this.isLoadingDiscovery = false;
+            }
+          });
+        } else {
+          this.entrenadores = coaches;
+          this.isLoadingDiscovery = false;
+        }
 
         // Also fetch user's active packs for later credit checking
         this.entrenamientoService.getEntrenadorPorJugador(this.jugadorId).subscribe({
           next: (resPacks: any[]) => {
             this.packs = resPacks || [];
-            this.isLoadingDiscovery = false;
           },
-          error: () => this.isLoadingDiscovery = false
+          error: () => {}
         });
       },
       error: (err) => {
@@ -358,6 +438,23 @@ export class JugadorReservasPage implements OnInit {
         this.isLoadingDiscovery = false;
       }
     });
+  }
+
+  private extractCoachesFromPacks(packs: any[]): any[] {
+    const map = new Map();
+    (packs || []).forEach(p => {
+      if (p.entrenador_id && !map.has(p.entrenador_id)) {
+        map.set(p.entrenador_id, {
+          id: p.entrenador_id,
+          nombre: p.entrenador_nombre,
+          foto: p.entrenador_foto,
+          descripcion: p.entrenador_descripcion,
+          comuna: p.trainer_comuna || p.club_comuna || 'Club Local',
+          telefono: p.entrenador_telefono
+        });
+      }
+    });
+    return Array.from(map.values());
   }
 
   get filteredDias(): string[] {

@@ -154,3 +154,50 @@ ion-content {
     }
   }
 }
+
+.court-price-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+
+  .price-breakdown {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+
+    .c-price-total {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+
+      strong {
+        color: #10b981;
+      }
+    }
+
+    .c-price-per-player {
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+    }
+  }
+
+  .rate-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+
+    &.peak {
+      background: #fffbeb;
+      color: #d97706;
+      border-color: #fde68a;
+    }
+  }
+}
+
