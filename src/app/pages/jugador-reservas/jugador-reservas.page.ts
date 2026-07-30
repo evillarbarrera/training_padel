@@ -122,7 +122,7 @@ export class JugadorReservasPage implements OnInit {
   // Business Logic Scenarios
   creditosDisponibles: number = 0;
   reservasFuturas: number = 0;
-  escenarioReserva: 'A' | 'B' | 'C' | null = null;
+  escenarioReserva: 'A' | 'B' | 'C' | null = 'A';
 
   // Coupon State
   couponCode: string = '';
@@ -186,6 +186,14 @@ export class JugadorReservasPage implements OnInit {
     });
   }
 
+  ionViewWillEnter() {
+    const savedFoto = localStorage.getItem('userFoto') || localStorage.getItem('foto_perfil');
+    if (savedFoto) {
+      this.fotoPerfil = this.getProfileImage(savedFoto);
+    }
+    this.loadUserProfile();
+  }
+
   loadUserProfile(event?: any) {
     this.mysqlService.getPerfil(this.jugadorId).subscribe({
       next: (res: any) => {
@@ -199,7 +207,11 @@ export class JugadorReservasPage implements OnInit {
           const p3 = userData.link_foto;
           let fotoRaw = p1 || p2 || p3;
 
-          this.fotoPerfil = this.getProfileImage(fotoRaw && !fotoRaw.includes('imagen_defecto') ? fotoRaw : null);
+          if (fotoRaw && !fotoRaw.includes('imagen_defecto')) {
+            localStorage.setItem('userFoto', fotoRaw);
+            localStorage.setItem('foto_perfil', fotoRaw);
+            this.fotoPerfil = this.getProfileImage(fotoRaw);
+          }
 
           const dir = res.direccion || userData.direccion;
           if (dir) {
@@ -381,48 +393,32 @@ export class JugadorReservasPage implements OnInit {
 
   cargarEntrenadores() {
     this.isLoadingDiscovery = true;
+    this.cdRef.detectChanges();
+
     this.packsService.getAllPacks(undefined, undefined, 50, this.regionSeleccionada || undefined, this.comunaSeleccionada || undefined).subscribe({
       next: (res: any[]) => {
         let coaches = this.extractCoachesFromPacks(res);
 
-        // Fallback 1: If 0 results with server region/comuna filter, fetch all packs and filter client-side
-        if (coaches.length === 0) {
-          this.packsService.getAllPacks(undefined, undefined, 100).subscribe({
-            next: (allPacks: any[]) => {
-              let allCoaches = this.extractCoachesFromPacks(allPacks);
-              
-              if (this.comunaSeleccionada || this.regionSeleccionada) {
-                const regKey = (this.regionSeleccionada || '').toLowerCase().replace(/región|del|de|la|los|las|gral\.|bernardo|libertador/g, '').trim();
-                const comKey = (this.comunaSeleccionada || '').toLowerCase().trim();
-                
-                let filtered = allCoaches.filter(c => {
-                  const cCom = (c.comuna || '').toLowerCase();
-                  const cDesc = (c.descripcion || '').toLowerCase();
-                  const cName = (c.nombre || '').toLowerCase();
-                  const matchCom = comKey ? (cCom.includes(comKey) || cDesc.includes(comKey)) : true;
-                  const matchReg = regKey ? (cCom.includes(regKey) || cDesc.includes(regKey) || cName.includes(regKey)) : true;
-                  return matchCom && matchReg;
-                });
-
-                if (filtered.length > 0) {
-                  coaches = filtered;
-                } else if (allCoaches.length > 0) {
-                  coaches = allCoaches;
-                }
+        if (coaches.length === 0 && this.comunaSeleccionada && this.regionSeleccionada) {
+          this.packsService.getAllPacks(undefined, undefined, 50, this.regionSeleccionada || undefined, undefined).subscribe({
+            next: (resRegion: any[]) => {
+              let coachesRegion = this.extractCoachesFromPacks(resRegion);
+              if (coachesRegion.length === 0) {
+                this.fetchAllCoachesFallback();
               } else {
-                coaches = allCoaches;
+                this.entrenadores = coachesRegion;
+                this.isLoadingDiscovery = false;
+                this.cdRef.detectChanges();
               }
-              this.entrenadores = coaches;
-              this.isLoadingDiscovery = false;
             },
-            error: () => {
-              this.entrenadores = coaches;
-              this.isLoadingDiscovery = false;
-            }
+            error: () => this.fetchAllCoachesFallback()
           });
+        } else if (coaches.length === 0) {
+          this.fetchAllCoachesFallback();
         } else {
           this.entrenadores = coaches;
           this.isLoadingDiscovery = false;
+          this.cdRef.detectChanges();
         }
 
         // Also fetch user's active packs for later credit checking
@@ -435,7 +431,23 @@ export class JugadorReservasPage implements OnInit {
       },
       error: (err) => {
         console.error('Error loading discovery:', err);
+        this.fetchAllCoachesFallback();
+      }
+    });
+  }
+
+  private fetchAllCoachesFallback() {
+    this.packsService.getAllPacks(undefined, undefined, 100).subscribe({
+      next: (allPacks: any[]) => {
+        let allCoaches = this.extractCoachesFromPacks(allPacks);
+        this.entrenadores = allCoaches;
         this.isLoadingDiscovery = false;
+        this.cdRef.detectChanges();
+      },
+      error: () => {
+        this.entrenadores = [];
+        this.isLoadingDiscovery = false;
+        this.cdRef.detectChanges();
       }
     });
   }
@@ -1330,11 +1342,41 @@ export class JugadorReservasPage implements OnInit {
     }
   }
 
-  getProfileImage(url: string | null) {
-    if (!url || url === 'null') return 'assets/avatar.png';
-    if (url.startsWith('http')) return url;
-    const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
-    return `${cleanApiUrl}/prd/${url.startsWith('/') ? url.substring(1) : url}`;
+  getProfileImage(url: any): string {
+    if (!url || url === 'null' || url === 'undefined' || typeof url !== 'string') {
+      return 'assets/avatar.png';
+    }
+    const cleanUrl = url.trim();
+    if (!cleanUrl || cleanUrl === '' || cleanUrl.includes('imagen_defecto') || cleanUrl.includes('default_avatar')) {
+      return 'assets/avatar.png';
+    }
+    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://') || cleanUrl.startsWith('data:image')) {
+      return cleanUrl;
+    }
+    if (cleanUrl.startsWith('assets/')) {
+      return cleanUrl;
+    }
+    const path = cleanUrl.startsWith('/') ? cleanUrl.substring(1) : cleanUrl;
+    if (path.startsWith('prd/') || path.startsWith('api_training/')) {
+      return `https://api.padelmanager.cl/${path}`;
+    }
+    if (path.startsWith('uploads/')) {
+      return `https://api.padelmanager.cl/${path}`;
+    }
+    return `https://api.padelmanager.cl/api_training/${path}`;
+  }
+
+  onImgError(event: any) {
+    if (event && event.target) {
+      const currentSrc: string = event.target.src || '';
+      if (currentSrc.includes('api.padelmanager.cl/uploads/')) {
+        event.target.src = currentSrc.replace('api.padelmanager.cl/uploads/', 'api.padelmanager.cl/api_training/uploads/');
+      } else if (currentSrc.includes('/api_training/uploads/')) {
+        event.target.src = currentSrc.replace('/api_training/uploads/', '/prd/uploads/');
+      } else {
+        event.target.src = 'assets/avatar.png';
+      }
+    }
   }
 
   isMatchComplete(p: any): boolean {

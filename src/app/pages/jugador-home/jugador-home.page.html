@@ -12,7 +12,7 @@
       <div class="header-content-wrapper">
         <div class="header-left-info">
           <div class="avatar-circle">
-            <img [src]="fotoPerfil || 'assets/avatar.png'" alt="Avatar" />
+            <img [src]="fotoPerfil || 'assets/avatar.png'" (error)="onImgError($event)" alt="Avatar" />
           </div>
           <div class="header-text">
             <p class="welcome-pre">CONTINUAR ENTRENANDO,</p>
@@ -48,7 +48,7 @@
         </div>
         <!-- Avatar -->
         <div class="h-avatar">
-          <img [src]="fotoPerfil || 'assets/avatar.png'" alt="Avatar" />
+          <img [src]="fotoPerfil || 'assets/avatar.png'" (error)="onImgError($event)" alt="Avatar" />
         </div>
       </div>
     </div>

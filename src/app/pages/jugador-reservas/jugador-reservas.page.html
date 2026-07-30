@@ -15,7 +15,7 @@
     <div class="h-actions">
       <!-- Avatar -->
       <div class="h-avatar">
-        <img [src]="fotoPerfil || 'assets/avatar.png'" alt="Avatar" />
+        <img [src]="fotoPerfil || 'assets/avatar.png'" (error)="onImgError($event)" alt="Avatar" />
       </div>
     </div>
   </div>

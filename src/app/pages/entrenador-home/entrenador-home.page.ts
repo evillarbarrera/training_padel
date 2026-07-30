@@ -214,15 +214,10 @@ export class EntrenadorHomePage {
           this.coachNombre = res.user.nombre || 'Coach';
 
           let foto = res.user.foto_perfil || res.user.link_foto || res.user.foto;
-          if (foto && typeof foto === 'string' && foto.trim().length > 0 && !foto.includes('imagen_defecto')) {
-            if (!foto.startsWith('http')) {
-              const cleanPath = foto.startsWith('/') ? foto.substring(1) : foto;
-              this.coachFoto = `https://api.padelmanager.cl/${cleanPath}`;
-            } else {
-              this.coachFoto = foto;
-            }
-          } else {
-            this.coachFoto = `https://ui-avatars.com/api/?name=${encodeURIComponent(this.coachNombre)}&background=ccff00&color=000`;
+          if (foto) {
+            localStorage.setItem('userFoto', foto);
+            localStorage.setItem('foto_perfil', foto);
+            this.coachFoto = this.getProfileImage(foto);
           }
 
           // Check for Mercado Pago Collector ID
@@ -612,12 +607,46 @@ export class EntrenadorHomePage {
   }
 
   marcarAsistenciaLive() {
-    // In a real app, this would call a service. For now, a simple mock or feedback.
-    console.log("Marcar asistencia para:", this.claseActual.titulo);
-    // Suggestion: we could navigate to the class detail or perform a quick toggle
+    if (this.claseActual) {
+      console.log("Marcar asistencia para:", this.claseActual.titulo);
+    }
   }
 
+  getProfileImage(url: any): string {
+    if (!url || url === 'null' || url === 'undefined' || typeof url !== 'string') {
+      return 'assets/avatar.png';
+    }
+    const cleanUrl = url.trim();
+    if (!cleanUrl || cleanUrl === '' || cleanUrl.includes('imagen_defecto') || cleanUrl.includes('default_avatar')) {
+      return 'assets/avatar.png';
+    }
+    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://') || cleanUrl.startsWith('data:image')) {
+      return cleanUrl;
+    }
+    if (cleanUrl.startsWith('assets/')) {
+      return cleanUrl;
+    }
 
+    const path = cleanUrl.startsWith('/') ? cleanUrl.substring(1) : cleanUrl;
+    if (path.startsWith('prd/') || path.startsWith('api_training/')) {
+      return `https://api.padelmanager.cl/${path}`;
+    }
+    if (path.startsWith('uploads/')) {
+      return `https://api.padelmanager.cl/${path}`;
+    }
+    return `https://api.padelmanager.cl/api_training/${path}`;
+  }
 
-
+  onImgError(event: any) {
+    if (event && event.target) {
+      const currentSrc: string = event.target.src || '';
+      if (currentSrc.includes('api.padelmanager.cl/uploads/')) {
+        event.target.src = currentSrc.replace('api.padelmanager.cl/uploads/', 'api.padelmanager.cl/api_training/uploads/');
+      } else if (currentSrc.includes('/api_training/uploads/')) {
+        event.target.src = currentSrc.replace('/api_training/uploads/', '/prd/uploads/');
+      } else {
+        event.target.src = 'assets/avatar.png';
+      }
+    }
+  }
 }

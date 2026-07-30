@@ -45,6 +45,9 @@ export class LoginPage implements OnInit {
   }
 
   ngOnInit() {
+    if (this.checkExistingSession()) {
+      return;
+    }
     const savedUser = localStorage.getItem('savedUser');
     const savedPass = localStorage.getItem('savedPass');
     if (savedUser && savedPass) {
@@ -54,10 +57,18 @@ export class LoginPage implements OnInit {
     }
   }
 
+  checkExistingSession(): boolean {
+    const userId = localStorage.getItem('userId');
+    const userRole = localStorage.getItem('userRole');
+    if (userId && userId !== 'null' && userId !== 'undefined') {
+      this.redirectBasedOnRole(userRole || 'jugador');
+      return true;
+    }
+    return false;
+  }
+
   // Traditional email/password login
   async login() {
-
-
     if (!this.usuario || !this.password) {
       this.showError('Por favor ingrese usuario y contraseña');
       return;
@@ -78,7 +89,7 @@ export class LoginPage implements OnInit {
             if (res && res.token && res.id) {
               localStorage.setItem('token', res.token);
               localStorage.setItem('userId', res.id.toString());
-              localStorage.setItem('userRole', res.rol); // Store role
+              localStorage.setItem('userRole', res.rol);
               this.notificationService.updateTokenForUser();
 
               if (this.recordar) {
@@ -91,7 +102,6 @@ export class LoginPage implements OnInit {
 
               this.redirectBasedOnRole(res.rol);
             } else {
-              // Si el servidor responde pero no hay token (ej: credenciales erróneas en formato success: false)
               this.showError(res.message || 'Credenciales incorrectas');
             }
           },
@@ -99,7 +109,6 @@ export class LoginPage implements OnInit {
             this.isLoading = false;
             console.error('Login error:', err);
 
-            // Respuesta inmediata ante errores conocidos
             const errorMessage = err.status === 401 ? 'Correo o contraseña incorrectos' :
               err.status === 404 ? 'Usuario no encontrado' :
                 'Error de conexión. Inténtalo de nuevo.';
@@ -115,6 +124,9 @@ export class LoginPage implements OnInit {
   }
 
   async ionViewWillEnter() {
+    if (this.checkExistingSession()) {
+      return;
+    }
     // Initialize Google Auth for iOS to prevent crashes
     if (this.platform.is('ios') || this.platform.is('ipad')) {
       try {

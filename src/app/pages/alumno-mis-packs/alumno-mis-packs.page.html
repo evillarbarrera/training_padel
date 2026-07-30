@@ -8,7 +8,7 @@
         <div class="header-overlay"></div>
         <div class="header-content-wrapper">
             <div class="avatar-circle">
-                <img [src]="fotoPerfil || 'assets/avatar.png'" alt="Avatar" />
+                <img [src]="fotoPerfil || 'assets/avatar.png'" (error)="onImgError($event)" alt="Avatar" />
             </div>
             <div class="header-text">
                 <p class="welcome-pre">MIS CRÉDITOS Y EQUIPO</p>

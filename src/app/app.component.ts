@@ -6,6 +6,8 @@ import { Platform } from '@ionic/angular';
 import { NotificationService } from './services/notification.service';
 import { HttpClient } from '@angular/common/http';
 
+import { Router } from '@angular/router';
+
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -20,10 +22,21 @@ export class AppComponent implements OnInit {
   constructor(
     private platform: Platform,
     private notificationService: NotificationService,
-    private http: HttpClient
+    private http: HttpClient,
+    private router: Router
   ) {
     this.initializeApp();
     this.checkVersion();
+    this.checkSessionOnStartup();
+  }
+
+  checkSessionOnStartup() {
+    const userId = localStorage.getItem('userId');
+    const userRole = localStorage.getItem('userRole');
+    if (userId && userId !== 'null' && userId !== 'undefined') {
+      const targetRoute = userRole === 'entrenador' ? '/entrenador-home' : '/jugador-home';
+      this.router.navigate([targetRoute], { replaceUrl: true });
+    }
   }
 
   ngOnInit() {
@@ -46,11 +59,17 @@ export class AppComponent implements OnInit {
     }
   }
 
-  initializeApp() {
-    GoogleAuth.initialize({
-      clientId: '786145270372-e637i46g6uu1kekcr1ioqdka901acud7.apps.googleusercontent.com',
-      scopes: ['profile', 'email']
-    });
+  async initializeApp() {
+    if (this.platform.is('capacitor') || this.platform.is('ios') || this.platform.is('android')) {
+      try {
+        await GoogleAuth.initialize({
+          clientId: '786145270372-e637i46g6uu1kekcr1ioqdka901acud7.apps.googleusercontent.com',
+          scopes: ['profile', 'email']
+        });
+      } catch (e) {
+        console.warn('Google Auth init skipped or failed:', e);
+      }
+    }
 
     this.notificationService.initializeMessaging();
   }

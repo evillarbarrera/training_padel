@@ -123,7 +123,10 @@ export class JugadorHomePage implements OnInit {
   }
 
   ionViewWillEnter() {
-    // Se ejecuta cada vez que la vista va a entrar (al navegar desde otras páginas)
+    const savedFoto = localStorage.getItem('userFoto') || localStorage.getItem('foto_perfil');
+    if (savedFoto) {
+      this.fotoPerfil = this.getProfileImage(savedFoto);
+    }
     this.cargarStats();
   }
 
@@ -139,14 +142,15 @@ export class JugadorHomePage implements OnInit {
         this.jugadorNombre = res.nombre;
 
         // Try to get photo from stats first
-        if (res.foto_perfil) {
-          const foto = res.foto_perfil;
-          const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
-          this.fotoPerfil = foto.startsWith('http') ? foto : `${cleanApiUrl}/prd/${foto.startsWith('/') ? foto.substring(1) : foto}`;
+        const fotoRaw = res.foto_perfil || res.foto;
+        if (fotoRaw) {
+          localStorage.setItem('userFoto', fotoRaw);
+          localStorage.setItem('foto_perfil', fotoRaw);
+          this.fotoPerfil = this.getProfileImage(fotoRaw);
         }
 
         // Datos de Packs
-        if (res.estadisticas.packs) {
+        if (res.estadisticas && res.estadisticas.packs) {
           this.clasesPagadas = res.estadisticas.packs.pagadas;
           this.clasesReservadas = res.estadisticas.packs.reservadas;
           this.clasesDisponibles = res.estadisticas.packs.disponibles;
@@ -169,15 +173,14 @@ export class JugadorHomePage implements OnInit {
     // Double check with profile endpoint
     this.mysqlService.getPerfil(userId).subscribe({
       next: (res) => {
-        if (res.success && res.user) {
+        if (res && res.user) {
           const user = res.user;
-          // Perfil photo
-          if (user.foto_perfil) {
-            const foto = user.foto_perfil;
-            this.fotoPerfil = foto.startsWith('http') ? foto : `${environment.apiUrl.replace('/api_training_dev','')}/${foto.startsWith('/') ? foto.substring(1) : foto}`;
+          const userFoto = user.foto_perfil || user.foto;
+          if (userFoto) {
+            this.fotoPerfil = this.getProfileImage(userFoto);
           }
           // Check for address
-          this.sinDireccion = !user.direccion || user.direccion.trim().length < 3;
+          this.sinDireccion = !user.direccion || (typeof user.direccion === 'string' && user.direccion.trim().length < 3);
         }
       }
     });
@@ -423,5 +426,42 @@ export class JugadorHomePage implements OnInit {
   dismissAchievementToast() {
     this.showAchievementToast = false;
     this.achievementToast = null;
+  }
+
+  getProfileImage(url: any): string {
+    if (!url || url === 'null' || url === 'undefined' || typeof url !== 'string') {
+      return 'assets/avatar.png';
+    }
+    const cleanUrl = url.trim();
+    if (!cleanUrl || cleanUrl === '' || cleanUrl.includes('imagen_defecto') || cleanUrl.includes('default_avatar')) {
+      return 'assets/avatar.png';
+    }
+    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://') || cleanUrl.startsWith('data:image')) {
+      return cleanUrl;
+    }
+    if (cleanUrl.startsWith('assets/')) {
+      return cleanUrl;
+    }
+    const path = cleanUrl.startsWith('/') ? cleanUrl.substring(1) : cleanUrl;
+    if (path.startsWith('prd/') || path.startsWith('api_training/')) {
+      return `https://api.padelmanager.cl/${path}`;
+    }
+    if (path.startsWith('uploads/')) {
+      return `https://api.padelmanager.cl/${path}`;
+    }
+    return `https://api.padelmanager.cl/api_training/${path}`;
+  }
+
+  onImgError(event: any) {
+    if (event && event.target) {
+      const currentSrc: string = event.target.src || '';
+      if (currentSrc.includes('api.padelmanager.cl/uploads/')) {
+        event.target.src = currentSrc.replace('api.padelmanager.cl/uploads/', 'api.padelmanager.cl/api_training/uploads/');
+      } else if (currentSrc.includes('/api_training/uploads/')) {
+        event.target.src = currentSrc.replace('/api_training/uploads/', '/prd/uploads/');
+      } else {
+        event.target.src = 'assets/avatar.png';
+      }
+    }
   }
 }

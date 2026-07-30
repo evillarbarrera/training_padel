@@ -8,7 +8,7 @@
     <div class="header-overlay"></div>
     <div class="header-content-wrapper">
       <div class="avatar-circle" (click)="fileInput.click()">
-        <img [src]="profile.foto_perfil || 'assets/avatar.png'" alt="Avatar" />
+        <img [src]="profile.foto_perfil || 'assets/avatar.png'" (error)="onImgError($event)" alt="Avatar" />
         <div class="edit-overlay-small">
           <ion-icon name="camera-outline"></ion-icon>
         </div>
