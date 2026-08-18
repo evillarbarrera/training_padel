@@ -72,8 +72,8 @@
             <div class="mi-torneo-card animate-up" *ngFor="let t of misTorneosActivos; let i = index" 
                  [style.animation-delay]="i * 0.08 + 's'" (click)="openMiTorneo(t)">
               <div class="mt-left">
-                <div class="mt-type-badge" [class.americano]="t.tipo_torneo === 'americano'" [class.oficial]="t.tipo_torneo === 'oficial'">
-                  {{ t.tipo_torneo === 'americano' ? 'AM' : 'OF' }}
+                <div class="mt-type-badge" [class.americano]="t.tipo_torneo === 'americano'" [class.liga]="t.tipo_torneo === 'liga'" [class.oficial]="t.tipo_torneo === 'oficial'">
+                  {{ t.tipo_torneo === 'americano' ? 'AM' : (t.tipo_torneo === 'liga' ? 'LIGA' : 'OF') }}
                 </div>
               </div>
               <div class="mt-center">
@@ -135,31 +135,84 @@
       </div>
 
       <!-- ====================== -->
+      <!-- ====================== -->
       <!-- BUSCAR TORNEOS VIEW -->
       <!-- ====================== -->
       <div *ngIf="mainView === 'buscar'" class="animate-up">
+        <!-- Filtros por tipo de competición -->
+        <div class="comp-filter-scroll">
+          <div class="comp-chip" [class.active]="selectedCompetitionFilter === 'todos'" (click)="selectedCompetitionFilter = 'todos'">
+            <span>🌐</span> Todos
+          </div>
+          <div class="comp-chip" [class.active]="selectedCompetitionFilter === 'torneo'" (click)="selectedCompetitionFilter = 'torneo'">
+            <span>🏆</span> Torneos
+          </div>
+          <div class="comp-chip" [class.active]="selectedCompetitionFilter === 'liga'" (click)="selectedCompetitionFilter = 'liga'">
+            <span>🏅</span> Ligas
+          </div>
+          <div class="comp-chip" [class.active]="selectedCompetitionFilter === 'americano'" (click)="selectedCompetitionFilter = 'americano'">
+            <span>🎾</span> Americanos
+          </div>
+        </div>
+
         <div class="filters-row-v6">
           <div class="filter-item-v6">
             <ion-icon name="map-outline"></ion-icon>
             <select [(ngModel)]="selectedRegion" (change)="onFilterChange()">
-              <option value="">Todas las Regiones</option>
+              <option value="">Regiones</option>
               <option *ngFor="let r of regiones" [value]="r">{{ r }}</option>
             </select>
+            <ion-icon name="chevron-down-outline" class="arrow-down"></ion-icon>
           </div>
           <div class="filter-item-v6">
             <ion-icon name="location-outline"></ion-icon>
             <select [(ngModel)]="selectedComuna" (change)="onFilterChange()">
-              <option value="">Todas las Comunas</option>
+              <option value="">Comunas</option>
               <option *ngFor="let c of comunas" [value]="c">{{ c }}</option>
             </select>
+            <ion-icon name="chevron-down-outline" class="arrow-down"></ion-icon>
           </div>
         </div>
 
         <div class="search-bar-v6">
           <ion-icon name="search-outline"></ion-icon>
-          <input type="text" [(ngModel)]="searchTerm" placeholder="Nombre del club...">
+          <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar por club o competición...">
         </div>
 
+        <!-- COMPETICIONES DISPONIBLES -->
+        <div class="tournament-list-v6" *ngIf="filteredCompeticiones.length > 0" style="margin-bottom: 25px;">
+          <div class="section-title-v6" style="margin-top: 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+            <span>COMPETICIONES DISPONIBLES</span>
+            <span class="badge-count-pill">{{ filteredCompeticiones.length }}</span>
+          </div>
+
+          <div class="t-card-v6 animate-up" *ngFor="let t of filteredCompeticiones" style="margin-bottom: 16px;">
+            <div class="t-poster" *ngIf="t.imagen" [style.background-image]="'url(' + t.imagen + ')'"></div>
+            <div class="t-body">
+              <div class="t-header-row">
+                <span class="comp-badge" [class.liga]="t.table_source === 'liga'" [class.americano]="t.table_source === 'americanos'" [class.oficial]="t.table_source === 'v2'">
+                  {{ t.tipo || 'Competición' }}
+                </span>
+                <span class="p-amount-pill" *ngIf="t.precio !== undefined">
+                  {{ t.precio > 0 ? '$' + (t.precio | number) : 'Gratis' }}
+                </span>
+              </div>
+
+              <h4 class="comp-title">{{ t.nombre }}</h4>
+              <p class="comp-club">📍 {{ t.club_nombre }}</p>
+
+              <div class="t-footer-row">
+                <div class="t-meta">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <span>{{ t.fecha_display | date:'dd MMM yyyy' }}</span>
+                </div>
+                <button class="join-btn-v6" (click)="openEnrollment(t)">INSCRIPCIÓN</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title-v6">CLUBES DISPONIBLES</div>
         <div class="club-discovery-list">
           <div *ngIf="loading" class="loading-state">
             <ion-spinner name="crescent"></ion-spinner>
@@ -321,6 +374,9 @@
         <div class="tab-item" [class.active]="selectedTab === 'torneos'" (click)="selectedTab = 'torneos'">
           TORNEOS
         </div>
+        <div class="tab-item" [class.active]="selectedTab === 'ligas'" (click)="selectedTab = 'ligas'">
+          LIGAS
+        </div>
       </div>
 
       <!-- AMERICANOS LIST -->
@@ -392,11 +448,42 @@
           </div>
         </div>
       </div>
+
+      <!-- LIGAS LIST -->
+      <div *ngIf="selectedTab === 'ligas'" class="animate-up">
+        <div class="section-title-v6">LIGAS DE PÁDEL</div>
+        <div class="section-desc-v6">Compite semana a semana y clasifica a Playoffs</div>
+
+        <div *ngIf="ligasClubList.length === 0" class="empty-state-v6">
+          <ion-icon name="ribbon-outline"></ion-icon>
+          <p>No hay ligas activas para inscripción</p>
+        </div>
+
+        <div class="tournament-list-v6">
+          <div class="t-card-v6" *ngFor="let l of ligasClubList">
+             <div class="t-poster" *ngIf="l.imagen_url" [style.background-image]="'url(' + l.imagen_url + ')'"></div>
+             <div class="t-main">
+                <div class="t-info">
+                  <h4>{{ l.nombre }}</h4>
+                  <div class="t-meta">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    <span>{{ l.fecha_inicio | date:'dd MMM' }} - {{ l.fecha_fin | date:'dd MMM' }}</span>
+                  </div>
+                  <div class="t-price">
+                    <span class="p-amount">{{ l.precio > 0 ? '$' + (l.precio | number) : 'Gratis' }}</span>
+                    <span class="p-unit">/ pareja</span>
+                  </div>
+                </div>
+                <button class="join-btn" (click)="openEnrollment(l)">INSCRIPCIÓN</button>
+             </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- ENROLLMENT MODAL -->
-  <ion-modal [isOpen]="showPartnerModal" (didDismiss)="showPartnerModal = false" [initialBreakpoint]="0.7" [breakpoints]="[0, 0.7, 0.9]">
+  <ion-modal [isOpen]="showPartnerModal" (didDismiss)="showPartnerModal = false" [initialBreakpoint]="0.8" [breakpoints]="[0, 0.7, 0.9]">
     <ng-template>
       <ion-content class="ion-padding-bottom">
         <div class="partner-modal">
@@ -426,7 +513,7 @@
           <ng-container *ngIf="enrollmentStep === 'partner'">
             <div class="p-header">
               <div style="display: flex; align-items: center; gap: 10px;">
-                <ion-icon name="arrow-back-outline" *ngIf="selectedTournament?.table_source === 'v2'" (click)="enrollmentStep = 'category'" style="font-size: 24px; color: var(--nike-navy); opacity: 0.8;"></ion-icon>
+                <ion-icon name="arrow-back-outline" *ngIf="selectedTournament?.table_source === 'v2' || selectedTournament?.table_source === 'liga'" (click)="enrollmentStep = 'category'" style="font-size: 24px; color: var(--nike-navy); opacity: 0.8;"></ion-icon>
                 <h2 style="margin: 0;">Elegir Pareja</h2>
               </div>
               <ion-icon name="close-outline" (click)="showPartnerModal = false"></ion-icon>
@@ -446,6 +533,72 @@
               </div>
               <div *ngIf="partnerSearchTerm.length >= 3 && partnerResults.length === 0" class="empty-res">
                 No se encontraron jugadores
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- STEP 3: TIME RESTRICTIONS FOR LEAGUE -->
+          <ng-container *ngIf="enrollmentStep === 'restrictions'">
+            <div class="p-header">
+              <div class="back-title-group">
+                <ion-icon name="arrow-back-outline" (click)="enrollmentStep = 'partner'" class="back-btn-icon"></ion-icon>
+                <h2>Restricciones Horarias</h2>
+              </div>
+              <ion-icon name="close-outline" (click)="showPartnerModal = false" class="close-btn-icon"></ion-icon>
+            </div>
+            
+            <div class="restrictions-container">
+              <div class="info-callout">
+                <span class="callout-icon">🗓️</span>
+                <p>Indica hasta 2 días/horarios donde <strong>NO puedan jugar</strong> para la programación automática de partidos.</p>
+              </div>
+
+              <div class="add-action-wrapper" *ngIf="restriccionesLiga.length < 2">
+                <button type="button" class="btn-add-restriction-mobile" (click)="agregarRestriccionLiga()">
+                  + Agregar Restricción ({{ 2 - restriccionesLiga.length }} disponible)
+                </button>
+              </div>
+
+              <div class="restrictions-list" *ngIf="restriccionesLiga.length > 0">
+                <div *ngFor="let r of restriccionesLiga; let i = index" class="restriction-item-card animate-up">
+                  <div class="item-header">
+                    <span class="item-title">Restricción #{{ i + 1 }}</span>
+                    <button type="button" class="btn-delete-restriction" (click)="eliminarRestriccionLiga(i)">
+                      ✕ Eliminar
+                    </button>
+                  </div>
+                  <div class="item-inputs">
+                    <label class="day-picker-label">Día no disponible:</label>
+                    <div class="day-chips-grid">
+                      <button 
+                        type="button" 
+                        *ngFor="let d of diasSemana" 
+                        class="day-chip-btn" 
+                        [class.selected]="r.dia === d" 
+                        (click)="r.dia = d">
+                        {{ getShortDay(d) }}
+                      </button>
+                    </div>
+
+                    <div class="time-range-group">
+                      <div class="time-input-box">
+                        <label>Desde:</label>
+                        <input type="time" [(ngModel)]="r.hora_inicio" class="input-time" />
+                      </div>
+                      <span class="sep-text">a</span>
+                      <div class="time-input-box">
+                        <label>Hasta:</label>
+                        <input type="time" [(ngModel)]="r.hora_fin" class="input-time" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="confirm-btn-wrapper">
+                <button class="btn-confirm-enrollment" (click)="confirmEnrollment()">
+                  Confirmar Inscripción
+                </button>
               </div>
             </div>
           </ng-container>

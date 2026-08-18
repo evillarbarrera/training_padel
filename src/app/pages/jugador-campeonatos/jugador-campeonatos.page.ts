@@ -34,7 +34,7 @@ export class JugadorCampeonatosPage implements OnInit {
   clubes: any[] = [];
   torneos: any[] = [];
   selectedClub: any = null;
-  selectedTab: 'americanos' | 'torneos' = 'americanos';
+  selectedTab: 'americanos' | 'torneos' | 'ligas' = 'americanos';
   loading = true;
   searchTerm: string = '';
   userRegion: string = '';
@@ -42,7 +42,11 @@ export class JugadorCampeonatosPage implements OnInit {
 
   americanosList: any[] = [];
   torneosList: any[] = [];
+  ligasClubList: any[] = [];
   
+  // Competition type filter in search
+  selectedCompetitionFilter: 'todos' | 'torneo' | 'liga' | 'americano' = 'todos';
+
   // Filters
   selectedRegion: string = '';
   selectedComuna: string = '';
@@ -50,12 +54,42 @@ export class JugadorCampeonatosPage implements OnInit {
   comunas: string[] = [];
   allComunas: string[] = [];
   
-  // Partner Selection
+  // Partner Selection & Enrollment Steps
   showPartnerModal = false;
   partnerSearchTerm = '';
   partnerResults: any[] = [];
   selectedPartner: any = null;
   selectedTournament: any = null;
+  selectedCategoriaId: number = 0;
+  enrollmentStep: 'category' | 'partner' | 'restrictions' = 'partner';
+  availableCategorias: any[] = [];
+  
+  // Time Restrictions for League
+  restriccionesLiga: { dia: string; hora_inicio: string; hora_fin: string }[] = [];
+  diasSemana: string[] = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+  getShortDay(day: string): string {
+    const map: { [key: string]: string } = {
+      'Lunes': 'Lun',
+      'Martes': 'Mar',
+      'Miércoles': 'Mié',
+      'Jueves': 'Jue',
+      'Viernes': 'Vie',
+      'Sábado': 'Sáb',
+      'Domingo': 'Dom'
+    };
+    return map[day] || day;
+  }
+
+  agregarRestriccionLiga() {
+    if (this.restriccionesLiga.length < 2) {
+      this.restriccionesLiga.push({ dia: 'Lunes', hora_inicio: '18:00', hora_fin: '20:00' });
+    }
+  }
+
+  eliminarRestriccionLiga(index: number) {
+    this.restriccionesLiga.splice(index, 1);
+  }
 
   defaultClubImage: string = 'assets/fondo-cancha.png';
   heroBackground: string = 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=800&auto=format&fit=crop';
@@ -83,10 +117,10 @@ export class JugadorCampeonatosPage implements OnInit {
   }
 
   get misTorneosActivos(): any[] {
-    const today = new Date().toLocaleDateString('sv'); // YYYY-MM-DD in local time
+    const today = new Date().toLocaleDateString('sv');
     return this.misTorneos.filter(t => {
       const fecha = t.fecha || t.fecha_inicio || '';
-      const fechaFin = t.fecha_fin || fecha;
+      const fechaFin = (t.fecha_fin && t.fecha_fin !== '0000-00-00') ? t.fecha_fin : (fecha || '2099-12-31');
       const estado = (t.estado || '').toLowerCase();
       if (estado === 'cerrado' || estado === 'finalizado') return false;
       return fechaFin >= today;
@@ -94,10 +128,10 @@ export class JugadorCampeonatosPage implements OnInit {
   }
 
   get misTorneosHistorial(): any[] {
-    const today = new Date().toLocaleDateString('sv'); // YYYY-MM-DD in local time
+    const today = new Date().toLocaleDateString('sv');
     return this.misTorneos.filter(t => {
       const fecha = t.fecha || t.fecha_inicio || '';
-      const fechaFin = t.fecha_fin || fecha;
+      const fechaFin = (t.fecha_fin && t.fecha_fin !== '0000-00-00') ? t.fecha_fin : (fecha || '2099-12-31');
       const estado = (t.estado || '').toLowerCase();
       if (estado === 'cerrado' || estado === 'finalizado') return true;
       return fechaFin < today;
@@ -142,9 +176,6 @@ export class JugadorCampeonatosPage implements OnInit {
     this.loadClubesConTorneos();
   }
 
-  // ============================================
-  // MIS TORNEOS LOGIC
-  // ============================================
   doRefresh(event: any) {
     this.loadMisTorneos();
     this.loadClubesConTorneos();
@@ -158,7 +189,7 @@ export class JugadorCampeonatosPage implements OnInit {
     if (!userId) return;
     
     this.loadingMisTorneos = true;
-    this.historyLimit = this.historyPageSize; // Reset pagination when loading
+    this.historyLimit = this.historyPageSize;
     this.mysql.getMisTorneosCompleto(userId).subscribe({
       next: (res) => {
         this.misTorneos = res || [];
@@ -177,31 +208,17 @@ export class JugadorCampeonatosPage implements OnInit {
     const userId = Number(localStorage.getItem('userId'));
     const partidos = torneo.partidos || [];
     
-    // Separate played matches (with result) from pending
-    this.miTorneoHistorial = partidos.filter((p: any) => {
-      if (torneo.tipo_torneo === 'americano') {
-        return p.resultado_t1 !== null && p.resultado_t2 !== null;
-      } else {
-        return p.resultado_t1 !== null && p.resultado_t2 !== null;
-      }
-    });
-
-    // Find next upcoming match (no result yet)
-    const pendientes = partidos.filter((p: any) => 
-      p.resultado_t1 === null || p.resultado_t2 === null
-    );
-    
+    this.miTorneoHistorial = partidos.filter((p: any) => p.resultado_t1 !== null && p.resultado_t2 !== null);
+    const pendientes = partidos.filter((p: any) => p.resultado_t1 === null || p.resultado_t2 === null);
     this.miTorneoProximo = pendientes.length > 0 ? pendientes[0] : null;
     this.miTorneoPartidos = partidos;
   }
 
   getMatchResult(match: any): 'win' | 'loss' | 'draw' | 'pending' {
     if (match.resultado_t1 === null || match.resultado_t2 === null) return 'pending';
-    
     const userId = Number(localStorage.getItem('userId'));
     
     if (this.selectedMiTorneo?.tipo_torneo === 'americano') {
-      // For americanos, check which team the user is on
       const isTeam1 = match.jugador1_id == userId || match.jugador2_id == userId;
       const r1 = Number(match.resultado_t1);
       const r2 = Number(match.resultado_t2);
@@ -209,7 +226,6 @@ export class JugadorCampeonatosPage implements OnInit {
       if (isTeam1) return r1 > r2 ? 'win' : 'loss';
       return r2 > r1 ? 'win' : 'loss';
     } else {
-      // For V2, use gane flag or pareja comparison
       if (match.gane !== undefined) return match.gane ? 'win' : 'loss';
       const r1 = Number(match.resultado_t1);
       const r2 = Number(match.resultado_t2);
@@ -254,9 +270,6 @@ export class JugadorCampeonatosPage implements OnInit {
     return 'En Juego';
   }
 
-  // ============================================
-  // EXISTING LOGIC (Discovery / Enrollment)
-  // ============================================
   loadUserProfile() {
     const userId = Number(localStorage.getItem('userId'));
     if (userId) {
@@ -283,7 +296,8 @@ export class JugadorCampeonatosPage implements OnInit {
     const today = new Date().toISOString().split('T')[0];
     
     this.mysql.getTorneosPublicos().subscribe((allTorneos: any[]) => {
-      const activeTorneos = allTorneos.filter(t => {
+      const rawList = Array.isArray(allTorneos) ? allTorneos : [];
+      const activeTorneos = rawList.filter(t => {
         if (t.table_source === 'americanos') {
           return t.fecha >= today;
         }
@@ -291,28 +305,29 @@ export class JugadorCampeonatosPage implements OnInit {
       });
 
       this.torneos = activeTorneos;
-      const clubsWithT = new Set(activeTorneos.map(t => Number(t.club_id)));
+      const clubsWithCompetition = new Set(activeTorneos.map(t => Number(t.club_id)).filter(id => id > 0));
       
-        this.mysql.getClubes().subscribe((res: any[]) => {
-          this.clubes = res
-            .filter(c => clubsWithT.has(Number(c.id)))
-            .map((c, index) => {
-              if (c.logo && c.logo.trim() !== '' && c.logo !== 'null') {
-                const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
-                c.logoUrl = c.logo.startsWith('http') ? c.logo : `${cleanApiUrl}/prd/${c.logo}`;
-              } else {
-                c.logoUrl = this.defaultClubImage;
-              }
-              return c;
-            });
+      this.mysql.getClubes().subscribe((res: any[]) => {
+        const allClubs = Array.isArray(res) ? res : [];
+        this.clubes = allClubs
+          .filter(c => clubsWithCompetition.size === 0 || clubsWithCompetition.has(Number(c.id)))
+          .map((c) => {
+            if (c.logo && c.logo.trim() !== '' && c.logo !== 'null') {
+              const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
+              c.logoUrl = c.logo.startsWith('http') ? c.logo : `${cleanApiUrl}/prd/${c.logo}`;
+            } else {
+              c.logoUrl = this.defaultClubImage;
+            }
+            return c;
+          });
 
-          this.regiones = [...new Set(this.clubes.map(c => c.region).filter(r => r))].sort();
-          this.allComunas = [...new Set(this.clubes.map(c => c.comuna).filter(c => c))].sort();
-          this.comunas = [...this.allComunas];
+        this.regiones = [...new Set(this.clubes.map(c => c.region).filter(r => r))].sort();
+        this.allComunas = [...new Set(this.clubes.map(c => c.comuna).filter(c => c))].sort();
+        this.comunas = [...this.allComunas];
 
-          this.sortClubes();
-          this.loading = false;
-        });
+        this.sortClubes();
+        this.loading = false;
+      });
     });
   }
 
@@ -374,27 +389,52 @@ export class JugadorCampeonatosPage implements OnInit {
     return filtered;
   }
 
+  get filteredCompeticiones() {
+    let list = this.torneos;
+
+    if (this.selectedCompetitionFilter === 'torneo') {
+      list = list.filter(t => t.table_source === 'v2');
+    } else if (this.selectedCompetitionFilter === 'liga') {
+      list = list.filter(t => t.table_source === 'liga');
+    } else if (this.selectedCompetitionFilter === 'americano') {
+      list = list.filter(t => t.table_source === 'americanos');
+    }
+
+    if (this.selectedRegion) {
+      list = list.filter(t => !t.club_region || t.club_region === this.selectedRegion);
+    }
+
+    if (this.selectedComuna) {
+      list = list.filter(t => !t.club_comuna || t.club_comuna === this.selectedComuna);
+    }
+
+    if (this.searchTerm && this.searchTerm.trim() !== '') {
+      const term = this.searchTerm.toLowerCase().trim();
+      list = list.filter(t => 
+        (t.nombre && t.nombre.toLowerCase().includes(term)) || 
+        (t.club_nombre && t.club_nombre.toLowerCase().includes(term))
+      );
+    }
+
+    return list;
+  }
+
   onSelectClub(club: any) {
     this.selectedClub = club;
     const today = new Date().toISOString().split('T')[0];
     const allForClub = this.torneos.filter(t => Number(t.club_id) === Number(club.id));
     
-    this.americanosList = allForClub.filter(t => 
-      t.table_source === 'americanos' && t.fecha >= today
-    );
-    
+    this.americanosList = allForClub.filter(t => t.table_source === 'americanos' && t.fecha >= today);
     this.torneosList = allForClub.filter(t => t.table_source === 'v2');
+    this.ligasClubList = allForClub.filter(t => t.table_source === 'liga');
   }
-
-  selectedCategoriaId: number = 0;
-  enrollmentStep: 'category' | 'partner' = 'partner';
-  availableCategorias: any[] = [];
 
   async openEnrollment(torneo: any) {
     this.selectedTournament = torneo;
     this.selectedPartner = null;
     this.partnerSearchTerm = '';
     this.partnerResults = [];
+    this.restriccionesLiga = [];
     
     if (torneo.table_source === 'v2') {
       const loader = await this.loadingCtrl.create({ message: 'Cargando...' });
@@ -413,6 +453,27 @@ export class JugadorCampeonatosPage implements OnInit {
       }, err => {
         loader.dismiss();
         this.presentAlert('Error', 'No se pudieron cargar las categorías');
+      });
+    } else if (torneo.table_source === 'liga') {
+      const loader = await this.loadingCtrl.create({ message: 'Cargando categorías de la liga...' });
+      await loader.present();
+      
+      this.mysql.getLigaDetalle(torneo.id).subscribe({
+        next: (res) => {
+          loader.dismiss();
+          const categorias = res?.liga?.categorias || [];
+          if (categorias.length === 0) {
+            this.presentAlert('Aviso', 'Esta liga aún no tiene categorías disponibles.');
+            return;
+          }
+          this.availableCategorias = categorias;
+          this.enrollmentStep = 'category';
+          this.showPartnerModal = true;
+        },
+        error: (err) => {
+          loader.dismiss();
+          this.presentAlert('Error', 'No se pudieron cargar las categorías de la liga');
+        }
       });
     } else {
       this.enrollmentStep = 'partner';
@@ -438,13 +499,17 @@ export class JugadorCampeonatosPage implements OnInit {
 
   selectPartner(partner: any) {
     this.selectedPartner = partner;
-    this.confirmEnrollment();
+    if (this.selectedTournament?.table_source === 'liga') {
+      this.enrollmentStep = 'restrictions';
+    } else {
+      this.confirmEnrollment();
+    }
   }
 
   async confirmEnrollment() {
     const alert = await this.alertCtrl.create({
       header: 'Confirmar Inscripción',
-      message: `¿Deseas inscribirte al torneo "${this.selectedTournament.nombre}" junto a ${this.selectedPartner.nombre}?`,
+      message: `¿Deseas inscribirte al ${this.selectedTournament.tipo || 'campeonato'} "${this.selectedTournament.nombre}" junto a ${this.selectedPartner.nombre}?`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
@@ -484,8 +549,11 @@ export class JugadorCampeonatosPage implements OnInit {
               position: 'top'
             }).then(t => t.present());
             this.showPartnerModal = false;
+            this.selectedClub = null;
+            this.selectedMiTorneo = null;
+            this.mainView = 'mis-torneos';
+            this.misTab = 'activos';
             this.loadMisTorneos();
-            this.goBack();
           } else {
             this.presentAlert('Atención', res.error || 'No se pudo completar la inscripción.');
           }
@@ -494,6 +562,43 @@ export class JugadorCampeonatosPage implements OnInit {
           loader.dismiss();
           console.error('Enrollment error:', err);
           const msg = err.error?.error || err.error?.mensaje || 'Error de conexión con el servidor.';
+          this.presentAlert('Error', msg);
+        }
+      });
+    } else if (this.selectedTournament.table_source === 'liga') {
+      const myName = localStorage.getItem('userNombre') || 'Jugador';
+      const dataLiga = {
+        categoria_id: this.selectedCategoriaId,
+        jugador1_id: myId,
+        jugador2_id: Number(this.selectedPartner.id),
+        nombre_pareja: `${myName} / ${this.selectedPartner.nombre}`,
+        restricciones_horarias: this.restriccionesLiga
+      };
+
+      this.mysql.enrollInLiga(dataLiga).subscribe({
+        next: (res) => {
+          loader.dismiss();
+          if (res.success) {
+            this.toastCtrl.create({
+              message: res.mensaje || '¡Inscripción a la Liga realizada con éxito!',
+              duration: 3000,
+              color: 'success',
+              position: 'top'
+            }).then(t => t.present());
+            this.showPartnerModal = false;
+            this.selectedClub = null;
+            this.selectedMiTorneo = null;
+            this.mainView = 'mis-torneos';
+            this.misTab = 'activos';
+            this.loadMisTorneos();
+          } else {
+            this.presentAlert('Atención', res.error || 'No se pudo completar la inscripción.');
+          }
+        },
+        error: (err) => {
+          loader.dismiss();
+          console.error('League enrollment error:', err);
+          const msg = err.error?.error || 'Error de conexión con el servidor.';
           this.presentAlert('Error', msg);
         }
       });
@@ -515,8 +620,11 @@ export class JugadorCampeonatosPage implements OnInit {
               position: 'top'
             }).then(t => t.present());
             this.showPartnerModal = false;
+            this.selectedClub = null;
+            this.selectedMiTorneo = null;
+            this.mainView = 'mis-torneos';
+            this.misTab = 'activos';
             this.loadMisTorneos();
-            this.goBack();
           } else {
             this.presentAlert('Atención', res.error || 'No se pudo completar la inscripción.');
           }

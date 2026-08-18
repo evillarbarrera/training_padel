@@ -267,6 +267,14 @@ export class MysqlService {
     return this.http.post<any>(`${this.api}/torneos/join_torneo_v2.php`, data, { headers: this.getHeaders() });
   }
 
+  enrollInLiga(data: any): Observable<any> {
+    return this.http.post<any>(`${this.api}/ligas/inscribir_pareja.php`, data, { headers: this.getHeaders() });
+  }
+
+  getLigaDetalle(ligaId: number): Observable<any> {
+    return this.http.get<any>(`${this.api}/ligas/obtener_liga.php?id=${ligaId}`, { headers: this.getHeaders() });
+  }
+
   getTorneoCategorias(torneo_id: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.api}/torneos/get_categorias.php?torneo_id=${torneo_id}`, { headers: this.getHeaders() });
   }

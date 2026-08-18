@@ -73,6 +73,7 @@ export class ClubesReservarPage implements OnInit {
 
   setDuration(dur: number) {
     this.selectedDuration = dur;
+    this.autoSelectFirstSlot();
   }
 
   defaultClubImage: string = 'assets/fondo-cancha.png';
@@ -450,17 +451,19 @@ export class ClubesReservarPage implements OnInit {
   }
 
   private autoSelectFirstSlot() {
-    if (this.horarios.length > 0) {
+    const slots = this.filteredHorarios;
+    if (slots.length > 0) {
       // Keep previous slot if it still exists in new data, or select first available
       const currentHora = this.selectedSlot?.hora;
-      const sameSlot = this.horarios.find(h => h.hora === currentHora);
+      const sameSlot = slots.find(h => h.hora === currentHora);
       
       if (sameSlot) {
         this.selectedSlot = sameSlot;
       } else {
-        const firstAvailable = this.horarios.find(h => this.hasAvailableInSlot(h));
-        this.selectedSlot = firstAvailable || this.horarios[0];
+        this.selectedSlot = slots[0];
       }
+    } else {
+      this.selectedSlot = null;
     }
   }
 
@@ -494,6 +497,13 @@ export class ClubesReservarPage implements OnInit {
     }
   }
 
+  get isEntrenador(): boolean {
+    const role = (localStorage.getItem('userRole') || '').toLowerCase();
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const userRol = (currentUser?.rol || '').toLowerCase();
+    return role.includes('entrenador') || userRol.includes('entrenador') || role.includes('coach') || userRol.includes('coach');
+  }
+
   async reservar(slot: any, cancha: any) {
     if (!cancha.disponible) return;
     
@@ -503,19 +513,55 @@ export class ClubesReservarPage implements OnInit {
     const precioTotalFormatted = '$' + Math.round(precioCalculado).toLocaleString('es-CL');
     const precioJugadorFormatted = '$' + precioPorJugador.toLocaleString('es-CL');
 
-    const alert = await this.alertCtrl.create({
-      header: 'Confirmar Reserva',
-      message: `¿Deseas reservar ${cancha.cancha_nombre} a las ${slot.hora.slice(0,5)}?\n\n• Precio Total: ${precioTotalFormatted}\n• Por jugador (x4): ${precioJugadorFormatted}\n• Tarifa: ${tipoHorario}`,
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Confirmar',
-          handler: () => this.confirmarReserva(slot, cancha)
-        }
-      ],
-      mode: 'ios'
-    });
-    await alert.present();
+    if (this.isEntrenador) {
+      const alert = await this.alertCtrl.create({
+        header: 'Tipo de Reserva',
+        subHeader: `${cancha.cancha_nombre} (${slot.hora.slice(0,5)})`,
+        message: `Como entrenador, indica el propósito de tu reserva:\n\n• Precio Total: ${precioTotalFormatted}\n• Tarifa: ${tipoHorario}`,
+        inputs: [
+          {
+            name: 'tipoReserva',
+            type: 'radio',
+            label: '🎓 Entrenamiento',
+            value: 'Entrenamiento',
+            checked: true
+          },
+          {
+            name: 'tipoReserva',
+            type: 'radio',
+            label: '🎾 Partido Regular',
+            value: 'Confirmada',
+            checked: false
+          }
+        ],
+        buttons: [
+          { text: 'Cancelar', role: 'cancel' },
+          {
+            text: 'Confirmar',
+            handler: (selectedTipo) => {
+              const estado = selectedTipo || 'Entrenamiento';
+              this.confirmarReserva(slot, cancha, estado);
+            }
+          }
+        ],
+        mode: 'ios'
+      });
+      await alert.present();
+    } else {
+      const alert = await this.alertCtrl.create({
+        header: 'Confirmar Reserva',
+        message: `¿Deseas reservar ${cancha.cancha_nombre} a las ${slot.hora.slice(0,5)}?\n\n• Precio Total: ${precioTotalFormatted}\n• Por jugador (x4): ${precioJugadorFormatted}\n• Tarifa: ${tipoHorario}`,
+        buttons: [
+          { text: 'Cancelar', role: 'cancel' },
+          {
+            text: 'Confirmar',
+            handler: () => this.confirmarReserva(slot, cancha, 'Confirmada')
+          }
+        ],
+        mode: 'ios'
+      });
+      await alert.present();
+    }
   }
 
   calcularHoraFin(horaInicio: string, duracionMinutos: number): string {
@@ -526,7 +572,7 @@ export class ClubesReservarPage implements OnInit {
     return `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}:00`;
   }
 
-  private async confirmarReserva(slot: any, cancha: any) {
+  private async confirmarReserva(slot: any, cancha: any, estado: string = 'Confirmada') {
     const userId = Number(localStorage.getItem('userId'));
     const horaFin = this.calcularHoraFin(slot.hora, this.selectedDuration);
     const precioCalculado = this.getCourtPrice(cancha);
@@ -540,7 +586,7 @@ export class ClubesReservarPage implements OnInit {
       hora_fin: horaFin,
       duracion: this.selectedDuration, 
       precio: precioCalculado,
-      estado: 'Confirmada'
+      estado: estado
     };
 
     const loader = await this.loadingCtrl.create({
@@ -562,7 +608,8 @@ export class ClubesReservarPage implements OnInit {
           hora: `${this.formatTime(slot.hora)}`,
           precio: precioCalculado,
           precioJugador: Math.round(precioCalculado / 4),
-          tipoHorario: cancha.es_horario_alto ? 'Horario Alto' : 'Horario Bajo'
+          tipoHorario: cancha.es_horario_alto ? 'Horario Alto' : 'Horario Bajo',
+          estado: estado
         };
 
         // 2. SHOW SUCCESS MODAL
@@ -612,5 +659,10 @@ export class ClubesReservarPage implements OnInit {
   getCourtsWithPriceForSlot(slot: any): any[] {
     if (!slot || !slot.canchas) return [];
     return slot.canchas.filter((c: any) => this.getCourtPrice(c) > 0);
+  }
+
+  get filteredHorarios(): any[] {
+    if (!this.horarios) return [];
+    return this.horarios.filter(slot => this.hasAvailableInSlot(slot));
   }
 }

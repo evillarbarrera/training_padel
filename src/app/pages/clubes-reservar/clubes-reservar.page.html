@@ -126,7 +126,7 @@
         <!-- CIRCULAR HOURS (SMALLER) -->
         <div class="time-grid-v6" *ngIf="!loading">
             <div class="time-item-v6" 
-                 *ngFor="let slot of horarios"
+                 *ngFor="let slot of filteredHorarios"
                  [class.active]="selectedSlot === slot"
                  (click)="onSelectSlot(slot)">
                 {{ formatTime(slot.hora) }}
@@ -186,6 +186,9 @@
             <span class="s-val">{{ lastReserva.club }}</span>
             <span class="s-label">Pista y Horario</span>
             <span class="s-val">{{ lastReserva.pista }} • {{ lastReserva.hora }}</span>
+            <span class="s-label" *ngIf="lastReserva.estado">Tipo de Reserva</span>
+            <span class="s-val" *ngIf="lastReserva.estado === 'Entrenamiento'">🎓 Entrenamiento</span>
+            <span class="s-val" *ngIf="lastReserva.estado && lastReserva.estado !== 'Entrenamiento'">🎾 Partido Regular</span>
             <span class="s-label">Precio</span>
             <span class="s-val">Total: ${{ lastReserva.precio | number:'1.0-0' }} (${{ lastReserva.precioJugador | number:'1.0-0' }} / jugador)</span>
         </div>

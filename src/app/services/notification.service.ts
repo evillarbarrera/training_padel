@@ -336,6 +336,9 @@ export class NotificationService {
    */
   async updateTokenForUser(): Promise<void> {
     const userId = Number(localStorage.getItem('userId'));
+    if (userId) {
+      this.userId = userId;
+    }
     const token = localStorage.getItem('fcm_token');
 
     if (userId && token) {
@@ -343,6 +346,9 @@ export class NotificationService {
         next: () => console.log('Token vinculado al usuario correctamente'),
         error: (err) => console.error('Error vinculando token:', err)
       });
+    } else {
+      // Si el token aún no está en localStorage (ej. recién reinstalado), re-inicializar messaging
+      this.initializeMessaging();
     }
   }
 }
