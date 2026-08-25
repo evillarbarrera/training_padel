@@ -368,11 +368,11 @@ export class PerfilPage implements OnInit {
   }
 
   openPrivacy() {
-    window.open('https://api.padelmanager.cl/privacy.html', '_system');
+    window.open('https://api.padelmanager.cl/prd/privacy.html', '_system');
   }
 
   openTerms() {
-    window.open('https://api.padelmanager.cl/terms.html', '_system');
+    window.open('https://api.padelmanager.cl/prd/terms.html', '_system');
   }
 
   getProfileImage(url: any): string {
