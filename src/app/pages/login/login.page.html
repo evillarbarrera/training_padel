@@ -60,6 +60,12 @@
           </ion-button>
         </div>
 
+        <div style="margin-top: 12px; text-align: center;">
+          <ion-button expand="block" fill="clear" color="secondary" (click)="loginDemo()" [disabled]="isLoading" style="--color: #0284c7; font-weight: 700; font-size: 0.9rem;">
+            ⚡ Acceso de Prueba / Modo Demo
+          </ion-button>
+        </div>
+
         <!-- Error Message Display -->
         <div *ngIf="error" class="error-msg-container">
           <ion-icon name="alert-circle-outline"></ion-icon>

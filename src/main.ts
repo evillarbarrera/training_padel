@@ -6,7 +6,8 @@ import { provideRouter } from '@angular/router';
 import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { authAndSessionInterceptor } from './app/interceptors/auth.interceptor';
 
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
@@ -41,7 +42,7 @@ bootstrapApplication(AppComponent, {
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
 
-    provideHttpClient(),   // 🔥 ESTA LÍNEA FALTABA
+    provideHttpClient(withInterceptors([authAndSessionInterceptor])),
      // 🔥 ESTO ES LO QUE DEBES AGREGAR
     { provide: LOCALE_ID, useValue: 'es-CL' },
 

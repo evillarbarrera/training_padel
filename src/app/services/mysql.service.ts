@@ -249,6 +249,12 @@ export class MysqlService {
     return this.http.get<any[]>(url, { headers: this.getHeaders() });
   }
 
+  getLigas(clubId?: number): Observable<any> {
+    let url = `${this.api}/ligas/obtener_liga.php`;
+    if (clubId) url += `?club_id=${clubId}`;
+    return this.http.get<any>(url, { headers: this.getHeaders() });
+  }
+
   saveMatchResult(data: any): Observable<any> {
     return this.http.post<any>(`${this.api}/clubes/save_match_result.php`, data, { headers: this.getHeaders() });
   }
@@ -289,6 +295,10 @@ export class MysqlService {
 
   getMisTorneosCompleto(userId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.api}/torneos/get_mis_torneos_completo.php?user_id=${userId}`, { headers: this.getHeaders() });
+  }
+
+  getCompeticionDetalle(id: number, tipo: string): Observable<any> {
+    return this.http.get<any>(`${this.api}/torneos/get_competicion_detalle.php?id=${id}&tipo=${tipo}`, { headers: this.getHeaders() });
   }
 
   getWallet(userId: number): Observable<any> {

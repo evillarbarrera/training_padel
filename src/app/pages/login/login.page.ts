@@ -67,6 +67,23 @@ export class LoginPage implements OnInit {
     return false;
   }
 
+  loginDemo() {
+    if (this.isLoading) return;
+    this.isLoading = true;
+    this.error = '';
+
+    // Credenciales demo estables para revisores de Google Play
+    localStorage.setItem('token', 'demo_playstore_review');
+    localStorage.setItem('userId', '1');
+    localStorage.setItem('userRole', 'jugador');
+
+    setTimeout(() => {
+      this.isLoading = false;
+      this.notificationService.updateTokenForUser();
+      this.router.navigate(['/jugador-home'], { replaceUrl: true });
+    }, 400);
+  }
+
   // Traditional email/password login
   async login() {
     if (!this.usuario || !this.password) {
