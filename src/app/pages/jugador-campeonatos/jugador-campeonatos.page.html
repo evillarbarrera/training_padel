@@ -72,8 +72,8 @@
             <div class="mi-torneo-card animate-up" *ngFor="let t of misTorneosActivos; let i = index" 
                  [style.animation-delay]="i * 0.08 + 's'" (click)="openMiTorneo(t)">
               <div class="mt-left">
-                <div class="mt-type-badge" [class.americano]="t.tipo_torneo === 'americano'" [class.liga]="t.tipo_torneo === 'liga'" [class.oficial]="t.tipo_torneo === 'oficial'">
-                  {{ t.tipo_torneo === 'americano' ? 'AM' : (t.tipo_torneo === 'liga' ? 'LIGA' : 'OF') }}
+                <div class="mt-type-badge" [class.americano]="t.tipo_torneo === 'americano' || t.tipo_torneo === 'Americano' || t.tipo === 'Americano'" [class.liga]="t.tipo_torneo === 'liga' || t.tipo_torneo === 'Liga' || t.tipo === 'Liga'" [class.oficial]="t.tipo_torneo === 'oficial'">
+                  {{ (t.tipo_torneo === 'americano' || t.tipo_torneo === 'Americano' || t.tipo === 'Americano') ? 'AM' : ((t.tipo_torneo === 'liga' || t.tipo_torneo === 'Liga' || t.tipo === 'Liga') ? 'LIGA' : 'OF') }}
                 </div>
               </div>
               <div class="mt-center">
@@ -104,8 +104,8 @@
             <div class="mi-torneo-card animate-up historial" *ngFor="let t of paginatedHistorial; let i = index" 
                  [style.animation-delay]="i * 0.08 + 's'" (click)="openMiTorneo(t)">
               <div class="mt-left">
-                <div class="mt-type-badge" [class.americano]="t.tipo_torneo === 'americano'" [class.liga]="t.tipo_torneo === 'liga'" [class.oficial]="t.tipo_torneo === 'oficial'">
-                  {{ t.tipo_torneo === 'americano' ? 'AM' : (t.tipo_torneo === 'liga' ? 'LIGA' : 'OF') }}
+                <div class="mt-type-badge" [class.americano]="t.tipo_torneo === 'americano' || t.tipo_torneo === 'Americano' || t.tipo === 'Americano'" [class.liga]="t.tipo_torneo === 'liga' || t.tipo_torneo === 'Liga' || t.tipo === 'Liga'" [class.oficial]="t.tipo_torneo === 'oficial'">
+                  {{ (t.tipo_torneo === 'americano' || t.tipo_torneo === 'Americano' || t.tipo === 'Americano') ? 'AM' : ((t.tipo_torneo === 'liga' || t.tipo_torneo === 'Liga' || t.tipo === 'Liga') ? 'LIGA' : 'OF') }}
                 </div>
               </div>
               <div class="mt-center">
@@ -158,6 +158,14 @@
             </select>
             <ion-icon name="chevron-down-outline" class="arrow-down"></ion-icon>
           </div>
+        </div>
+
+
+        <div class="nike-tabs-v6" style="margin-bottom: 15px; margin-top: 10px;">
+          <div class="tab-item" [class.active]="selectedCompetitionFilter === 'todos'" (click)="selectedCompetitionFilter = 'todos'">TODOS</div>
+          <div class="tab-item" [class.active]="selectedCompetitionFilter === 'torneo'" (click)="selectedCompetitionFilter = 'torneo'">TORNEOS</div>
+          <div class="tab-item" [class.active]="selectedCompetitionFilter === 'americano'" (click)="selectedCompetitionFilter = 'americano'">AMERICANOS</div>
+          <div class="tab-item" [class.active]="selectedCompetitionFilter === 'liga'" (click)="selectedCompetitionFilter = 'liga'">LIGAS</div>
         </div>
 
         <div class="search-bar-v6">
@@ -222,8 +230,8 @@
       <div class="mtd-overlay"></div>
       <div class="mtd-content">
         <div class="mtd-info">
-          <span class="mtd-badge" [class.americano]="selectedCompeticionDetail.tipo === 'americano'" [class.liga]="selectedCompeticionDetail.tipo === 'liga'">
-            {{ selectedCompeticionDetail.tipo === 'americano' ? 'AMERICANO' : (selectedCompeticionDetail.tipo === 'liga' ? 'LIGA DE PÁDEL' : 'TORNEO OFICIAL') }}
+          <span class="mtd-badge" [class.americano]="selectedCompeticionDetail.tipo === 'americano' || selectedCompeticionDetail.tipo === 'Americano'" [class.liga]="selectedCompeticionDetail.tipo === 'liga' || selectedCompeticionDetail.tipo === 'Liga'">
+            {{ (selectedCompeticionDetail.tipo === 'americano' || selectedCompeticionDetail.tipo === 'Americano') ? 'AMERICANO' : ((selectedCompeticionDetail.tipo === 'liga' || selectedCompeticionDetail.tipo === 'Liga') ? 'LIGA DE PÁDEL' : 'TORNEO OFICIAL') }}
           </span>
           <h1>{{ selectedCompeticionDetail.nombre }}</h1>
           <p>📍 {{ selectedCompeticionDetail.club_nombre }} • 📅 {{ selectedCompeticionDetail.fecha_display }}</p>

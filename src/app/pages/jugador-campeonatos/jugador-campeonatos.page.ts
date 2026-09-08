@@ -160,7 +160,7 @@ export class JugadorCampeonatosPage implements OnInit {
   selectedJornadaIdx: number = 0;
 
   async openCompeticionDetail(comp: any) {
-    const tipo = comp.table_source || comp.tipo_torneo || comp.tipo || 'v2';
+    const tipo = (comp.table_source || comp.tipo_torneo || comp.tipo || 'v2').toLowerCase();
     const id = comp.id;
 
     const loader = await this.loadingCtrl.create({ message: 'Cargando información...' });
