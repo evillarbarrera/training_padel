@@ -163,6 +163,8 @@ export class JugadorCampeonatosPage implements OnInit {
     const tipo = (comp.table_source || comp.tipo_torneo || comp.tipo || 'v2').toLowerCase();
     const id = comp.id;
 
+    this.selectedMiTorneo = comp;
+
     const loader = await this.loadingCtrl.create({ message: 'Cargando información...' });
     await loader.present();
     this.loadingCompDetail = true;
@@ -174,9 +176,27 @@ export class JugadorCampeonatosPage implements OnInit {
         if (res.success && res.competicion) {
           this.selectedCompeticionDetail = res.competicion;
           this.compDetailTab = 'inscritos';
-          this.selectedCategoryIdx = 0;
-          this.selectedJornadaIdx = 0;
           this.soloMisPartidosFixture = true;
+
+          let targetIdx = 0;
+          const originCatId = Number(comp.categoria_id || comp.id_categoria);
+          const originCatName = (comp.categoria_nombre || comp.categoria || '').toLowerCase().trim();
+
+          if (res.competicion.categorias && res.competicion.categorias.length > 0) {
+            if (originCatId) {
+              const foundIdx = res.competicion.categorias.findIndex(
+                (c: any) => Number(c.id) === originCatId || Number(c.categoria_id) === originCatId
+              );
+              if (foundIdx !== -1) targetIdx = foundIdx;
+            } else if (originCatName) {
+              const foundIdx = res.competicion.categorias.findIndex(
+                (c: any) => (c.nombre || '').toLowerCase().trim() === originCatName
+              );
+              if (foundIdx !== -1) targetIdx = foundIdx;
+            }
+          }
+          this.selectedCategoryIdx = targetIdx;
+          this.selectedJornadaIdx = 0;
         } else {
           this.presentAlert('Aviso', res.error || 'No se pudo obtener el detalle de la competición.');
         }
@@ -191,16 +211,7 @@ export class JugadorCampeonatosPage implements OnInit {
 
   get displayCategorias(): any[] {
     if (!this.selectedCompeticionDetail?.categorias) return [];
-    const allCats = this.selectedCompeticionDetail.categorias;
-
-    if (this.isEnrolledInSelectedComp) {
-      const enrolledCat = this.getEnrolledCategoryObj(this.selectedCompeticionDetail);
-      if (enrolledCat) {
-        return [enrolledCat];
-      }
-    }
-
-    return allCats;
+    return this.selectedCompeticionDetail.categorias;
   }
 
   getEnrolledCategoryObj(comp: any): any {
@@ -225,22 +236,7 @@ export class JugadorCampeonatosPage implements OnInit {
     const targetParejaName = (enrolledComp?.nombre_pareja || comp.nombre_pareja || '').toLowerCase().trim();
     const uId = Number(localStorage.getItem('userId')) || this.userId;
 
-    // Pass 1: Check matches in category jornadas/partidos
-    for (const cat of comp.categorias) {
-      const partidos: any[] = [...(cat.partidos || [])];
-      if (cat.jornadas && Array.isArray(cat.jornadas)) {
-        cat.jornadas.forEach((j: any) => {
-          if (j.partidos && Array.isArray(j.partidos)) partidos.push(...j.partidos);
-        });
-      }
-      for (const m of partidos) {
-        if (this.isUserInMatch(m, enrolledComp || comp)) {
-          return cat;
-        }
-      }
-    }
-
-    // Pass 2: Check category ID or name
+    // Pass 1: Check category ID or name first
     for (const cat of comp.categorias) {
       if (targetCatId && (Number(cat.id) === targetCatId || Number(cat.categoria_id) === targetCatId)) {
         return cat;
@@ -250,17 +246,32 @@ export class JugadorCampeonatosPage implements OnInit {
       }
     }
 
-    // Pass 3: Check parejas/inscritos/tabla_posiciones list in category
+    // Pass 2: Check parejas/inscritos/tabla_posiciones list in category
     for (const cat of comp.categorias) {
       const list = [...(cat.parejas || []), ...(cat.inscritos || []), ...(cat.tabla_posiciones || [])];
       for (const p of list) {
         if (targetParejaId && (Number(p.id) === targetParejaId || Number(p.pareja_id) === targetParejaId)) {
           return cat;
         }
+        if (targetParejaName && p.nombre_pareja && p.nombre_pareja.toLowerCase().trim() === targetParejaName) {
+          return cat;
+        }
         if (uId && (Number(p.jugador1_id) === uId || Number(p.jugador2_id) === uId || Number(p.p1_j1_id) === uId || Number(p.p1_j2_id) === uId || Number(p.p2_j1_id) === uId || Number(p.p2_j2_id) === uId || Number(p.usuario_id) === uId)) {
           return cat;
         }
-        if (targetParejaName && p.nombre_pareja && p.nombre_pareja.toLowerCase().trim() === targetParejaName) {
+      }
+    }
+
+    // Pass 3: Check matches in category jornadas/partidos
+    for (const cat of comp.categorias) {
+      const partidos: any[] = [...(cat.partidos || [])];
+      if (cat.jornadas && Array.isArray(cat.jornadas)) {
+        cat.jornadas.forEach((j: any) => {
+          if (j.partidos && Array.isArray(j.partidos)) partidos.push(...j.partidos);
+        });
+      }
+      for (const m of partidos) {
+        if (this.isUserInMatch(m, enrolledComp || comp)) {
           return cat;
         }
       }
@@ -390,7 +401,28 @@ export class JugadorCampeonatosPage implements OnInit {
     });
   }
 
+  getEnrolledPartnerName(): string {
+    const uId = Number(localStorage.getItem('userId')) || this.userId;
+    if (this.currentDetailCategory?.parejas || this.currentDetailCategory?.inscritos) {
+      const list = this.currentDetailCategory.parejas || this.currentDetailCategory.inscritos || [];
+      const found = list.find((p: any) => 
+        Number(p.jugador1_id) === uId || Number(p.jugador2_id) === uId ||
+        Number(p.p1_j1_id) === uId || Number(p.p1_j2_id) === uId ||
+        Number(p.p2_j1_id) === uId || Number(p.p2_j2_id) === uId ||
+        Number(p.usuario_id) === uId
+      );
+      if (found?.nombre_pareja) return found.nombre_pareja;
+    }
+    if (this.selectedMiTorneo?.nombre_pareja) {
+      return this.selectedMiTorneo.nombre_pareja;
+    }
+    return '';
+  }
+
   getEnrolledCategoryName(): string {
+    if (this.currentDetailCategory?.nombre) {
+      return this.currentDetailCategory.nombre;
+    }
     if (this.selectedMiTorneo?.categoria_nombre) {
       return this.selectedMiTorneo.categoria_nombre;
     }
@@ -415,6 +447,7 @@ export class JugadorCampeonatosPage implements OnInit {
   goBack() {
     if (this.selectedCompeticionDetail) {
       this.selectedCompeticionDetail = null;
+      this.selectedMiTorneo = null;
     } else if (this.selectedMiTorneo) {
       this.selectedMiTorneo = null;
     } else if (this.selectedClub) {

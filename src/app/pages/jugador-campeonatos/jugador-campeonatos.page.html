@@ -4,7 +4,7 @@
   </ion-refresher>
 
   <!-- TOP-LEVEL TABS: MIS TORNEOS vs BUSCAR -->
-  <div *ngIf="!selectedClub && !selectedMiTorneo && !selectedCompeticionDetail" class="animate-up">
+  <div *ngIf="!selectedClub && !selectedCompeticionDetail" class="animate-up">
     <!-- Header -->
     <div class="header-v2-discovery" [style.background-image]="'url(' + heroBackground + ')'">
       <div class="h-overlay"></div>
@@ -161,11 +161,19 @@
         </div>
 
 
-        <div class="nike-tabs-v6" style="margin-bottom: 15px; margin-top: 10px;">
-          <div class="tab-item" [class.active]="selectedCompetitionFilter === 'todos'" (click)="selectedCompetitionFilter = 'todos'">TODOS</div>
-          <div class="tab-item" [class.active]="selectedCompetitionFilter === 'torneo'" (click)="selectedCompetitionFilter = 'torneo'">TORNEOS</div>
-          <div class="tab-item" [class.active]="selectedCompetitionFilter === 'americano'" (click)="selectedCompetitionFilter = 'americano'">AMERICANOS</div>
-          <div class="tab-item" [class.active]="selectedCompetitionFilter === 'liga'" (click)="selectedCompetitionFilter = 'liga'">LIGAS</div>
+        <div class="comp-filter-grid">
+          <div class="comp-chip" [class.active]="selectedCompetitionFilter === 'todos'" (click)="selectedCompetitionFilter = 'todos'">
+            <span>⚡</span> Todos
+          </div>
+          <div class="comp-chip" [class.active]="selectedCompetitionFilter === 'torneo'" (click)="selectedCompetitionFilter = 'torneo'">
+            <span>🏆</span> Torneos
+          </div>
+          <div class="comp-chip" [class.active]="selectedCompetitionFilter === 'americano'" (click)="selectedCompetitionFilter = 'americano'">
+            <span>🎾</span> Americ.
+          </div>
+          <div class="comp-chip" [class.active]="selectedCompetitionFilter === 'liga'" (click)="selectedCompetitionFilter = 'liga'">
+            <span>🏅</span> Ligas
+          </div>
         </div>
 
         <div class="search-bar-v6">
@@ -230,17 +238,22 @@
       <div class="mtd-overlay"></div>
       <div class="mtd-content">
         <div class="mtd-info">
-          <span class="mtd-badge" [class.americano]="selectedCompeticionDetail.tipo === 'americano' || selectedCompeticionDetail.tipo === 'Americano'" [class.liga]="selectedCompeticionDetail.tipo === 'liga' || selectedCompeticionDetail.tipo === 'Liga'">
-            {{ (selectedCompeticionDetail.tipo === 'americano' || selectedCompeticionDetail.tipo === 'Americano') ? 'AMERICANO' : ((selectedCompeticionDetail.tipo === 'liga' || selectedCompeticionDetail.tipo === 'Liga') ? 'LIGA DE PÁDEL' : 'TORNEO OFICIAL') }}
-          </span>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <span class="mtd-badge" [class.americano]="selectedCompeticionDetail.tipo === 'americano' || selectedCompeticionDetail.tipo === 'Americano'" [class.liga]="selectedCompeticionDetail.tipo === 'liga' || selectedCompeticionDetail.tipo === 'Liga'">
+              {{ (selectedCompeticionDetail.tipo === 'americano' || selectedCompeticionDetail.tipo === 'Americano') ? 'AMERICANO' : ((selectedCompeticionDetail.tipo === 'liga' || selectedCompeticionDetail.tipo === 'Liga') ? 'LIGA DE PÁDEL' : 'TORNEO OFICIAL') }}
+            </span>
+            <button (click)="goBack()" style="background: rgba(255,255,255,0.15); border: none; color: white; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              <ion-icon name="close-outline" style="font-size: 22px;"></ion-icon>
+            </button>
+          </div>
           <h1>{{ selectedCompeticionDetail.nombre }}</h1>
           <p>📍 {{ selectedCompeticionDetail.club_nombre }} • 📅 {{ selectedCompeticionDetail.fecha_display }}</p>
-          <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; align-items: center;" *ngIf="isEnrolledInSelectedComp">
-            <span class="mtd-pareja" *ngIf="selectedMiTorneo?.nombre_pareja" style="color: #ccff00; font-weight: 800; font-size: 13px; background: rgba(204,255,0,0.12); padding: 5px 12px; border-radius: 10px; border: 1px solid rgba(204,255,0,0.3); display: inline-flex; align-items: center; gap: 6px;">
-              🎾 Tu Pareja: {{ selectedMiTorneo.nombre_pareja }}
+          <div class="mtd-badges-row" *ngIf="isEnrolledInSelectedComp">
+            <span class="mtd-tag pareja" *ngIf="getEnrolledPartnerName()">
+              🎾 Tu Pareja: {{ getEnrolledPartnerName() }}
             </span>
-            <span class="mtd-cat-badge" *ngIf="getEnrolledCategoryName()" style="color: #ffffff; font-weight: 800; font-size: 13px; background: rgba(99,102,241,0.25); padding: 5px 12px; border-radius: 10px; border: 1px solid rgba(99,102,241,0.4); display: inline-flex; align-items: center; gap: 6px;">
-              🏷️ Categoría: {{ getEnrolledCategoryName() }}
+            <span class="mtd-tag categoria" *ngIf="getEnrolledCategoryName()">
+              🏷️ {{ getEnrolledCategoryName() }}
             </span>
           </div>
         </div>
@@ -249,135 +262,97 @@
 
     <div class="mi-torneo-detail-body">
 
-      <!-- PRÓXIMO PARTIDO DEL JUGADOR INSCRITO -->
-      <div class="section-block" *ngIf="selectedMiTorneo && miTorneoProximo" style="margin-bottom: 20px;">
-        <div class="section-label" style="font-size: 13px; font-weight: 800; color: #6366f1; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
-          <ion-icon name="time-outline" style="font-size: 16px; color: #6366f1;"></ion-icon>
-          MI PRÓXIMO PARTIDO
-        </div>
-        <div class="next-match-card">
-          <div class="nm-header-badges">
-            <span class="nm-badge-pill category" *ngIf="miTorneoProximo.categoria_nombre">
-              🏷️ {{ miTorneoProximo.categoria_nombre }}
-            </span>
-            <span class="nm-badge-pill" *ngIf="miTorneoProximo.jornada_nombre || miTorneoProximo.grupo_nombre || miTorneoProximo.ronda">
-              📌 {{ miTorneoProximo.jornada_nombre || miTorneoProximo.grupo_nombre || ('Ronda ' + miTorneoProximo.ronda) }}
-            </span>
-            <span class="nm-badge-pill status">
-              ⚡ {{ miTorneoProximo.estado || 'Programado' }}
-            </span>
-          </div>
-
-          <div class="nm-teams">
-            <div class="nm-team">
-              <span class="nm-name">{{ getMatchTeamNames(miTorneoProximo).team1 }}</span>
-            </div>
-            <div class="nm-vs">VS</div>
-            <div class="nm-team">
-              <span class="nm-name">{{ getMatchTeamNames(miTorneoProximo).team2 }}</span>
-            </div>
-          </div>
-
-          <div class="nm-meta-grid">
-            <div class="meta-box">
-              <span class="meta-label">
-                <ion-icon name="calendar-outline"></ion-icon>
-                FECHA
-              </span>
-              <span class="meta-value">{{ getMatchFechaDisplay(miTorneoProximo) }}</span>
-            </div>
-            <div class="meta-box">
-              <span class="meta-label">
-                <ion-icon name="time-outline"></ion-icon>
-                HORA
-              </span>
-              <span class="meta-value">{{ getMatchHoraDisplay(miTorneoProximo) }}</span>
-            </div>
-            <div class="meta-box">
-              <span class="meta-label">
-                <ion-icon name="location-outline"></ion-icon>
-                CANCHA
-              </span>
-              <span class="meta-value">{{ getMatchCanchaDisplay(miTorneoProximo) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TARJETA DE INFORMACIÓN BÁSICA DEL TORNEO -->
-      <div class="comp-info-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 18px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
-        <h3 style="margin: 0 0 14px 0; font-size: 13px; font-weight: 900; color: #0f172a; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
-          <ion-icon name="trophy-outline" style="font-size: 18px; color: #6366f1;"></ion-icon>
-          INFORMACIÓN BÁSICA
-        </h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; font-size: 13px;">
-          <div style="background: #f8fafc; padding: 10px 12px; border-radius: 12px; border: 1px solid #f1f5f9;">
-            <span style="color: #64748b; font-size: 10px; font-weight: 800; display: block; margin-bottom: 2px;">📍 CLUB</span>
-            <strong style="color: #0f172a; font-size: 13px; display: block;">{{ selectedCompeticionDetail.club_nombre }}</strong>
-            <span *ngIf="selectedCompeticionDetail.club_direccion" style="display: block; color: #64748b; font-size: 11px; margin-top: 2px;">{{ selectedCompeticionDetail.club_direccion }}</span>
-          </div>
-
-          <div style="background: #f8fafc; padding: 10px 12px; border-radius: 12px; border: 1px solid #f1f5f9;">
-            <span style="color: #64748b; font-size: 10px; font-weight: 800; display: block; margin-bottom: 2px;">📅 FECHAS</span>
-            <strong style="color: #0f172a; font-size: 13px; display: block;">{{ selectedCompeticionDetail.fecha_display }}</strong>
-            <span *ngIf="selectedCompeticionDetail.hora_inicio" style="display: block; color: #2563eb; font-size: 11px; font-weight: 700; margin-top: 2px;">⏰ {{ selectedCompeticionDetail.hora_inicio.slice(0,5) }} HRS</span>
-          </div>
-
-          <div style="background: #f8fafc; padding: 10px 12px; border-radius: 12px; border: 1px solid #f1f5f9;" *ngIf="formatPrecio(selectedCompeticionDetail?.precio)">
-            <span style="color: #64748b; font-size: 10px; font-weight: 800; display: block; margin-bottom: 2px;">💵 PRECIO INSCRIPCIÓN</span>
-            <strong style="color: #16a34a; font-size: 14px; display: block;">{{ formatPrecio(selectedCompeticionDetail.precio) }}</strong>
-          </div>
-
-          <div style="background: #f8fafc; padding: 10px 12px; border-radius: 12px; border: 1px solid #f1f5f9;">
-            <span style="color: #64748b; font-size: 10px; font-weight: 800; display: block; margin-bottom: 2px;">🟢 ESTADO</span>
-            <strong style="color: #15803d; font-size: 13px; display: block;">{{ selectedCompeticionDetail.estado || 'Abierto' }}</strong>
-          </div>
-
-          <div style="background: rgba(99,102,241,0.06); padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(99,102,241,0.2);" *ngIf="isEnrolledInSelectedComp && getEnrolledCategoryName()">
-            <span style="color: #6366f1; font-size: 10px; font-weight: 800; display: block; margin-bottom: 2px;">🏷️ TU CATEGORÍA</span>
-            <strong style="color: #4f46e5; font-size: 13px; font-weight: 900; display: block;">{{ getEnrolledCategoryName() }}</strong>
-          </div>
-        </div>
-      </div>
-
-      <!-- VISTA PARA JUGADORES INSCRITOS (Categorías, Inscritos, Fixture, Posiciones) -->
+      <!-- VISTA PARA JUGADORES INSCRITOS (Categorías, Próximo Partido, Inscritos, Fixture, Posiciones) -->
       <ng-container *ngIf="isEnrolledInSelectedComp">
         <!-- CATEGORY SELECTOR (if > 1 category) -->
-        <div class="cat-selector-scroll" *ngIf="displayCategorias && displayCategorias.length > 1" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 16px;">
+        <div class="cat-selector-scroll" *ngIf="displayCategorias && displayCategorias.length > 1" style="display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px; margin-bottom: 12px; align-items: center;">
+          <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; white-space: nowrap;">Categorías:</span>
           <div class="cat-pill" *ngFor="let cat of displayCategorias; let idx = index"
                [class.active]="selectedCategoryIdx === idx" (click)="selectedCategoryIdx = idx; selectedJornadaIdx = 0;"
                [style.background]="selectedCategoryIdx === idx ? '#0f172a' : '#ffffff'"
                [style.color]="selectedCategoryIdx === idx ? '#ccff00' : '#475569'"
-               style="padding: 8px 16px; border-radius: 20px; font-weight: 800; font-size: 13px; white-space: nowrap; cursor: pointer; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+               style="padding: 6px 14px; border-radius: 14px; font-weight: 800; font-size: 12px; white-space: nowrap; cursor: pointer; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.03); transition: all 0.2s ease;">
             {{ cat.nombre }}
           </div>
         </div>
-        <div *ngIf="displayCategorias && displayCategorias.length === 1 && isEnrolledInSelectedComp" style="margin-bottom: 16px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); padding: 8px 14px; border-radius: 12px; display: inline-flex; align-items: center; gap: 6px;">
-          <span style="color: #4f46e5; font-size: 12px; font-weight: 900;">🏷️ CATEGORÍA: {{ currentDetailCategory?.nombre }}</span>
+
+        <!-- PRÓXIMO PARTIDO DEL JUGADOR INSCRITO -->
+        <div class="section-block" *ngIf="selectedMiTorneo && miTorneoProximo" style="margin-bottom: 20px;">
+          <div class="section-label" style="font-size: 13px; font-weight: 800; color: #6366f1; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+            <ion-icon name="time-outline" style="font-size: 16px; color: #6366f1;"></ion-icon>
+            MI PRÓXIMO PARTIDO
+          </div>
+          <div class="next-match-card">
+            <div class="nm-header-badges">
+              <span class="nm-badge-pill category" *ngIf="miTorneoProximo.categoria_nombre">
+                🏷️ {{ miTorneoProximo.categoria_nombre }}
+              </span>
+              <span class="nm-badge-pill" *ngIf="miTorneoProximo.jornada_nombre || miTorneoProximo.grupo_nombre || miTorneoProximo.ronda">
+                📌 {{ miTorneoProximo.jornada_nombre || miTorneoProximo.grupo_nombre || ('Ronda ' + miTorneoProximo.ronda) }}
+              </span>
+              <span class="nm-badge-pill status">
+                ⚡ {{ miTorneoProximo.estado || 'Programado' }}
+              </span>
+            </div>
+
+            <div class="nm-teams">
+              <div class="nm-team">
+                <span class="nm-name">{{ getMatchTeamNames(miTorneoProximo).team1 }}</span>
+              </div>
+              <div class="nm-vs">VS</div>
+              <div class="nm-team">
+                <span class="nm-name">{{ getMatchTeamNames(miTorneoProximo).team2 }}</span>
+              </div>
+            </div>
+
+            <div class="nm-meta-grid">
+              <div class="meta-box">
+                <span class="meta-label">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  FECHA
+                </span>
+                <span class="meta-value">{{ getMatchFechaDisplay(miTorneoProximo) }}</span>
+              </div>
+              <div class="meta-box">
+                <span class="meta-label">
+                  <ion-icon name="time-outline"></ion-icon>
+                  HORA
+                </span>
+                <span class="meta-value">{{ getMatchHoraDisplay(miTorneoProximo) }}</span>
+              </div>
+              <div class="meta-box cancha-box">
+                <span class="meta-label">
+                  <ion-icon name="location-outline"></ion-icon>
+                  CANCHA
+                </span>
+                <span class="meta-value">{{ getMatchCanchaDisplay(miTorneoProximo) }}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- MAIN DETAIL TABS: INSCRITOS | FIXTURE SEMANAL | POSICIONES -->
-        <div class="comp-detail-tabs" style="display: flex; background: #ffffff; border-radius: 16px; padding: 5px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+        <div class="comp-detail-tabs" style="display: flex; background: #ffffff; border-radius: 14px; padding: 4px; margin-bottom: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); gap: 4px;">
           <div class="cd-tab" [class.active]="compDetailTab === 'inscritos'" (click)="compDetailTab = 'inscritos'"
                [style.background]="compDetailTab === 'inscritos' ? '#0f172a' : 'transparent'"
                [style.color]="compDetailTab === 'inscritos' ? '#ccff00' : '#64748b'"
-               style="flex: 1; text-align: center; padding: 12px 4px; border-radius: 12px; font-size: 12px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease;">
-            <ion-icon name="people-outline" style="font-size: 16px;"></ion-icon>
+               style="flex: 1; text-align: center; padding: 10px 4px; border-radius: 10px; font-size: 11.5px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s ease;">
+            <ion-icon name="people-outline" style="font-size: 15px;"></ion-icon>
             <span>INSCRITOS</span>
-            <span class="cd-badge" *ngIf="currentDetailCategory?.inscritos" [style.background]="compDetailTab === 'inscritos' ? '#ccff00' : '#f1f5f9'" [style.color]="compDetailTab === 'inscritos' ? '#000' : '#475569'" style="padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 900;">{{ currentDetailCategory.inscritos.length }}</span>
+            <span class="cd-badge" *ngIf="currentDetailCategory?.inscritos" [style.background]="compDetailTab === 'inscritos' ? '#ccff00' : '#f1f5f9'" [style.color]="compDetailTab === 'inscritos' ? '#000' : '#475569'" style="padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 900;">{{ currentDetailCategory.inscritos.length }}</span>
           </div>
           <div class="cd-tab" [class.active]="compDetailTab === 'fixture'" (click)="compDetailTab = 'fixture'"
                [style.background]="compDetailTab === 'fixture' ? '#0f172a' : 'transparent'"
                [style.color]="compDetailTab === 'fixture' ? '#ccff00' : '#64748b'"
-               style="flex: 1; text-align: center; padding: 12px 4px; border-radius: 12px; font-size: 12px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease;">
-            <ion-icon name="calendar-outline" style="font-size: 16px;"></ion-icon>
+               style="flex: 1; text-align: center; padding: 10px 4px; border-radius: 10px; font-size: 11.5px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s ease;">
+            <ion-icon name="calendar-outline" style="font-size: 15px;"></ion-icon>
             <span>FIXTURE</span>
           </div>
           <div class="cd-tab" [class.active]="compDetailTab === 'posiciones'" (click)="compDetailTab = 'posiciones'"
                [style.background]="compDetailTab === 'posiciones' ? '#0f172a' : 'transparent'"
                [style.color]="compDetailTab === 'posiciones' ? '#ccff00' : '#64748b'"
-               style="flex: 1; text-align: center; padding: 12px 4px; border-radius: 12px; font-size: 12px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease;">
-            <ion-icon name="podium-outline" style="font-size: 16px;"></ion-icon>
+               style="flex: 1; text-align: center; padding: 10px 4px; border-radius: 10px; font-size: 11.5px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s ease;">
+            <ion-icon name="podium-outline" style="font-size: 15px;"></ion-icon>
             <span>POSICIONES</span>
           </div>
         </div>
@@ -393,15 +368,17 @@
             <p style="margin: 0; font-size: 13px; font-weight: 700;">Aún no hay inscritos confirmados en esta categoría.</p>
           </div>
 
-          <div class="inscritos-grid" *ngIf="inscritosPaginadosDetail.length > 0" style="display: flex; flex-direction: column; gap: 10px;">
-            <div class="inscrito-card animate-up" *ngFor="let p of inscritosPaginadosDetail; let i = index" [style.animation-delay]="i * 0.05 + 's'"
-                 style="display: flex; align-items: center; gap: 12px; background: #ffffff; padding: 14px 16px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
-              <div class="ins-num" style="font-weight: 900; color: #0f172a; font-size: 15px; width: 28px;">#{{ (paginaInscritosDetail - 1) * itemsPorPaginaInscritosDetail + i + 1 }}</div>
-              <div class="ins-info" style="flex: 1;">
-                <h4 class="ins-name" style="margin: 0; font-size: 14px; font-weight: 800; color: #0f172a;">{{ p.nombre_pareja }}</h4>
-                <p class="ins-sub" style="margin: 3px 0 0 0; font-size: 12px; color: #64748b; font-weight: 600;" *ngIf="p.jugador1 || p.p1_nom">🎾 {{ p.jugador1 || p.p1_nom }} {{ (p.jugador2 || p.p2_nom) ? ' / ' + (p.jugador2 || p.p2_nom) : '' }}</p>
+          <div class="inscritos-grid" *ngIf="inscritosPaginadosDetail.length > 0" style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="inscrito-card animate-up" *ngFor="let p of inscritosPaginadosDetail; let i = index" [style.animation-delay]="i * 0.04 + 's'"
+                 style="display: flex; align-items: center; gap: 12px; background: #ffffff; padding: 12px 14px; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+              <div class="ins-num" style="background: #f1f5f9; color: #0f172a; font-weight: 900; font-size: 12px; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid #e2e8f0;">
+                #{{ (paginaInscritosDetail - 1) * itemsPorPaginaInscritosDetail + i + 1 }}
               </div>
-              <div class="ins-badge" style="background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 800;">Confirmado</div>
+              <div class="ins-info" style="flex: 1; min-width: 0;">
+                <h4 class="ins-name" style="margin: 0; font-size: 13.5px; font-weight: 800; color: #0f172a; line-height: 1.3;">{{ p.nombre_pareja }}</h4>
+                <p class="ins-sub" style="margin: 3px 0 0 0; font-size: 11.5px; color: #64748b; font-weight: 600;" *ngIf="p.jugador1 || p.p1_nom">🎾 {{ p.jugador1 || p.p1_nom }} {{ (p.jugador2 || p.p2_nom) ? ' / ' + (p.jugador2 || p.p2_nom) : '' }}</p>
+              </div>
+              <div class="ins-badge" style="background: #dcfce7; color: #166534; padding: 4px 9px; border-radius: 8px; font-size: 10.5px; font-weight: 800; white-space: nowrap; flex-shrink: 0;">Confirmado</div>
             </div>
           </div>
 
@@ -584,127 +561,7 @@
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- MI TORNEO DETAIL VIEW -->
-  <!-- ========================================== -->
-  <div *ngIf="selectedMiTorneo && !selectedClub && !selectedCompeticionDetail" class="animate-up">
-    <div class="mi-torneo-detail-header">
-      <div class="mtd-overlay"></div>
-      <div class="mtd-content">
-        <div class="mtd-info">
-          <span class="mtd-badge" [class.americano]="selectedMiTorneo.tipo_torneo === 'americano'">
-            {{ selectedMiTorneo.tipo_torneo === 'americano' ? 'AMERICANO' : 'TORNEO OFICIAL' }}
-          </span>
-          <h1>{{ selectedMiTorneo.nombre }}</h1>
-          <p>{{ selectedMiTorneo.club_nombre }} • {{ selectedMiTorneo.fecha | date:'dd MMM yyyy' }}</p>
-          <p class="mtd-pareja" *ngIf="selectedMiTorneo.nombre_pareja">🎾 {{ selectedMiTorneo.nombre_pareja }}</p>
-        </div>
-      </div>
-    </div>
 
-    <div class="mi-torneo-detail-body">
-
-      <!-- PRÓXIMO PARTIDO -->
-      <div class="section-block" *ngIf="miTorneoProximo">
-        <div class="section-label">
-          <ion-icon name="time-outline"></ion-icon>
-          PRÓXIMO PARTIDO
-        </div>
-        <div class="next-match-card">
-          <div class="nm-header-badges">
-            <span class="nm-badge-pill category" *ngIf="miTorneoProximo.categoria_nombre">
-              🏷️ {{ miTorneoProximo.categoria_nombre }}
-            </span>
-            <span class="nm-badge-pill" *ngIf="miTorneoProximo.jornada_nombre || miTorneoProximo.grupo_nombre || miTorneoProximo.ronda">
-              📌 {{ miTorneoProximo.jornada_nombre || miTorneoProximo.grupo_nombre || ('Ronda ' + miTorneoProximo.ronda) }}
-            </span>
-            <span class="nm-badge-pill status">
-              ⚡ {{ miTorneoProximo.estado || 'Programado' }}
-            </span>
-          </div>
-
-          <div class="nm-teams">
-            <div class="nm-team">
-              <span class="nm-name">{{ getMatchTeamNames(miTorneoProximo).team1 }}</span>
-            </div>
-            <div class="nm-vs">VS</div>
-            <div class="nm-team">
-              <span class="nm-name">{{ getMatchTeamNames(miTorneoProximo).team2 }}</span>
-            </div>
-          </div>
-
-          <div class="nm-meta-grid">
-            <div class="meta-box">
-              <span class="meta-label">
-                <ion-icon name="calendar-outline"></ion-icon>
-                FECHA
-              </span>
-              <span class="meta-value">{{ getMatchFechaDisplay(miTorneoProximo) }}</span>
-            </div>
-            <div class="meta-box">
-              <span class="meta-label">
-                <ion-icon name="time-outline"></ion-icon>
-                HORA
-              </span>
-              <span class="meta-value">{{ getMatchHoraDisplay(miTorneoProximo) }}</span>
-            </div>
-            <div class="meta-box">
-              <span class="meta-label">
-                <ion-icon name="location-outline"></ion-icon>
-                CANCHA
-              </span>
-              <span class="meta-value">{{ getMatchCanchaDisplay(miTorneoProximo) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div *ngIf="!miTorneoProximo && miTorneoHistorial.length > 0" class="all-played-badge">
-        <ion-icon name="checkmark-circle-outline"></ion-icon>
-        Todos los partidos han sido jugados
-      </div>
-
-      <!-- HISTORIAL DE PARTIDOS -->
-      <div class="section-block">
-        <div class="section-label">
-          <ion-icon name="ribbon-outline"></ion-icon>
-          HISTORIAL DE PARTIDOS
-        </div>
-
-        <div *ngIf="miTorneoHistorial.length === 0" class="empty-matches">
-          <p>Aún no hay partidos jugados</p>
-        </div>
-
-        <div class="match-history-list">
-          <div class="mh-card animate-up" *ngFor="let m of miTorneoHistorial; let i = index"
-               [style.animation-delay]="i * 0.06 + 's'"
-               [class.win]="getMatchResult(m) === 'win'"
-               [class.loss]="getMatchResult(m) === 'loss'"
-               [class.draw]="getMatchResult(m) === 'draw'">
-            <div class="mh-indicator">
-              <div class="mh-dot"></div>
-            </div>
-            <div class="mh-content">
-              <div class="mh-teams">
-                <span class="mh-t1">{{ getMatchTeamNames(m).team1 }}</span>
-                <span class="mh-score">{{ getMatchScore(m) }}</span>
-                <span class="mh-t2">{{ getMatchTeamNames(m).team2 }}</span>
-              </div>
-              <div class="mh-meta">
-                <span *ngIf="m.ronda" class="mh-ronda">R{{ m.ronda }}</span>
-                <span *ngIf="m.grupo_nombre">{{ m.grupo_nombre }}</span>
-                <span *ngIf="m.categoria_nombre">{{ m.categoria_nombre }}</span>
-                <span class="mh-result-label" [class]="getMatchResult(m)">
-                  {{ getMatchResult(m) === 'win' ? '✓ Victoria' : getMatchResult(m) === 'loss' ? '✕ Derrota' : '= Empate' }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
 
   <!-- ======================= -->
   <!-- 2. CLUB DETAIL VIEW -->
