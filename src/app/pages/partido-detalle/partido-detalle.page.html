@@ -13,8 +13,9 @@
         </div>
 
         <div class="match-type-header">
-            <ion-icon name="tennisball-outline"></ion-icon>
-            <h2>PÁDEL</h2>
+            <span style="font-size: 22px; margin-right: 8px;" *ngIf="match?.cancha_icono">{{ match.cancha_icono }}</span>
+            <ion-icon name="tennisball-outline" *ngIf="!match?.cancha_icono"></ion-icon>
+            <h2>{{ (match?.cancha_categoria && match?.cancha_categoria !== 'cancha_padel' && match?.cancha_categoria !== 'cancha_pickleball') ? (match?.cancha_nombre || 'ARRIENDO') : 'PÁDEL' }}</h2>
         </div>
         <span class="match-date-full" *ngIf="match">
             {{ match.fecha | date:'EEEE, d MMMM' : '' : 'es' }} {{ formatTime(match.hora_inicio) }} - {{ formatTime(match.hora_fin) }}
@@ -22,7 +23,7 @@
 
         <div class="meta-details-row">
             <div class="meta-item">
-                <span class="m-label">Cancha</span>
+                <span class="m-label">{{ (match?.cancha_categoria && match?.cancha_categoria !== 'cancha_padel' && match?.cancha_categoria !== 'cancha_pickleball') ? 'Espacio' : 'Cancha' }}</span>
                 <span class="m-val">{{ match?.cancha_nombre || 'Por asignar' }}</span>
             </div>
             <div class="meta-item">
@@ -36,15 +37,15 @@
     <div class="info-strip-card">
         <div class="i-left">
             <ion-icon name="lock-closed-outline"></ion-icon>
-            Partido Privado
+            {{ (match?.cancha_categoria && match?.cancha_categoria !== 'cancha_padel' && match?.cancha_categoria !== 'cancha_pickleball') ? 'Arriendo Privado' : 'Partido Privado' }}
         </div>
         <div class="i-right">
             <ion-icon name="checkmark-circle"></ion-icon>
-            Pista reservada
+            {{ (match?.cancha_categoria && match?.cancha_categoria !== 'cancha_padel' && match?.cancha_categoria !== 'cancha_pickleball') ? 'Espacio reservado' : 'Pista reservada' }}
         </div>
     </div>
 
-    <div class="competitive-card">
+    <div class="competitive-card" *ngIf="!match?.cancha_categoria || match?.cancha_categoria === 'cancha_padel' || match?.cancha_categoria === 'cancha_pickleball'">
         <div class="c-content">
             <h3>Competitivo</h3>
             <p>El resultado de este partido afectará al nivel</p>
@@ -55,7 +56,7 @@
     <!-- PLAYERS SECTION -->
     <div class="players-section">
         <div class="p-header">
-            <h2>Jugadores</h2>
+            <h2>{{ (!match?.cancha_categoria || match?.cancha_categoria === 'cancha_padel' || match?.cancha_categoria === 'cancha_pickleball') ? 'Jugadores' : 'Participantes / Acompañantes' }}</h2>
             <a href="javascript:void(0)" class="edit-link">Editar</a>
         </div>
 

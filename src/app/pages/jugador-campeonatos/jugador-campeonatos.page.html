@@ -38,8 +38,21 @@
       <!-- MIS TORNEOS VIEW -->
       <!-- ====================== -->
       <div *ngIf="mainView === 'mis-torneos'" class="animate-up">
-        <div *ngIf="loadingMisTorneos" class="loading-state">
-          <ion-spinner name="crescent"></ion-spinner>
+        <!-- SKELETON SHIMMER LOADING -->
+        <div *ngIf="loadingMisTorneos" class="skeleton-list animate-up">
+          <div class="skeleton-card" *ngFor="let s of [1, 2, 3]">
+            <div class="skeleton-row">
+              <div class="skeleton-box skeleton-circle" style="width: 44px; height: 44px; flex-shrink: 0;"></div>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+                <div class="skeleton-box" style="height: 16px; width: 65%;"></div>
+                <div class="skeleton-box" style="height: 12px; width: 40%;"></div>
+              </div>
+            </div>
+            <div class="skeleton-row" style="margin-top: 4px;">
+              <div class="skeleton-box" style="height: 12px; width: 35%;"></div>
+              <div class="skeleton-box" style="height: 12px; width: 25%; margin-left: auto;"></div>
+            </div>
+          </div>
         </div>
 
         <div *ngIf="!loadingMisTorneos && misTorneos.length === 0" class="empty-state-v6">
@@ -49,17 +62,22 @@
         </div>
 
         <div *ngIf="!loadingMisTorneos && misTorneos.length > 0">
-          <!-- Sub-tabs: En Curso / Historial -->
+          <!-- Sub-tabs: En Curso / Historial / Todos -->
           <div class="mis-sub-tabs">
             <div class="sub-tab" [class.active]="misTab === 'activos'" (click)="misTab = 'activos'">
               <ion-icon name="tennisball-outline"></ion-icon>
-              En Curso
+              <span class="tab-label">En Curso</span>
               <span class="sub-count" *ngIf="misTorneosActivos.length > 0">{{ misTorneosActivos.length }}</span>
             </div>
             <div class="sub-tab" [class.active]="misTab === 'historial'" (click)="misTab = 'historial'">
               <ion-icon name="time-outline"></ion-icon>
-              Historial
+              <span class="tab-label">Historial</span>
               <span class="sub-count" *ngIf="misTorneosHistorial.length > 0">{{ misTorneosHistorial.length }}</span>
+            </div>
+            <div class="sub-tab" [class.active]="misTab === 'todos'" (click)="misTab = 'todos'">
+              <ion-icon name="trophy-outline"></ion-icon>
+              <span class="tab-label">Todos</span>
+              <span class="sub-count">{{ misTorneos.length }}</span>
             </div>
           </div>
 
@@ -67,7 +85,13 @@
           <div class="mis-torneos-list" *ngIf="misTab === 'activos'">
             <div *ngIf="misTorneosActivos.length === 0" class="empty-state-v6">
               <ion-icon name="tennisball-outline"></ion-icon>
-              <p>No tienes torneos en curso</p>
+              <p>No tienes torneos en curso actualmente</p>
+              <button class="cta-search" *ngIf="misTorneosHistorial.length > 0" (click)="misTab = 'historial'" style="margin-top: 10px;">
+                Ver Historial de Torneos ({{ misTorneosHistorial.length }})
+              </button>
+              <button class="cta-search" *ngIf="misTorneosHistorial.length === 0" (click)="mainView = 'buscar'" style="margin-top: 10px;">
+                Buscar Torneos
+              </button>
             </div>
             <div class="mi-torneo-card animate-up" *ngFor="let t of misTorneosActivos; let i = index" 
                  [style.animation-delay]="i * 0.08 + 's'" (click)="openMiTorneo(t)">
@@ -83,7 +107,7 @@
                   <ion-icon name="calendar-outline"></ion-icon>
                   <span>{{ t.fecha | date:'dd MMM yyyy' }}</span>
                   <span class="mt-pareja" *ngIf="t.nombre_pareja">• {{ t.nombre_pareja }}</span>
-                  <span class="mt-categoria" *ngIf="t.categoria_nombre" style="color: #6366f1; font-weight: 800;">• 🏷️ {{ t.categoria_nombre }}</span>
+                  <span class="mt-categoria" *ngIf="t.categoria_nombre || t.categoria" style="color: #6366f1; font-weight: 800;">• 🏷️ {{ t.categoria_nombre || t.categoria }}</span>
                 </div>
               </div>
               <div class="mt-right">
@@ -115,7 +139,7 @@
                   <ion-icon name="calendar-outline"></ion-icon>
                   <span>{{ t.fecha | date:'dd MMM yyyy' }}</span>
                   <span class="mt-pareja" *ngIf="t.nombre_pareja">• {{ t.nombre_pareja }}</span>
-                  <span class="mt-categoria" *ngIf="t.categoria_nombre" style="color: #6366f1; font-weight: 800;">• 🏷️ {{ t.categoria_nombre }}</span>
+                  <span class="mt-categoria" *ngIf="t.categoria_nombre || t.categoria" style="color: #6366f1; font-weight: 800;">• 🏷️ {{ t.categoria_nombre || t.categoria }}</span>
                 </div>
               </div>
               <div class="mt-right">
@@ -131,6 +155,36 @@
                 Ver más historial ({{ misTorneosHistorial.length - historyLimit }} restantes)
                 <ion-icon name="chevron-down"></ion-icon>
               </button>
+            </div>
+          </div>
+
+          <!-- TODOS LIST -->
+          <div class="mis-torneos-list" *ngIf="misTab === 'todos'">
+            <div class="mi-torneo-card animate-up" *ngFor="let t of misTorneos; let i = index" 
+                 [class.historial]="!isTorneoActivo(t)"
+                 [style.animation-delay]="i * 0.08 + 's'" (click)="openMiTorneo(t)">
+              <div class="mt-left">
+                <div class="mt-type-badge" [class.americano]="t.tipo_torneo === 'americano' || t.tipo_torneo === 'Americano' || t.tipo === 'Americano'" [class.liga]="t.tipo_torneo === 'liga' || t.tipo_torneo === 'Liga' || t.tipo === 'Liga'" [class.oficial]="t.tipo_torneo === 'oficial'">
+                  {{ (t.tipo_torneo === 'americano' || t.tipo_torneo === 'Americano' || t.tipo === 'Americano') ? 'AM' : ((t.tipo_torneo === 'liga' || t.tipo_torneo === 'Liga' || t.tipo === 'Liga') ? 'LIGA' : 'OF') }}
+                </div>
+              </div>
+              <div class="mt-center">
+                <h4>{{ t.nombre }}</h4>
+                <p class="mt-club">{{ t.club_nombre }}</p>
+                <div class="mt-meta">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <span>{{ t.fecha | date:'dd MMM yyyy' }}</span>
+                  <span class="mt-pareja" *ngIf="t.nombre_pareja">• {{ t.nombre_pareja }}</span>
+                  <span class="mt-categoria" *ngIf="t.categoria_nombre || t.categoria" style="color: #6366f1; font-weight: 800;">• 🏷️ {{ t.categoria_nombre || t.categoria }}</span>
+                </div>
+              </div>
+              <div class="mt-right">
+                <div class="mt-status" [class.activo]="isTorneoActivo(t)" [class.cerrado]="!isTorneoActivo(t)">
+                  {{ isTorneoActivo(t) ? getTorneoStatusLabel(t) : 'Finalizado' }}
+                </div>
+                <div class="mt-matches-count">{{ t.partidos?.length || 0 }} partidos</div>
+                <ion-icon name="chevron-forward"></ion-icon>
+              </div>
             </div>
           </div>
         </div>
@@ -188,8 +242,13 @@
         </div>
 
         <div class="club-discovery-list" style="padding-bottom: 10px;">
-          <div *ngIf="loading" class="loading-state">
-            <ion-spinner name="crescent"></ion-spinner>
+          <!-- SKELETON SHIMMER LOADING CLUBES -->
+          <div *ngIf="loading" class="skeleton-list animate-up">
+            <div class="skeleton-card" *ngFor="let s of [1, 2, 3]">
+              <div class="skeleton-box" style="height: 120px; width: 100%; border-radius: 16px; margin-bottom: 6px;"></div>
+              <div class="skeleton-box" style="height: 18px; width: 60%; margin-top: 4px;"></div>
+              <div class="skeleton-box" style="height: 12px; width: 40%; margin-top: 2px;"></div>
+            </div>
           </div>
 
           <div *ngIf="!loading && filteredClubes.length === 0" class="empty-state-v6" style="padding: 20px; text-align: center;">
@@ -231,6 +290,7 @@
 </div>
 
   <!-- ========================================== -->
+  <!-- ========================================== -->
   <!-- COMPETICIÓN DETAIL VIEW (Inscritos, Fixture Semanal, Posiciones) -->
   <!-- ========================================== -->
   <div *ngIf="selectedCompeticionDetail" class="animate-up">
@@ -242,18 +302,26 @@
             <span class="mtd-badge" [class.americano]="selectedCompeticionDetail.tipo === 'americano' || selectedCompeticionDetail.tipo === 'Americano'" [class.liga]="selectedCompeticionDetail.tipo === 'liga' || selectedCompeticionDetail.tipo === 'Liga'">
               {{ (selectedCompeticionDetail.tipo === 'americano' || selectedCompeticionDetail.tipo === 'Americano') ? 'AMERICANO' : ((selectedCompeticionDetail.tipo === 'liga' || selectedCompeticionDetail.tipo === 'Liga') ? 'LIGA DE PÁDEL' : 'TORNEO OFICIAL') }}
             </span>
-            <button (click)="goBack()" style="background: rgba(255,255,255,0.15); border: none; color: white; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-              <ion-icon name="close-outline" style="font-size: 22px;"></ion-icon>
-            </button>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button (click)="shareCompeticionDetalle()" style="background: rgba(37, 211, 102, 0.25); border: 1px solid rgba(37, 211, 102, 0.4); color: #25d366; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(8px); transition: transform 0.2s;" title="Compartir Torneo">
+                <ion-icon name="share-outline" style="font-size: 20px;"></ion-icon>
+              </button>
+              <button (click)="goBack()" style="background: rgba(255,255,255,0.15); border: none; color: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                <ion-icon name="close-outline" style="font-size: 22px;"></ion-icon>
+              </button>
+            </div>
           </div>
           <h1>{{ selectedCompeticionDetail.nombre }}</h1>
           <p>📍 {{ selectedCompeticionDetail.club_nombre }} • 📅 {{ selectedCompeticionDetail.fecha_display }}</p>
-          <div class="mtd-badges-row" *ngIf="isEnrolledInSelectedComp">
-            <span class="mtd-tag pareja" *ngIf="getEnrolledPartnerName()">
+          <div class="mtd-badges-row">
+            <span class="mtd-tag pareja" *ngIf="isEnrolledInSelectedComp && getEnrolledPartnerName()">
               🎾 Tu Pareja: {{ getEnrolledPartnerName() }}
             </span>
             <span class="mtd-tag categoria" *ngIf="getEnrolledCategoryName()">
               🏷️ {{ getEnrolledCategoryName() }}
+            </span>
+            <span class="mtd-tag inscritos">
+              👥 {{ getInscritosDisplay(selectedCompeticionDetail) }}
             </span>
           </div>
         </div>
@@ -262,319 +330,362 @@
 
     <div class="mi-torneo-detail-body">
 
-      <!-- VISTA PARA JUGADORES INSCRITOS (Categorías, Próximo Partido, Inscritos, Fixture, Posiciones) -->
-      <ng-container *ngIf="isEnrolledInSelectedComp">
-        <!-- CATEGORY SELECTOR (if > 1 category) -->
-        <div class="cat-selector-scroll" *ngIf="displayCategorias && displayCategorias.length > 1" style="display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px; margin-bottom: 12px; align-items: center;">
-          <span style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; white-space: nowrap;">Categorías:</span>
-          <div class="cat-pill" *ngFor="let cat of displayCategorias; let idx = index"
-               [class.active]="selectedCategoryIdx === idx" (click)="selectedCategoryIdx = idx; selectedJornadaIdx = 0;"
-               [style.background]="selectedCategoryIdx === idx ? '#0f172a' : '#ffffff'"
-               [style.color]="selectedCategoryIdx === idx ? '#ccff00' : '#475569'"
-               style="padding: 6px 14px; border-radius: 14px; font-weight: 800; font-size: 12px; white-space: nowrap; cursor: pointer; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.03); transition: all 0.2s ease;">
-            {{ cat.nombre }}
-          </div>
+      <!-- CATEGORY SELECTOR (if > 1 category) -->
+      <div class="cat-selector-container" *ngIf="displayCategorias && displayCategorias.length > 1">
+        <span class="cat-selector-label">Categorías:</span>
+        <div class="cat-pill" *ngFor="let cat of displayCategorias; let idx = index"
+             [class.active]="selectedCategoryIdx === idx" (click)="selectedCategoryIdx = idx; selectedJornadaIdx = 0;">
+          {{ cat.nombre || cat.categoria || ('Cat ' + (idx + 1)) }}
         </div>
+      </div>
 
-        <!-- PRÓXIMO PARTIDO DEL JUGADOR INSCRITO -->
-        <div class="section-block" *ngIf="selectedMiTorneo && miTorneoProximo" style="margin-bottom: 20px;">
-          <div class="section-label" style="font-size: 13px; font-weight: 800; color: #6366f1; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
-            <ion-icon name="time-outline" style="font-size: 16px; color: #6366f1;"></ion-icon>
-            MI PRÓXIMO PARTIDO
+      <!-- BANNER DE INSCRIPCIÓN SI EL JUGADOR NO ESTÁ INSCRITO -->
+      <div *ngIf="!isEnrolledInSelectedComp" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 16px; padding: 14px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 15px rgba(15,23,42,0.15);">
+        <div>
+          <span style="color: #ccff00; font-weight: 900; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px; display: block;">Inscripciones Abiertas</span>
+          <span style="color: #ffffff; font-weight: 800; font-size: 13.5px;">{{ selectedCompeticionDetail.precio > 0 ? (formatPrecio(selectedCompeticionDetail.precio) + ' / Pareja') : 'Inscripción Disponible' }}</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button (click)="openEnrollment(selectedCompeticionDetail)" style="background: #ccff00; color: #000; font-weight: 900; font-size: 11.5px; padding: 9px 14px; border-radius: 12px; border: none; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; box-shadow: 0 4px 12px rgba(204,255,0,0.3);">
+            ⚡ Inscribirme
+          </button>
+        </div>
+      </div>
+
+      <!-- DESCRIPCIÓN Y REGLAS SI EXISTE -->
+      <div class="comp-desc-card" *ngIf="selectedCompeticionDetail.descripcion" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+        <h3 style="margin: 0 0 6px 0; font-size: 12px; font-weight: 900; color: #0f172a; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+          <ion-icon name="list-outline" style="font-size: 16px; color: #6366f1;"></ion-icon>
+          Descripción y Reglas
+        </h3>
+        <p style="margin: 0; font-size: 12.5px; color: #475569; line-height: 1.4; white-space: pre-line;">{{ selectedCompeticionDetail.descripcion }}</p>
+      </div>
+
+      <!-- PRÓXIMO PARTIDO DEL JUGADOR INSCRITO -->
+      <div class="section-block" *ngIf="isEnrolledInSelectedComp && selectedMiTorneo && miTorneoProximo" style="margin-bottom: 20px;">
+        <div class="section-label" style="font-size: 13px; font-weight: 800; color: #6366f1; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+          <ion-icon name="time-outline" style="font-size: 16px; color: #6366f1;"></ion-icon>
+          MI PRÓXIMO PARTIDO
+        </div>
+        <div class="next-match-card" (click)="openH2HModal(miTorneoProximo, 'match')" style="cursor: pointer;">
+          <div class="nm-header-badges">
+            <span class="nm-badge-pill category" *ngIf="miTorneoProximo.categoria_nombre || miTorneoProximo.categoria">
+              🏷️ {{ miTorneoProximo.categoria_nombre || miTorneoProximo.categoria }}
+            </span>
+            <span class="nm-badge-pill" *ngIf="miTorneoProximo.jornada_nombre || miTorneoProximo.grupo_nombre || miTorneoProximo.ronda">
+              📌 {{ miTorneoProximo.jornada_nombre || miTorneoProximo.grupo_nombre || ('Ronda ' + miTorneoProximo.ronda) }}
+            </span>
+            <span class="nm-badge-pill status" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+              ⚔️ Ver H2H
+            </span>
           </div>
-          <div class="next-match-card">
-            <div class="nm-header-badges">
-              <span class="nm-badge-pill category" *ngIf="miTorneoProximo.categoria_nombre">
-                🏷️ {{ miTorneoProximo.categoria_nombre }}
-              </span>
-              <span class="nm-badge-pill" *ngIf="miTorneoProximo.jornada_nombre || miTorneoProximo.grupo_nombre || miTorneoProximo.ronda">
-                📌 {{ miTorneoProximo.jornada_nombre || miTorneoProximo.grupo_nombre || ('Ronda ' + miTorneoProximo.ronda) }}
-              </span>
-              <span class="nm-badge-pill status">
-                ⚡ {{ miTorneoProximo.estado || 'Programado' }}
-              </span>
-            </div>
 
-            <div class="nm-teams">
-              <div class="nm-team">
-                <span class="nm-name">{{ getMatchTeamNames(miTorneoProximo).team1 }}</span>
-              </div>
-              <div class="nm-vs">VS</div>
-              <div class="nm-team">
-                <span class="nm-name">{{ getMatchTeamNames(miTorneoProximo).team2 }}</span>
-              </div>
+          <div class="nm-teams">
+            <div class="nm-team">
+              <span class="nm-name">{{ getMatchTeamNames(miTorneoProximo).team1 }}</span>
             </div>
-
-            <div class="nm-meta-grid">
-              <div class="meta-box">
-                <span class="meta-label">
-                  <ion-icon name="calendar-outline"></ion-icon>
-                  FECHA
-                </span>
-                <span class="meta-value">{{ getMatchFechaDisplay(miTorneoProximo) }}</span>
-              </div>
-              <div class="meta-box">
-                <span class="meta-label">
-                  <ion-icon name="time-outline"></ion-icon>
-                  HORA
-                </span>
-                <span class="meta-value">{{ getMatchHoraDisplay(miTorneoProximo) }}</span>
-              </div>
-              <div class="meta-box cancha-box">
-                <span class="meta-label">
-                  <ion-icon name="location-outline"></ion-icon>
-                  CANCHA
-                </span>
-                <span class="meta-value">{{ getMatchCanchaDisplay(miTorneoProximo) }}</span>
-              </div>
+            <div class="nm-vs">VS</div>
+            <div class="nm-team">
+              <span class="nm-name">{{ getMatchTeamNames(miTorneoProximo).team2 }}</span>
             </div>
           </div>
-        </div>
 
-        <!-- MAIN DETAIL TABS: INSCRITOS | FIXTURE SEMANAL | POSICIONES -->
-        <div class="comp-detail-tabs" style="display: flex; background: #ffffff; border-radius: 14px; padding: 4px; margin-bottom: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); gap: 4px;">
-          <div class="cd-tab" [class.active]="compDetailTab === 'inscritos'" (click)="compDetailTab = 'inscritos'"
-               [style.background]="compDetailTab === 'inscritos' ? '#0f172a' : 'transparent'"
-               [style.color]="compDetailTab === 'inscritos' ? '#ccff00' : '#64748b'"
-               style="flex: 1; text-align: center; padding: 10px 4px; border-radius: 10px; font-size: 11.5px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s ease;">
-            <ion-icon name="people-outline" style="font-size: 15px;"></ion-icon>
-            <span>INSCRITOS</span>
-            <span class="cd-badge" *ngIf="currentDetailCategory?.inscritos" [style.background]="compDetailTab === 'inscritos' ? '#ccff00' : '#f1f5f9'" [style.color]="compDetailTab === 'inscritos' ? '#000' : '#475569'" style="padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 900;">{{ currentDetailCategory.inscritos.length }}</span>
-          </div>
-          <div class="cd-tab" [class.active]="compDetailTab === 'fixture'" (click)="compDetailTab = 'fixture'"
-               [style.background]="compDetailTab === 'fixture' ? '#0f172a' : 'transparent'"
-               [style.color]="compDetailTab === 'fixture' ? '#ccff00' : '#64748b'"
-               style="flex: 1; text-align: center; padding: 10px 4px; border-radius: 10px; font-size: 11.5px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s ease;">
-            <ion-icon name="calendar-outline" style="font-size: 15px;"></ion-icon>
-            <span>FIXTURE</span>
-          </div>
-          <div class="cd-tab" [class.active]="compDetailTab === 'posiciones'" (click)="compDetailTab = 'posiciones'"
-               [style.background]="compDetailTab === 'posiciones' ? '#0f172a' : 'transparent'"
-               [style.color]="compDetailTab === 'posiciones' ? '#ccff00' : '#64748b'"
-               style="flex: 1; text-align: center; padding: 10px 4px; border-radius: 10px; font-size: 11.5px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s ease;">
-            <ion-icon name="podium-outline" style="font-size: 15px;"></ion-icon>
-            <span>POSICIONES</span>
+          <div class="nm-meta-grid">
+            <div class="meta-box">
+              <span class="meta-label">
+                <ion-icon name="calendar-outline"></ion-icon>
+                FECHA
+              </span>
+              <span class="meta-value">{{ getMatchFechaDisplay(miTorneoProximo) }}</span>
+            </div>
+            <div class="meta-box">
+              <span class="meta-label">
+                <ion-icon name="time-outline"></ion-icon>
+                HORA
+              </span>
+              <span class="meta-value">{{ getMatchHoraDisplay(miTorneoProximo) }}</span>
+            </div>
+            <div class="meta-box cancha-box">
+              <span class="meta-label">
+                <ion-icon name="location-outline"></ion-icon>
+                CANCHA
+              </span>
+              <span class="meta-value">{{ getMatchCanchaDisplay(miTorneoProximo) }}</span>
+            </div>
           </div>
         </div>
+      </div>
 
-        <!-- ==================== TAB 1: INSCRITOS ==================== -->
-        <div *ngIf="compDetailTab === 'inscritos'" class="tab-pane animate-up">
-          <div class="section-label" style="font-size: 12px; font-weight: 900; color: #0f172a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+      <!-- MAIN DETAIL TABS: INSCRITOS | FIXTURE SEMANAL | POSICIONES -->
+      <div class="comp-detail-tabs">
+        <div class="cd-tab" [class.active]="compDetailTab === 'inscritos'" (click)="compDetailTab = 'inscritos'">
+          <ion-icon name="people-outline"></ion-icon>
+          <span>INSCRITOS</span>
+          <span class="cd-badge" *ngIf="currentDetailCategory?.inscritos">{{ currentDetailCategory.inscritos.length }}</span>
+        </div>
+        <div class="cd-tab" [class.active]="compDetailTab === 'fixture'" (click)="compDetailTab = 'fixture'">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>FIXTURE</span>
+        </div>
+        <div class="cd-tab" [class.active]="compDetailTab === 'posiciones'" (click)="compDetailTab = 'posiciones'">
+          <ion-icon name="podium-outline"></ion-icon>
+          <span>POSICIONES</span>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 1: INSCRITOS ==================== -->
+      <div *ngIf="compDetailTab === 'inscritos'" class="tab-pane animate-up">
+        
+        <!-- SUB-TABS: Parejas vs Busco Pareja -->
+        <div class="inscritos-sub-tabs">
+          <button class="ist-btn" [class.active]="subTabInscritos === 'parejas'" (click)="subTabInscritos = 'parejas'">
+            <span class="ist-icon">🎾</span>
+            <span class="ist-label">Parejas</span>
+            <span class="ist-badge">{{ listInscritosCategoryDetail.length }}</span>
+          </button>
+          <button class="ist-btn busco-pareja-btn" [class.active]="subTabInscritos === 'busco_pareja'" (click)="subTabInscritos = 'busco_pareja'">
+            <span class="ist-icon">🙋‍♂️</span>
+            <span class="ist-label">Busco Pareja</span>
+            <span class="ist-badge green" *ngIf="getBuscandoParejaList().length > 0">{{ getBuscandoParejaList().length }}</span>
+          </button>
+        </div>
+
+        <!-- CALLOUT BUSCO PAREJA (Si no está inscrito) -->
+        <div class="agente-libre-callout" *ngIf="!isEnrolledInSelectedComp">
+          <div class="alc-left">
+            <div class="alc-icon">🤝</div>
+            <div class="alc-text">
+              <h4>¿No tienes pareja para jugar?</h4>
+              <p>Regístrate como Agente Libre o haz dupla con un jugador disponible.</p>
+            </div>
+          </div>
+          <button class="alc-btn" (click)="inscribirComoAgenteLibre()">
+            + Anotarme
+          </button>
+        </div>
+
+        <!-- LISTA 1: PAREJAS CONFIRMADAS -->
+        <div *ngIf="subTabInscritos === 'parejas'">
+          <div class="section-label">
             <ion-icon name="people-outline" style="color: #6366f1;"></ion-icon>
-            JUGADORES / PAREJAS INSCRITAS ({{ currentDetailCategory?.nombre || 'General' }})
+            PAREJAS CONFIRMADAS ({{ currentDetailCategory?.nombre || 'General' }})
           </div>
 
-          <div *ngIf="inscritosPaginadosDetail.length === 0" class="empty-matches" style="text-align: center; padding: 30px; color: #64748b; background: #fff; border-radius: 18px; border: 1px solid #e2e8f0;">
-            <p style="margin: 0; font-size: 13px; font-weight: 700;">Aún no hay inscritos confirmados en esta categoría.</p>
+          <div *ngIf="inscritosPaginadosDetail.length === 0" class="empty-matches">
+            <ion-icon name="people-outline" style="font-size: 32px; color: #94a3b8; margin-bottom: 8px;"></ion-icon>
+            <p>Aún no hay parejas inscritas confirmadas en esta categoría.</p>
           </div>
 
-          <div class="inscritos-grid" *ngIf="inscritosPaginadosDetail.length > 0" style="display: flex; flex-direction: column; gap: 8px;">
-            <div class="inscrito-card animate-up" *ngFor="let p of inscritosPaginadosDetail; let i = index" [style.animation-delay]="i * 0.04 + 's'"
-                 style="display: flex; align-items: center; gap: 12px; background: #ffffff; padding: 12px 14px; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
-              <div class="ins-num" style="background: #f1f5f9; color: #0f172a; font-weight: 900; font-size: 12px; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid #e2e8f0;">
+          <div class="inscritos-grid" *ngIf="inscritosPaginadosDetail.length > 0">
+            <div class="inscrito-card animate-up" *ngFor="let p of inscritosPaginadosDetail; let i = index" [style.animation-delay]="i * 0.04 + 's'" (click)="openH2HModal(p, 'standing')" style="cursor: pointer;">
+              <div class="ins-num">
                 #{{ (paginaInscritosDetail - 1) * itemsPorPaginaInscritosDetail + i + 1 }}
               </div>
-              <div class="ins-info" style="flex: 1; min-width: 0;">
-                <h4 class="ins-name" style="margin: 0; font-size: 13.5px; font-weight: 800; color: #0f172a; line-height: 1.3;">{{ p.nombre_pareja }}</h4>
-                <p class="ins-sub" style="margin: 3px 0 0 0; font-size: 11.5px; color: #64748b; font-weight: 600;" *ngIf="p.jugador1 || p.p1_nom">🎾 {{ p.jugador1 || p.p1_nom }} {{ (p.jugador2 || p.p2_nom) ? ' / ' + (p.jugador2 || p.p2_nom) : '' }}</p>
+              <div class="ins-info">
+                <h4 class="ins-name">{{ getInscritoPairName(p) }}</h4>
+                <p class="ins-sub" *ngIf="p.jugador1 || p.p1_nom">🎾 {{ p.jugador1 || p.p1_nom }} {{ (p.jugador2 || p.p2_nom) ? ' / ' + (p.jugador2 || p.p2_nom) : '' }}</p>
               </div>
-              <div class="ins-badge" style="background: #dcfce7; color: #166534; padding: 4px 9px; border-radius: 8px; font-size: 10.5px; font-weight: 800; white-space: nowrap; flex-shrink: 0;">Confirmado</div>
+              <div class="ins-badge" style="display: flex; align-items: center; gap: 4px;">
+                <span>⚔️ H2H</span>
+              </div>
             </div>
           </div>
 
           <!-- CONTROLES DE PAGINACIÓN INSCRITOS MOBILE -->
-          <div class="pagination-bar-mobile" *ngIf="totalPaginasInscritosDetail > 1" style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; background: #ffffff; padding: 12px 16px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
-            <span style="font-size: 13px; font-weight: 800; color: #475569;">Página {{ paginaInscritosDetail }} de {{ totalPaginasInscritosDetail }}</span>
-            <div style="display: flex; gap: 8px;">
-              <button [disabled]="paginaInscritosDetail === 1" (click)="cambiarPaginaInscritosDetail(paginaInscritosDetail - 1)" 
-                      style="padding: 8px 14px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #0f172a; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.03);"
-                      [style.opacity]="paginaInscritosDetail === 1 ? '0.4' : '1'">
+          <div class="pagination-bar-mobile" *ngIf="totalPaginasInscritosDetail > 1">
+            <span class="p-page-info">Página {{ paginaInscritosDetail }} de {{ totalPaginasInscritosDetail }}</span>
+            <div class="p-btn-group">
+              <button class="p-nav-btn" [disabled]="paginaInscritosDetail === 1" (click)="cambiarPaginaInscritosDetail(paginaInscritosDetail - 1)">
                 ◄ Anterior
               </button>
-              <button [disabled]="paginaInscritosDetail === totalPaginasInscritosDetail" (click)="cambiarPaginaInscritosDetail(paginaInscritosDetail + 1)" 
-                      style="padding: 8px 14px; border-radius: 10px; border: 1px solid #cbd5e1; background: #ffffff; color: #0f172a; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.03);"
-                      [style.opacity]="paginaInscritosDetail === totalPaginasInscritosDetail ? '0.4' : '1'">
+              <button class="p-nav-btn" [disabled]="paginaInscritosDetail === totalPaginasInscritosDetail" (click)="cambiarPaginaInscritosDetail(paginaInscritosDetail + 1)">
                 Siguiente ►
               </button>
             </div>
           </div>
         </div>
 
-        <!-- ==================== TAB 2: FIXTURE ==================== -->
-        <div *ngIf="compDetailTab === 'fixture'" class="tab-pane animate-up">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-            <div class="section-label" style="font-size: 12px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0;">
-              <ion-icon name="calendar-outline" style="color: #6366f1;"></ion-icon>
-              FIXTURE - {{ currentDetailCategory?.nombre || 'General' }}
-            </div>
-            <!-- FILTER TOGGLE -->
-            <div style="display: flex; gap: 3px; background: #f1f5f9; padding: 2px; border-radius: 10px;">
-              <button type="button" (click)="soloMisPartidosFixture = true" style="padding: 4px 8px; font-size: 10px; font-weight: 800; border-radius: 8px; border: none; cursor: pointer;" [style.background]="soloMisPartidosFixture ? '#0f172a' : 'transparent'" [style.color]="soloMisPartidosFixture ? '#ccff00' : '#475569'">
-                Mis Partidos
-              </button>
-              <button type="button" (click)="soloMisPartidosFixture = false" style="padding: 4px 8px; font-size: 10px; font-weight: 800; border-radius: 8px; border: none; cursor: pointer;" [style.background]="!soloMisPartidosFixture ? '#0f172a' : 'transparent'" [style.color]="!soloMisPartidosFixture ? '#ccff00' : '#475569'">
-                Ver Todos
-              </button>
-            </div>
+        <!-- LISTA 2: JUGADORES BUSCANDO PAREJA (AGENTES LIBRES) -->
+        <div *ngIf="subTabInscritos === 'busco_pareja'">
+          <div class="section-label">
+            <ion-icon name="person-add-outline" style="color: #059669;"></ion-icon>
+            JUGADORES DISPONIBLES EN {{ (currentDetailCategory?.nombre || 'ESTA CATEGORÍA') | uppercase }}
           </div>
 
-          <!-- JORNADAS / WEEKS BAR -->
-          <div class="jornadas-scroll" *ngIf="currentDetailJornadas.length > 0" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 16px;">
-            <div class="jornada-chip" *ngFor="let j of currentDetailJornadas; let jIdx = index"
-                 [class.active]="selectedJornadaIdx === jIdx" (click)="selectedJornadaIdx = jIdx"
-                 [style.background]="selectedJornadaIdx === jIdx ? '#0f172a' : '#ffffff'"
-                 [style.color]="selectedJornadaIdx === jIdx ? '#ccff00' : '#475569'"
-                 style="padding: 6px 14px; border-radius: 16px; font-weight: 800; font-size: 12px; white-space: nowrap; cursor: pointer; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
-              {{ j.nombre || ('Semana ' + (j.numero_jornada || jIdx + 1)) }}
+          <!-- Empty State Elegante -->
+          <div *ngIf="getBuscandoParejaList().length === 0" class="empty-agentes-box animate-up">
+            <div class="eab-icon-circle">
+              <ion-icon name="people-outline"></ion-icon>
             </div>
-          </div>
-
-          <div *ngIf="filteredDetailJornadaPartidos.length === 0" class="empty-matches" style="text-align: center; padding: 24px; color: #64748b; background: #fff; border-radius: 18px; border: 1px solid #e2e8f0;">
-            <p *ngIf="soloMisPartidosFixture && currentDetailJornada?.partidos?.length > 0" style="margin: 0; font-size: 13px; font-weight: 700;">No tienes partidos programados en esta jornada.</p>
-            <p *ngIf="!soloMisPartidosFixture || !currentDetailJornada?.partidos || currentDetailJornada.partidos.length === 0" style="margin: 0; font-size: 13px; font-weight: 700;">No hay partidos programados para esta fecha/jornada.</p>
-            <button *ngIf="soloMisPartidosFixture && currentDetailJornada?.partidos?.length > 0" (click)="soloMisPartidosFixture = false" style="margin-top: 10px; font-size: 11px; font-weight: 800; background: #0f172a; color: #fff; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer;">
-              👁️ Ver todos los partidos de la jornada
+            <h4>Sin jugadores en espera</h4>
+            <p>No hay jugadores buscando compañero por ahora. Si quieres jugar este torneo, anótate como Agente Libre para que otros te inviten.</p>
+            <button class="eab-cta-btn" (click)="inscribirComoAgenteLibre()">
+              <ion-icon name="person-add-outline"></ion-icon>
+              <span>Anotarme en Busco Pareja</span>
             </button>
           </div>
 
-          <!-- MATCHES LIST FOR SELECTED JORNADA -->
-          <div class="match-history-list" *ngIf="filteredDetailJornadaPartidos.length > 0">
-            <div class="mh-card animate-up" *ngFor="let m of filteredDetailJornadaPartidos; let i = index" [style.animation-delay]="i * 0.05 + 's'">
-              <div class="mh-indicator">
-                <div class="mh-dot" [class.jugado]="m.estado === 'Jugado' || m.estado === 'Walkover'"></div>
-              </div>
-              <div class="mh-content">
-                <div class="mh-teams">
-                  <span class="mh-t1">{{ getMatchTeamNames(m).team1 }}</span>
-                  <span class="mh-score" *ngIf="m.estado === 'Jugado' || m.estado === 'Walkover' || m.resultado_t1 !== null">
-                    {{ getMatchScore(m) }}
-                  </span>
-                  <span class="mh-score pending" *ngIf="m.estado !== 'Jugado' && m.estado !== 'Walkover' && m.resultado_t1 === null">
-                    VS
-                  </span>
-                  <span class="mh-t2">{{ getMatchTeamNames(m).team2 }}</span>
+          <!-- Lista de Agentes Libres Reales -->
+          <div class="agentes-grid" *ngIf="getBuscandoParejaList().length > 0">
+            <div class="agente-card animate-up" *ngFor="let ag of getBuscandoParejaList(); let i = index">
+              <div class="ag-top-row">
+                <div class="ag-left-profile">
+                  <img [src]="ag.avatar || 'assets/avatar.png'" alt="Avatar" class="ag-avatar">
+                  <div class="ag-name-col">
+                    <h4 class="ag-name">{{ ag.nombre }}</h4>
+                    <div class="ag-tags-row">
+                      <span class="ag-tag nivel">Nivel {{ ag.nivel }}</span>
+                      <span class="ag-tag pos">🎾 {{ ag.posicion }}</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="mh-meta">
-                  <span>📍 {{ getMatchCanchaDisplay(m) }}</span>
-                  <span>📅 {{ getMatchFechaDisplay(m) }}</span>
-                  <span>⏰ {{ getMatchHoraDisplay(m) }}</span>
-                  <span class="mh-result-label" [class.win]="m.estado === 'Jugado'">
-                    {{ m.estado || 'Programado' }}
-                  </span>
+                <span class="ag-time">{{ ag.tiempo }}</span>
+              </div>
+              <p *ngIf="ag.mensaje" class="ag-msg">"{{ ag.mensaje }}"</p>
+              <div class="ag-actions-row">
+                <button *ngIf="!isEnrolledInSelectedComp && !ag.esUsuarioActual" (click)="unirseConAgenteLibre(ag)" class="ag-dupla-btn">
+                  <span>🤝 Hacer Dupla e Inscribirnos</span>
+                </button>
+                <div *ngIf="ag.esUsuarioActual" class="ag-my-badge-wrap">
+                  <span class="ag-active-pill">✅ Tu publicación activa</span>
+                  <button (click)="eliminarRegistroAgenteLibre(ag)" class="ag-delete-btn" title="Cancelar publicación">
+                    <ion-icon name="trash-outline"></ion-icon>
+                    <span>Eliminar</span>
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- ==================== TAB 3: TABLA DE POSICIONES ==================== -->
-        <div *ngIf="compDetailTab === 'posiciones'" class="tab-pane animate-up">
-          <div class="section-label" style="font-size: 12px; font-weight: 900; color: #0f172a; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
-            <ion-icon name="podium-outline" style="color: #6366f1;"></ion-icon>
-            TABLA DE POSICIONES - {{ currentDetailCategory?.nombre || 'General' }}
+      </div>
+
+      <!-- ==================== TAB 2: FIXTURE ==================== -->
+      <div *ngIf="compDetailTab === 'fixture'" class="tab-pane animate-up">
+        <div class="fixture-header-row">
+          <div class="section-label">
+            <ion-icon name="calendar-outline" style="color: #6366f1;"></ion-icon>
+            FIXTURE - {{ currentDetailCategory?.nombre || 'General' }}
           </div>
-
-          <div *ngIf="!currentDetailCategory?.tabla_posiciones || currentDetailCategory.tabla_posiciones.length === 0" class="empty-matches" style="text-align: center; padding: 30px; color: #64748b; background: #fff; border-radius: 18px; border: 1px solid #e2e8f0;">
-            <p style="margin: 0; font-size: 13px; font-weight: 700;">No se han registrado posiciones aún para esta categoría.</p>
-          </div>
-
-          <div class="standings-table-container" *ngIf="currentDetailCategory?.tabla_posiciones && currentDetailCategory.tabla_posiciones.length > 0" style="overflow-x: auto; background: #ffffff; border-radius: 18px; padding: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
-            <table class="standings-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
-              <thead>
-                <tr style="border-bottom: 2px solid #f1f5f9; color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 800;">
-                  <th style="padding: 10px 8px; text-align: center; width: 36px;">#</th>
-                  <th style="padding: 10px 8px;">Pareja / Jugador</th>
-                  <th style="padding: 10px 6px; text-align: center;">PJ</th>
-                  <th style="padding: 10px 6px; text-align: center;">PG</th>
-                  <th style="padding: 10px 6px; text-align: center;">PP</th>
-                  <th style="padding: 10px 6px; text-align: center; color: #0f172a; font-weight: 900;">PTS</th>
-                  <th style="padding: 10px 6px; text-align: center;">DIF G</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let pos of currentDetailCategory.tabla_posiciones" style="border-bottom: 1px solid #f1f5f9; color: #0f172a;">
-                  <td style="padding: 12px 8px; text-align: center; font-weight: 800;">
-                    <span [style.color]="pos.posicion === 1 ? '#d97706' : (pos.posicion === 2 ? '#64748b' : (pos.posicion === 3 ? '#b45309' : '#0f172a'))">
-                      {{ pos.posicion === 1 ? '🥇' : (pos.posicion === 2 ? '🥈' : (pos.posicion === 3 ? '🥉' : pos.posicion)) }}
-                    </span>
-                  </td>
-                  <td style="padding: 12px 8px; font-weight: 700; color: #0f172a;">
-                    {{ pos.nombre_pareja }}
-                  </td>
-                  <td style="padding: 12px 6px; text-align: center; color: #64748b; font-weight: 600;">{{ pos.pj }}</td>
-                  <td style="padding: 12px 6px; text-align: center; color: #16a34a; font-weight: 700;">{{ pos.pg }}</td>
-                  <td style="padding: 12px 6px; text-align: center; color: #dc2626; font-weight: 600;">{{ pos.pp }}</td>
-                  <td style="padding: 12px 6px; text-align: center; color: #0f172a; font-weight: 950; font-size: 14px;">{{ pos.puntos }}</td>
-                  <td style="padding: 12px 6px; text-align: center; color: #64748b; font-weight: 600;">{{ pos.dif_games > 0 ? '+' + pos.dif_games : pos.dif_games }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </ng-container>
-
-      <!-- VISTA PARA JUGADORES NO INSCRITOS (Solo Información General y Categorías) -->
-      <div *ngIf="!isEnrolledInSelectedComp" class="animate-up" style="margin-top: 15px;">
-        <!-- Descripcion o Reglas si existe -->
-        <div class="comp-desc-card" *ngIf="selectedCompeticionDetail.descripcion" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 18px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
-          <h3 style="margin: 0 0 10px 0; font-size: 13px; font-weight: 900; color: #0f172a; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
-            <ion-icon name="list-outline" style="font-size: 18px; color: #6366f1;"></ion-icon>
-            DESCRIPCIÓN Y REGLAS
-          </h3>
-          <p style="margin: 0; font-size: 13px; color: #475569; line-height: 1.5; white-space: pre-line;">{{ selectedCompeticionDetail.descripcion }}</p>
-        </div>
-
-        <!-- Categorías disponibles con botón de Inscripción -->
-        <div class="comp-cats-card" *ngIf="selectedCompeticionDetail.categorias && selectedCompeticionDetail.categorias.length > 0" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 18px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
-          <h3 style="margin: 0 0 14px 0; font-size: 13px; font-weight: 900; color: #0f172a; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
-            <ion-icon name="ribbon-outline" style="font-size: 18px; color: #6366f1;"></ion-icon>
-            CATEGORÍAS DISPONIBLES
-          </h3>
-          <div style="display: flex; flex-direction: column; gap: 10px;">
-            <div *ngFor="let cat of selectedCompeticionDetail.categorias" style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 12px 14px; border-radius: 14px; border: 1px solid #f1f5f9;">
-              <div>
-                <strong style="color: #0f172a; font-size: 14px; font-weight: 800; display: block;">{{ cat.nombre }}</strong>
-                <span style="color: #64748b; font-size: 11px; font-weight: 600;" *ngIf="cat.genero || cat.nivel">{{ cat.genero || '' }} {{ cat.nivel ? '• Nivel ' + cat.nivel : '' }}</span>
-              </div>
-              <button (click)="openEnrollment(selectedCompeticionDetail)" [disabled]="isEnrolledInComp(selectedCompeticionDetail)" [style.opacity]="isEnrolledInComp(selectedCompeticionDetail) ? '0.5' : '1'" [style.cursor]="isEnrolledInComp(selectedCompeticionDetail) ? 'not-allowed' : 'pointer'" style="background: #0f172a; color: #ccff00; font-weight: 900; font-size: 11px; padding: 8px 14px; border-radius: 10px; border: none; text-transform: uppercase;">
-                {{ isEnrolledInComp(selectedCompeticionDetail) ? 'YA INSCRITO' : 'INSCRIBIRSE' }}
-              </button>
-            </div>
+          <!-- FILTER TOGGLE (visible when user is enrolled) -->
+          <div *ngIf="isEnrolledInSelectedComp" class="fixture-filter-toggle">
+            <button type="button" [class.active]="soloMisPartidosFixture" (click)="soloMisPartidosFixture = true">
+              Mis Partidos
+            </button>
+            <button type="button" [class.active]="!soloMisPartidosFixture" (click)="soloMisPartidosFixture = false">
+              Ver Todos
+            </button>
           </div>
         </div>
 
-        <!-- Banner Informativo -->
-        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 20px; padding: 24px 20px; text-align: center; margin-top: 20px; box-shadow: 0 10px 25px rgba(15,23,42,0.2); border: 1px solid rgba(255,255,255,0.08);">
-          <div style="width: 50px; height: 50px; background: rgba(204,255,0,0.15); color: #ccff00; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; border: 1px solid rgba(204,255,0,0.3);">
-            <ion-icon name="trophy-outline" style="font-size: 24px;"></ion-icon>
+        <!-- JORNADAS / WEEKS BAR -->
+        <div class="jornadas-scroll" *ngIf="currentDetailJornadas.length > 0">
+          <div class="jornada-chip" *ngFor="let j of currentDetailJornadas; let jIdx = index"
+               [class.active]="selectedJornadaIdx === jIdx" (click)="selectedJornadaIdx = jIdx">
+            {{ j.nombre || ('Semana ' + (j.numero_jornada || jIdx + 1)) }}
           </div>
-          <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 900; color: #ffffff;">¿Quieres ver el Fixture y Tabla de Posiciones?</h4>
-          <p style="margin: 0 0 18px 0; font-size: 13px; color: #94a3b8; line-height: 1.4; max-width: 320px; margin-left: auto; margin-right: auto;">
-            La lista de inscritos, el fixture semanal y la tabla de posiciones se habilitan únicamente al estar inscrito en esta competición.
-          </p>
-          <button (click)="openEnrollment(selectedCompeticionDetail)" [disabled]="isEnrolledInComp(selectedCompeticionDetail)" [style.opacity]="isEnrolledInComp(selectedCompeticionDetail) ? '0.5' : '1'" [style.cursor]="isEnrolledInComp(selectedCompeticionDetail) ? 'not-allowed' : 'pointer'" style="background: #ccff00; color: #000; font-weight: 900; font-size: 13px; padding: 12px 26px; border-radius: 14px; border: none; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(204,255,0,0.3);">
-            {{ isEnrolledInComp(selectedCompeticionDetail) ? '✓ YA ESTÁS INSCRITO' : '⚡ INSCRIBIRSE AHORA' }}
+        </div>
+
+        <div *ngIf="filteredDetailJornadaPartidos.length === 0" class="empty-matches">
+          <p *ngIf="soloMisPartidosFixture && currentDetailJornada?.partidos?.length > 0">No tienes partidos programados en esta jornada.</p>
+          <p *ngIf="!soloMisPartidosFixture || !currentDetailJornada?.partidos || currentDetailJornada.partidos.length === 0">No hay partidos programados para esta fecha/jornada.</p>
+          <button class="btn-show-all-jornada" *ngIf="soloMisPartidosFixture && currentDetailJornada?.partidos?.length > 0" (click)="soloMisPartidosFixture = false">
+            👁️ Ver todos los partidos de la jornada
           </button>
+        </div>
+        <!-- MATCHES LIST FOR SELECTED JORNADA -->
+        <div class="match-history-list" *ngIf="filteredDetailJornadaPartidos.length > 0">
+          <div class="mh-card animate-up" *ngFor="let m of filteredDetailJornadaPartidos; let i = index" [style.animation-delay]="i * 0.05 + 's'" (click)="openH2HModal(m, 'match')" style="cursor: pointer;">
+            <div class="mh-indicator">
+              <div class="mh-dot" [class.jugado]="m.estado === 'Jugado' || m.estado === 'Walkover'"></div>
+            </div>
+            <div class="mh-content">
+              <div class="mh-teams">
+                <span class="mh-t1">{{ getMatchTeamNames(m).team1 }}</span>
+                <span class="mh-score" *ngIf="m.estado === 'Jugado' || m.estado === 'Walkover' || m.resultado_t1 !== null">
+                  {{ getMatchScore(m) }}
+                </span>
+                <span class="mh-score pending" *ngIf="m.estado !== 'Jugado' && m.estado !== 'Walkover' && m.resultado_t1 === null">
+                  VS
+                </span>
+                <span class="mh-t2">{{ getMatchTeamNames(m).team2 }}</span>
+              </div>
+              <div class="mh-meta">
+                <span>📍 {{ getMatchCanchaDisplay(m) }}</span>
+                <span>📅 {{ getMatchFechaDisplay(m) }}</span>
+                <span>⏰ {{ getMatchHoraDisplay(m) }}</span>
+                <span class="mh-result-label" [class.win]="m.estado === 'Jugado'" style="display: inline-flex; align-items: center; gap: 4px;">
+                  <span>⚔️ H2H</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 3: TABLA DE POSICIONES ==================== -->
+      <div *ngIf="compDetailTab === 'posiciones'" class="tab-pane animate-up">
+        <div class="section-label">
+          <ion-icon name="podium-outline" style="color: #6366f1;"></ion-icon>
+          TABLA DE POSICIONES - {{ currentDetailCategory?.nombre || 'General' }}
+        </div>
+
+        <div *ngIf="!currentDetailCategory?.tabla_posiciones || currentDetailCategory.tabla_posiciones.length === 0" class="empty-matches">
+          <p>No se han registrado posiciones aún para esta categoría.</p>
+        </div>
+
+        <div class="standings-table-container" *ngIf="currentDetailCategory?.tabla_posiciones && currentDetailCategory.tabla_posiciones.length > 0">
+          <table class="standings-table">
+            <thead>
+              <tr>
+                <th class="col-pos">#</th>
+                <th class="col-team">Pareja / Jugador</th>
+                <th class="col-stat">PJ</th>
+                <th class="col-stat">PG</th>
+                <th class="col-stat">PP</th>
+                <th class="col-stat col-pts">PTS</th>
+                <th class="col-stat col-dif">DIF G</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let pos of currentDetailCategory.tabla_posiciones" (click)="openH2HModal(pos, 'standing')" style="cursor: pointer;" title="Tocar para ver Head to Head">
+                <td class="col-pos">
+                  <span class="pos-badge" [class.gold]="pos.posicion === 1" [class.silver]="pos.posicion === 2" [class.bronze]="pos.posicion === 3">
+                    {{ pos.posicion === 1 ? '🥇' : (pos.posicion === 2 ? '🥈' : (pos.posicion === 3 ? '🥉' : pos.posicion)) }}
+                  </span>
+                </td>
+                <td class="col-team">
+                  <span class="team-name">{{ getStandingPairName(pos) }}</span>
+                </td>
+                <td class="col-stat">{{ pos.pj }}</td>
+                <td class="col-stat win-stat">{{ pos.pg }}</td>
+                <td class="col-stat loss-stat">{{ pos.pp }}</td>
+                <td class="col-stat col-pts">{{ pos.puntos }}</td>
+                <td class="col-stat col-dif">{{ pos.dif_games > 0 ? '+' + pos.dif_games : pos.dif_games }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
     </div>
   </div>
 
-
-
   <!-- ======================= -->
   <!-- 2. CLUB DETAIL VIEW -->
   <!-- ======================= -->
   <div *ngIf="selectedClub && !selectedCompeticionDetail" class="animate-up">
-    <div class="detail-hero-v6" [style.background-image]="'url(' + selectedClub.logoUrl + '), url(assets/fondo-cancha.png)'">
-        <div class="hero-overlay-v6"></div>
+    <div class="detail-hero-v6" [style.background-image]="'url(' + (selectedClub.logoUrl || defaultClubImage) + '), url(assets/fondo-cancha.png)'">
+      <div class="hero-overlay-v6"></div>
+      <div class="fab-back-v6 right" (click)="goBack()">
+        <ion-icon name="close-outline"></ion-icon>
+      </div>
     </div>
     
     <div class="detail-content-card">
       <div class="club-info-header">
         <h2>{{ selectedClub.nombre }}</h2>
-        <ion-icon name="share-outline" class="fav-icon-btn"></ion-icon>
+        <ion-icon name="share-outline" class="fav-icon-btn" (click)="shareClub()"></ion-icon>
       </div>
       <p class="address-text">{{ selectedClub.direccion }}</p>
 
@@ -610,16 +721,22 @@
               </div>
 
               <h4 class="comp-title">{{ t.nombre }}</h4>
+              <div class="t-cat-row" style="margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                <span *ngIf="t.categoria || t.categoria_nombre" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 8px;">🏷️ {{ t.categoria || t.categoria_nombre }}</span>
+                <span class="t-capacity-pill" [class.full]="isCompFull(t)">
+                  👥 {{ getInscritosDisplay(t) }}
+                </span>
+              </div>
 
               <div class="t-footer-row">
                 <div class="t-meta">
                   <ion-icon name="calendar-outline"></ion-icon>
-                  <span>{{ t.fecha | date:'dd MMM, yyyy' }} • {{ t.hora_inicio.slice(0,5) }} HRS</span>
+                  <span>{{ t.fecha | date:'dd MMM, yyyy' }} • {{ (t.hora_inicio || '00:00').slice(0,5) }} HRS</span>
                 </div>
-                <div class="btn-group-row" style="display: flex; gap: 8px;">
-                  <button class="view-detail-btn-v6" (click)="openCompeticionDetail(t)" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #0f172a; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 11px; cursor: pointer;">DETALLES</button>
-                  <button class="join-btn-v6" (click)="openEnrollment(t)" [disabled]="isEnrolledInComp(t)" [style.opacity]="isEnrolledInComp(t) ? '0.5' : '1'" [style.cursor]="isEnrolledInComp(t) ? 'not-allowed' : 'pointer'">
-                    {{ isEnrolledInComp(t) ? 'INSCRITO' : 'INSCRIPCIÓN' }}
+                <div class="btn-group-row">
+                  <button class="view-detail-btn-v6" (click)="openCompeticionDetail(t)">DETALLES</button>
+                  <button class="join-btn-v6" (click)="openEnrollment(t)" [disabled]="isEnrolledInComp(t) || isCompFull(t)" [style.opacity]="(isEnrolledInComp(t) || isCompFull(t)) ? '0.5' : '1'" [style.cursor]="(isEnrolledInComp(t) || isCompFull(t)) ? 'not-allowed' : 'pointer'">
+                    {{ isEnrolledInComp(t) ? 'INSCRITO' : (isCompFull(t) ? 'LLENO' : 'INSCRIPCIÓN') }}
                   </button>
                 </div>
               </div>
@@ -640,22 +757,28 @@
 
         <div class="tournament-list-v6">
           <div class="t-card-v6 animate-up" *ngFor="let t of torneosList" style="margin-bottom: 16px;">
-             <div class="t-poster" *ngIf="t.poster_url" [style.background-image]="'url(' + t.poster_url + ')'"></div>
+             <div class="t-poster" *ngIf="t.poster_url || t.imagen_url" [style.background-image]="'url(' + (t.poster_url || t.imagen_url) + ')'"></div>
              <div class="t-body">
                 <div class="t-header-row">
                   <span class="comp-badge oficial">TORNEO</span>
                   <span class="p-amount-pill" *ngIf="formatPrecio(t.precio)">{{ formatPrecio(t.precio) }}</span>
                 </div>
                 <h4 class="comp-title">{{ t.nombre }}</h4>
+                <div class="t-cat-row" style="margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                  <span *ngIf="t.categoria_nombre || t.categoria" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 8px;">🏷️ {{ t.categoria_nombre || t.categoria }}</span>
+                  <span class="t-capacity-pill" [class.full]="isCompFull(t)">
+                    👥 {{ getInscritosDisplay(t) }}
+                  </span>
+                </div>
                 <div class="t-footer-row">
                   <div class="t-meta">
                     <ion-icon name="calendar-outline"></ion-icon>
-                    <span>{{ t.fecha_inicio | date:'dd MMM' }} - {{ t.fecha_fin | date:'dd MMM' }}</span>
+                    <span>{{ t.fecha_display || ((t.fecha_inicio | date:'dd MMM') + ' - ' + (t.fecha_fin | date:'dd MMM')) }}</span>
                   </div>
-                  <div class="btn-group-row" style="display: flex; gap: 8px;">
-                    <button class="view-detail-btn-v6" (click)="openCompeticionDetail(t)" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #0f172a; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 11px; cursor: pointer;">DETALLES</button>
-                    <button class="join-btn-v6" (click)="openEnrollment(t)" [disabled]="isEnrolledInComp(t)" [style.opacity]="isEnrolledInComp(t) ? '0.5' : '1'" [style.cursor]="isEnrolledInComp(t) ? 'not-allowed' : 'pointer'">
-                      {{ isEnrolledInComp(t) ? 'INSCRITO' : 'INSCRIPCIÓN' }}
+                  <div class="btn-group-row">
+                    <button class="view-detail-btn-v6" (click)="openCompeticionDetail(t)">DETALLES</button>
+                    <button class="join-btn-v6" (click)="openEnrollment(t)" [disabled]="isEnrolledInComp(t) || isCompFull(t)" [style.opacity]="(isEnrolledInComp(t) || isCompFull(t)) ? '0.5' : '1'" [style.cursor]="(isEnrolledInComp(t) || isCompFull(t)) ? 'not-allowed' : 'pointer'">
+                      {{ isEnrolledInComp(t) ? 'INSCRITO' : (isCompFull(t) ? 'LLENO' : 'INSCRIPCIÓN') }}
                     </button>
                   </div>
                 </div>
@@ -676,22 +799,28 @@
 
         <div class="tournament-list-v6">
           <div class="t-card-v6 animate-up" *ngFor="let l of ligasClubList" style="margin-bottom: 16px;">
-             <div class="t-poster" *ngIf="l.imagen_url" [style.background-image]="'url(' + l.imagen_url + ')'"></div>
+             <div class="t-poster" *ngIf="l.imagen_url || l.imagen || l.poster_url" [style.background-image]="'url(' + (l.imagen_url || l.imagen || l.poster_url) + ')'"></div>
              <div class="t-body">
                 <div class="t-header-row">
                   <span class="comp-badge liga">LIGA</span>
                   <span class="p-amount-pill" *ngIf="formatPrecio(l.precio)">{{ formatPrecio(l.precio) }}</span>
                 </div>
                 <h4 class="comp-title">{{ l.nombre }}</h4>
+                <div class="t-cat-row" style="margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                  <span *ngIf="l.categoria_nombre || l.categoria" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 8px;">🏷️ {{ l.categoria_nombre || l.categoria }}</span>
+                  <span class="t-capacity-pill" [class.full]="isCompFull(l)">
+                    👥 {{ getInscritosDisplay(l) }}
+                  </span>
+                </div>
                 <div class="t-footer-row">
                   <div class="t-meta">
                     <ion-icon name="calendar-outline"></ion-icon>
-                    <span>{{ l.fecha_inicio | date:'dd MMM' }} - {{ l.fecha_fin | date:'dd MMM' }}</span>
+                    <span>{{ l.fecha_display || ((l.fecha_inicio | date:'dd MMM') + ' - ' + (l.fecha_fin | date:'dd MMM')) }}</span>
                   </div>
-                  <div class="btn-group-row" style="display: flex; gap: 8px;">
-                    <button class="view-detail-btn-v6" (click)="openCompeticionDetail(l)" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #0f172a; padding: 8px 14px; border-radius: 10px; font-weight: 800; font-size: 11px; cursor: pointer;">DETALLES</button>
-                    <button class="join-btn-v6" (click)="openEnrollment(l)" [disabled]="isEnrolledInComp(l)" [style.opacity]="isEnrolledInComp(l) ? '0.5' : '1'" [style.cursor]="isEnrolledInComp(l) ? 'not-allowed' : 'pointer'">
-                      {{ isEnrolledInComp(l) ? 'INSCRITO' : 'INSCRIPCIÓN' }}
+                  <div class="btn-group-row">
+                    <button class="view-detail-btn-v6" (click)="openCompeticionDetail(l)">DETALLES</button>
+                    <button class="join-btn-v6" (click)="openEnrollment(l)" [disabled]="isEnrolledInComp(l) || isCompFull(l)" [style.opacity]="(isEnrolledInComp(l) || isCompFull(l)) ? '0.5' : '1'" [style.cursor]="(isEnrolledInComp(l) || isCompFull(l)) ? 'not-allowed' : 'pointer'">
+                      {{ isEnrolledInComp(l) ? 'INSCRITO' : (isCompFull(l) ? 'LLENO' : 'INSCRIPCIÓN') }}
                     </button>
                   </div>
                 </div>
@@ -702,8 +831,180 @@
     </div>
   </div>
 
+  <!-- ============================================== -->
+  <!-- MODAL 1: HEAD TO HEAD (H2H) & FICHA DE RIVAL -->
+  <!-- ============================================== -->
+  <ion-modal [isOpen]="showH2HModal" (didDismiss)="closeH2HModal()" [initialBreakpoint]="0.85" [breakpoints]="[0, 0.5, 0.85, 1]">
+    <ng-template>
+      <ion-content class="ion-padding-bottom">
+        <div class="h2h-modal-body" *ngIf="selectedH2HData" style="padding: 24px 20px 40px; background: #ffffff;">
+          <div class="grab-handle" style="width: 44px; height: 5px; background: #cbd5e1; border-radius: 4px; margin: 0 auto 18px;"></div>
+          
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="background: rgba(99, 102, 241, 0.12); color: #6366f1; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px;">⚔️ HEAD TO HEAD</span>
+              <span style="font-size: 12px; font-weight: 700; color: #64748b;">{{ selectedH2HData.categoria }}</span>
+            </div>
+            <ion-icon name="close-outline" (click)="closeH2HModal()" style="font-size: 24px; color: #64748b; cursor: pointer;"></ion-icon>
+          </div>
+
+          <!-- DUEL HEADER VS -->
+          <div class="h2h-vs-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 20px; padding: 20px 16px; color: white; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(15,23,42,0.2);">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              
+              <!-- TEAM 1 (USER) -->
+              <div style="flex: 1; text-align: center;">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: #ccff00; color: #000; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; margin: 0 auto 8px; border: 3px solid rgba(255,255,255,0.2);">
+                  🎾
+                </div>
+                <h4 style="margin: 0; font-size: 13px; font-weight: 900; color: #ccff00; line-height: 1.2;">{{ selectedH2HData.myTeam }}</h4>
+                <span style="font-size: 11px; color: rgba(255,255,255,0.7);">Tu Dupla</span>
+              </div>
+
+              <!-- VS BADGE -->
+              <div style="padding: 0 12px; text-align: center;">
+                <span style="background: rgba(255,255,255,0.15); padding: 5px 10px; border-radius: 12px; font-size: 11px; font-weight: 900; letter-spacing: 1px;">VS</span>
+                <div style="font-size: 16px; font-weight: 950; color: #ffffff; margin-top: 6px;">{{ selectedH2HData.h2hWins }} - {{ selectedH2HData.h2hLosses }}</div>
+              </div>
+
+              <!-- TEAM 2 (RIVAL) -->
+              <div style="flex: 1; text-align: center;">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: #6366f1; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; margin: 0 auto 8px; border: 3px solid rgba(255,255,255,0.2);">
+                  ⚔️
+                </div>
+                <h4 style="margin: 0; font-size: 13px; font-weight: 900; color: #ffffff; line-height: 1.2;">{{ selectedH2HData.rivalTeam }}</h4>
+                <span style="font-size: 11px; color: rgba(255,255,255,0.7);">Rivales</span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- BALANCE & WINRATE BAR -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px 16px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; font-weight: 800;">
+              <span style="color: #059669;">{{ selectedH2HData.myWinRate }}% Victorias</span>
+              <span style="color: #64748b;">Balance General</span>
+              <span style="color: #6366f1;">{{ selectedH2HData.rivalWinRate }}% Victorias</span>
+            </div>
+            <!-- Progress comparison bar -->
+            <div style="height: 10px; border-radius: 6px; background: #6366f1; display: flex; overflow: hidden;">
+              <div [style.width]="selectedH2HData.myWinRate + '%'" style="background: #10b981; height: 100%;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: #64748b; font-weight: 700;">
+              <span>{{ selectedH2HData.myGames }} Games ganados</span>
+              <span>{{ selectedH2HData.rivalGames }} Games ganados</span>
+            </div>
+          </div>
+
+          <!-- ESTADÍSTICAS EN EL TORNEO ACTUAL SI EXISTEN -->
+          <div *ngIf="selectedH2HData.standing" style="margin-bottom: 20px;">
+            <div class="section-label" style="font-size: 12px; font-weight: 800; color: #0f172a; margin-bottom: 8px; text-transform: uppercase;">
+              📊 Rendimiento del Rival en el Torneo
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+              <div style="background: #f1f5f9; padding: 10px; border-radius: 12px; text-align: center;">
+                <span style="font-size: 10px; color: #64748b; font-weight: 800; display: block;">PUESTO</span>
+                <span style="font-size: 16px; font-weight: 950; color: #0f172a;">#{{ selectedH2HData.standing.posicion }}</span>
+              </div>
+              <div style="background: #f1f5f9; padding: 10px; border-radius: 12px; text-align: center;">
+                <span style="font-size: 10px; color: #64748b; font-weight: 800; display: block;">JUGADOS</span>
+                <span style="font-size: 16px; font-weight: 950; color: #0f172a;">{{ selectedH2HData.standing.pj }}</span>
+              </div>
+              <div style="background: #f1f5f9; padding: 10px; border-radius: 12px; text-align: center;">
+                <span style="font-size: 10px; color: #64748b; font-weight: 800; display: block;">GANADOS</span>
+                <span style="font-size: 16px; font-weight: 950; color: #10b981;">{{ selectedH2HData.standing.pg }}</span>
+              </div>
+              <div style="background: #f1f5f9; padding: 10px; border-radius: 12px; text-align: center;">
+                <span style="font-size: 10px; color: #64748b; font-weight: 800; display: block;">DIF G</span>
+                <span style="font-size: 16px; font-weight: 950; color: #6366f1;">{{ selectedH2HData.standing.dif_games }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- HISTORIAL DE ENFRENTAMIENTOS PREVIOS -->
+          <div>
+            <div class="section-label" style="font-size: 12px; font-weight: 800; color: #0f172a; margin-bottom: 8px; text-transform: uppercase;">
+              🎾 Enfrentamientos Previos
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div *ngFor="let hm of selectedH2HData.historialMatches" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                  <div style="font-size: 12.5px; font-weight: 800; color: #0f172a;">{{ hm.torneo }}</div>
+                  <div style="font-size: 11px; color: #64748b;">📅 {{ hm.fecha }} • ⏱️ {{ hm.duracion }}</div>
+                </div>
+                <div style="text-align: right;">
+                  <span style="font-size: 13.5px; font-weight: 900; color: #0f172a; display: block;">{{ hm.resultado }}</span>
+                  <span [style.color]="hm.ganador === 'myTeam' ? '#059669' : '#dc2626'" style="font-size: 10.5px; font-weight: 800; text-transform: uppercase;">
+                    {{ hm.ganador === 'myTeam' ? '✓ Victoria' : '✗ Derrota' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOTÓN CERRAR -->
+          <div style="margin-top: 24px;">
+            <button (click)="closeH2HModal()" style="width: 100%; background: #0f172a; color: #ffffff; padding: 14px; border-radius: 14px; font-weight: 900; font-size: 13px; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px;">
+              Entendido
+            </button>
+          </div>
+
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- ============================================== -->
+  <!-- MODAL 2: REGISTRO COMO AGENTE LIBRE (BUSCO PAREJA) -->
+  <!-- ============================================== -->
+  <ion-modal [isOpen]="showAgenteLibreModal" (didDismiss)="showAgenteLibreModal = false" [initialBreakpoint]="0.75" [breakpoints]="[0, 0.5, 0.75, 1]">
+    <ng-template>
+      <ion-content class="ion-padding-bottom">
+        <div style="padding: 24px 20px 40px; background: #ffffff;">
+          <div class="grab-handle" style="width: 44px; height: 5px; background: #cbd5e1; border-radius: 4px; margin: 0 auto 18px;"></div>
+          
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <h2 style="margin: 0; font-size: 18px; font-weight: 950; color: #0f172a;">🙋‍♂️ Inscribirme en "Busco Pareja"</h2>
+            <ion-icon name="close-outline" (click)="showAgenteLibreModal = false" style="font-size: 24px; color: #64748b; cursor: pointer;"></ion-icon>
+          </div>
+
+          <div style="background: rgba(16, 185, 129, 0.1); border-radius: 14px; padding: 12px; margin-bottom: 18px; display: flex; gap: 10px; align-items: center;">
+            <span style="font-size: 20px;">💡</span>
+            <p style="margin: 0; font-size: 12px; color: #047857; line-height: 1.3;">
+              Tu perfil quedará visible en la pestaña <strong>"Buscan Pareja"</strong> de este torneo para que otros jugadores te inviten a competir.
+            </p>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 12px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">¿En qué lado de la pista juegas?</label>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+              <button type="button" [style.background]="agenteLibrePosicion === 'Drive' ? '#0f172a' : '#f1f5f9'" [style.color]="agenteLibrePosicion === 'Drive' ? '#ccff00' : '#475569'" (click)="agenteLibrePosicion = 'Drive'" style="padding: 10px; border-radius: 10px; border: none; font-weight: 800; font-size: 12px; cursor: pointer;">
+                🎾 Drive
+              </button>
+              <button type="button" [style.background]="agenteLibrePosicion === 'Revés' ? '#0f172a' : '#f1f5f9'" [style.color]="agenteLibrePosicion === 'Revés' ? '#ccff00' : '#475569'" (click)="agenteLibrePosicion = 'Revés'" style="padding: 10px; border-radius: 10px; border: none; font-weight: 800; font-size: 12px; cursor: pointer;">
+                🎾 Revés
+              </button>
+              <button type="button" [style.background]="agenteLibrePosicion === 'Ambos' ? '#0f172a' : '#f1f5f9'" [style.color]="agenteLibrePosicion === 'Ambos' ? '#ccff00' : '#475569'" (click)="agenteLibrePosicion = 'Ambos'" style="padding: 10px; border-radius: 10px; border: none; font-weight: 800; font-size: 12px; cursor: pointer;">
+                ⚡ Ambos
+              </button>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 12px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">Mensaje o disponibilidad (opcional):</label>
+            <textarea [(ngModel)]="agenteLibreMensaje" placeholder="Ej: Juego 5ta, motivado para competir y darlo todo..." rows="3" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 12px; padding: 10px 12px; font-size: 13px; outline: none; font-family: inherit; resize: none;"></textarea>
+          </div>
+
+          <button (click)="confirmarRegistroAgenteLibre()" style="width: 100%; background: #059669; color: white; padding: 14px; border-radius: 14px; font-weight: 900; font-size: 13px; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(5,150,105,0.3);">
+            ✓ Publicar en Busco Pareja
+          </button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
   <!-- ENROLLMENT MODAL -->
-  <ion-modal [isOpen]="showPartnerModal" (didDismiss)="showPartnerModal = false" [initialBreakpoint]="0.8" [breakpoints]="[0, 0.7, 0.9]">
+  <ion-modal [isOpen]="showPartnerModal" (didDismiss)="showPartnerModal = false" [initialBreakpoint]="0.8" [breakpoints]="[0, 0.5, 0.8, 1]">
     <ng-template>
       <ion-content class="ion-padding-bottom">
         <div class="partner-modal">
@@ -738,6 +1039,16 @@
               </div>
               <ion-icon name="close-outline" (click)="showPartnerModal = false"></ion-icon>
             </div>
+
+            <!-- OPINION BUSCO PAREJA DENTRO DEL MODAL -->
+            <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 10px 14px; margin: 10px 16px 14px; display: flex; align-items: center; justify-content: space-between;" (click)="showPartnerModal = false; inscribirComoAgenteLibre()">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 18px;">🙋‍♂️</span>
+                <span style="font-size: 12px; font-weight: 800; color: #047857;">¿No tienes pareja? Anótate como Agente Libre</span>
+              </div>
+              <ion-icon name="chevron-forward-outline" style="color: #059669; font-size: 16px;"></ion-icon>
+            </div>
+
             <div class="p-search">
               <ion-icon name="search-outline"></ion-icon>
               <input type="text" [(ngModel)]="partnerSearchTerm" (input)="onPartnerSearch()" placeholder="Nombre de tu compañero...">
@@ -828,8 +1139,8 @@
     </ng-template>
   </ion-modal>
 
-  <!-- FLOATING BACK BUTTON -->
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 20px; margin-right: 15px;">
+  <!-- FLOATING BACK BUTTON (Consistent navigation) -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 25px; margin-right: 20px;">
     <ion-fab-button (click)="goBack()" class="back-fab-v7">
       <ion-icon name="arrow-back"></ion-icon>
     </ion-fab-button>

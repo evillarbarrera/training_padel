@@ -113,8 +113,10 @@ export class MysqlService {
     );
   }
 
-  getPerfil(userId: number) {
-    return this.http.get<any>(`${this.api}/user/get_perfil.php?user_id=${userId}`, { headers: this.getHeaders() });
+  getPerfil(userId?: number) {
+    const uId = userId || Number(localStorage.getItem('userId')) || Number(localStorage.getItem('user_id')) || 0;
+    const q = uId ? `?user_id=${uId}` : '';
+    return this.http.get<any>(`${this.api}/user/get_perfil.php${q}`, { headers: this.getHeaders() });
   }
 
   updatePerfil(data: any): Observable<any> {
@@ -293,8 +295,40 @@ export class MysqlService {
     return this.http.post<any>(`${this.api}/clubes/update_reserva.php`, data, { headers: this.getHeaders() });
   }
 
-  getMisTorneosCompleto(userId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.api}/torneos/get_mis_torneos_completo.php?user_id=${userId}`, { headers: this.getHeaders() });
+  getMisTorneosCompleto(userId?: number): Observable<any[]> {
+    let uId = userId || Number(localStorage.getItem('userId')) || Number(localStorage.getItem('user_id')) || 0;
+    if (!uId) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const decoded = atob(token);
+          const parts = decoded.split('|');
+          if (parts.length >= 2 && !isNaN(Number(parts[0]))) {
+            uId = Number(parts[0]);
+          }
+        } catch (e) {}
+      }
+    }
+    const q = uId ? `?user_id=${uId}` : '';
+    return this.http.get<any[]>(`${this.api}/torneos/get_mis_torneos_completo.php${q}`, { headers: this.getHeaders() });
+  }
+
+  getMyTournaments(userId?: number): Observable<any[]> {
+    let uId = userId || Number(localStorage.getItem('userId')) || Number(localStorage.getItem('user_id')) || 0;
+    if (!uId) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const decoded = atob(token);
+          const parts = decoded.split('|');
+          if (parts.length >= 2 && !isNaN(Number(parts[0]))) {
+            uId = Number(parts[0]);
+          }
+        } catch (e) {}
+      }
+    }
+    const q = uId ? `?user_id=${uId}` : '';
+    return this.http.get<any[]>(`${this.api}/torneos/get_user_tournaments.php${q}`, { headers: this.getHeaders() });
   }
 
   getCompeticionDetalle(id: number, tipo: string): Observable<any> {

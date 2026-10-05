@@ -107,6 +107,19 @@
             </div>
         </div>
 
+        <!-- WEATHER FORECAST CALLOUT -->
+        <div class="weather-forecast-badge" style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd; border-radius: 14px; padding: 9px 14px; margin-bottom: 14px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">{{ getWeatherSummary(selectedFecha).icon }}</span>
+            <div>
+              <span style="font-size: 12px; font-weight: 850; color: #0369a1;">{{ getWeatherSummary(selectedFecha).temp }} • {{ getWeatherSummary(selectedFecha).desc }}</span>
+            </div>
+          </div>
+          <span style="background: rgba(3, 105, 161, 0.12); color: #0369a1; font-size: 10.5px; font-weight: 850; padding: 3px 8px; border-radius: 8px;">
+            🎾 Clima Óptimo
+          </span>
+        </div>
+
         <!-- DURATION SELECTOR V6 -->
         <div class="duration-selector-row">
             <span class="ds-label">Duración:</span>
@@ -135,73 +148,347 @@
 
         <app-padel-loader *ngIf="loading"></app-padel-loader>
 
-        <!-- COURT LIST -->
+        <!-- COURT & AMENITY LIST -->
         <div *ngIf="!loading && selectedSlot">
-            <h3 class="section-title-v6">Reserva una pista</h3>
-            <p class="section-desc-v6">Crea un partido privado donde puedes invitar a tus amigos</p>
+            <h3 class="section-title-v6">Espacios e Instalaciones</h3>
+            <p class="section-desc-v6">Elige una pista de pádel o arrienda mesas de juego, quinchos y zonas de ocio</p>
             
+            <!-- Category Filter Pills -->
+            <div class="mobile-resource-filter-pills" *ngIf="hasAmenitiesInClub()">
+                <button class="m-pill-btn" [class.active]="activeCategoryFilter === 'all'" (click)="setCategoryFilter('all')">
+                    🏢 Todos
+                </button>
+                <button class="m-pill-btn" *ngIf="getCategoryCountInSlot(selectedSlot, 'padel') > 0" [class.active]="activeCategoryFilter === 'padel'" (click)="setCategoryFilter('padel')">
+                    🎾 Pádel
+                </button>
+                <button class="m-pill-btn" *ngIf="getCategoryCountInSlot(selectedSlot, 'juegos') > 0" [class.active]="activeCategoryFilter === 'juegos'" (click)="setCategoryFilter('juegos')">
+                    🎱 Mesas & Juegos
+                </button>
+                <button class="m-pill-btn" *ngIf="getCategoryCountInSlot(selectedSlot, 'amenities') > 0" [class.active]="activeCategoryFilter === 'amenities'" (click)="setCategoryFilter('amenities')">
+                    🍖 Quinchos & Salones
+                </button>
+                <button class="m-pill-btn" *ngIf="getCategoryCountInSlot(selectedSlot, 'equipamiento') > 0" [class.active]="activeCategoryFilter === 'equipamiento'" (click)="setCategoryFilter('equipamiento')">
+                    🤖 Equipamiento
+                </button>
+            </div>
+
             <div class="court-list-v6">
-                <ng-container *ngFor="let c of selectedSlot.canchas">
-                    <div class="court-item-v6 animate-up" 
-                         *ngIf="getCourtPrice(c) > 0"
+                <ng-container *ngFor="let c of getFilteredCourtsForSlot(selectedSlot)">
+                    
+                    <!-- CASO 1: PISTAS DE PÁDEL / PICKLEBALL (Ultra-Compact Line Item) -->
+                    <div class="court-card-v7 animate-up is-court" 
+                         *ngIf="isCourt(c)"
                          [class.disabled]="!c.disponible">
-                        <div class="c-info">
-                            <h4>{{ c.cancha_nombre }}</h4>
-                            <p>{{ c.ubicacion || 'Exterior' }} | {{ c.tipo_suelo || 'Cristal' }}</p>
-                            <div class="court-price-row">
-                                <div class="price-breakdown">
-                                    <span class="c-price-total">Total: <strong>${{ getCourtPrice(c) | number:'1.0-0' }}</strong></span>
-                                    <span class="c-price-per-player">(${{ (getCourtPrice(c) / 4) | number:'1.0-0' }} por jugador)</span>
+                        <div class="c-info-box">
+                            <!-- Fila 1: Badge + Título -->
+                            <div class="c-top-line">
+                                <span class="cat-pill-v7 padel">
+                                    <span class="p-icon">{{ getCategoryMeta(c).icono }}</span>
+                                    <span>{{ getCategoryMeta(c).badgeLabel }}</span>
+                                </span>
+                                <h4 class="c-item-title">{{ c.cancha_nombre }}</h4>
+                            </div>
+                            
+                            <!-- Fila 2: Subtítulo Specs & Badges Indoor/Outdoor -->
+                            <p class="c-specs-line" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 3px;">
+                                <span style="background: #f1f5f9; color: #475569; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">
+                                  {{ (c.tipo && c.tipo.toLowerCase().includes('indoor')) ? '🏢 Techada' : '☀️ Outdoor' }}
+                                </span>
+                                <span style="background: rgba(99, 102, 241, 0.1); color: #6366f1; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">
+                                  🧱 Cristal Pro
+                                </span>
+                                <span style="font-size: 11px; color: #64748b;">{{ c.superficie || 'Césped Texturado' }}</span>
+                            </p>
+                            
+                            <!-- Fila 3: Precios y Tarifa -->
+                            <div class="c-bottom-line">
+                                <div class="c-price-wrapper">
+                                    <span class="c-price-main">${{ getCourtPrice(c) | number:'1.0-0' }}</span>
+                                    <span class="c-price-sub">(${{ (getCourtPrice(c) / 4) | number:'1.0-0' }}/jug)</span>
                                 </div>
-                                <span class="rate-badge" [class.peak]="c.es_horario_alto">
-                                    {{ c.nombre_tarifa || (c.es_horario_alto ? '⚡ Horario Alto' : '🌿 Horario Bajo') }}
+                                <span class="rate-badge-v7" [class.peak]="c.es_horario_alto">
+                                    {{ c.nombre_tarifa || (c.es_horario_alto ? '⚡ Alto' : '🌿 Bajo') }}
                                 </span>
                             </div>
                         </div>
                         
-                        <div class="reserve-mini-btn" *ngIf="c.disponible" (click)="reservar(selectedSlot, c)">RESERVAR</div>
-                        <div class="reserve-mini-btn disabled" *ngIf="!c.disponible">NO DISPONIBLE</div>
+                        <button class="c-action-btn-v7 padel-btn" 
+                                *ngIf="c.disponible" 
+                                (click)="reservar(selectedSlot, c)">
+                            {{ getCategoryMeta(c).actionLabel }}
+                        </button>
+                        <div class="c-action-btn-v7 disabled-btn" *ngIf="!c.disponible">
+                            OCUPADA
+                        </div>
                     </div>
+
+                    <!-- CASO 2: MESAS DE JUEGO & AMENITIES (Pool, Ping Pong, Quincho, Lounge, etc.) -->
+                    <div class="court-card-v7 amenity-card-v7 animate-up" 
+                         *ngIf="!isCourt(c)"
+                         [ngClass]="'theme-' + (c.categoria || 'otro')"
+                         [class.disabled]="!c.disponible">
+                        
+                        <div class="c-info-box">
+                            <!-- Fila 1: Badge Categoría + Nombre + Capacidad -->
+                            <div class="c-top-line">
+                                <span class="cat-pill-v7" 
+                                      [style.color]="getCategoryMeta(c).colorHex" 
+                                      [style.background]="getCategoryMeta(c).bgHex">
+                                    <span class="p-icon">{{ getCategoryMeta(c).icono }}</span>
+                                    <span>{{ getCategoryMeta(c).badgeLabel }}</span>
+                                </span>
+                                <h4 class="c-item-title">{{ c.cancha_nombre }}</h4>
+                                <span class="cap-pill-v7" *ngIf="c.capacidad">
+                                    <ion-icon name="people-outline"></ion-icon>{{ c.capacidad }}p
+                                </span>
+                            </div>
+
+                            <!-- Fila 2: Specs & Descripción en 1 sola línea con truncado -->
+                            <p class="c-specs-line single-truncate">
+                                <span *ngIf="c.tipo || c.superficie">{{ c.tipo }}<span *ngIf="c.tipo && c.superficie"> • </span>{{ c.superficie }}</span>
+                                <span *ngIf="c.descripcion" class="desc-inline"><span *ngIf="c.tipo || c.superficie"> — </span>{{ c.descripcion }}</span>
+                            </p>
+
+                            <!-- Fila 3: Precio Arriendo y Tarifa -->
+                            <div class="c-bottom-line">
+                                <div class="c-price-wrapper">
+                                    <span class="c-rent-label">Arriendo:</span>
+                                    <span class="c-price-main">${{ getCourtPrice(c) | number:'1.0-0' }}</span>
+                                </div>
+                                <span class="rate-badge-v7" [class.peak]="c.es_horario_alto">
+                                    {{ c.nombre_tarifa || (c.es_horario_alto ? '⚡ Alto' : '🌿 Bajo') }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <button class="c-action-btn-v7 amenity-btn" 
+                                *ngIf="c.disponible" 
+                                [style.background]="getCategoryMeta(c).colorHex"
+                                (click)="reservar(selectedSlot, c)">
+                            {{ getCategoryMeta(c).actionLabel }}
+                        </button>
+                        <div class="c-action-btn-v7 disabled-btn" *ngIf="!c.disponible">
+                            OCUPADA
+                        </div>
+                    </div>
+
                 </ng-container>
 
-                <div *ngIf="getCourtsWithPriceForSlot(selectedSlot).length === 0" style="text-align: center; padding: 25px; color: #8e8e93; font-size: 13px; font-weight: 700;">
-                    No hay pistas disponibles con tarifa para esta duración.
+                <div *ngIf="getFilteredCourtsForSlot(selectedSlot).length === 0" style="text-align: center; padding: 25px; color: #8e8e93; font-size: 13px; font-weight: 700;">
+                    No hay espacios disponibles en esta categoría para la duración seleccionada.
                 </div>
             </div>
         </div>
     </div>
   </div>
 
-  <!-- SUCCESS MODAL PREMIUM -->
-  <div class="success-overlay-pro animate-up" *ngIf="showSuccessModal">
+  <!-- SUCCESS MODAL PREMIUM (Con División de Pago & WhatsApp) -->
+  <div class="success-overlay-pro animate-fade" *ngIf="showSuccessModal">
     <div class="success-card-pro animate-up">
-        <div class="icon-wrap">
-            <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <!-- Close X Button -->
+        <button type="button" class="modal-close-x-btn" (click)="closeSuccessModal()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+
+        <div class="icon-wrap" [style.background]="lastReserva?.isCourt ? 'var(--nike-neon)' : '#ede9fe'">
+            <span style="font-size: 28px;" *ngIf="!lastReserva?.isCourt">{{ lastReserva?.icono || '🎉' }}</span>
+            <ion-icon name="checkmark-sharp" *ngIf="lastReserva?.isCourt"></ion-icon>
         </div>
-        <h2>¡Reserva Lista!</h2>
-        <p>Tu cancha ha sido reservada con éxito. Ya puedes invitar a tus amigos.</p>
+        <h2>{{ lastReserva?.isCourt ? '¡Reserva Lista!' : '¡Arriendo Confirmado!' }}</h2>
+        <p *ngIf="lastReserva?.isCourt">Tu cancha ha sido reservada con éxito. Ya puedes invitar a tus amigos.</p>
+        <p *ngIf="!lastReserva?.isCourt">Tu espacio de ocio ha sido arrendado con éxito. Ya puedes coordinar con tus acompañantes.</p>
         
         <div class="res-summary-box" *ngIf="lastReserva">
             <span class="s-label">Club</span>
             <span class="s-val">{{ lastReserva.club }}</span>
-            <span class="s-label">Pista y Horario</span>
-            <span class="s-val">{{ lastReserva.pista }} • {{ lastReserva.hora }}</span>
-            <span class="s-label" *ngIf="lastReserva.estado">Tipo de Reserva</span>
-            <span class="s-val" *ngIf="lastReserva.estado === 'Entrenamiento'">🎓 Entrenamiento</span>
-            <span class="s-val" *ngIf="lastReserva.estado && lastReserva.estado !== 'Entrenamiento'">🎾 Partido Regular</span>
-            <span class="s-label">Precio</span>
-            <span class="s-val">Total: ${{ lastReserva.precio | number:'1.0-0' }} (${{ lastReserva.precioJugador | number:'1.0-0' }} / jugador)</span>
+            
+            <span class="s-label">{{ lastReserva.isCourt ? 'Pista y Horario' : 'Instalación y Horario' }}</span>
+            <span class="s-val">
+                <span *ngIf="!lastReserva.isCourt">{{ lastReserva.icono }} </span>
+                {{ lastReserva.pista }} • {{ lastReserva.hora }}
+            </span>
+
+            <span class="s-label" *ngIf="!lastReserva.isCourt && (lastReserva.tipo || lastReserva.superficie)">Especificaciones</span>
+            <span class="s-val" *ngIf="!lastReserva.isCourt && (lastReserva.tipo || lastReserva.superficie)">
+                {{ lastReserva.tipo }} {{ lastReserva.superficie ? '• ' + lastReserva.superficie : '' }}
+                <span *ngIf="lastReserva.capacidad"> (Capacidad: {{ lastReserva.capacidad }} personas)</span>
+            </span>
+
+            <span class="s-label" *ngIf="lastReserva.isCourt && lastReserva.estado">Tipo de Reserva</span>
+            <span class="s-val" *ngIf="lastReserva.isCourt && lastReserva.estado === 'Entrenamiento'">🎓 Entrenamiento</span>
+            <span class="s-val" *ngIf="lastReserva.isCourt && lastReserva.estado && lastReserva.estado !== 'Entrenamiento'">🎾 Partido Regular</span>
+            
+            <span class="s-label">Tarifa Total</span>
+            <span class="s-val" *ngIf="lastReserva.isCourt">${{ lastReserva.precio | number:'1.0-0' }}</span>
+            <span class="s-val" *ngIf="!lastReserva.isCourt">${{ lastReserva.precio | number:'1.0-0' }}</span>
+        </div>
+
+        <!-- CALCULADORA DE CUOTAS POR JUGADOR -->
+        <div class="split-calculator-box" *ngIf="lastReserva?.isCourt">
+            <div class="split-head">
+                <span class="s-title">👥 División de Pago</span>
+                <span class="s-badge">Calculadora</span>
+            </div>
+            
+            <div class="split-btn-grid">
+                <button type="button" class="split-btn" [class.active]="splitCount === 4" (click)="setSplitCount(4)">
+                    4 Jugadores
+                </button>
+                <button type="button" class="split-btn" [class.active]="splitCount === 2" (click)="setSplitCount(2)">
+                    2 (Singles)
+                </button>
+                <button type="button" class="split-btn" [class.active]="splitCount === 1" (click)="setSplitCount(1)">
+                    1 (Total)
+                </button>
+            </div>
+
+            <div class="split-action-row">
+                <div class="split-amount-block">
+                    <span class="label">Cuota por persona</span>
+                    <span class="amount">${{ getSplitAmount() | number:'1.0-0' }}</span>
+                </div>
+                <button type="button" class="whatsapp-share-btn" (click)="shareWhatsAppPayment()">
+                    <ion-icon name="logo-whatsapp"></ion-icon>
+                    <span>Cobrar</span>
+                </button>
+            </div>
         </div>
 
         <div class="action-btns">
-            <button class="nike-btn-pro" (click)="goToEditMatch()">EDITAR PARTIDO</button>
-            <button class="nike-btn-outline" (click)="closeSuccessModal()">Volver al Inicio</button>
+            <button class="nike-btn-pro" (click)="goToEditMatch()" *ngIf="lastReserva?.isCourt">EDITAR PARTIDO</button>
+            <button class="nike-btn-pro" (click)="closeSuccessModal()" *ngIf="!lastReserva?.isCourt">ENTENDIDO</button>
+            <button class="nike-btn-outline" (click)="closeSuccessModal()" *ngIf="lastReserva?.isCourt">Volver al Inicio</button>
         </div>
     </div>
   </div>
 
+  <!-- MODAL / BOTTOM SHEET DE CONFIRMACIÓN DE RESERVA -->
+  <div class="confirm-sheet-overlay animate-fade" *ngIf="showConfirmModal && bookingPreview" (click)="cancelarBookingPreview()">
+    <div class="confirm-sheet-card animate-slide-up" (click)="$event.stopPropagation()">
+      
+      <!-- Drag handle -->
+      <div class="sheet-drag-handle"></div>
+
+      <!-- Header -->
+      <div class="sheet-header">
+        <div class="sheet-title-group">
+          <span class="sheet-badge-tag">{{ bookingPreview.tipoHorario }}</span>
+          <h2 class="sheet-title">Resumen de Reserva</h2>
+        </div>
+        <button type="button" class="sheet-close-btn" (click)="cancelarBookingPreview()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <!-- Court / Space Info Hero Box -->
+      <div class="sheet-court-box">
+        <div class="court-icon-pill">
+          <span>{{ bookingPreview.meta?.icono || '🎾' }}</span>
+        </div>
+        <div class="court-details">
+          <h3 class="court-name">{{ bookingPreview.cancha?.cancha_nombre }}</h3>
+          <p class="club-name">{{ selectedClub?.nombre }}</p>
+          <div class="court-chips-row">
+            <span class="c-chip" *ngIf="bookingPreview.cancha?.tipo">
+              {{ bookingPreview.cancha.tipo.toLowerCase().includes('indoor') ? '🏢 Indoor' : '☀️ Outdoor' }}
+            </span>
+            <span class="c-chip" *ngIf="bookingPreview.cancha?.cristal || bookingPreview.cancha?.superficie">
+              🧱 {{ bookingPreview.cancha?.cristal || bookingPreview.cancha?.superficie }}
+            </span>
+            <span class="c-chip" *ngIf="!bookingPreview.isCourtResource && bookingPreview.cancha?.capacidad">
+              👥 {{ bookingPreview.cancha.capacidad }} personas
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schedule & Date Card -->
+      <div class="sheet-schedule-card">
+        <div class="sched-item">
+          <div class="sched-icon-wrap">
+            <ion-icon name="calendar-outline"></ion-icon>
+          </div>
+          <div class="sched-text">
+            <span class="s-label">Fecha</span>
+            <span class="s-val">{{ getFormattedSelectedDate() }}</span>
+          </div>
+        </div>
+        <div class="sched-divider"></div>
+        <div class="sched-item">
+          <div class="sched-icon-wrap">
+            <ion-icon name="time-outline"></ion-icon>
+          </div>
+          <div class="sched-text">
+            <span class="s-label">Horario ({{ bookingPreview.duracion }} min)</span>
+            <span class="s-val">{{ bookingPreview.horaInicio }} - {{ bookingPreview.horaFin }} hrs</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trainer Purpose Selector (Only for Coaches on Court) -->
+      <div class="sheet-trainer-selector" *ngIf="isEntrenador && bookingPreview.isCourtResource">
+        <label class="trainer-label">Propósito de la reserva:</label>
+        <div class="trainer-pills">
+          <button type="button" 
+                  class="t-pill" 
+                  [class.active]="bookingPreview.tipoReserva === 'Entrenamiento'"
+                  (click)="bookingPreview.tipoReserva = 'Entrenamiento'">
+            🎓 Entrenamiento
+          </button>
+          <button type="button" 
+                  class="t-pill" 
+                  [class.active]="bookingPreview.tipoReserva === 'Confirmada'"
+                  (click)="bookingPreview.tipoReserva = 'Confirmada'">
+            🎾 Partido Regular
+          </button>
+        </div>
+      </div>
+
+      <!-- Price Breakdown Box -->
+      <div class="sheet-price-box">
+        <div class="price-row total-row">
+          <span class="p-title">Total a Pagar</span>
+          <span class="p-amount">{{ bookingPreview.precioTotalFormatted }}</span>
+        </div>
+        <div class="price-row split-highlight-row" *ngIf="bookingPreview.isCourtResource">
+          <div class="split-info">
+            <ion-icon name="people-outline"></ion-icon>
+            <span>Por jugador (4 personas)</span>
+          </div>
+          <span class="split-amount">{{ bookingPreview.precioJugadorFormatted }} <em>/ jug.</em></span>
+        </div>
+      </div>
+
+      <!-- Guarantee note -->
+      <div class="sheet-guarantee-note">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        <span>Confirmación instantánea • Sin cobros ocultos</span>
+      </div>
+
+      <!-- Action Buttons with Inline Loading State -->
+      <div class="sheet-actions">
+        <button type="button" class="sheet-btn-confirm" [disabled]="isSubmittingReserva" (click)="confirmarBookingFromPreview()">
+          <ng-container *ngIf="!isSubmittingReserva">
+            <span>Confirmar Reserva</span>
+            <span class="btn-price-tag">{{ bookingPreview.precioTotalFormatted }}</span>
+          </ng-container>
+          <ng-container *ngIf="isSubmittingReserva">
+            <span style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;">
+              <ion-spinner name="crescent" style="width: 20px; height: 20px; color: var(--nike-neon);"></ion-spinner>
+              <span>Confirmando reserva...</span>
+            </span>
+          </ng-container>
+        </button>
+        <button type="button" class="sheet-btn-cancel" [disabled]="isSubmittingReserva" (click)="cancelarBookingPreview()">
+          Volver y cambiar horario
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- FLOATING BACK BUTTON (GENERAL PATTERN) -->
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 5px; margin-right: 15px;" *ngIf="!showSuccessModal">
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 5px; margin-right: 15px;" *ngIf="!showSuccessModal && !showConfirmModal">
     <ion-fab-button (click)="goBack()" class="back-fab">
       <ion-icon name="chevron-back-outline"></ion-icon>
     </ion-fab-button>

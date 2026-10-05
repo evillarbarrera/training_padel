@@ -86,7 +86,17 @@
         </div>
       </div>
 
-      <!-- 1. ACCIONES RÁPIDAS V2 (ORDEN PREMIUM UX) -->
+      <!-- 1. DAILY TIP V2 (TIP DEL COACH) -->
+      <div class="daily-tip-v2 delay-1" *ngIf="dailyTip">
+         <div class="t-icon"><ion-icon name="sparkles-outline"></ion-icon></div>
+         <div class="t-content">
+            <span class="t-badge">TIP DEL COACH</span>
+            <h4>{{ dailyTip.titulo }}</h4>
+            <p>{{ dailyTip.mensaje }}</p>
+         </div>
+      </div>
+
+      <!-- 2. ACCIONES RÁPIDAS V2 (ORDEN PREMIUM UX - CENTRO DE MANDO) -->
       <div class="actions-v2-card delay-1">
          <div class="v2-card-header">
             <h4 class="v2-subtitle">Centro de Mando</h4>
@@ -108,12 +118,12 @@
 
           <!-- HERO BUTTONS GRID -->
           <div class="hero-actions-grid">
-             <!-- HERO 1: RESERVAR CANCHA -->
+             <!-- HERO 1: RESERVA -->
              <div class="hero-booking-action animate-pulse" (click)="goToReservarCancha()">
                 <div class="hero-btn-content">
                   <div class="hero-icon-wrap">🎾</div>
                   <div class="hero-text-wrap">
-                    <h3>Reservar Cancha</h3>
+                    <h3>Reserva</h3>
                     <p>Clubes y Disponibilidad</p>
                   </div>
                 </div>
@@ -132,16 +142,6 @@
                 <ion-icon name="arrow-forward"></ion-icon>
              </div>
           </div>
-      </div>
-
-      <!-- 2. DAILY TIP V2 (SEGUNDO LUGAR) -->
-      <div class="daily-tip-v2 delay-1" *ngIf="dailyTip">
-         <div class="t-icon"><ion-icon name="sparkles-outline"></ion-icon></div>
-         <div class="t-content">
-            <span class="t-badge">TIP DEL COACH</span>
-            <h4>{{ dailyTip.titulo }}</h4>
-            <p>{{ dailyTip.mensaje }}</p>
-         </div>
       </div>
 
 

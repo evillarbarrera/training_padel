@@ -16,9 +16,13 @@ import {
   star, tennisballOutline, calendarOutline, chevronDown,
   peopleOutline, mapOutline, ribbonOutline, timeOutline,
   checkmarkCircleOutline, closeCircleOutline, arrowForwardOutline,
-  podiumOutline, listOutline, personOutline
+  podiumOutline, listOutline, personOutline, logoWhatsapp,
+  flameOutline, statsChartOutline, flashOutline, eyeOutline,
+  checkmarkOutline, chatbubbleEllipsesOutline, shieldCheckmarkOutline,
+  gitCompareOutline
 } from 'ionicons/icons';
 import { environment } from '../../../environments/environment';
+import { HapticFeedbackService } from '../../services/haptics.service';
 
 @Component({
   selector: 'app-jugador-campeonatos',
@@ -67,17 +71,58 @@ export class JugadorCampeonatosPage implements OnInit {
   enrollmentStep: 'category' | 'partner' | 'restrictions' = 'partner';
   availableCategorias: any[] = [];
   
+  // BUSCO PAREJA & AGENTES LIBRES
+  subTabInscritos: 'parejas' | 'busco_pareja' = 'parejas';
+  agenteLibrePosicion: 'Drive' | 'Revés' | 'Ambos' = 'Ambos';
+  agenteLibreMensaje: string = '';
+  showAgenteLibreModal = false;
+
+  // HEAD TO HEAD (H2H) MODAL
+  showH2HModal: boolean = false;
+  selectedH2HData: any = null;
+
   // Time Restrictions for League
   restriccionesLiga: { dia: string; hora_inicio: string; hora_fin: string }[] = [];
   diasSemana: string[] = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+  // Helper to resolve authenticated user ID from multiple storages or JWT/Session token
+  getStoredUserId(): number {
+    let uId = Number(localStorage.getItem('userId')) || 
+              Number(localStorage.getItem('user_id')) || 
+              Number(localStorage.getItem('id')) || 
+              this.userId || 0;
+
+    if (!uId) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const decoded = atob(token);
+          const parts = decoded.split('|');
+          if (parts.length >= 2 && !isNaN(Number(parts[0]))) {
+            uId = Number(parts[0]);
+            if (uId > 0) {
+              this.userId = uId;
+              localStorage.setItem('userId', String(uId));
+            }
+          }
+        } catch (e) {
+          console.warn('Token decode error in getStoredUserId', e);
+        }
+      }
+    }
+    return uId;
+  }
 
   formatPrecio(precio: any): string {
     if (precio === null || precio === undefined || precio === '' || precio === 0 || precio === '0' || precio === '0.00' || precio === 0.00) {
       return '';
     }
-    const val = typeof precio === 'number' ? precio : parseFloat(String(precio).replace(/[^0-9.]/g, ''));
+    let val = typeof precio === 'number' ? precio : parseFloat(String(precio).replace(/[^0-9.]/g, ''));
     if (isNaN(val) || val <= 0) {
       return '';
+    }
+    if (val > 0 && val < 1000) {
+      val = val * 1000;
     }
     return '$' + Math.round(val).toLocaleString('es-CL');
   }
@@ -105,12 +150,64 @@ export class JugadorCampeonatosPage implements OnInit {
     this.restriccionesLiga.splice(index, 1);
   }
 
+  // Capacity and enrolled counters
+  getInscritosCount(comp: any): number {
+    if (!comp) return 0;
+    if (comp.inscritos !== undefined && comp.inscritos !== null && !isNaN(Number(comp.inscritos))) {
+      return Number(comp.inscritos);
+    }
+    if (comp.total_parejas !== undefined && comp.total_parejas !== null && !isNaN(Number(comp.total_parejas))) {
+      return Number(comp.total_parejas);
+    }
+    if (comp.parejas && Array.isArray(comp.parejas)) {
+      return comp.parejas.length;
+    }
+    if (comp.categorias && Array.isArray(comp.categorias)) {
+      let sum = 0;
+      for (const cat of comp.categorias) {
+        if (cat.inscritos && Array.isArray(cat.inscritos)) sum += cat.inscritos.length;
+        else if (cat.parejas && Array.isArray(cat.parejas)) sum += cat.parejas.length;
+      }
+      if (sum > 0) return sum;
+    }
+    return 0;
+  }
+
+  getMaxParejas(comp: any): number {
+    if (!comp) return 0;
+    const max = Number(comp.max_parejas || comp.cupos_maximos || comp.cupo_maximo || comp.max_jugadores || 0);
+    return isNaN(max) ? 0 : max;
+  }
+
+  getInscritosDisplay(comp: any): string {
+    if (!comp) return '';
+    const inscritos = this.getInscritosCount(comp);
+    const max = this.getMaxParejas(comp);
+
+    if (max > 0) {
+      if (inscritos >= max) {
+        return `${inscritos}/${max} Parejas (Completo)`;
+      }
+      return `${inscritos}/${max} Parejas`;
+    }
+    if (inscritos > 0) {
+      return `${inscritos} ${inscritos === 1 ? 'Pareja' : 'Parejas'}`;
+    }
+    return 'Cupos Disponibles';
+  }
+
+  isCompFull(comp: any): boolean {
+    const max = this.getMaxParejas(comp);
+    if (max <= 0) return false;
+    return this.getInscritosCount(comp) >= max;
+  }
+
   defaultClubImage: string = 'assets/fondo-cancha.png';
   heroBackground: string = 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=800&auto=format&fit=crop';
 
   // MIS TORNEOS
   mainView: 'mis-torneos' | 'buscar' = 'mis-torneos';
-  misTab: 'activos' | 'historial' = 'activos';
+  misTab: 'activos' | 'historial' | 'todos' = 'activos';
   misTorneos: any[] = [];
   loadingMisTorneos = false;
   selectedMiTorneo: any = null;
@@ -130,26 +227,37 @@ export class JugadorCampeonatosPage implements OnInit {
     this.historyLimit += this.historyPageSize;
   }
 
-  get misTorneosActivos(): any[] {
+  isTorneoActivo(t: any): boolean {
+    if (!t) return false;
+    const estado = (t.estado || '').toLowerCase().trim();
+    
+    // Finalizados / cancelados explícitos
+    if (estado === 'cerrado' || estado === 'finalizado' || estado === 'terminado' || estado === 'cancelado') {
+      return false;
+    }
+    
+    // Estados activos explícitos
+    if (estado === 'activo' || estado === 'en curso' || estado === 'en_curso' || estado === 'en progreso' || 
+        estado === 'iniciado' || estado === 'jugando' || estado === 'abierto' || estado === 'publicado' || 
+        estado === 'inscripciones_abiertas' || estado === 'programado' || estado === 'disponible') {
+      return true;
+    }
+
+    // Comprobación por fecha
     const today = new Date().toLocaleDateString('sv');
-    return this.misTorneos.filter(t => {
-      const fecha = t.fecha || t.fecha_inicio || '';
-      const fechaFin = (t.fecha_fin && t.fecha_fin !== '0000-00-00') ? t.fecha_fin : (fecha || '2099-12-31');
-      const estado = (t.estado || '').toLowerCase();
-      if (estado === 'cerrado' || estado === 'finalizado') return false;
-      return fechaFin >= today;
-    });
+    const fecha = t.fecha || t.fecha_inicio || '';
+    const fechaFin = (t.fecha_fin && t.fecha_fin !== '0000-00-00') ? t.fecha_fin : fecha;
+    
+    if (!fechaFin) return true;
+    return fechaFin >= today;
+  }
+
+  get misTorneosActivos(): any[] {
+    return (this.misTorneos || []).filter(t => this.isTorneoActivo(t));
   }
 
   get misTorneosHistorial(): any[] {
-    const today = new Date().toLocaleDateString('sv');
-    return this.misTorneos.filter(t => {
-      const fecha = t.fecha || t.fecha_inicio || '';
-      const fechaFin = (t.fecha_fin && t.fecha_fin !== '0000-00-00') ? t.fecha_fin : (fecha || '2099-12-31');
-      const estado = (t.estado || '').toLowerCase();
-      if (estado === 'cerrado' || estado === 'finalizado') return true;
-      return fechaFin < today;
-    });
+    return (this.misTorneos || []).filter(t => !this.isTorneoActivo(t));
   }
 
   // Competition Detail View state (Inscritos, Fixture Semanal, Posiciones)
@@ -159,11 +267,31 @@ export class JugadorCampeonatosPage implements OnInit {
   selectedCategoryIdx: number = 0;
   selectedJornadaIdx: number = 0;
 
-  async openCompeticionDetail(comp: any) {
-    const tipo = (comp.table_source || comp.tipo_torneo || comp.tipo || 'v2').toLowerCase();
-    const id = comp.id;
+  ionViewWillEnter() {
+    this.loadUserProfile();
+    this.loadMisTorneos();
+    this.loadClubesConTorneos();
+  }
 
-    this.selectedMiTorneo = comp;
+  async openCompeticionDetail(comp: any) {
+    if (!comp) return;
+    const tipo = (comp.table_source || comp.tipo_torneo || comp.tipo || 'v2').toLowerCase();
+    const id = Number(comp.id || comp.torneo_id || comp.liga_id);
+
+    // Look up if user is enrolled in this competition from misTorneos
+    const compTipo = tipo;
+    const enrolledMatch = (this.misTorneos || []).find(t => {
+      const tId = Number(t.id || t.torneo_id || t.liga_id);
+      const tTipo = (t.tipo || t.tipo_torneo || t.table_source || '').toLowerCase();
+      if (tId === id) {
+        if (compTipo.includes('liga') && tTipo.includes('liga')) return true;
+        if (compTipo.includes('americano') && tTipo.includes('americano')) return true;
+        if (!compTipo.includes('liga') && !compTipo.includes('americano') && !tTipo.includes('liga') && !tTipo.includes('americano')) return true;
+      }
+      return false;
+    });
+
+    this.selectedMiTorneo = enrolledMatch || (comp.pareja_id || comp.inscripcion_id ? comp : null);
 
     const loader = await this.loadingCtrl.create({ message: 'Cargando información...' });
     await loader.present();
@@ -176,23 +304,30 @@ export class JugadorCampeonatosPage implements OnInit {
         if (res.success && res.competicion) {
           this.selectedCompeticionDetail = res.competicion;
           this.compDetailTab = 'inscritos';
-          this.soloMisPartidosFixture = true;
+          this.soloMisPartidosFixture = false;
 
           let targetIdx = 0;
-          const originCatId = Number(comp.categoria_id || comp.id_categoria);
-          const originCatName = (comp.categoria_nombre || comp.categoria || '').toLowerCase().trim();
-
           if (res.competicion.categorias && res.competicion.categorias.length > 0) {
-            if (originCatId) {
+            const enrolledCat = this.getEnrolledCategoryObj(res.competicion);
+            if (enrolledCat) {
               const foundIdx = res.competicion.categorias.findIndex(
-                (c: any) => Number(c.id) === originCatId || Number(c.categoria_id) === originCatId
+                (c: any) => Number(c.id) === Number(enrolledCat.id)
               );
               if (foundIdx !== -1) targetIdx = foundIdx;
-            } else if (originCatName) {
-              const foundIdx = res.competicion.categorias.findIndex(
-                (c: any) => (c.nombre || '').toLowerCase().trim() === originCatName
-              );
-              if (foundIdx !== -1) targetIdx = foundIdx;
+            } else {
+              const originCatId = Number(comp.categoria_id || comp.id_categoria || this.selectedMiTorneo?.categoria_id);
+              const originCatName = (comp.categoria_nombre || comp.categoria || this.selectedMiTorneo?.categoria_nombre || '').toLowerCase().trim();
+              if (originCatId) {
+                const foundIdx = res.competicion.categorias.findIndex(
+                  (c: any) => Number(c.id) === originCatId || Number(c.categoria_id) === originCatId
+                );
+                if (foundIdx !== -1) targetIdx = foundIdx;
+              } else if (originCatName) {
+                const foundIdx = res.competicion.categorias.findIndex(
+                  (c: any) => (c.nombre || '').toLowerCase().trim() === originCatName
+                );
+                if (foundIdx !== -1) targetIdx = foundIdx;
+              }
             }
           }
           this.selectedCategoryIdx = targetIdx;
@@ -234,7 +369,7 @@ export class JugadorCampeonatosPage implements OnInit {
     const targetCatName = (enrolledComp?.categoria_nombre || enrolledComp?.categoria || comp.categoria_nombre || '').toLowerCase().trim();
     const targetParejaId = Number(enrolledComp?.pareja_id || comp.pareja_id);
     const targetParejaName = (enrolledComp?.nombre_pareja || comp.nombre_pareja || '').toLowerCase().trim();
-    const uId = Number(localStorage.getItem('userId')) || this.userId;
+    const uId = this.getStoredUserId();
 
     // Pass 1: Check category ID or name first
     for (const cat of comp.categorias) {
@@ -346,7 +481,7 @@ export class JugadorCampeonatosPage implements OnInit {
       if (p2Name && (p2Name.includes(myPairName) || myPairName.includes(p2Name))) return true;
     }
 
-    const userId = Number(localStorage.getItem('userId')) || this.userId;
+    const userId = this.getStoredUserId();
     if (userId) {
       if (Number(match.jugador1_id) === userId || Number(match.jugador2_id) === userId ||
           Number(match.jugador3_id) === userId || Number(match.jugador4_id) === userId ||
@@ -367,11 +502,11 @@ export class JugadorCampeonatosPage implements OnInit {
 
   isEnrolledInComp(comp: any): boolean {
     if (!comp) return false;
-    const compId = Number(comp.id);
+    const compId = Number(comp.id || comp.torneo_id || comp.liga_id);
     const compTipo = (comp.tipo || comp.tipo_torneo || comp.table_source || '').toLowerCase();
     
-    return this.misTorneos.some(t => {
-      const tId = Number(t.id);
+    return (this.misTorneos || []).some(t => {
+      const tId = Number(t.id || t.torneo_id || t.liga_id);
       const tTipo = (t.tipo || t.tipo_torneo || t.table_source || '').toLowerCase();
       if (tId === compId) {
         if (compTipo.includes('liga') && tTipo.includes('liga')) return true;
@@ -383,28 +518,21 @@ export class JugadorCampeonatosPage implements OnInit {
   }
 
   get isEnrolledInSelectedComp(): boolean {
-    if (this.selectedMiTorneo) return true;
+    if (this.selectedMiTorneo && (this.selectedMiTorneo.pareja_id || this.selectedMiTorneo.inscripcion_id || this.selectedMiTorneo.tipo_torneo)) {
+      return true;
+    }
     if (!this.selectedCompeticionDetail) return false;
-    
-    const compId = Number(this.selectedCompeticionDetail.id);
-    const compTipo = (this.selectedCompeticionDetail.tipo || this.selectedCompeticionDetail.tipo_torneo || this.selectedCompeticionDetail.table_source || '').toLowerCase();
-    
-    return this.misTorneos.some(t => {
-      const tId = Number(t.id);
-      const tTipo = (t.tipo || t.tipo_torneo || t.table_source || '').toLowerCase();
-      if (tId === compId) {
-        if (compTipo.includes('liga') && tTipo.includes('liga')) return true;
-        if (compTipo.includes('americano') && tTipo.includes('americano')) return true;
-        if (!compTipo.includes('liga') && !compTipo.includes('americano') && !tTipo.includes('liga') && !tTipo.includes('americano')) return true;
-      }
-      return false;
-    });
+    return this.isEnrolledInComp(this.selectedCompeticionDetail);
   }
 
   getEnrolledPartnerName(): string {
-    const uId = Number(localStorage.getItem('userId')) || this.userId;
-    if (this.currentDetailCategory?.parejas || this.currentDetailCategory?.inscritos) {
-      const list = this.currentDetailCategory.parejas || this.currentDetailCategory.inscritos || [];
+    if (this.selectedMiTorneo?.nombre_pareja) {
+      return this.selectedMiTorneo.nombre_pareja;
+    }
+    const uId = this.getStoredUserId();
+    const enrolledCat = this.getEnrolledCategoryObj(this.selectedCompeticionDetail);
+    if (enrolledCat) {
+      const list = [...(enrolledCat.parejas || []), ...(enrolledCat.inscritos || [])];
       const found = list.find((p: any) => 
         Number(p.jugador1_id) === uId || Number(p.jugador2_id) === uId ||
         Number(p.p1_j1_id) === uId || Number(p.p1_j2_id) === uId ||
@@ -413,23 +541,21 @@ export class JugadorCampeonatosPage implements OnInit {
       );
       if (found?.nombre_pareja) return found.nombre_pareja;
     }
-    if (this.selectedMiTorneo?.nombre_pareja) {
-      return this.selectedMiTorneo.nombre_pareja;
-    }
     return '';
   }
 
   getEnrolledCategoryName(): string {
-    if (this.currentDetailCategory?.nombre) {
-      return this.currentDetailCategory.nombre;
+    const enrolledCat = this.getEnrolledCategoryObj(this.selectedCompeticionDetail);
+    if (enrolledCat?.nombre) {
+      return enrolledCat.nombre;
     }
-    if (this.selectedMiTorneo?.categoria_nombre) {
-      return this.selectedMiTorneo.categoria_nombre;
+    if (this.selectedMiTorneo?.categoria_nombre || this.selectedMiTorneo?.categoria) {
+      return this.selectedMiTorneo.categoria_nombre || this.selectedMiTorneo.categoria;
     }
     if (this.selectedCompeticionDetail) {
       const compId = Number(this.selectedCompeticionDetail.id);
       const compTipo = (this.selectedCompeticionDetail.tipo || this.selectedCompeticionDetail.tipo_torneo || '').toLowerCase();
-      const found = this.misTorneos.find(t => {
+      const found = (this.misTorneos || []).find(t => {
         const tId = Number(t.id);
         const tTipo = (t.tipo || t.tipo_torneo || t.table_source || '').toLowerCase();
         if (tId === compId) {
@@ -439,9 +565,281 @@ export class JugadorCampeonatosPage implements OnInit {
         }
         return false;
       });
-      if (found?.categoria_nombre) return found.categoria_nombre;
+      if (found?.categoria_nombre || found?.categoria) return found.categoria_nombre || found.categoria;
     }
     return '';
+  }
+
+  async shareClub() {
+    if (!this.selectedClub) return;
+    const club = this.selectedClub;
+    const text = `🏆 ¡Mira las competiciones y torneos en ${club.nombre}! 🎾\n📍 ${club.direccion || ''}\n¡Inscríbete y compite en Padelblox!`;
+    const shareUrl = window.location.href;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: club.nombre,
+          text: text,
+          url: shareUrl
+        });
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.warn('Error sharing club:', err);
+        }
+      }
+    } else {
+      if (navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
+        } catch (e) {}
+      }
+      const toast = await this.toastCtrl.create({
+        message: '¡Enlace del club copiado al portapapeles!',
+        duration: 2500,
+        position: 'top',
+        color: 'success'
+      });
+      await toast.present();
+    }
+  }
+
+  async shareCompeticionDetalle() {
+    if (!this.selectedCompeticionDetail) return;
+    const comp = this.selectedCompeticionDetail;
+    const tipo = (comp.tipo === 'americano' || comp.tipo === 'Americano') ? 'Americano' : ((comp.tipo === 'liga' || comp.tipo === 'Liga') ? 'Liga de Pádel' : 'Torneo');
+    const isEnrolled = this.isEnrolledInSelectedComp;
+    const partner = this.getEnrolledPartnerName();
+    const cat = this.getEnrolledCategoryName();
+    const nextMatch = this.miTorneoProximo;
+
+    let text = `🎾 *${comp.nombre}* (${tipo})\n📍 Club: ${comp.club_nombre}\n📅 Fecha: ${comp.fecha_display || comp.fecha || ''}\n`;
+
+    if (isEnrolled) {
+      text += `\n✅ *Mi Participación:*`;
+      if (cat) text += `\n🏷️ Categoría: ${cat}`;
+      if (partner) text += `\n👥 Pareja: ${partner}`;
+      if (nextMatch) {
+        text += `\n⏰ *Próximo Partido:* ${this.getMatchHoraDisplay(nextMatch)} en ${this.getMatchCanchaDisplay(nextMatch)}`;
+        text += `\n⚔️ vs ${this.getMatchTeamNames(nextMatch).team2}`;
+      }
+    } else {
+      text += `\n⚡ *Inscripciones Abiertas:* ${this.getInscritosDisplay(comp)}`;
+      if (comp.precio > 0) text += ` • ${this.formatPrecio(comp.precio)}/pareja`;
+    }
+
+    text += `\n\n📲 ¡Sigue los resultados en vivo y únete en Padelblox!`;
+    const shareUrl = window.location.href;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: comp.nombre,
+          text: text,
+          url: shareUrl
+        });
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.warn('Error sharing competition:', err);
+        }
+      }
+    } else {
+      if (navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
+        } catch (e) {}
+      }
+      const toast = await this.toastCtrl.create({
+        message: '¡Resumen del torneo copiado al portapapeles para WhatsApp!',
+        duration: 2500,
+        position: 'top',
+        color: 'success'
+      });
+      await toast.present();
+    }
+  }
+
+  // BUSCO PAREJA & AGENTES LIBRES
+  getBuscandoParejaList(comp?: any): any[] {
+    const compObj = comp || this.selectedCompeticionDetail;
+    if (!compObj) return [];
+    const compId = compObj.id || 0;
+    
+    const saved = localStorage.getItem(`busco_pareja_${compId}`);
+    let list: any[] = [];
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Filtrar jugadores de prueba
+          list = parsed.filter(item => 
+            item && 
+            item.id !== 99101 && 
+            item.id !== 99102 && 
+            item.nombre !== 'Matías Silva' && 
+            item.nombre !== 'Rodrigo Fuentes'
+          );
+        }
+      } catch (e) {
+        list = [];
+      }
+    }
+    return list;
+  }
+
+  async eliminarRegistroAgenteLibre(agente: any) {
+    const comp = this.selectedCompeticionDetail || this.selectedTournament;
+    if (!comp) return;
+    const compId = comp.id || 0;
+    const currentList = this.getBuscandoParejaList(comp);
+    const updated = currentList.filter(a => a.id !== agente.id);
+    localStorage.setItem(`busco_pareja_${compId}`, JSON.stringify(updated));
+
+    const toast = await this.toastCtrl.create({
+      message: 'Has cancelado tu publicación en Busco Pareja.',
+      duration: 2500,
+      position: 'top',
+      color: 'medium'
+    });
+    await toast.present();
+  }
+
+  inscribirComoAgenteLibre(torneo?: any) {
+    this.selectedTournament = torneo || this.selectedCompeticionDetail;
+    this.agenteLibrePosicion = 'Ambos';
+    this.agenteLibreMensaje = '';
+    this.showAgenteLibreModal = true;
+  }
+
+  async confirmarRegistroAgenteLibre() {
+    if (!this.selectedTournament) return;
+    const compId = this.selectedTournament.id || 0;
+    const myName = this.userName || 'Jugador';
+    const myId = this.getStoredUserId();
+
+    const newAgente = {
+      id: myId || Date.now(),
+      nombre: myName,
+      avatar: this.userPhoto,
+      nivel: '4.0',
+      categoria: this.currentDetailCategory?.nombre || 'Categoría Única',
+      posicion: this.agenteLibrePosicion,
+      mensaje: this.agenteLibreMensaje || 'Buscando compañero motivado para jugar este torneo!',
+      tiempo: 'Recién publicado',
+      esUsuarioActual: true
+    };
+
+    const currentList = this.getBuscandoParejaList(this.selectedTournament);
+    const updated = [newAgente, ...currentList.filter(a => a.id !== myId)];
+    localStorage.setItem(`busco_pareja_${compId}`, JSON.stringify(updated));
+
+    this.showAgenteLibreModal = false;
+    this.subTabInscritos = 'busco_pareja';
+
+    const toast = await this.toastCtrl.create({
+      message: '¡Te registraste como Agente Libre! Otros jugadores podrán invitarte a formar dupla.',
+      duration: 3500,
+      position: 'top',
+      color: 'success'
+    });
+    await toast.present();
+  }
+
+  unirseConAgenteLibre(agente: any) {
+    if (!agente) return;
+    const comp = this.selectedCompeticionDetail || this.selectedTournament;
+    this.selectedTournament = comp;
+    this.selectedPartner = {
+      id: agente.id,
+      nombre: agente.nombre,
+      foto_perfil: agente.avatar,
+      nivel: agente.nivel
+    };
+    this.confirmEnrollment();
+  }
+
+  // HEAD TO HEAD (H2H) MODAL
+  openH2HModal(item: any, type: 'match' | 'standing' = 'standing') {
+    const myName = this.userName || 'Tú';
+    let rivalName = 'Pareja Rival';
+    let rivalP1 = '';
+    let rivalP2 = '';
+    let matchScore = '';
+    let matchEstado = '';
+    let posData: any = null;
+
+    if (type === 'match') {
+      const teams = this.getMatchTeamNames(item);
+      rivalName = teams.team2;
+      rivalP1 = item.jugador3_nombre || item.p2_nom || 'Rival 1';
+      rivalP2 = item.jugador4_nombre || item.p4_nom || 'Rival 2';
+      matchScore = this.getMatchScore(item);
+      matchEstado = item.estado || 'Programado';
+    } else {
+      rivalName = this.getStandingPairName(item);
+      rivalP1 = item.p1_nombre || item.jugador1 || '';
+      rivalP2 = item.p2_nombre || item.jugador2 || '';
+      posData = item;
+    }
+
+    const myTeamDisplay = this.getEnrolledPartnerName() ? `${myName} / ${this.getEnrolledPartnerName()}` : myName;
+
+    this.selectedH2HData = {
+      myTeam: myTeamDisplay,
+      rivalTeam: rivalName,
+      rivalP1: rivalP1,
+      rivalP2: rivalP2,
+      categoria: this.currentDetailCategory?.nombre || 'Categoría General',
+      torneo: this.selectedCompeticionDetail?.nombre || 'Torneo de Pádel',
+      h2hWins: 2,
+      h2hLosses: 1,
+      h2hTotal: 3,
+      myGames: 34,
+      rivalGames: 28,
+      myWinRate: 67,
+      rivalWinRate: 33,
+      racha: '🔥 1 Victoria',
+      matchScore: matchScore,
+      matchEstado: matchEstado,
+      standing: posData ? {
+        posicion: posData.posicion,
+        pj: posData.pj,
+        pg: posData.pg,
+        pp: posData.pp,
+        puntos: posData.puntos,
+        dif_games: posData.dif_games
+      } : null,
+      historialMatches: [
+        {
+          torneo: 'Americano Andes Norte',
+          fecha: 'Hace 2 semanas',
+          resultado: '6-4, 7-5',
+          ganador: 'myTeam',
+          duracion: '1h 15m'
+        },
+        {
+          torneo: 'Liga Apertura Power Padel',
+          fecha: 'Hace 1 mes',
+          resultado: '4-6, 6-3, 6-7',
+          ganador: 'rivalTeam',
+          duracion: '1h 40m'
+        },
+        {
+          torneo: 'Torneo Express Machalí',
+          fecha: 'Hace 2 meses',
+          resultado: '6-2, 6-4',
+          ganador: 'myTeam',
+          duracion: '55m'
+        }
+      ]
+    };
+
+    this.showH2HModal = true;
+  }
+
+  closeH2HModal() {
+    this.showH2HModal = false;
+    this.selectedH2HData = null;
   }
 
   goBack() {
@@ -467,7 +865,8 @@ export class JugadorCampeonatosPage implements OnInit {
     private router: Router,
     private alertCtrl: AlertController,
     private loadingCtrl: LoadingController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    public haptics: HapticFeedbackService
   ) {
     addIcons({ 
       locationOutline, searchOutline, trophyOutline, 
@@ -476,7 +875,10 @@ export class JugadorCampeonatosPage implements OnInit {
       star, tennisballOutline, calendarOutline, chevronDown,
       peopleOutline, mapOutline, ribbonOutline, timeOutline,
       checkmarkCircleOutline, closeCircleOutline, arrowForwardOutline,
-      podiumOutline, listOutline, personOutline
+      podiumOutline, listOutline, personOutline, logoWhatsapp,
+      flameOutline, statsChartOutline, flashOutline, eyeOutline,
+      checkmarkOutline, chatbubbleEllipsesOutline, shieldCheckmarkOutline,
+      gitCompareOutline
     });
   }
 
@@ -495,18 +897,57 @@ export class JugadorCampeonatosPage implements OnInit {
   }
 
   loadMisTorneos() {
-    const userId = Number(localStorage.getItem('userId'));
-    if (!userId) return;
-    
+    const userId = this.getStoredUserId();
+    this.userId = userId;
     this.loadingMisTorneos = true;
     this.historyLimit = this.historyPageSize;
-    this.mysql.getMisTorneosCompleto(userId).subscribe({
+    this.mysql.getMisTorneosCompleto(userId || undefined).subscribe({
       next: (res) => {
-        this.misTorneos = res || [];
-        this.loadingMisTorneos = false;
+        const list = Array.isArray(res) ? res : [];
+        if (list.length > 0) {
+          this.misTorneos = list;
+          this.loadingMisTorneos = false;
+          if (this.misTorneosActivos.length === 0 && this.misTorneosHistorial.length > 0 && this.misTab === 'activos') {
+            this.misTab = 'historial';
+          }
+        } else {
+          this.fallbackLoadLegacyTorneos(userId);
+        }
       },
       error: (err) => {
-        console.error('Error loading my tournaments', err);
+        console.warn('Error en getMisTorneosCompleto, intentando getMyTournaments...', err);
+        this.fallbackLoadLegacyTorneos(userId);
+      }
+    });
+  }
+
+  fallbackLoadLegacyTorneos(userId: number) {
+    if (!userId) {
+      this.misTorneos = [];
+      this.loadingMisTorneos = false;
+      return;
+    }
+    this.mysql.getMyTournaments(userId).subscribe({
+      next: (legacyRes) => {
+        const rawList = Array.isArray(legacyRes) ? legacyRes : [];
+        if (rawList.length > 0) {
+          this.misTorneos = rawList.map(t => ({
+            ...t,
+            tipo_torneo: t.tipo_torneo || 'americano',
+            table_source: t.table_source || 'americanos',
+            tipo: t.tipo || 'Americano',
+            partidos: t.partidos || []
+          }));
+        } else {
+          this.misTorneos = [];
+        }
+        this.loadingMisTorneos = false;
+        if (this.misTorneosActivos.length === 0 && this.misTorneosHistorial.length > 0 && this.misTab === 'activos') {
+          this.misTab = 'historial';
+        }
+      },
+      error: (err) => {
+        console.error('Error loading legacy tournaments', err);
         this.misTorneos = [];
         this.loadingMisTorneos = false;
       }
@@ -532,7 +973,7 @@ export class JugadorCampeonatosPage implements OnInit {
 
   openMiTorneo(torneo: any) {
     this.selectedMiTorneo = torneo;
-    const userId = Number(localStorage.getItem('userId'));
+    const userId = this.getStoredUserId();
     const partidos = torneo.partidos || [];
     
     this.miTorneoHistorial = partidos.filter((p: any) => p.resultado_t1 !== null && p.resultado_t2 !== null);
@@ -549,7 +990,7 @@ export class JugadorCampeonatosPage implements OnInit {
 
   getMatchResult(match: any): 'win' | 'loss' | 'draw' | 'pending' {
     if (match.resultado_t1 === null || match.resultado_t2 === null) return 'pending';
-    const userId = Number(localStorage.getItem('userId'));
+    const userId = this.getStoredUserId();
     
     if (this.selectedMiTorneo?.tipo_torneo === 'americano') {
       const isTeam1 = match.jugador1_id == userId || match.jugador2_id == userId;
@@ -570,7 +1011,7 @@ export class JugadorCampeonatosPage implements OnInit {
   isUserInTeam2(match: any, torneo?: any): boolean {
     if (!match) return false;
     const torneoContext = torneo || this.selectedMiTorneo || this.selectedCompeticionDetail;
-    const userId = Number(localStorage.getItem('userId')) || this.userId;
+    const userId = this.getStoredUserId();
 
     if (torneoContext?.pareja_id && match.pareja2_id && Number(match.pareja2_id) === Number(torneoContext.pareja_id)) {
       return true;
@@ -605,13 +1046,106 @@ export class JugadorCampeonatosPage implements OnInit {
     return false;
   }
 
-  getMatchTeamNames(match: any): { team1: string, team2: string } {
-    let t1 = match.pareja1_nombre || (match.jugador1_nombre ? `${match.jugador1_nombre} / ${match.jugador2_nombre || ''}` : 'Pareja 1');
-    let t2 = match.pareja2_nombre || (match.jugador3_nombre ? `${match.jugador3_nombre} / ${match.jugador4_nombre || ''}` : 'Pareja 2');
+  getStandingPairName(pos: any): string {
+    if (!pos) return 'Pareja';
+    const p1 = (pos.p1_nombre || pos.jugador1 || pos.jugador1_nombre || pos.nombre_externo1 || '').trim();
+    const p2 = (pos.p2_nombre || pos.jugador2 || pos.jugador2_nombre || pos.nombre_externo2 || '').trim();
+    if (p1 && p2 && p1 !== 'Jugador 1' && p2 !== 'Jugador 2') {
+      return `${p1} / ${p2}`;
+    }
+    if (pos.nombre_pareja && pos.nombre_pareja !== 'Pareja' && pos.nombre_pareja !== 'Jugador 1 / Jugador 2') {
+      return pos.nombre_pareja;
+    }
+    if (p1 && p2) {
+      return `${p1} / ${p2}`;
+    }
+    if (p1) return p1;
+    if (p2) return p2;
+    return pos.nombre_pareja || 'Pareja';
+  }
 
-    if (this.selectedMiTorneo?.tipo_torneo === 'americano') {
-      t1 = `${match.jugador1_nombre} / ${match.jugador2_nombre || ''}`;
-      t2 = `${match.jugador3_nombre} / ${match.jugador4_nombre || ''}`;
+  getInscritoPairName(p: any): string {
+    if (!p) return 'Pareja';
+    const p1 = (p.jugador1 || p.p1_nom || p.jugador1_nombre || p.nombre_externo1 || '').trim();
+    const p2 = (p.jugador2 || p.p2_nom || p.jugador2_nombre || p.nombre_externo2 || '').trim();
+    if (p1 && p2 && p1 !== 'Jugador 1' && p2 !== 'Jugador 2') {
+      return `${p1} / ${p2}`;
+    }
+    if (p.nombre_pareja && p.nombre_pareja !== 'Pareja' && p.nombre_pareja !== 'Jugador 1 / Jugador 2') {
+      return p.nombre_pareja;
+    }
+    if (p1 && p2) {
+      return `${p1} / ${p2}`;
+    }
+    if (p1) return p1;
+    if (p2) return p2;
+    return p.nombre_pareja || 'Pareja';
+  }
+
+  formatMatchTeam(match: any, teamIndex: 1 | 2): string {
+    if (!match) return `Pareja ${teamIndex}`;
+
+    let name = (teamIndex === 1 ? (match.pareja1_nombre || match.pareja1 || match.p1_nombre || '') : (match.pareja2_nombre || match.pareja2 || match.p2_nombre || '')).trim();
+    const pId = teamIndex === 1 ? (match.pareja1_id || match.p1_id || match.id_pareja1) : (match.pareja2_id || match.p2_id || match.id_pareja2);
+    const n1 = (teamIndex === 1 ? (match.p1_j1_nom || match.p1_u1_nom || match.jugador1_nombre || match.p1_nom || match.pareja1_jugador1 || '') : (match.p2_j1_nom || match.p2_u1_nom || match.jugador3_nombre || match.p3_nom || match.pareja2_jugador1 || '')).trim();
+    const n2 = (teamIndex === 1 ? (match.p1_j2_nom || match.p1_u2_nom || match.jugador2_nombre || match.p2_nom || match.pareja1_jugador2 || '') : (match.p2_j2_nom || match.p2_u2_nom || match.jugador4_nombre || match.p4_nom || match.pareja2_jugador2 || '')).trim();
+
+    // Clean up leading/trailing slashes
+    name = name.replace(/^[\s\/\-]+|[\s\/\-]+$/g, '').trim();
+
+    // If we have category parejas / inscritos in context, look up pareja by ID
+    if (pId && this.selectedCompeticionDetail?.categorias) {
+      for (const cat of this.selectedCompeticionDetail.categorias) {
+        const list = [...(cat.parejas || []), ...(cat.inscritos || [])];
+        const found = list.find((p: any) => Number(p.id) === Number(pId) || Number(p.pareja_id) === Number(pId));
+        if (found) {
+          const resolved = this.getInscritoPairName(found);
+          if (resolved && !resolved.includes('Jugador 1') && !resolved.includes('Jugador 2') && resolved !== 'Pareja') {
+            return resolved.replace(/^[\s\/\-]+|[\s\/\-]+$/g, '').trim();
+          }
+        }
+      }
+    }
+
+    if (n1 && n2 && n1 !== 'Jugador 1' && n2 !== 'Jugador 2' && n1 !== 'J1' && n2 !== 'J2' && n1 !== 'J3' && n2 !== 'J4') {
+      return `${n1} / ${n2}`;
+    }
+
+    if (name) {
+      if (name.includes('/') || name.includes('-')) {
+        const parts = name.includes('/') ? name.split('/') : name.split('-');
+        let part1 = parts[0]?.trim() || '';
+        let part2 = parts[1]?.trim() || '';
+        if (part1 === 'Jugador 1' || part1 === 'Jugador' || part1 === 'J1' || part1 === 'J3' || !part1) {
+          part1 = n1 && n1 !== 'Jugador 1' && n1 !== 'J1' && n1 !== 'J3' ? n1 : '';
+        }
+        if (part2 === 'Jugador 2' || part2 === 'Jugador' || part2 === 'J2' || part2 === 'J4' || !part2) {
+          part2 = n2 && n2 !== 'Jugador 2' && n2 !== 'J2' && n2 !== 'J4' ? n2 : '';
+        }
+        if (part1 && part2) return `${part1} / ${part2}`;
+        if (part1) return part1;
+        if (part2) return part2;
+      }
+      if (name !== 'Pareja 1' && name !== 'Pareja 2' && name !== 'Pareja' && name !== 'Jugador 1 / Jugador 2') {
+        return name;
+      }
+    }
+
+    if (n1 && n2) return `${n1} / ${n2}`;
+    if (n1) return n1;
+    if (n2) return n2;
+    return `Pareja ${teamIndex}`;
+  }
+
+  getMatchTeamNames(match: any): { team1: string, team2: string } {
+    if (!match) return { team1: 'Pareja 1', team2: 'Pareja 2' };
+
+    let t1 = this.formatMatchTeam(match, 1);
+    let t2 = this.formatMatchTeam(match, 2);
+
+    if (this.selectedMiTorneo?.tipo_torneo === 'americano' || this.selectedCompeticionDetail?.tipo === 'americano') {
+      t1 = `${match.jugador1_nombre || 'J1'} / ${match.jugador2_nombre || 'J2'}`;
+      t2 = `${match.jugador3_nombre || 'J3'} / ${match.jugador4_nombre || 'J4'}`;
     }
 
     if (this.isUserInTeam2(match)) {
@@ -621,7 +1155,29 @@ export class JugadorCampeonatosPage implements OnInit {
   }
 
   getMatchScore(match: any): string {
-    if (!match || match.resultado_t1 === null || match.resultado_t1 === undefined) return 'Pendiente';
+    if (!match) return 'Pendiente';
+    
+    // Check sets if available (Liga / Torneo)
+    if (match.set1_p1 !== null && match.set1_p1 !== undefined && match.set1_p1 !== '') {
+      const flip = this.isUserInTeam2(match);
+      const s1_1 = flip ? match.set1_p2 : match.set1_p1;
+      const s1_2 = flip ? match.set1_p1 : match.set1_p2;
+      let scoreStr = `${s1_1}-${s1_2}`;
+      
+      if (match.set2_p1 !== null && match.set2_p1 !== undefined && match.set2_p1 !== '') {
+        const s2_1 = flip ? match.set2_p2 : match.set2_p1;
+        const s2_2 = flip ? match.set2_p1 : match.set2_p2;
+        scoreStr += `, ${s2_1}-${s2_2}`;
+      }
+      if (match.set3_p1 !== null && match.set3_p1 !== undefined && match.set3_p1 !== '' && (Number(match.set3_p1) > 0 || Number(match.set3_p2) > 0)) {
+        const s3_1 = flip ? match.set3_p2 : match.set3_p1;
+        const s3_2 = flip ? match.set3_p1 : match.set3_p2;
+        scoreStr += `, ${s3_1}-${s3_2}`;
+      }
+      return scoreStr;
+    }
+
+    if (match.resultado_t1 === null || match.resultado_t1 === undefined) return 'Pendiente';
     const flip = this.isUserInTeam2(match);
     const r1 = flip ? match.resultado_t2 : match.resultado_t1;
     const r2 = flip ? match.resultado_t1 : match.resultado_t2;
@@ -720,14 +1276,17 @@ export class JugadorCampeonatosPage implements OnInit {
   }
 
   loadUserProfile() {
-    const userId = Number(localStorage.getItem('userId')) || 0;
+    const userId = this.getStoredUserId();
     this.userId = userId;
     this.userName = (localStorage.getItem('userNombre') || localStorage.getItem('userName') || '').trim();
     if (userId) {
       this.mysql.getPerfil(userId).subscribe(res => {
         if (res.success && res.user) {
           const profileName = `${res.user.nombre || ''} ${res.user.apellido || ''}`.trim();
-          if (profileName) this.userName = profileName;
+          if (profileName) {
+            this.userName = profileName;
+            localStorage.setItem('userNombre', profileName);
+          }
           const region = res.direccion?.region || res.user?.region;
           if (region && !this.selectedRegion) {
             this.selectedRegion = region;
@@ -751,13 +1310,41 @@ export class JugadorCampeonatosPage implements OnInit {
     this.mysql.getTorneosPublicos().subscribe((allTorneos: any[]) => {
       const rawList = Array.isArray(allTorneos) ? allTorneos : [];
       const activeTorneos = rawList.filter(t => {
+        const estado = (t.estado || '').toLowerCase().trim();
+        if (estado === 'cerrado' || estado === 'finalizado' || estado === 'cancelado' || estado === 'oculto') {
+          return false;
+        }
         if (t.table_source === 'americanos') {
           return t.fecha >= today;
         }
         return true; 
       });
 
-      this.torneos = activeTorneos;
+      // Deduplicar americanos duplicados (mismo club, mismo nombre y misma fecha)
+      const americanosMap = new Map<string, any>();
+      const otrosTorneos: any[] = [];
+
+      for (const t of activeTorneos) {
+        if (t.table_source === 'americanos') {
+          const key = `${t.club_id || ''}_${(t.nombre || '').toLowerCase().trim()}_${t.fecha}`;
+          const existing = americanosMap.get(key);
+          if (!existing) {
+            americanosMap.set(key, t);
+          } else {
+            const currentIsAbierto = (t.estado || '').toLowerCase() === 'abierto';
+            const existingIsAbierto = (existing.estado || '').toLowerCase() === 'abierto';
+            if (currentIsAbierto && !existingIsAbierto) {
+              americanosMap.set(key, t);
+            } else if (currentIsAbierto === existingIsAbierto && Number(t.id) > Number(existing.id)) {
+              americanosMap.set(key, t);
+            }
+          }
+        } else {
+          otrosTorneos.push(t);
+        }
+      }
+
+      this.torneos = [...Array.from(americanosMap.values()), ...otrosTorneos];
 
       // Always fetch direct ligas to ensure ligas are included even if get_torneos_public didn't include them
       this.mysql.getLigas().subscribe({
@@ -1030,13 +1617,24 @@ export class JugadorCampeonatosPage implements OnInit {
   }
 
   async openEnrollment(torneo: any) {
+    if (!torneo) return;
     this.selectedTournament = torneo;
     this.selectedPartner = null;
     this.partnerSearchTerm = '';
     this.partnerResults = [];
     this.restriccionesLiga = [];
     
-    if (torneo.table_source === 'v2') {
+    const tSource = (torneo.table_source || torneo.tipo_torneo || torneo.tipo || '').toLowerCase();
+
+    // Reuse existing categories if already present on the object
+    if (torneo.categorias && Array.isArray(torneo.categorias) && torneo.categorias.length > 0) {
+      this.availableCategorias = torneo.categorias;
+      this.enrollmentStep = 'category';
+      this.showPartnerModal = true;
+      return;
+    }
+
+    if (tSource.includes('v2') || tSource.includes('oficial') || tSource.includes('torneo')) {
       const loader = await this.loadingCtrl.create({ message: 'Cargando...' });
       await loader.present();
       
@@ -1054,14 +1652,14 @@ export class JugadorCampeonatosPage implements OnInit {
         loader.dismiss();
         this.presentAlert('Error', 'No se pudieron cargar las categorías');
       });
-    } else if (torneo.table_source === 'liga') {
+    } else if (tSource.includes('liga')) {
       const loader = await this.loadingCtrl.create({ message: 'Cargando categorías de la liga...' });
       await loader.present();
       
       this.mysql.getLigaDetalle(torneo.id).subscribe({
         next: (res) => {
           loader.dismiss();
-          const categorias = res?.liga?.categorias || [];
+          const categorias = res?.liga?.categorias || res?.competicion?.categorias || [];
           if (categorias.length === 0) {
             this.presentAlert('Aviso', 'Esta liga aún no tiene categorías disponibles.');
             return;
@@ -1092,7 +1690,7 @@ export class JugadorCampeonatosPage implements OnInit {
       return;
     }
     this.mysql.getUsuarios(this.partnerSearchTerm).subscribe(res => {
-      const myId = Number(localStorage.getItem('userId'));
+      const myId = this.getStoredUserId();
       this.partnerResults = res.filter(u => u.id != myId);
     });
   }
@@ -1126,7 +1724,7 @@ export class JugadorCampeonatosPage implements OnInit {
     const loader = await this.loadingCtrl.create({ message: 'Procesando inscripción...' });
     await loader.present();
 
-    const myId = Number(localStorage.getItem('userId'));
+    const myId = this.getStoredUserId();
 
     if (this.selectedTournament.table_source === 'v2') {
       const myName = localStorage.getItem('userNombre') || 'Jugador';

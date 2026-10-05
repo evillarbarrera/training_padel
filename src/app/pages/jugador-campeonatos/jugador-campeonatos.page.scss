@@ -54,55 +54,68 @@ ion-content {
 // MIS TORNEOS LIST
 // ========================================
 .mis-sub-tabs {
-  display: flex;
-  gap: 12px;
-  padding: 10px 16px;
-  margin-bottom: 15px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  &::-webkit-scrollbar { display: none; }
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+  padding: 0 !important;
+  margin: 0 0 18px 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 
   .sub-tab {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 20px;
-    background: white;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 11px 4px !important;
+    background: #ffffff;
     border: 1px solid rgba(0,0,0,0.06);
-    border-radius: 22px;
+    border-radius: 20px;
     color: var(--nike-text-gray);
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 800;
     white-space: nowrap;
-    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-    appearance: none;
-    -webkit-appearance: none;
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.02);
+    cursor: pointer;
 
     ion-icon { 
-      font-size: 18px; 
+      font-size: 16px !important; 
       transition: transform 0.3s ease;
+      flex-shrink: 0 !important;
+    }
+
+    .tab-label {
+      font-size: 12.5px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .sub-count {
-      background: rgba(0,0,0,0.05);
-      color: #888;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 11px;
+      background: rgba(0,0,0,0.06);
+      color: #64748b;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 10.5px;
       font-weight: 900;
-      margin-left: 4px;
+      margin-left: 2px;
+      flex-shrink: 0 !important;
     }
 
-    &:active { transform: scale(0.96); }
+    &:active { transform: scale(0.97); }
 
     &.active {
       background: var(--nike-navy);
       color: white;
       border-color: var(--nike-navy);
-      box-shadow: 0 8px 18px rgba(5, 12, 28, 0.2);
-      ion-icon { transform: scale(1.1); }
+      box-shadow: 0 6px 16px rgba(5, 12, 28, 0.2);
+      ion-icon { transform: scale(1.05); }
+      .tab-label { color: #ffffff; }
       .sub-count {
         background: rgba(204, 255, 0, 0.25);
         color: var(--nike-neon);
@@ -139,6 +152,7 @@ ion-content {
       font-size: 13px; font-weight: 950; letter-spacing: 0.5px;
       &.americano { background: rgba(204, 255, 0, 0.2); color: var(--nike-navy); }
       &.oficial { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+      &.liga { background: rgba(14, 165, 233, 0.15); color: #0284c7; }
     }
   }
 
@@ -152,10 +166,19 @@ ion-content {
     }
     .mt-club { margin: 0 0 6px; font-size: 12px; font-weight: 700; color: var(--nike-text-gray); }
     .mt-meta {
-      display: flex; align-items: center; gap: 6px;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
       font-size: 11px; font-weight: 700; color: var(--nike-text-gray);
-      ion-icon { font-size: 13px; }
+      ion-icon { font-size: 13px; flex-shrink: 0; }
       .mt-pareja { opacity: 0.7; }
+      .mt-categoria {
+        background: rgba(99, 102, 241, 0.1);
+        color: #6366f1;
+        padding: 2px 7px;
+        border-radius: 6px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+      }
     }
   }
 
@@ -242,6 +265,7 @@ ion-content {
       margin-bottom: 12px;
 
       &.americano { background: rgba(204, 255, 0, 0.3); }
+      &.liga { background: rgba(14, 165, 233, 0.25); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
     }
 
     .mtd-badges-row {
@@ -285,6 +309,49 @@ ion-content {
   position: relative; z-index: 10;
   padding: 30px 20px 120px;
   min-height: 400px;
+}
+
+.cat-selector-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 4px 0;
+
+  .cat-selector-label {
+    font-size: 11px;
+    font-weight: 850;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 2px;
+  }
+
+  .cat-pill {
+    padding: 7px 14px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    &:active { transform: scale(0.96); }
+
+    &.active {
+      background: var(--nike-navy) !important;
+      color: var(--nike-neon) !important;
+      border-color: var(--nike-navy) !important;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25) !important;
+    }
+  }
 }
 
 .section-block {
@@ -441,17 +508,289 @@ ion-content {
   ion-icon { font-size: 18px; }
 }
 
+// ========================================
+// COMPETITION DETAIL TABS & PREDESIGNED PANES
+// ========================================
+.comp-detail-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 4px;
+  margin-bottom: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  width: 100%;
+  box-sizing: border-box;
+
+  .cd-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 11px 4px;
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.3px;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    min-width: 0;
+
+    ion-icon {
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 11px;
+    }
+
+    .cd-badge {
+      background: #f1f5f9;
+      color: #475569;
+      padding: 1px 5px;
+      border-radius: 8px;
+      font-size: 9.5px;
+      font-weight: 950;
+      flex-shrink: 0;
+      line-height: 1.4;
+    }
+
+    &:active { transform: scale(0.97); }
+
+    &.active {
+      background: var(--nike-navy);
+      color: var(--nike-neon);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+
+      span {
+        color: var(--nike-neon);
+      }
+
+      .cd-badge {
+        background: rgba(204, 255, 0, 0.25);
+        color: var(--nike-neon);
+      }
+    }
+  }
+}
+
+// 1. INSCRITOS STYLES
+.inscritos-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .inscrito-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #ffffff;
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.02);
+    transition: all 0.2s ease;
+
+    .ins-num {
+      background: #f8fafc;
+      color: var(--nike-navy);
+      font-weight: 950;
+      font-size: 13px;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid #e2e8f0;
+    }
+
+    .ins-info {
+      flex: 1;
+      min-width: 0;
+
+      .ins-name {
+        margin: 0;
+        font-size: 14.5px;
+        font-weight: 850;
+        color: var(--nike-navy);
+        line-height: 1.35;
+        word-break: break-word;
+      }
+
+      .ins-sub {
+        margin: 4px 0 0;
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 600;
+        word-break: break-word;
+      }
+    }
+
+    .ins-badge {
+      background: #dcfce7;
+      color: #166534;
+      padding: 5px 11px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 850;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+  }
+}
+
+.pagination-bar-mobile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 18px;
+  background: #ffffff;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+
+  .p-page-info {
+    font-size: 13px;
+    font-weight: 800;
+    color: #475569;
+  }
+
+  .p-btn-group {
+    display: flex;
+    gap: 8px;
+
+    .p-nav-btn {
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: var(--nike-navy);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+
+      &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      &:not(:disabled):active {
+        transform: scale(0.96);
+        background: #f1f5f9;
+      }
+    }
+  }
+}
+
+// 2. FIXTURE STYLES
+.fixture-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .section-label { margin-bottom: 0; }
+
+  .fixture-filter-toggle {
+    display: flex;
+    gap: 3px;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 12px;
+
+    button {
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      border-radius: 9px;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s ease;
+
+      &.active {
+        background: var(--nike-navy);
+        color: var(--nike-neon);
+      }
+    }
+  }
+}
+
+.jornadas-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 14px;
+  margin-bottom: 18px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  &::-webkit-scrollbar { display: none; }
+
+  .jornada-chip {
+    padding: 8px 16px;
+    border-radius: 16px;
+    font-weight: 800;
+    font-size: 12.5px;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease;
+
+    &:active { transform: scale(0.96); }
+
+    &.active {
+      background: var(--nike-navy);
+      color: var(--nike-neon);
+      border-color: var(--nike-navy);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+    }
+  }
+}
+
+.btn-show-all-jornada {
+  margin-top: 12px;
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--nike-navy);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  &:active { transform: scale(0.96); }
+}
+
 // MATCH HISTORY LIST
 .match-history-list {
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; gap: 12px;
 }
 
 .mh-card {
-  display: flex; align-items: stretch; gap: 12px;
-  background: #fff;
-  border-radius: 18px;
-  padding: 16px;
+  display: flex; align-items: stretch; gap: 14px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 16px 18px;
   border: 1px solid var(--nike-border);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   transition: all 0.2s ease;
 
   .mh-indicator {
@@ -465,23 +804,28 @@ ion-content {
 
   .mh-content {
     flex: 1;
+    min-width: 0;
 
     .mh-teams {
-      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
 
       .mh-t1, .mh-t2 {
         flex: 1;
-        font-size: 12px; font-weight: 800; color: var(--nike-navy);
-        line-height: 1.3;
+        font-size: 13.5px; font-weight: 850; color: var(--nike-navy);
+        line-height: 1.35;
+        word-break: break-word;
       }
       .mh-t2 { text-align: right; }
 
       .mh-score {
-        font-size: 16px; font-weight: 950; color: var(--nike-navy);
-        padding: 4px 10px;
-        background: var(--nike-gray);
-        border-radius: 10px;
+        font-size: 15px; font-weight: 950; color: var(--nike-navy);
+        padding: 6px 12px;
+        background: #f1f5f9;
+        border-radius: 12px;
         flex-shrink: 0;
+        min-width: 50px;
+        text-align: center;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
       }
     }
 
@@ -489,8 +833,8 @@ ion-content {
       display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
 
       span {
-        font-size: 10px; font-weight: 700; color: var(--nike-text-gray);
-        background: var(--nike-gray); padding: 3px 8px; border-radius: 6px;
+        font-size: 11px; font-weight: 700; color: var(--nike-text-gray);
+        background: var(--nike-gray); padding: 4px 9px; border-radius: 8px;
       }
 
       .mh-result-label {
@@ -505,9 +849,97 @@ ion-content {
   &.other { opacity: 0.5; }
 }
 
+// 3. POSICIONES / TABLA STYLES
+.standings-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 12px 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+
+  .standings-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    table-layout: auto;
+
+    thead tr {
+      border-bottom: 2px solid #f1f5f9;
+      th {
+        padding: 10px 4px;
+        font-size: 10.5px;
+        text-transform: uppercase;
+        font-weight: 900;
+        letter-spacing: 0.3px;
+        color: #64748b;
+        white-space: nowrap;
+
+        &.col-pos { text-align: center; width: 24px; padding-left: 6px; }
+        &.col-team { min-width: 110px; }
+        &.col-stat { text-align: center; padding: 10px 3px; width: 24px; }
+        &.col-pts { color: var(--nike-navy); font-weight: 950; font-size: 11px; width: 28px; }
+        &.col-dif { font-weight: 800; width: 34px; padding-right: 6px; }
+      }
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #f8fafc;
+      transition: background 0.15s ease;
+
+      &:last-child { border-bottom: none; }
+      &:active { background: #f8fafc; }
+
+      td {
+        padding: 12px 4px;
+        font-size: 12.5px;
+        vertical-align: middle;
+
+        &.col-pos {
+          text-align: center;
+          font-weight: 900;
+          font-size: 13px;
+          padding-left: 6px;
+        }
+
+        &.col-team {
+          font-weight: 800;
+          color: var(--nike-navy);
+          line-height: 1.3;
+          .team-name { 
+            display: block; 
+            word-break: break-word; 
+            font-size: 12.5px;
+            font-weight: 800;
+          }
+        }
+
+        &.col-stat {
+          text-align: center;
+          color: #64748b;
+          font-weight: 700;
+          font-size: 12px;
+          padding: 12px 3px;
+
+          &.win-stat { color: #16a34a; font-weight: 800; }
+          &.loss-stat { color: #dc2626; font-weight: 700; }
+          &.col-pts { color: var(--nike-navy); font-weight: 950; font-size: 13.5px; }
+          &.col-dif { font-weight: 700; font-size: 11.5px; padding-right: 6px; }
+        }
+      }
+    }
+  }
+}
+
 .empty-matches {
-  text-align: center; padding: 30px;
-  p { font-size: 13px; font-weight: 700; color: var(--nike-text-gray); }
+  text-align: center; padding: 32px 20px;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  p { font-size: 13px; font-weight: 700; color: var(--nike-text-gray); margin: 0; }
 }
 
 // ========================================
@@ -530,36 +962,49 @@ ion-content {
 }
 
 .discovery-body-v6 {
-  margin-top: -40px; position: relative; z-index: 10; background: #f4f7fa; border-radius: 40px 40px 0 0; padding: 30px 20px 100px; min-height: 500px;
+  margin-top: -40px; 
+  position: relative; 
+  z-index: 10; 
+  background: #f4f7fa; 
+  border-radius: 40px 40px 0 0; 
+  padding: 30px 18px 100px; 
+  min-height: 500px;
+  box-sizing: border-box;
+  width: 100%;
 
   .comp-filter-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 6px;
     margin-bottom: 14px;
+    width: 100%;
+    box-sizing: border-box;
 
     .comp-chip {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 4px;
-      padding: 9px 2px;
-      border-radius: 12px;
+      padding: 10px 4px;
+      border-radius: 14px;
       background: #ffffff;
-      border: 1px solid var(--nike-border);
+      border: 1px solid #e2e8f0;
       font-size: 11px;
       font-weight: 800;
       color: #475569;
       cursor: pointer;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       text-align: center;
       min-width: 0;
+      white-space: nowrap;
 
       span { 
         font-size: 12px; 
         flex-shrink: 0;
       }
+
+      &:active { transform: scale(0.96); }
 
       &.active {
         background: #0f172a;
@@ -572,9 +1017,11 @@ ion-content {
 
   .filters-row-v6 {
     display: grid; 
-    grid-template-columns: 1fr 1fr; 
-    gap: 10px; 
+    grid-template-columns: repeat(2, minmax(0, 1fr)); 
+    gap: 8px; 
     margin-bottom: 12px;
+    width: 100%;
+    box-sizing: border-box;
 
     .filter-item-v6 {
       background: #ffffff; 
@@ -582,10 +1029,11 @@ ion-content {
       padding: 10px 12px; 
       display: flex; 
       align-items: center; 
-      gap: 8px; 
-      border: 1px solid var(--nike-border);
+      gap: 6px; 
+      border: 1px solid #e2e8f0;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
       min-width: 0;
+      box-sizing: border-box;
 
       ion-icon { 
         color: #2563eb; 
@@ -595,15 +1043,16 @@ ion-content {
 
       .arrow-down {
         color: #94a3b8;
-        font-size: 14px;
+        font-size: 13px;
         margin-left: auto;
+        flex-shrink: 0;
       }
 
       select { 
         background: transparent; 
         border: none; 
         width: 100%; 
-        font-size: 12px; 
+        font-size: 11.5px; 
         font-weight: 800; 
         color: var(--nike-navy); 
         outline: none; 
@@ -614,6 +1063,7 @@ ion-content {
         overflow: hidden;
         font-family: inherit;
         padding-right: 2px;
+        min-width: 0;
       }
     }
   }
@@ -623,11 +1073,13 @@ ion-content {
     border-radius: 16px; 
     display: flex; 
     align-items: center; 
-    padding: 12px 16px; 
+    padding: 12px 14px; 
     gap: 10px; 
     margin-bottom: 20px; 
-    border: 1px solid var(--nike-border);
+    border: 1px solid #e2e8f0;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+    width: 100%;
+    box-sizing: border-box;
 
     ion-icon { 
       color: #64748b; 
@@ -639,11 +1091,12 @@ ion-content {
       background: transparent; 
       border: none; 
       width: 100%; 
-      font-size: 13px; 
+      font-size: 12.5px; 
       font-weight: 700; 
       color: var(--nike-navy);
       outline: none; 
       font-family: inherit;
+      min-width: 0;
 
       &::placeholder {
         color: #94a3b8;
@@ -687,7 +1140,25 @@ ion-content {
 }
 .detail-content-card {
   margin-top: -30px; background: white; border-top-left-radius: 32px; border-top-right-radius: 32px; position: relative; z-index: 10; padding: 30px 25px 120px;
-  .club-info-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; h2 { margin: 0; font-size: 28px; font-weight: 950; color: var(--nike-navy); } .fav-icon-btn { font-size: 24px; color: var(--nike-navy); } }
+  .club-info-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-start; 
+    margin-bottom: 20px; 
+    h2 { margin: 0; font-size: 28px; font-weight: 950; color: var(--nike-navy); } 
+    .fav-icon-btn { 
+      font-size: 24px; 
+      color: var(--nike-navy); 
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 50%;
+      transition: transform 0.2s ease, background 0.2s ease;
+      &:active {
+        transform: scale(0.88);
+        background: rgba(0, 0, 0, 0.06);
+      }
+    } 
+  }
   .address-text { font-size: 14px; color: var(--nike-text-gray); font-weight: 600; margin-bottom: 30px; }
   
   .nike-tabs-v6 {
@@ -708,6 +1179,24 @@ ion-content {
   font-weight: 900;
   padding: 3px 10px;
   border-radius: 12px;
+}
+
+.t-capacity-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 8px;
+  letter-spacing: 0.2px;
+
+  &.full {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+  }
 }
 
 .tournament-list-v6 {
@@ -800,6 +1289,8 @@ ion-content {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
       margin-top: 8px;
       padding-top: 12px;
       border-top: 1px solid #f1f5f9;
@@ -816,6 +1307,31 @@ ion-content {
       ion-icon {
         font-size: 15px;
         color: #2563eb;
+      }
+    }
+
+    .btn-group-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .view-detail-btn-v6 {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
+      padding: 9px 14px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 0.5px;
+
+      &:active {
+        transform: scale(0.95);
+        background: #e2e8f0;
       }
     }
 
@@ -1116,3 +1632,394 @@ ion-content {
 
 .animate-up { animation: up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
 @keyframes up { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+/* FLOATING BACK BUTTON (Consistent Nike Athletic / Playtomic style) */
+.back-fab-v7 {
+  --background: #ffffff;
+  --color: #0f172a;
+  --border-radius: 50%;
+  --box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  width: 58px;
+  height: 58px;
+  border: 1.5px solid #e2e8f0;
+
+  ion-icon {
+    font-size: 24px;
+    color: #0f172a;
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+}
+
+// ========================================
+// REFINED SUB-TABS FILTER & BUSCO PAREJA
+// ========================================
+.inscritos-sub-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 18px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  width: 100%;
+  box-sizing: border-box;
+
+  .ist-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 6px;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: #64748b;
+    font-weight: 800;
+    font-size: 11.5px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    min-width: 0;
+
+    .ist-icon {
+      font-size: 13px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .ist-label {
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 11.5px;
+    }
+
+    .ist-badge {
+      background: #e2e8f0;
+      color: #475569;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 1px 6px;
+      border-radius: 8px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      line-height: 1.4;
+
+      &.green {
+        background: rgba(16, 185, 129, 0.15);
+        color: #059669;
+      }
+    }
+
+    &:active {
+      transform: scale(0.97);
+    }
+
+    &.active {
+      background: var(--nike-navy);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
+
+      .ist-label {
+        color: #ffffff;
+      }
+
+      .ist-badge {
+        background: rgba(204, 255, 0, 0.2);
+        color: var(--nike-neon);
+
+        &.green {
+          background: rgba(16, 185, 129, 0.3);
+          color: #34d399;
+        }
+      }
+    }
+  }
+}
+
+// CALLOUT AGENTE LIBRE
+.agente-libre-callout {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 1.5px dashed #6ee7b7;
+  border-radius: 18px;
+  padding: 13px 15px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.05);
+
+  .alc-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+
+    .alc-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .alc-text {
+      min-width: 0;
+      h4 {
+        margin: 0;
+        font-size: 12.5px;
+        font-weight: 900;
+        color: #065f46;
+        line-height: 1.2;
+      }
+      p {
+        margin: 2px 0 0 0;
+        font-size: 11px;
+        font-weight: 600;
+        color: #047857;
+        line-height: 1.3;
+      }
+    }
+  }
+
+  .alc-btn {
+    background: #059669;
+    color: #ffffff;
+    border: none;
+    padding: 9px 14px;
+    border-radius: 12px;
+    font-weight: 900;
+    font-size: 11.5px;
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+    transition: all 0.2s ease;
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+// EMPTY STATE BUSCO PAREJA
+.empty-agentes-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 36px 20px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  margin-top: 6px;
+
+  .eab-icon-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin: 0 auto 16px;
+  }
+
+  h4 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 950;
+    color: var(--nike-navy);
+  }
+
+  p {
+    margin: 0 auto 20px;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: #64748b;
+    max-width: 320px;
+    font-weight: 600;
+  }
+
+  .eab-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #059669;
+    color: #ffffff;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 14px;
+    font-size: 12.5px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+    transition: all 0.2s ease;
+
+    ion-icon {
+      font-size: 16px;
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+}
+
+// AGENTES CARDS
+.agentes-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+
+  .agente-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+
+    .ag-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+
+      .ag-left-profile {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .ag-avatar {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 2px solid #059669;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .ag-name-col {
+          .ag-name {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--nike-navy);
+          }
+
+          .ag-tags-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 3px;
+
+            .ag-tag {
+              font-size: 10.5px;
+              font-weight: 800;
+              padding: 2px 7px;
+              border-radius: 6px;
+
+              &.nivel {
+                background: rgba(16, 185, 129, 0.12);
+                color: #059669;
+              }
+
+              &.pos {
+                background: rgba(99, 102, 241, 0.1);
+                color: #6366f1;
+              }
+            }
+          }
+        }
+      }
+
+      .ag-time {
+        font-size: 11px;
+        font-weight: 700;
+        color: #94a3b8;
+      }
+    }
+
+    .ag-msg {
+      margin: 0 0 12px 0;
+      font-size: 12.5px;
+      color: #475569;
+      font-style: italic;
+      line-height: 1.4;
+      background: #f8fafc;
+      padding: 8px 12px;
+      border-radius: 10px;
+    }
+
+    .ag-actions-row {
+      display: flex;
+      justify-content: flex-end;
+
+      .ag-dupla-btn {
+        background: var(--nike-navy);
+        color: var(--nike-neon);
+        border: none;
+        padding: 9px 16px;
+        border-radius: 12px;
+        font-weight: 900;
+        font-size: 11.5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+        transition: all 0.2s ease;
+
+        &:active {
+          transform: scale(0.96);
+        }
+      }
+
+      .ag-my-badge-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .ag-active-pill {
+          background: rgba(16, 185, 129, 0.15);
+          color: #059669;
+          font-size: 11px;
+          font-weight: 850;
+          padding: 5px 10px;
+          border-radius: 8px;
+        }
+
+        .ag-delete-btn {
+          background: #fee2e2;
+          color: #dc2626;
+          border: 1px solid #fca5a5;
+          padding: 5px 10px;
+          border-radius: 8px;
+          font-size: 11px;
+          font-weight: 800;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          transition: all 0.2s ease;
+
+          &:active {
+            transform: scale(0.95);
+          }
+        }
+      }
+    }
+  }
+}
+

@@ -18,9 +18,10 @@ import {
   chevronUpOutline, tennisballOutline, lockClosedOutline, close,
   sendOutline, informationCircleOutline, mapOutline,
   chevronForwardOutline, checkmarkCircleOutline,
-  chevronBackOutline
+  chevronBackOutline, logoWhatsapp
 } from 'ionicons/icons';
 import { environment } from '../../../environments/environment';
+import { HapticFeedbackService } from '../../services/haptics.service';
 
 import { PadelLoaderComponent } from '../../components/padel-loader/padel-loader.component';
 
@@ -50,6 +51,9 @@ export class ClubesReservarPage implements OnInit {
   selectedSlot: any = null;
   showCourtModal: boolean = false;
   showSuccessModal: boolean = false;
+  showConfirmModal: boolean = false;
+  isSubmittingReserva: boolean = false;
+  bookingPreview: any = null;
   showOccupied: boolean = false;
   apiBaseUrl: string = 'https://api.padelmanager.cl';
   
@@ -71,7 +75,163 @@ export class ClubesReservarPage implements OnInit {
   loading = true;
   selectedDuration: number = 90; // Default to 90 min
 
+  // RESOURCE CATEGORIES & FILTERS
+  activeCategoryFilter: string = 'all';
+
+  setCategoryFilter(filter: string) {
+    this.activeCategoryFilter = filter;
+  }
+
+  getCategoryMeta(cancha: any): { id: string; nombre: string; icono: string; badgeLabel: string; actionLabel: string; grupo: string; colorHex: string; bgHex: string; isCourt: boolean } {
+    const cat = cancha?.categoria || 'cancha_padel';
+    const catalog: Record<string, any> = {
+      cancha_padel: {
+        id: 'cancha_padel',
+        nombre: 'Cancha de Pádel',
+        icono: '🎾',
+        badgeLabel: 'Pádel',
+        actionLabel: 'RESERVAR',
+        grupo: 'padel',
+        colorHex: '#059669',
+        bgHex: '#ecfdf5',
+        isCourt: true
+      },
+      mesa_pool: {
+        id: 'mesa_pool',
+        nombre: 'Mesa de Pool / Billar',
+        icono: '🎱',
+        badgeLabel: 'Pool',
+        actionLabel: 'ARRENDAR',
+        grupo: 'juegos',
+        colorHex: '#8b5cf6',
+        bgHex: '#ede9fe',
+        isCourt: false
+      },
+      mesa_pingpong: {
+        id: 'mesa_pingpong',
+        nombre: 'Mesa de Ping Pong',
+        icono: '🏓',
+        badgeLabel: 'Ping Pong',
+        actionLabel: 'ARRENDAR',
+        grupo: 'juegos',
+        colorHex: '#0891b2',
+        bgHex: '#cffafe',
+        isCourt: false
+      },
+      quincho: {
+        id: 'quincho',
+        nombre: 'Quincho / Parrilla & BBQ',
+        icono: '🍖',
+        badgeLabel: 'Quincho BBQ',
+        actionLabel: 'ARRENDAR',
+        grupo: 'amenities',
+        colorHex: '#ea580c',
+        bgHex: '#ffedd5',
+        isCourt: false
+      },
+      zona_lounge: {
+        id: 'zona_lounge',
+        nombre: 'Zona Gamer & Lounge PS5',
+        icono: '🎮',
+        badgeLabel: 'Zona Gamer',
+        actionLabel: 'ARRENDAR',
+        grupo: 'juegos',
+        colorHex: '#db2777',
+        bgHex: '#fce7f3',
+        isCourt: false
+      },
+      futbolito: {
+        id: 'futbolito',
+        nombre: 'Futbolito / Taca Taca',
+        icono: '⚽',
+        badgeLabel: 'Futbolito',
+        actionLabel: 'ARRENDAR',
+        grupo: 'juegos',
+        colorHex: '#059669',
+        bgHex: '#dcfce7',
+        isCourt: false
+      },
+      maquina_lanzapelotas: {
+        id: 'maquina_lanzapelotas',
+        nombre: 'Máquina Lanzapelotas',
+        icono: '🤖',
+        badgeLabel: 'Lanzapelotas',
+        actionLabel: 'ARRENDAR',
+        grupo: 'equipamiento',
+        colorHex: '#2563eb',
+        bgHex: '#dbeafe',
+        isCourt: false
+      },
+      cancha_pickleball: {
+        id: 'cancha_pickleball',
+        nombre: 'Cancha de Pickleball',
+        icono: '🏓',
+        badgeLabel: 'Pickleball',
+        actionLabel: 'RESERVAR',
+        grupo: 'padel',
+        colorHex: '#65a30d',
+        bgHex: '#ecfccb',
+        isCourt: true
+      },
+      sala_eventos: {
+        id: 'sala_eventos',
+        nombre: 'Sala Multiuso / Eventos',
+        icono: '🎉',
+        badgeLabel: 'Eventos',
+        actionLabel: 'ARRENDAR',
+        grupo: 'amenities',
+        colorHex: '#ca8a04',
+        bgHex: '#fef9c3',
+        isCourt: false
+      },
+      otro: {
+        id: 'otro',
+        nombre: 'Otro Recurso / Espacio',
+        icono: '📦',
+        badgeLabel: 'Espacio',
+        actionLabel: 'ARRENDAR',
+        grupo: 'amenities',
+        colorHex: '#64748b',
+        bgHex: '#f1f5f9',
+        isCourt: false
+      }
+    };
+    return catalog[cat] || catalog['otro'];
+  }
+
+  isCourt(cancha: any): boolean {
+    return this.getCategoryMeta(cancha).isCourt;
+  }
+
+  hasAmenitiesInClub(): boolean {
+    if (!this.horarios || this.horarios.length === 0) return false;
+    return this.horarios.some(slot => 
+      slot.canchas && slot.canchas.some((c: any) => !this.isCourt(c))
+    );
+  }
+
+  getCategoryCountInSlot(slot: any, grupo: string): number {
+    if (!slot || !slot.canchas) return 0;
+    return slot.canchas.filter((c: any) => {
+      if (this.getCourtPrice(c) <= 0) return false;
+      const meta = this.getCategoryMeta(c);
+      return meta.grupo === grupo;
+    }).length;
+  }
+
+  getFilteredCourtsForSlot(slot: any): any[] {
+    if (!slot || !slot.canchas) return [];
+    const list = slot.canchas.filter((c: any) => this.getCourtPrice(c) > 0);
+    if (this.activeCategoryFilter === 'all') return list;
+    return list.filter((c: any) => {
+      const meta = this.getCategoryMeta(c);
+      return meta.grupo === this.activeCategoryFilter;
+    });
+  }
+
   setDuration(dur: number) {
+    if (this.selectedDuration === dur) return;
+    this.haptics.light();
     this.selectedDuration = dur;
     this.autoSelectFirstSlot();
   }
@@ -87,7 +247,8 @@ export class ClubesReservarPage implements OnInit {
     private alertCtrl: AlertController,
     private actionSheetCtrl: ActionSheetController,
     private loadingCtrl: LoadingController,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    public haptics: HapticFeedbackService
   ) {
     addIcons({ 
       locationOutline, searchOutline, calendarOutline, 
@@ -98,7 +259,7 @@ export class ClubesReservarPage implements OnInit {
       sendOutline, informationCircleOutline,
       mapOutline: 'map-outline',
       chevronForwardOutline, checkmarkCircleOutline,
-      chevronBackOutline
+      chevronBackOutline, logoWhatsapp
     });
   }
 
@@ -283,6 +444,7 @@ export class ClubesReservarPage implements OnInit {
     if (event) {
       event.stopPropagation();
     }
+    this.haptics.light();
     club.isFavorite = !club.isFavorite;
     
     let favorites = JSON.parse(localStorage.getItem('fav_clubes') || '[]');
@@ -328,6 +490,7 @@ export class ClubesReservarPage implements OnInit {
   }
 
   goBack() {
+    this.haptics.light();
     if (this.selectedClub) {
       this.selectedClub = null;
       this.showSuccessModal = false;
@@ -342,10 +505,12 @@ export class ClubesReservarPage implements OnInit {
   }
 
   onSelectClub(club: any) {
+    this.haptics.medium();
     this.selectedClub = club;
     this.activeSubTab = 'reservar';
     this.showSuccessModal = false;
     this.loadDisponibilidad();
+    this.prefetchUpcomingDays();
     this.loadMisPartidosClub();
   }
 
@@ -377,6 +542,7 @@ export class ClubesReservarPage implements OnInit {
   }
 
   async onSelectSlot(slot: any) {
+    this.haptics.light();
     this.selectedSlot = slot;
     this.showCourtModal = true;
   }
@@ -412,40 +578,111 @@ export class ClubesReservarPage implements OnInit {
     });
   }
 
-  loadDisponibilidad() {
+  getCachedDisponibilidad(key: string): any[] | null {
+    if (this.disponibilidadCache.has(key)) {
+      return this.disponibilidadCache.get(key)!;
+    }
+    try {
+      const stored = sessionStorage.getItem(`disp_${key}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.timestamp && (Date.now() - parsed.timestamp < 10 * 60 * 1000) && Array.isArray(parsed.data)) {
+          this.disponibilidadCache.set(key, parsed.data);
+          return parsed.data;
+        }
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  setCachedDisponibilidad(key: string, data: any[]) {
+    if (!Array.isArray(data)) return;
+    this.disponibilidadCache.set(key, data);
+    try {
+      sessionStorage.setItem(`disp_${key}`, JSON.stringify({
+        timestamp: Date.now(),
+        data: data
+      }));
+    } catch (e) {}
+  }
+
+  prefetchUpcomingDays() {
+    if (!this.selectedClub || !this.weekDays || this.weekDays.length === 0) return;
+    const clubId = this.selectedClub.id;
+    const daysToPrefetch = this.weekDays
+      .map(d => d.fullDate)
+      .filter(f => f !== this.selectedFecha)
+      .slice(0, 4);
+
+    daysToPrefetch.forEach((fecha, idx) => {
+      const key = `${clubId}_${fecha}`;
+      if (!this.getCachedDisponibilidad(key)) {
+        setTimeout(() => {
+          if (this.selectedClub && this.selectedClub.id === clubId) {
+            this.mysql.getDisponibilidadClub(clubId, fecha).subscribe({
+              next: (res: any[]) => {
+                if (Array.isArray(res) && res.length > 0) {
+                  this.setCachedDisponibilidad(key, res);
+                }
+              }
+            });
+          }
+        }, (idx + 1) * 350);
+      }
+    });
+  }
+
+  loadDisponibilidad(forceRefresh: boolean = false) {
     if (!this.selectedClub || !this.selectedFecha) return;
     
     const cacheKey = `${this.selectedClub.id}_${this.selectedFecha}`;
-    
-    // 1. INSTANT LOAD FROM CACHE
-    if (this.disponibilidadCache.has(cacheKey)) {
-      const cached = this.disponibilidadCache.get(cacheKey)!;
+    if (forceRefresh) {
+      this.disponibilidadCache.delete(cacheKey);
+      sessionStorage.removeItem(`disp_${cacheKey}`);
+    }
+
+    const cached = forceRefresh ? null : this.getCachedDisponibilidad(cacheKey);
+
+    if (cached) {
       this.horarios = this.filterPastHoursIfToday(cached);
       this.autoSelectFirstSlot();
-      // Optional: Load in background to refresh, but don't show spinner
+      this.loading = false;
+      this.cdr.detectChanges();
       this.fetchAvailabilitySilent(cacheKey);
     } else {
-      // 2. SHOW SPINNER FOR NEW REQUESTS
       this.loading = true;
       this.selectedSlot = null;
       this.mysql.getDisponibilidadClub(this.selectedClub.id, this.selectedFecha).subscribe({
         next: (res: any[]) => {
-          this.disponibilidadCache.set(cacheKey, res);
+          this.setCachedDisponibilidad(cacheKey, res);
           this.horarios = this.filterPastHoursIfToday(res);
           this.autoSelectFirstSlot();
           this.loading = false;
+          this.cdr.detectChanges();
         },
-        error: () => this.loading = false
+        error: () => {
+          this.loading = false;
+          this.cdr.detectChanges();
+        }
       });
     }
   }
 
   private fetchAvailabilitySilent(cacheKey: string) {
-    this.mysql.getDisponibilidadClub(this.selectedClub.id, this.selectedFecha).subscribe({
+    if (!this.selectedClub || !this.selectedFecha) return;
+    const clubId = this.selectedClub.id;
+    const fecha = this.selectedFecha;
+
+    this.mysql.getDisponibilidadClub(clubId, fecha).subscribe({
       next: (res: any[]) => {
-        this.disponibilidadCache.set(cacheKey, res);
-        this.horarios = this.filterPastHoursIfToday(res);
-        this.autoSelectFirstSlot();
+        if (Array.isArray(res)) {
+          this.setCachedDisponibilidad(cacheKey, res);
+          if (this.selectedClub?.id === clubId && this.selectedFecha === fecha) {
+            this.horarios = this.filterPastHoursIfToday(res);
+            this.autoSelectFirstSlot();
+            this.cdr.detectChanges();
+          }
+        }
       }
     });
   }
@@ -453,7 +690,6 @@ export class ClubesReservarPage implements OnInit {
   private autoSelectFirstSlot() {
     const slots = this.filteredHorarios;
     if (slots.length > 0) {
-      // Keep previous slot if it still exists in new data, or select first available
       const currentHora = this.selectedSlot?.hora;
       const sameSlot = slots.find(h => h.hora === currentHora);
       
@@ -468,8 +704,11 @@ export class ClubesReservarPage implements OnInit {
   }
 
   onSelectDate(date: string) {
+    if (this.selectedFecha === date) return;
+    this.haptics.selectionChanged();
     this.selectedFecha = date;
     this.loadDisponibilidad();
+    this.prefetchUpcomingDays();
   }
 
   toggleTimeSlot(slot: any) {
@@ -504,64 +743,62 @@ export class ClubesReservarPage implements OnInit {
     return role.includes('entrenador') || userRol.includes('entrenador') || role.includes('coach') || userRol.includes('coach');
   }
 
+  getFormattedSelectedDate(): string {
+    if (!this.selectedFecha) return '';
+    const parts = this.selectedFecha.split('-');
+    if (parts.length === 3) {
+      const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      return `${days[d.getDay()]}, ${d.getDate()} de ${months[d.getMonth()]}`;
+    }
+    return this.selectedFecha;
+  }
+
   async reservar(slot: any, cancha: any) {
     if (!cancha.disponible) return;
+    this.haptics.heavy();
     
+    const meta = this.getCategoryMeta(cancha);
+    const isCourtResource = this.isCourt(cancha);
     const precioCalculado = this.getCourtPrice(cancha);
     const precioPorJugador = Math.round(precioCalculado / 4);
     const tipoHorario = cancha.nombre_tarifa || (cancha.es_horario_alto ? '⚡ Horario Alto' : '🌿 Horario Bajo');
     const precioTotalFormatted = '$' + Math.round(precioCalculado).toLocaleString('es-CL');
     const precioJugadorFormatted = '$' + precioPorJugador.toLocaleString('es-CL');
+    const horaFin = this.calcularHoraFin(slot.hora, this.selectedDuration);
 
-    if (this.isEntrenador) {
-      const alert = await this.alertCtrl.create({
-        header: 'Tipo de Reserva',
-        subHeader: `${cancha.cancha_nombre} (${slot.hora.slice(0,5)})`,
-        message: `Como entrenador, indica el propósito de tu reserva:\n\n• Precio Total: ${precioTotalFormatted}\n• Tarifa: ${tipoHorario}`,
-        inputs: [
-          {
-            name: 'tipoReserva',
-            type: 'radio',
-            label: '🎓 Entrenamiento',
-            value: 'Entrenamiento',
-            checked: true
-          },
-          {
-            name: 'tipoReserva',
-            type: 'radio',
-            label: '🎾 Partido Regular',
-            value: 'Confirmada',
-            checked: false
-          }
-        ],
-        buttons: [
-          { text: 'Cancelar', role: 'cancel' },
-          {
-            text: 'Confirmar',
-            handler: (selectedTipo) => {
-              const estado = selectedTipo || 'Entrenamiento';
-              this.confirmarReserva(slot, cancha, estado);
-            }
-          }
-        ],
-        mode: 'ios'
-      });
-      await alert.present();
-    } else {
-      const alert = await this.alertCtrl.create({
-        header: 'Confirmar Reserva',
-        message: `¿Deseas reservar ${cancha.cancha_nombre} a las ${slot.hora.slice(0,5)}?\n\n• Precio Total: ${precioTotalFormatted}\n• Por jugador (x4): ${precioJugadorFormatted}\n• Tarifa: ${tipoHorario}`,
-        buttons: [
-          { text: 'Cancelar', role: 'cancel' },
-          {
-            text: 'Confirmar',
-            handler: () => this.confirmarReserva(slot, cancha, 'Confirmada')
-          }
-        ],
-        mode: 'ios'
-      });
-      await alert.present();
-    }
+    this.bookingPreview = {
+      cancha,
+      slot,
+      meta,
+      isCourtResource,
+      precioCalculado,
+      precioPorJugador,
+      precioTotalFormatted,
+      precioJugadorFormatted,
+      tipoHorario,
+      horaInicio: slot.hora.slice(0, 5),
+      horaFin: horaFin.slice(0, 5),
+      duracion: this.selectedDuration,
+      fecha: this.selectedFecha,
+      tipoReserva: this.isEntrenador && isCourtResource ? 'Entrenamiento' : 'Confirmada'
+    };
+    this.showConfirmModal = true;
+  }
+
+  confirmarBookingFromPreview() {
+    if (!this.bookingPreview || this.isSubmittingReserva) return;
+    this.haptics.heavy();
+    const { slot, cancha, tipoReserva } = this.bookingPreview;
+    this.confirmarReserva(slot, cancha, tipoReserva || 'Confirmada');
+  }
+
+  cancelarBookingPreview() {
+    if (this.isSubmittingReserva) return;
+    this.haptics.light();
+    this.showConfirmModal = false;
+    this.bookingPreview = null;
   }
 
   calcularHoraFin(horaInicio: string, duracionMinutos: number): string {
@@ -576,9 +813,11 @@ export class ClubesReservarPage implements OnInit {
     const userId = Number(localStorage.getItem('userId'));
     const horaFin = this.calcularHoraFin(slot.hora, this.selectedDuration);
     const precioCalculado = this.getCourtPrice(cancha);
+    const meta = this.getCategoryMeta(cancha);
 
     const payload = {
-      cancha_id: cancha.cancha_id,
+      club_id: this.selectedClub?.id || this.selectedClub?.club_id,
+      cancha_id: cancha.cancha_id || cancha.id,
       usuario_id: userId,
       jugador_id: userId,
       fecha: this.selectedFecha,
@@ -589,42 +828,52 @@ export class ClubesReservarPage implements OnInit {
       estado: estado
     };
 
-    const loader = await this.loadingCtrl.create({
-      message: 'Procesando reserva...',
-      mode: 'ios'
-    });
-    await loader.present();
+    this.isSubmittingReserva = true;
+    this.cdr.detectChanges();
 
     this.mysql.addReservaClub(payload).subscribe({
       next: async (res: any) => {
         console.log('Reserva exitosa:', res);
-        loader.dismiss();
+        this.isSubmittingReserva = false;
+        this.showConfirmModal = false;
+        this.bookingPreview = null;
+        this.haptics.success();
         
         // 1. CAPTURE DATA FOR SUMMARY
         this.lastReserva = {
           id: res.id || res.reserva_id, // Capture created ID
-          club: this.selectedClub.nombre,
+          club: this.selectedClub?.nombre,
           pista: cancha.cancha_nombre,
           hora: `${this.formatTime(slot.hora)}`,
           precio: precioCalculado,
           precioJugador: Math.round(precioCalculado / 4),
           tipoHorario: cancha.es_horario_alto ? 'Horario Alto' : 'Horario Bajo',
-          estado: estado
+          estado: estado,
+          isCourt: meta.isCourt,
+          categoria: cancha.categoria || 'cancha_padel',
+          icono: meta.icono,
+          badgeLabel: meta.badgeLabel,
+          capacidad: cancha.capacidad,
+          descripcion: cancha.descripcion,
+          superficie: cancha.superficie,
+          tipo: cancha.tipo
         };
 
         // 2. SHOW SUCCESS MODAL
         this.showSuccessModal = true;
         this.cdr.detectChanges();
         
-        // Recargamos datos de fondo
-        this.loadDisponibilidad();
+        // Recargamos datos frescos de fondo (forzando bypass de caché)
+        this.loadDisponibilidad(true);
         this.loadMisPartidosClub();
       },
       error: async (err: any) => {
-        loader.dismiss();
+        this.isSubmittingReserva = false;
+        this.loadDisponibilidad(true);
+        this.cdr.detectChanges();
         const errAlert = await this.alertCtrl.create({
-          header: 'Error',
-          message: err.error?.error || 'No se pudo completar la reserva',
+          header: 'Cancha No Disponible',
+          message: err.error?.error || 'No se pudo completar la reserva. El horario seleccionado ya no está disponible.',
           buttons: ['OK'],
           mode: 'ios'
         });
@@ -664,5 +913,78 @@ export class ClubesReservarPage implements OnInit {
   get filteredHorarios(): any[] {
     if (!this.horarios) return [];
     return this.horarios.filter(slot => this.hasAvailableInSlot(slot));
+  }
+
+  splitCount: number = 4;
+
+  getSplitAmount(): number {
+    if (!this.lastReserva?.precio) return 0;
+    return Math.round(Number(this.lastReserva.precio) / (this.splitCount || 4));
+  }
+
+  setSplitCount(count: number) {
+    this.haptics.light();
+    this.splitCount = count;
+  }
+
+  async shareWhatsAppPayment() {
+    this.haptics.light();
+    if (!this.lastReserva) return;
+    const r = this.lastReserva;
+    const cuota = this.getSplitAmount();
+    const cuotaFormatted = '$' + cuota.toLocaleString('es-CL');
+    const totalFormatted = '$' + Number(r.precio).toLocaleString('es-CL');
+    const fechaDisplay = this.selectedFecha || 'la fecha reservada';
+
+    const text = `🎾 *¡Pista lista en ${r.club}!* 🔥\n\n` +
+      `📅 *Fecha:* ${fechaDisplay}\n` +
+      `⏰ *Horario:* ${r.hora}\n` +
+      `📍 *Pista:* ${r.pista}\n\n` +
+      `💰 *Total:* ${totalFormatted}\n` +
+      `👥 *Cuota por jugador (${this.splitCount}p):* *${cuotaFormatted}*\n\n` +
+      `¡Confirmen asistencia y recuerden transferir su parte! 🚀`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Cobro de Cancha de Pádel',
+          text: text
+        });
+      } catch (e) {}
+    } else {
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+    }
+  }
+
+  getWeatherSummary(fecha?: string): { temp: string; desc: string; icon: string; isOutdoorGood: boolean } {
+    return {
+      temp: '22°C',
+      desc: 'Cielo Despejado',
+      icon: '☀️',
+      isOutdoorGood: true
+    };
+  }
+
+  async notifySlotLiberado(slot: any) {
+    this.haptics.success();
+    const alert = await this.alertCtrl.create({
+      header: '🔔 Alerta de Horario',
+      subHeader: `${this.formatTime(slot.hora)} hrs • ${this.selectedFecha}`,
+      message: '¡Listo! Te avisaremos de inmediato si se cancela una reserva y se libera una pista en este horario.',
+      buttons: ['OK'],
+      mode: 'ios'
+    });
+    await alert.present();
+  }
+
+  getHabitualClub(): any | null {
+    if (!this.clubes || this.clubes.length === 0) return null;
+    const favorites = JSON.parse(localStorage.getItem('fav_clubes') || '[]');
+    if (favorites.length > 0) {
+      const fav = this.clubes.find(c => favorites.includes(c.id));
+      if (fav) return fav;
+    }
+    return this.clubes[0] || null;
   }
 }

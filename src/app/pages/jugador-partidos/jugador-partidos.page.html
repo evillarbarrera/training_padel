@@ -58,7 +58,8 @@
           <div class="m-info">
             <h3>{{ p.club_nombre }}</h3>
             <div class="m-meta">
-              <ion-icon name="location-outline"></ion-icon>
+              <ion-icon name="location-outline" *ngIf="!p.cancha_icono"></ion-icon>
+              <span *ngIf="p.cancha_icono" style="font-size: 13px; margin-right: 2px;">{{ p.cancha_icono }}</span>
               <span>{{ p.cancha_nombre || 'Cancha por asignar' }}</span>
               <ion-icon name="time-outline" style="margin-left: 10px;"></ion-icon>
               <span>{{ p.hora_inicio.slice(0,5) }} HRS</span>
@@ -94,7 +95,8 @@
           <div class="m-info">
             <h3>{{ p.club_nombre }}</h3>
             <div class="m-meta">
-              <ion-icon name="location-outline"></ion-icon>
+              <ion-icon name="location-outline" *ngIf="!p.cancha_icono"></ion-icon>
+              <span *ngIf="p.cancha_icono" style="font-size: 13px; margin-right: 2px;">{{ p.cancha_icono }}</span>
               <span>{{ p.cancha_nombre || 'Cancha por asignar' }}</span>
               <ion-icon name="time-outline" style="margin-left: 10px;"></ion-icon>
               <span>{{ p.hora_inicio.slice(0,5) }} HRS</span>
@@ -126,7 +128,8 @@
           <div class="m-info">
             <h3>{{ p.club_nombre }}</h3>
             <div class="m-meta">
-              <ion-icon name="location-outline"></ion-icon>
+              <ion-icon name="location-outline" *ngIf="!p.cancha_icono"></ion-icon>
+              <span *ngIf="p.cancha_icono" style="font-size: 13px; margin-right: 2px;">{{ p.cancha_icono }}</span>
               <span>{{ p.cancha_nombre || 'Cancha por asignar' }}</span>
               <ion-icon name="trophy-outline" style="margin-left: 10px;"></ion-icon>
               <span>{{ p.categoria || 'Open' }}</span>
