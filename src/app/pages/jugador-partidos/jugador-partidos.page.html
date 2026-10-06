@@ -211,22 +211,70 @@
           </div>
         </div>
 
-        <!-- APPLE WATCH SENSOR TELEMETRY ROW (IF PRESENT) -->
+        <!-- APPLE WATCH SENSOR TELEMETRY & STROKES BIOMECHANICS BLOCK -->
         <div class="watch-telemetry-block" *ngIf="p.smartwatch_data" (click)="openWatchModal(p, $event)">
+          
+          <!-- STROKE DISTRIBUTION VISUAL BAR (NIKE / STRAVA PRO STYLE) -->
+          <div class="stroke-dist-card">
+            <div class="sdc-header">
+              <div class="sdc-title">
+                <ion-icon name="fitness-outline"></ion-icon>
+                <span>DISTRIBUCIÓN DE GOLPES</span>
+              </div>
+              <div class="sdc-badge" [ngClass]="getDominantStroke(p).cssClass">
+                <ion-icon [name]="getDominantStroke(p).icon"></ion-icon>
+                <span>{{ getDominantStroke(p).label }}</span>
+              </div>
+            </div>
+
+            <!-- SEGMENTED PROGRESS BAR -->
+            <div class="stroke-progress-bar">
+              <div class="sp-segment smash" [style.width.%]="getSmashPercent(p)" *ngIf="getSmashCount(p) > 0" title="Smashes"></div>
+              <div class="sp-segment bandeja" [style.width.%]="getBandejaPercent(p)" *ngIf="getBandejaCount(p) > 0" title="Bandejas"></div>
+              <div class="sp-segment vibora" [style.width.%]="getViboraPercent(p)" *ngIf="getViboraCount(p) > 0" title="Víboras"></div>
+              <div class="sp-segment other" [style.width.%]="getOtherPercent(p)" *ngIf="getOtherPercent(p) > 0" title="Control"></div>
+            </div>
+
+            <!-- LEGEND & COUNT PILLS -->
+            <div class="stroke-legend-grid">
+              <div class="sl-item smash" *ngIf="getSmashCount(p) > 0">
+                <span class="sl-dot"></span>
+                <span class="sl-name">Smash</span>
+                <span class="sl-count">{{ getSmashCount(p) }} <small>({{ getSmashPercent(p) }}%)</small></span>
+              </div>
+              <div class="sl-item bandeja" *ngIf="getBandejaCount(p) > 0">
+                <span class="sl-dot"></span>
+                <span class="sl-name">Bandeja</span>
+                <span class="sl-count">{{ getBandejaCount(p) }} <small>({{ getBandejaPercent(p) }}%)</small></span>
+              </div>
+              <div class="sl-item vibora" *ngIf="getViboraCount(p) > 0">
+                <span class="sl-dot"></span>
+                <span class="sl-name">Víbora</span>
+                <span class="sl-count">{{ getViboraCount(p) }} <small>({{ getViboraPercent(p) }}%)</small></span>
+              </div>
+              <div class="sl-item other" *ngIf="getOtherPercent(p) > 0">
+                <span class="sl-dot"></span>
+                <span class="sl-name">Control / Fondo</span>
+                <span class="sl-count">{{ getOtherStrokesCount(p) }} <small>({{ getOtherPercent(p) }}%)</small></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI METRICS GRID -->
           <div class="wt-metrics-grid">
             <div class="wt-metric smash">
               <div class="wt-icon"><ion-icon name="flash-outline"></ion-icon></div>
               <div class="wt-content">
                 <span class="wt-val">{{ p.smartwatch_data.velocidad_max_kmh || 118 | number:'1.0-0' }} <small>km/h</small></span>
-                <span class="wt-lbl">Max Smash</span>
+                <span class="wt-lbl">Smash Máximo</span>
               </div>
             </div>
 
             <div class="wt-metric strokes">
               <div class="wt-icon"><ion-icon name="fitness-outline"></ion-icon></div>
               <div class="wt-content">
-                <span class="wt-val">{{ p.smartwatch_data.total_golpes || 164 }}</span>
-                <span class="wt-lbl">Golpes</span>
+                <span class="wt-val">{{ getTotalStrokes(p) }}</span>
+                <span class="wt-lbl">Impactos Totales</span>
               </div>
             </div>
 
@@ -247,23 +295,10 @@
             </div>
           </div>
 
-          <!-- SHOTS CHIPS MINI ROW -->
-          <div class="wt-chips-row" *ngIf="p.smartwatch_data.smash_count || p.smartwatch_data.bandeja_count || p.smartwatch_data.vibora_count">
-            <span class="wt-chip smash" *ngIf="p.smartwatch_data.smash_count">
-              ⚡ {{ p.smartwatch_data.smash_count }} Smashes
-            </span>
-            <span class="wt-chip bandeja" *ngIf="p.smartwatch_data.bandeja_count">
-              🏸 {{ p.smartwatch_data.bandeja_count }} Bandejas
-            </span>
-            <span class="wt-chip vibora" *ngIf="p.smartwatch_data.vibora_count">
-              🌀 {{ p.smartwatch_data.vibora_count }} Víboras
-            </span>
-          </div>
-
           <div class="wt-action-footer">
             <span class="wt-action-btn">
               <ion-icon name="analytics-outline"></ion-icon>
-              Ver Análisis Biomecánico & Sensores
+              Ver Análisis Biomecánico & Golpes
             </span>
             <ion-icon name="chevron-forward-outline" class="wt-arrow"></ion-icon>
           </div>
@@ -471,36 +506,81 @@
             </div>
 
             <div class="wm-strokes-list">
-              <div class="wm-stroke-item">
-                <div class="wm-si-left">
-                  <span class="wm-si-badge smash">⚡ SMASH</span>
-                  <span class="wm-si-name">Golpe de Definición</span>
+              <!-- SMASH -->
+              <div class="wm-stroke-row-v8 smash">
+                <div class="wm-sr-header">
+                  <div class="wm-sr-type">
+                    <span class="wm-si-badge smash">⚡ SMASH</span>
+                    <span class="wm-si-name">Golpe de Definición y Potencia</span>
+                  </div>
+                  <div class="wm-sr-stats">
+                    <span class="wm-sr-count">{{ getSmashCount(selectedWatchMatch) }}</span>
+                    <span class="wm-sr-pct">{{ getSmashPercent(selectedWatchMatch) }}%</span>
+                  </div>
                 </div>
-                <span class="wm-si-count">{{ selectedWatchMatch.smartwatch_data?.smash_count || 18 }}</span>
+                <div class="wm-bar-track">
+                  <div class="wm-bar-fill smash" [style.width.%]="getSmashPercent(selectedWatchMatch)"></div>
+                </div>
               </div>
 
-              <div class="wm-stroke-item">
-                <div class="wm-si-left">
-                  <span class="wm-si-badge bandeja">🏸 BANDEJA</span>
-                  <span class="wm-si-name">Transición y Control</span>
+              <!-- BANDEJA -->
+              <div class="wm-stroke-row-v8 bandeja">
+                <div class="wm-sr-header">
+                  <div class="wm-sr-type">
+                    <span class="wm-si-badge bandeja">🏸 BANDEJA</span>
+                    <span class="wm-si-name">Transición, Red y Control</span>
+                  </div>
+                  <div class="wm-sr-stats">
+                    <span class="wm-sr-count">{{ getBandejaCount(selectedWatchMatch) }}</span>
+                    <span class="wm-sr-pct">{{ getBandejaPercent(selectedWatchMatch) }}%</span>
+                  </div>
                 </div>
-                <span class="wm-si-count">{{ selectedWatchMatch.smartwatch_data?.bandeja_count || 26 }}</span>
+                <div class="wm-bar-track">
+                  <div class="wm-bar-fill bandeja" [style.width.%]="getBandejaPercent(selectedWatchMatch)"></div>
+                </div>
               </div>
 
-              <div class="wm-stroke-item">
-                <div class="wm-si-left">
-                  <span class="wm-si-badge vibora">🌀 VÍBORA</span>
-                  <span class="wm-si-name">Efecto y Profundidad</span>
+              <!-- VIBORA -->
+              <div class="wm-stroke-row-v8 vibora">
+                <div class="wm-sr-header">
+                  <div class="wm-sr-type">
+                    <span class="wm-si-badge vibora">🌀 VÍBORA</span>
+                    <span class="wm-si-name">Efecto Lateral y Aceleración</span>
+                  </div>
+                  <div class="wm-sr-stats">
+                    <span class="wm-sr-count">{{ getViboraCount(selectedWatchMatch) }}</span>
+                    <span class="wm-sr-pct">{{ getViboraPercent(selectedWatchMatch) }}%</span>
+                  </div>
                 </div>
-                <span class="wm-si-count">{{ selectedWatchMatch.smartwatch_data?.vibora_count || 14 }}</span>
+                <div class="wm-bar-track">
+                  <div class="wm-bar-fill vibora" [style.width.%]="getViboraPercent(selectedWatchMatch)"></div>
+                </div>
               </div>
 
+              <!-- CONTROL / OTROS -->
+              <div class="wm-stroke-row-v8 other" *ngIf="getOtherPercent(selectedWatchMatch) > 0">
+                <div class="wm-sr-header">
+                  <div class="wm-sr-type">
+                    <span class="wm-si-badge other">🎾 CONTROL</span>
+                    <span class="wm-si-name">Voleas, Bloqueos y Salidas</span>
+                  </div>
+                  <div class="wm-sr-stats">
+                    <span class="wm-sr-count">{{ getOtherStrokesCount(selectedWatchMatch) }}</span>
+                    <span class="wm-sr-pct">{{ getOtherPercent(selectedWatchMatch) }}%</span>
+                  </div>
+                </div>
+                <div class="wm-bar-track">
+                  <div class="wm-bar-fill other" [style.width.%]="getOtherPercent(selectedWatchMatch)"></div>
+                </div>
+              </div>
+
+              <!-- TOTAL SUMMARY -->
               <div class="wm-stroke-item total">
                 <div class="wm-si-left">
                   <span class="wm-si-badge total">🎾 TOTAL</span>
-                  <span class="wm-si-name">Impactos Registrados</span>
+                  <span class="wm-si-name">Impactos Registrados en Pista</span>
                 </div>
-                <span class="wm-si-count bold">{{ selectedWatchMatch.smartwatch_data?.total_golpes || 164 }}</span>
+                <span class="wm-si-count bold">{{ getTotalStrokes(selectedWatchMatch) }}</span>
               </div>
             </div>
           </div>

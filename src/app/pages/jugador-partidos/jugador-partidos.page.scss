@@ -95,8 +95,40 @@ ion-content {
 }
 
 .fab-back-v8 {
-  position: fixed; bottom: 20px; right: 20px; z-index: 100;
-  width: 60px; height: 60px; background: white; border-radius: 50%; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; font-size: 24px; color: black;
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  right: 24px;
+  z-index: 999;
+  width: 58px;
+  height: 58px;
+  background: #0f172a;
+  color: #ccff00;
+  border-radius: 50%;
+  border: 1.5px solid rgba(204, 255, 0, 0.4);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.35), 0 0 15px rgba(204, 255, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+
+  ion-icon {
+    font-size: 24px;
+    color: #ccff00;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.45), 0 0 20px rgba(204, 255, 0, 0.3);
+  }
+
+  &:active {
+    transform: scale(0.92);
+    box-shadow: 0 6px 15px rgba(15, 23, 42, 0.3);
+  }
 }
 
 .animate-up { animation: up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
@@ -471,6 +503,134 @@ ion-content {
 
   &:active {
     transform: scale(0.985);
+  }
+
+  .stroke-dist-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+
+    .sdc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+
+      .sdc-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 10.5px;
+        font-weight: 900;
+        color: #0f172a;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+
+        ion-icon {
+          font-size: 14px;
+          color: #0891b2;
+        }
+      }
+
+      .sdc-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 9.5px;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 8px;
+        letter-spacing: 0.2px;
+
+        &.smash {
+          background: #f7fee7;
+          color: #4d7c0f;
+          border: 1px solid #d9f99d;
+        }
+        &.bandeja {
+          background: #ecfeff;
+          color: #0369a1;
+          border: 1px solid #bae6fd;
+        }
+        &.vibora {
+          background: #faf5ff;
+          color: #7e22ce;
+          border: 1px solid #e9d5ff;
+        }
+        &.balanced {
+          background: #f1f5f9;
+          color: #475569;
+          border: 1px solid #e2e8f0;
+        }
+      }
+    }
+
+    .stroke-progress-bar {
+      display: flex;
+      height: 10px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #f1f5f9;
+      margin-bottom: 10px;
+      gap: 2px;
+
+      .sp-segment {
+        height: 100%;
+        transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        border-radius: 3px;
+
+        &.smash { background: linear-gradient(90deg, #bef264, #a3e635); }
+        &.bandeja { background: linear-gradient(90deg, #38bdf8, #0ea5e9); }
+        &.vibora { background: linear-gradient(90deg, #c084fc, #a855f7); }
+        &.other { background: linear-gradient(90deg, #94a3b8, #64748b); }
+      }
+    }
+
+    .stroke-legend-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+
+      .sl-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #334155;
+
+        .sl-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        .sl-name {
+          flex: 1;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .sl-count {
+          font-weight: 900;
+          color: #0f172a;
+          small {
+            font-weight: 700;
+            color: #64748b;
+          }
+        }
+
+        &.smash .sl-dot { background: #84cc16; }
+        &.bandeja .sl-dot { background: #0ea5e9; }
+        &.vibora .sl-dot { background: #a855f7; }
+        &.other .sl-dot { background: #64748b; }
+      }
+    }
   }
 
   .wt-metrics-grid {
@@ -849,59 +1009,114 @@ ion-content {
         background: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 18px;
-        padding: 6px 16px;
+        padding: 16px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 
-        .wm-stroke-item {
+        .wm-stroke-row-v8 {
+          margin-bottom: 14px;
+
+          .wm-sr-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+
+            .wm-sr-type {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+
+              .wm-si-badge {
+                font-size: 9.5px;
+                font-weight: 950;
+                padding: 3px 7px;
+                border-radius: 7px;
+                letter-spacing: 0.3px;
+
+                &.smash { background: #f7fee7; color: #4d7c0f; }
+                &.bandeja { background: #ecfeff; color: #0369a1; }
+                &.vibora { background: #faf5ff; color: #7e22ce; }
+                &.other { background: #f1f5f9; color: #475569; }
+              }
+
+              .wm-si-name {
+                font-size: 12px;
+                font-weight: 700;
+                color: #475569;
+              }
+            }
+
+            .wm-sr-stats {
+              display: flex;
+              align-items: baseline;
+              gap: 4px;
+
+              .wm-sr-count {
+                font-size: 15px;
+                font-weight: 950;
+                color: #0f172a;
+              }
+
+              .wm-sr-pct {
+                font-size: 11px;
+                font-weight: 700;
+                color: #64748b;
+              }
+            }
+          }
+
+          .wm-bar-track {
+            height: 7px;
+            background: #f1f5f9;
+            border-radius: 5px;
+            overflow: hidden;
+
+            .wm-bar-fill {
+              height: 100%;
+              border-radius: 5px;
+              transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+
+              &.smash { background: linear-gradient(90deg, #bef264, #84cc16); }
+              &.bandeja { background: linear-gradient(90deg, #38bdf8, #0284c7); }
+              &.vibora { background: linear-gradient(90deg, #c084fc, #9333ea); }
+              &.other { background: linear-gradient(90deg, #94a3b8, #475569); }
+            }
+          }
+        }
+
+        .wm-stroke-item.total {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 12px 0;
-          border-bottom: 1px solid #f1f5f9;
-
-          &:last-child {
-            border-bottom: none;
-          }
-
-          &.total {
-            border-top: 1.5px solid #e2e8f0;
-            margin-top: 4px;
-          }
+          padding-top: 12px;
+          margin-top: 6px;
+          border-top: 1.5px dashed #e2e8f0;
 
           .wm-si-left {
             display: flex;
             align-items: center;
             gap: 10px;
 
-            .wm-si-badge {
+            .wm-si-badge.total {
+              background: #0f172a;
+              color: #ccff00;
               font-size: 10px;
               font-weight: 950;
               padding: 4px 8px;
               border-radius: 8px;
-
-              &.smash { background: #f7fee7; color: #4d7c0f; }
-              &.bandeja { background: #ecfeff; color: #0369a1; }
-              &.vibora { background: #faf5ff; color: #7e22ce; }
-              &.total { background: #0f172a; color: #ffffff; }
             }
 
             .wm-si-name {
               font-size: 13px;
-              font-weight: 700;
-              color: #334155;
+              font-weight: 800;
+              color: #0f172a;
             }
           }
 
-          .wm-si-count {
-            font-size: 16px;
-            font-weight: 900;
+          .wm-si-count.bold {
+            font-size: 18px;
+            font-weight: 950;
             color: #0f172a;
-
-            &.bold {
-              font-size: 18px;
-              font-weight: 950;
-              color: #0f172a;
-            }
           }
         }
       }

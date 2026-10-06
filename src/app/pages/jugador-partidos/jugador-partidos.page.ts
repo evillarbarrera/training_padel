@@ -275,6 +275,72 @@ export class JugadorPartidosPage implements OnInit {
     }
   }
 
+  // --- STROKE STATISTICS HELPERS (UX BIOMECHANICS) ---
+  getSmashCount(match: any): number {
+    return match?.smartwatch_data?.smash_count || 0;
+  }
+
+  getBandejaCount(match: any): number {
+    return match?.smartwatch_data?.bandeja_count || 0;
+  }
+
+  getViboraCount(match: any): number {
+    return match?.smartwatch_data?.vibora_count || 0;
+  }
+
+  getTotalStrokes(match: any): number {
+    if (match?.smartwatch_data?.total_golpes) {
+      return match.smartwatch_data.total_golpes;
+    }
+    const special = this.getSmashCount(match) + this.getBandejaCount(match) + this.getViboraCount(match);
+    return special > 0 ? Math.max(special, 100) : 0;
+  }
+
+  getOtherStrokesCount(match: any): number {
+    const total = this.getTotalStrokes(match);
+    const special = this.getSmashCount(match) + this.getBandejaCount(match) + this.getViboraCount(match);
+    return Math.max(0, total - special);
+  }
+
+  getSmashPercent(match: any): number {
+    const total = this.getTotalStrokes(match);
+    return total > 0 ? Math.round((this.getSmashCount(match) / total) * 100) : 0;
+  }
+
+  getBandejaPercent(match: any): number {
+    const total = this.getTotalStrokes(match);
+    return total > 0 ? Math.round((this.getBandejaCount(match) / total) * 100) : 0;
+  }
+
+  getViboraPercent(match: any): number {
+    const total = this.getTotalStrokes(match);
+    return total > 0 ? Math.round((this.getViboraCount(match) / total) * 100) : 0;
+  }
+
+  getOtherPercent(match: any): number {
+    const total = this.getTotalStrokes(match);
+    if (total <= 0) return 0;
+    const used = this.getSmashPercent(match) + this.getBandejaPercent(match) + this.getViboraPercent(match);
+    return Math.max(0, 100 - used);
+  }
+
+  getDominantStroke(match: any): { label: string; icon: string; cssClass: string } {
+    const s = this.getSmashCount(match);
+    const b = this.getBandejaCount(match);
+    const v = this.getViboraCount(match);
+
+    if (s >= b && s >= v && s > 0) {
+      return { label: 'Ataque Smash', icon: 'flash-outline', cssClass: 'smash' };
+    }
+    if (b >= s && b >= v && b > 0) {
+      return { label: 'Control Bandeja', icon: 'fitness-outline', cssClass: 'bandeja' };
+    }
+    if (v >= s && v >= b && v > 0) {
+      return { label: 'Efecto Víbora', icon: 'sparkles-outline', cssClass: 'vibora' };
+    }
+    return { label: 'Juego Balanceado', icon: 'fitness-outline', cssClass: 'balanced' };
+  }
+
   isWinner(p: any): boolean {
     if (!p.id_ganador) return false;
     const isTeam1 = (p.usuario_id == this.userId || p.jugador2_id == this.userId);
