@@ -36,6 +36,16 @@ export class NotificationService {
         }
 
         if (permStatus.receive === 'granted') {
+          // Si ya tenemos un token FCM guardado localmente, sincronizarlo de inmediato con el backend
+          const cachedToken = localStorage.getItem('fcm_token');
+          const currentUserId = this.userId || Number(localStorage.getItem('userId'));
+          if (cachedToken && currentUserId) {
+            this.mysqlService.guardarTokenFCM(currentUserId, cachedToken).subscribe({
+              next: () => console.log('Token FCM en caché sincronizado con BD'),
+              error: (err) => console.error('Error sincronizando token caché:', err)
+            });
+          }
+
           // Escuchar cuando el celular nos da el Token Físico FCM / APNs
           // IMPORTANTE: Agregar el listener ANTES de registrar
           PushNotifications.addListener('registration', (token) => {
