@@ -332,6 +332,105 @@ ion-modal {
     }
   }
 
+  .match-stroke-dist-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 16px;
+    margin-bottom: 16px;
+
+    .msd-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+
+      .msd-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 850;
+        color: #0f172a;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        ion-icon { font-size: 14px; color: #0891b2; }
+      }
+
+      .msd-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 850;
+        text-transform: uppercase;
+        ion-icon { font-size: 12px; }
+
+        &.smash { background: #fef08a; color: #854d0e; }
+        &.bandeja { background: #cffafe; color: #155e75; }
+        &.vibora { background: #fae8ff; color: #86198f; }
+        &.balanced { background: #f1f5f9; color: #334155; }
+      }
+    }
+
+    .stroke-progress-bar {
+      height: 8px;
+      border-radius: 6px;
+      background: #e2e8f0;
+      display: flex;
+      overflow: hidden;
+      margin-bottom: 14px;
+
+      .sp-segment {
+        height: 100%;
+        transition: width 0.4s ease;
+        &.smash { background: #eab308; }
+        &.bandeja { background: #06b6d4; }
+        &.vibora { background: #d946ef; }
+        &.other { background: #94a3b8; }
+      }
+    }
+
+    .stroke-legend-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px 12px;
+
+      .sl-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+
+        .sl-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        &.smash .sl-dot { background: #eab308; }
+        &.bandeja .sl-dot { background: #06b6d4; }
+        &.vibora .sl-dot { background: #d946ef; }
+        &.other .sl-dot { background: #94a3b8; }
+
+        .sl-name {
+          font-weight: 700;
+          color: #475569;
+          flex: 1;
+        }
+
+        .sl-count {
+          font-weight: 850;
+          color: #0f172a;
+          small { font-weight: 600; color: #94a3b8; }
+        }
+      }
+    }
+  }
+
   .wm-detail-cta {
     width: 100%;
     padding: 16px;

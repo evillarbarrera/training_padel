@@ -56,6 +56,9 @@ export class JugadorPartidosPage implements OnInit {
   showWatchDetailModal = false;
   selectedWatchMatch: any = null;
 
+  // Global Metrics & Career Stats Modal
+  showGlobalMetricsModal = false;
+
   // Social Story Generator Modal
   showStoryModal = false;
   storyImageUrl = '';
@@ -680,6 +683,15 @@ export class JugadorPartidosPage implements OnInit {
   closeWatchModal() {
     this.showWatchDetailModal = false;
     this.selectedWatchMatch = null;
+  }
+
+  // GLOBAL METRICS & CAREER STATS MODAL
+  openGlobalMetricsModal() {
+    this.showGlobalMetricsModal = true;
+  }
+
+  closeGlobalMetricsModal() {
+    this.showGlobalMetricsModal = false;
   }
 
   goToSmartwatchStats(event?: Event) {

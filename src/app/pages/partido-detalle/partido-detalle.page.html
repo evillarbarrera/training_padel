@@ -91,6 +91,52 @@
             </div>
         </div>
 
+        <!-- STROKE DISTRIBUTION VISUAL BAR (NIKE / STRAVA PRO STYLE) -->
+        <div class="match-stroke-dist-box" *ngIf="match?.smartwatch_data">
+            <div class="msd-header">
+                <div class="msd-title">
+                    <ion-icon name="fitness-outline"></ion-icon>
+                    <span>DISTRIBUCIÓN DE GOLPES</span>
+                </div>
+                <div class="msd-badge" [ngClass]="getDominantStroke().cssClass">
+                    <ion-icon [name]="getDominantStroke().icon"></ion-icon>
+                    <span>{{ getDominantStroke().label }}</span>
+                </div>
+            </div>
+
+            <!-- SEGMENTED PROGRESS BAR -->
+            <div class="stroke-progress-bar">
+                <div class="sp-segment smash" [style.width.%]="getSmashPercent()" *ngIf="getSmashCount() > 0" title="Smashes"></div>
+                <div class="sp-segment bandeja" [style.width.%]="getBandejaPercent()" *ngIf="getBandejaCount() > 0" title="Bandejas"></div>
+                <div class="sp-segment vibora" [style.width.%]="getViboraPercent()" *ngIf="getViboraCount() > 0" title="Víboras"></div>
+                <div class="sp-segment other" [style.width.%]="getOtherPercent()" *ngIf="getOtherPercent() > 0" title="Control"></div>
+            </div>
+
+            <!-- LEGEND & COUNT PILLS -->
+            <div class="stroke-legend-grid">
+                <div class="sl-item smash" *ngIf="getSmashCount() > 0">
+                    <span class="sl-dot"></span>
+                    <span class="sl-name">Smash</span>
+                    <span class="sl-count">{{ getSmashCount() }} <small>({{ getSmashPercent() }}%)</small></span>
+                </div>
+                <div class="sl-item bandeja" *ngIf="getBandejaCount() > 0">
+                    <span class="sl-dot"></span>
+                    <span class="sl-name">Bandeja</span>
+                    <span class="sl-count">{{ getBandejaCount() }} <small>({{ getBandejaPercent() }}%)</small></span>
+                </div>
+                <div class="sl-item vibora" *ngIf="getViboraCount() > 0">
+                    <span class="sl-dot"></span>
+                    <span class="sl-name">Víbora</span>
+                    <span class="sl-count">{{ getViboraCount() }} <small>({{ getViboraPercent() }}%)</small></span>
+                </div>
+                <div class="sl-item other" *ngIf="getOtherPercent() > 0">
+                    <span class="sl-dot"></span>
+                    <span class="sl-name">Control</span>
+                    <span class="sl-count">{{ getOtherStrokesCount() }} <small>({{ getOtherPercent() }}%)</small></span>
+                </div>
+            </div>
+        </div>
+
         <button class="wm-story-cta" (click)="openStoryModal()">
             <ion-icon name="sparkles"></ion-icon>
             <span>Crear Match Story (Instagram / WhatsApp) 📸</span>

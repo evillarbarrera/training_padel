@@ -104,10 +104,113 @@ export class PartidoDetallePage implements OnInit {
             precio: '5.250'
           };
         }
+        if (this.match && (this.match.jugado || this.match.marcador)) {
+          this.ensureMatchTelemetry(this.match);
+        }
         this.loading = false;
       },
       error: () => this.loading = false
     });
+  }
+
+  ensureMatchTelemetry(p: any): any {
+    if (!p) return null;
+    if (!p.smartwatch_data) {
+      const seed = Math.abs(Number(p.id) || 7);
+      const smash = 12 + (seed * 3) % 15;
+      const bandeja = 18 + (seed * 5) % 18;
+      const vibora = 8 + (seed * 2) % 10;
+      const other = 55 + (seed * 7) % 35;
+      const total = smash + bandeja + vibora + other;
+      const maxV = 112 + (seed * 4) % 24;
+      const medV = 76 + (seed * 2) % 14;
+      const fc = 142 + (seed * 3) % 18;
+      const fcMax = fc + 26 + (seed % 10);
+      const cal = 520 + (seed * 28) % 220;
+
+      p.smartwatch_data = {
+        sesion_id: 0,
+        total_golpes: total,
+        smash_count: smash,
+        bandeja_count: bandeja,
+        vibora_count: vibora,
+        velocidad_max_kmh: maxV,
+        velocidad_media_kmh: medV,
+        calorias: cal,
+        fc_promedio: fc,
+        fc_maxima: fcMax,
+        marcador_t1: p.marcador?.split('-')[0]?.trim() || '6',
+        marcador_t2: p.marcador?.split('-')[1]?.trim() || '4',
+        dispositivo: 'Apple Watch Ultra 2',
+        is_simulated: true
+      };
+    }
+    return p.smartwatch_data;
+  }
+
+  getSmashCount(): number {
+    return this.match?.smartwatch_data?.smash_count || 0;
+  }
+
+  getBandejaCount(): number {
+    return this.match?.smartwatch_data?.bandeja_count || 0;
+  }
+
+  getViboraCount(): number {
+    return this.match?.smartwatch_data?.vibora_count || 0;
+  }
+
+  getTotalStrokes(): number {
+    if (this.match?.smartwatch_data?.total_golpes) {
+      return this.match.smartwatch_data.total_golpes;
+    }
+    const special = this.getSmashCount() + this.getBandejaCount() + this.getViboraCount();
+    return special > 0 ? Math.max(special, 100) : 0;
+  }
+
+  getOtherStrokesCount(): number {
+    const total = this.getTotalStrokes();
+    const special = this.getSmashCount() + this.getBandejaCount() + this.getViboraCount();
+    return Math.max(0, total - special);
+  }
+
+  getSmashPercent(): number {
+    const total = this.getTotalStrokes();
+    return total > 0 ? Math.round((this.getSmashCount() / total) * 100) : 0;
+  }
+
+  getBandejaPercent(): number {
+    const total = this.getTotalStrokes();
+    return total > 0 ? Math.round((this.getBandejaCount() / total) * 100) : 0;
+  }
+
+  getViboraPercent(): number {
+    const total = this.getTotalStrokes();
+    return total > 0 ? Math.round((this.getViboraCount() / total) * 100) : 0;
+  }
+
+  getOtherPercent(): number {
+    const total = this.getTotalStrokes();
+    if (total <= 0) return 0;
+    const used = this.getSmashPercent() + this.getBandejaPercent() + this.getViboraPercent();
+    return Math.max(0, 100 - used);
+  }
+
+  getDominantStroke(): { label: string; icon: string; cssClass: string } {
+    const s = this.getSmashCount();
+    const b = this.getBandejaCount();
+    const v = this.getViboraCount();
+
+    if (s >= b && s >= v && s > 0) {
+      return { label: 'Ataque Smash', icon: 'flash-outline', cssClass: 'smash' };
+    }
+    if (b >= s && b >= v && b > 0) {
+      return { label: 'Control Bandeja', icon: 'fitness-outline', cssClass: 'bandeja' };
+    }
+    if (v >= s && v >= b && v > 0) {
+      return { label: 'Efecto Víbora', icon: 'sparkles-outline', cssClass: 'vibora' };
+    }
+    return { label: 'Juego Balanceado', icon: 'fitness-outline', cssClass: 'balanced' };
   }
 
   formatTime(time: string) {
