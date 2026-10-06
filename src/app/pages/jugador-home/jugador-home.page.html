@@ -103,15 +103,33 @@
             <span class="v2-status-dot pulse"></span>
          </div>
 
-         <!-- HERO BUTTONS GRID (CANCHAS, CAMPEONATOS, SMARTWATCH, PARTIDOS) -->
-         <div class="hero-actions-grid" style="margin-bottom: 20px;">
-             <!-- HERO 1: RESERVA -->
+         <!-- BOTONES SECUNDARIOS (AGENDAR CLASE, MI AGENDA, TU NIVEL) -->
+         <div class="actions-grid-v2">
+             <div class="action-btn-v2" (click)="goToAgenda()">
+                <div class="a-icon bg-soft"><ion-icon name="calendar-outline"></ion-icon></div>
+                <span class="a-label">Agendar Clase</span>
+             </div>
+             
+             <div class="action-btn-v2" (click)="goToMisClases()">
+                <div class="a-icon bg-soft"><ion-icon name="time-outline"></ion-icon></div>
+                <span class="a-label">Mi Agenda</span>
+             </div>
+             
+             <div class="action-btn-v2" (click)="misHabilidades()">
+                <div class="a-icon bg-soft"><ion-icon name="ribbon-outline"></ion-icon></div>
+                <span class="a-label">Tu Nivel</span>
+             </div>
+          </div>
+
+          <!-- HERO BUTTONS GRID (RESERVA CANCHA, CAMPEONATOS) -->
+          <div class="hero-actions-grid">
+             <!-- HERO 1: RESERVAR CANCHA -->
              <div class="hero-booking-action animate-pulse" (click)="goToReservarCancha()">
                 <div class="hero-btn-content">
                   <div class="hero-icon-wrap">🎾</div>
                   <div class="hero-text-wrap">
-                    <h3>Reserva Cancha</h3>
-                    <p>Clubes y Pistas</p>
+                    <h3>Reservar Cancha</h3>
+                    <p>Clubes y Disponibilidad</p>
                   </div>
                 </div>
                 <ion-icon name="arrow-forward"></ion-icon>
@@ -123,57 +141,10 @@
                   <div class="hero-icon-wrap trophy">🏆</div>
                   <div class="hero-text-wrap">
                     <h3>Campeonatos</h3>
-                    <p>Torneos y Ligas</p>
+                    <p>Torneos y Americanos</p>
                   </div>
                 </div>
                 <ion-icon name="arrow-forward"></ion-icon>
-             </div>
-
-             <!-- HERO 3: APPLE WATCH -->
-             <div class="hero-booking-action watch-hero animate-pop delay-2" (click)="goToSmartwatch()">
-                <div class="hero-btn-content">
-                  <div class="hero-icon-wrap watch">⌚</div>
-                  <div class="hero-text-wrap">
-                    <h3>Apple Watch</h3>
-                    <p>Telemetría & Reloj</p>
-                  </div>
-                </div>
-                <ion-icon name="arrow-forward"></ion-icon>
-             </div>
-
-             <!-- HERO 4: MIS PARTIDOS -->
-             <div class="hero-booking-action matches-hero animate-pop delay-3" (click)="goToPartidos()">
-                <div class="hero-btn-content">
-                  <div class="hero-icon-wrap matches">📊</div>
-                  <div class="hero-text-wrap">
-                    <h3>Mis Partidos</h3>
-                    <p>Resultados & H2H</p>
-                  </div>
-                </div>
-                <ion-icon name="arrow-forward"></ion-icon>
-             </div>
-          </div>
-         
-         <!-- BOTONES SECUNDARIOS (AGENDA, CLASES, PUNTOS, LOGROS) -->
-         <div class="actions-grid-v2">
-             <div class="action-btn-v2" (click)="goToAgenda()">
-                <div class="a-icon bg-soft"><ion-icon name="calendar-outline"></ion-icon></div>
-                <span class="a-label">Agendar Clase</span>
-             </div>
-             
-             <div class="action-btn-v2" (click)="goToMisClases()">
-                <div class="a-icon bg-soft"><ion-icon name="time-outline"></ion-icon></div>
-                <span class="a-label">Mi Agenda</span>
-             </div>
-
-             <div class="action-btn-v2" (click)="goToMisClubesPuntos()">
-                <div class="a-icon bg-soft"><ion-icon name="wallet-outline"></ion-icon></div>
-                <span class="a-label">Puntos Wallet</span>
-             </div>
-
-             <div class="action-btn-v2" (click)="goToLogros()">
-                <div class="a-icon bg-soft"><ion-icon name="ribbon-outline"></ion-icon></div>
-                <span class="a-label">Mis Logros</span>
              </div>
           </div>
       </div>
