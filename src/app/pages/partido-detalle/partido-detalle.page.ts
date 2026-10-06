@@ -104,8 +104,10 @@ export class PartidoDetallePage implements OnInit {
             precio: '5.250'
           };
         }
-        if (this.match && (this.match.jugado || this.match.marcador)) {
-          this.ensureMatchTelemetry(this.match);
+        if (this.match && typeof this.match.smartwatch_data === 'string') {
+          try {
+            this.match.smartwatch_data = JSON.parse(this.match.smartwatch_data);
+          } catch (e) {}
         }
         this.loading = false;
       },
@@ -113,59 +115,23 @@ export class PartidoDetallePage implements OnInit {
     });
   }
 
-  ensureMatchTelemetry(p: any): any {
-    if (!p) return null;
-    if (!p.smartwatch_data) {
-      const seed = Math.abs(Number(p.id) || 7);
-      const smash = 12 + (seed * 3) % 15;
-      const bandeja = 18 + (seed * 5) % 18;
-      const vibora = 8 + (seed * 2) % 10;
-      const other = 55 + (seed * 7) % 35;
-      const total = smash + bandeja + vibora + other;
-      const maxV = 112 + (seed * 4) % 24;
-      const medV = 76 + (seed * 2) % 14;
-      const fc = 142 + (seed * 3) % 18;
-      const fcMax = fc + 26 + (seed % 10);
-      const cal = 520 + (seed * 28) % 220;
-
-      p.smartwatch_data = {
-        sesion_id: 0,
-        total_golpes: total,
-        smash_count: smash,
-        bandeja_count: bandeja,
-        vibora_count: vibora,
-        velocidad_max_kmh: maxV,
-        velocidad_media_kmh: medV,
-        calorias: cal,
-        fc_promedio: fc,
-        fc_maxima: fcMax,
-        marcador_t1: p.marcador?.split('-')[0]?.trim() || '6',
-        marcador_t2: p.marcador?.split('-')[1]?.trim() || '4',
-        dispositivo: 'Apple Watch Ultra 2',
-        is_simulated: true
-      };
-    }
-    return p.smartwatch_data;
-  }
-
   getSmashCount(): number {
-    return this.match?.smartwatch_data?.smash_count || 0;
+    return Number(this.match?.smartwatch_data?.smash_count) || 0;
   }
 
   getBandejaCount(): number {
-    return this.match?.smartwatch_data?.bandeja_count || 0;
+    return Number(this.match?.smartwatch_data?.bandeja_count) || 0;
   }
 
   getViboraCount(): number {
-    return this.match?.smartwatch_data?.vibora_count || 0;
+    return Number(this.match?.smartwatch_data?.vibora_count) || 0;
   }
 
   getTotalStrokes(): number {
     if (this.match?.smartwatch_data?.total_golpes) {
-      return this.match.smartwatch_data.total_golpes;
+      return Number(this.match.smartwatch_data.total_golpes) || 0;
     }
-    const special = this.getSmashCount() + this.getBandejaCount() + this.getViboraCount();
-    return special > 0 ? Math.max(special, 100) : 0;
+    return this.getSmashCount() + this.getBandejaCount() + this.getViboraCount();
   }
 
   getOtherStrokesCount(): number {
@@ -396,24 +362,12 @@ export class PartidoDetallePage implements OnInit {
         cancha_nombre: this.match.cancha_nombre || 'Cancha 1 Panorámica',
         fecha: this.match.fecha,
         hora_inicio: this.match.hora_inicio,
-        marcador: this.match.marcador || (this.match.smartwatch_data?.marcador_t1 + ' - ' + this.match.smartwatch_data?.marcador_t2) || '6-4 7-5',
+        marcador: this.match.marcador || (this.match.smartwatch_data?.marcador_t1 ? `${this.match.smartwatch_data.marcador_t1} - ${this.match.smartwatch_data.marcador_t2}` : undefined) || '6-4 7-5',
         categoria: this.match.categoria || 'Open',
         es_ganador: isWin,
         pareja1: this.match.jugador1_nombre ? `${this.match.jugador1_nombre} / ${this.match.jugador2_nombre || 'Partner'}` : 'Emmanuel Villar / Mi Pareja',
-        pareja2: this.match.jugador3_nombre ? `${this.match.jugador3_nombre} / ${this.match.jugador4_nombre || 'Rival'}` : 'Lucas / Diego',
-        smartwatch_data: this.match.smartwatch_data || {
-          velocidad_max_kmh: 124,
-          velocidad_media_kmh: 86,
-          total_golpes: 164,
-          smash_count: 18,
-          bandeja_count: 26,
-          vibora_count: 14,
-          fc_promedio: 148,
-          fc_maxima: 182,
-          calorias: 640,
-          duracion_segundos: 4800,
-          dispositivo: 'Apple Watch Ultra 2'
-        }
+        pareja2: this.match.jugador3_nombre ? `${this.match.jugador3_nombre} / ${this.match.jugador4_nombre || 'Rival'}` : 'Rival 1 / Rival 2',
+        smartwatch_data: this.match.smartwatch_data || undefined
       };
 
       this.storyImageUrl = await this.matchStoryService.generateStoryImage(data, this.storyTheme);

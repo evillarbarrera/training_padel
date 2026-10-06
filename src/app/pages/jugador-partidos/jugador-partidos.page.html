@@ -32,7 +32,8 @@
               </div>
               <div class="bhm-text">
                 <span class="bhm-title">Métricas & Estadísticas de Rendimiento</span>
-                <span class="bhm-sub">{{ globalTotalGolpes | number:'1.0-0' }} golpes registrados · {{ globalDominantStroke.label }}</span>
+                <span class="bhm-sub" *ngIf="globalTotalGolpes > 0">{{ globalTotalGolpes | number:'1.0-0' }} golpes registrados · {{ globalDominantStroke.label }}</span>
+                <span class="bhm-sub" *ngIf="globalTotalGolpes === 0">Ver análisis y métricas de sensores</span>
               </div>
             </div>
             <ion-icon name="chevron-forward-outline" class="bhm-arrow"></ion-icon>
@@ -360,17 +361,17 @@
           <div class="gmm-dist-card">
             <div class="gdc-header">
               <span class="gdc-title">DISTRIBUCIÓN HISTÓRICA DE GOLPES</span>
-              <span class="gdc-sub">{{ totalJugados }} Partidos Analizados</span>
+              <span class="gdc-sub">{{ totalMatchesWithSensors }} Partidos con Sensores</span>
             </div>
 
-            <div class="stroke-progress-bar global">
+            <div class="stroke-progress-bar global" *ngIf="globalTotalGolpes > 0">
               <div class="sp-segment smash" [style.width.%]="globalSmashPercent" *ngIf="globalSmashCount > 0" title="Smashes"></div>
               <div class="sp-segment bandeja" [style.width.%]="globalBandejaPercent" *ngIf="globalBandejaCount > 0" title="Bandejas"></div>
               <div class="sp-segment vibora" [style.width.%]="globalViboraPercent" *ngIf="globalViboraCount > 0" title="Víboras"></div>
               <div class="sp-segment other" [style.width.%]="globalOtherPercent" *ngIf="globalOtherPercent > 0" title="Control"></div>
             </div>
 
-            <div class="stroke-legend-grid">
+            <div class="stroke-legend-grid" *ngIf="globalTotalGolpes > 0">
               <div class="sl-item smash" *ngIf="globalSmashCount > 0">
                 <span class="sl-dot"></span>
                 <span class="sl-name">Smash</span>
@@ -391,6 +392,11 @@
                 <span class="sl-name">Control</span>
                 <span class="sl-count">{{ globalOtherCount }} <small>({{ globalOtherPercent }}%)</small></span>
               </div>
+            </div>
+
+            <div class="gdc-empty-box" *ngIf="globalTotalGolpes === 0" style="padding: 16px 0; text-align: center; color: #94a3b8; font-size: 13px;">
+              <ion-icon name="watch-outline" style="font-size: 26px; color: #ccff00; margin-bottom: 6px; display: block; margin-inline: auto;"></ion-icon>
+              <span>Aún no hay golpes registrados. Sincroniza tus partidos con Apple Watch para visualizar tu desglose biomecánico real.</span>
             </div>
           </div>
 

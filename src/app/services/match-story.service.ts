@@ -303,10 +303,10 @@ export class MatchStoryService {
   private drawTelemetryGrid(ctx: CanvasRenderingContext2D, data: StoryMatchData, theme: string) {
     ctx.save();
     const stats = data.smartwatch_data || {};
-    const maxSmash = stats.velocidad_max_kmh || 124;
-    const calories = stats.calorias || 640;
-    const avgHr = stats.fc_promedio || 148;
-    const totalStrokes = stats.total_golpes || 164;
+    const maxSmash = Number(stats.velocidad_max_kmh) || 0;
+    const calories = Number(stats.calorias) || 0;
+    const avgHr = Number(stats.fc_promedio) || 0;
+    const totalStrokes = Number(stats.total_golpes) || 0;
 
     const startY = 945;
     const cardW = 430;
@@ -321,11 +321,11 @@ export class MatchStoryService {
       cardW,
       cardH,
       '⚡ VELOCIDAD SMASH',
-      `${Math.round(maxSmash)}`,
+      maxSmash > 0 ? `${Math.round(maxSmash)}` : '--',
       'KM/H',
-      'Pico medido con giróscopo',
+      maxSmash > 0 ? 'Pico medido con giróscopo' : 'Sin registro de velocidad',
       '#ccff00',
-      true
+      maxSmash > 0
     );
 
     // Card 2: Total Strokes (Top Right)
@@ -336,9 +336,9 @@ export class MatchStoryService {
       cardW,
       cardH,
       '🎾 TOTAL GOLPES',
-      `${totalStrokes}`,
+      totalStrokes > 0 ? `${totalStrokes}` : '--',
       'IMPACTOS',
-      'Clasificados con CoreML',
+      totalStrokes > 0 ? 'Clasificados con CoreML' : 'Sin registro de impactos',
       '#06b6d4',
       false
     );
@@ -351,9 +351,9 @@ export class MatchStoryService {
       cardW,
       cardH,
       '🔥 GASTO CALÓRICO',
-      `${Math.round(calories)}`,
+      calories > 0 ? `${Math.round(calories)}` : '--',
       'KCAL',
-      'Monitor de esfuerzo metabólico',
+      calories > 0 ? 'Monitor de esfuerzo metabólico' : 'Sin registro calórico',
       '#f97316',
       false
     );
@@ -366,9 +366,9 @@ export class MatchStoryService {
       cardW,
       cardH,
       '💓 CARDIO PROMEDIO',
-      `${avgHr}`,
+      avgHr > 0 ? `${avgHr}` : '--',
       'BPM',
-      `Pico máx: ${stats.fc_maxima || 182} bpm`,
+      stats.fc_maxima ? `Pico máx: ${stats.fc_maxima} bpm` : 'Sin sensor cardíaco',
       '#ef4444',
       false
     );
@@ -421,9 +421,9 @@ export class MatchStoryService {
   private drawStrokesBreakdown(ctx: CanvasRenderingContext2D, data: StoryMatchData) {
     ctx.save();
     const stats = data.smartwatch_data || {};
-    const smashes = stats.smash_count || 18;
-    const bandejas = stats.bandeja_count || 26;
-    const viboras = stats.vibora_count || 14;
+    const smashes = Number(stats.smash_count) || 0;
+    const bandejas = Number(stats.bandeja_count) || 0;
+    const viboras = Number(stats.vibora_count) || 0;
 
     const startY = 1480;
     const w = 900;

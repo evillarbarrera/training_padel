@@ -38,9 +38,9 @@
         <div class="wm-card-header">
             <div class="wm-card-tag">
                 <ion-icon name="watch-outline"></ion-icon>
-                <span>APPLE WATCH MATCH</span>
+                <span>{{ match?.smartwatch_data ? 'APPLE WATCH MATCH' : 'RESULTADO DEL PARTIDO' }}</span>
             </div>
-            <div class="wm-card-status">
+            <div class="wm-card-status" *ngIf="match?.smartwatch_data">
                 <span class="pulse-green-dot"></span>
                 <span>Sincronizado</span>
             </div>
@@ -61,7 +61,7 @@
             <div class="wm-grid-box smash">
                 <ion-icon name="flash-outline"></ion-icon>
                 <div class="wm-box-data">
-                    <span class="val">{{ match.smartwatch_data.velocidad_max_kmh || 120 | number:'1.0-0' }} <small>km/h</small></span>
+                    <span class="val">{{ match.smartwatch_data.velocidad_max_kmh ? (match.smartwatch_data.velocidad_max_kmh | number:'1.0-0') : '0' }} <small>km/h</small></span>
                     <span class="lbl">Smash Máx</span>
                 </div>
             </div>
@@ -69,7 +69,7 @@
             <div class="wm-grid-box strokes">
                 <ion-icon name="fitness-outline"></ion-icon>
                 <div class="wm-box-data">
-                    <span class="val">{{ match.smartwatch_data.total_golpes || 150 }}</span>
+                    <span class="val">{{ match.smartwatch_data.total_golpes || 0 }}</span>
                     <span class="lbl">Total Golpes</span>
                 </div>
             </div>
@@ -77,7 +77,7 @@
             <div class="wm-grid-box hr">
                 <ion-icon name="heart-outline"></ion-icon>
                 <div class="wm-box-data">
-                    <span class="val">{{ match.smartwatch_data.fc_promedio || 145 }} <small>bpm</small></span>
+                    <span class="val">{{ match.smartwatch_data.fc_promedio || 0 }} <small>bpm</small></span>
                     <span class="lbl">Cardio Prom.</span>
                 </div>
             </div>
@@ -85,14 +85,14 @@
             <div class="wm-grid-box cal">
                 <ion-icon name="flame-outline"></ion-icon>
                 <div class="wm-box-data">
-                    <span class="val">{{ match.smartwatch_data.calorias || 580 | number:'1.0-0' }} <small>kcal</small></span>
+                    <span class="val">{{ match.smartwatch_data.calorias ? (match.smartwatch_data.calorias | number:'1.0-0') : '0' }} <small>kcal</small></span>
                     <span class="lbl">Calorías</span>
                 </div>
             </div>
         </div>
 
         <!-- STROKE DISTRIBUTION VISUAL BAR (NIKE / STRAVA PRO STYLE) -->
-        <div class="match-stroke-dist-box" *ngIf="match?.smartwatch_data">
+        <div class="match-stroke-dist-box" *ngIf="match?.smartwatch_data && getTotalStrokes() > 0">
             <div class="msd-header">
                 <div class="msd-title">
                     <ion-icon name="fitness-outline"></ion-icon>

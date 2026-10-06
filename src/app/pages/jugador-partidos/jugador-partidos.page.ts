@@ -216,6 +216,8 @@ export class JugadorPartidosPage implements OnInit {
     return `${cleanApiUrl}/prd/${url}`;
   }
 
+  totalMatchesWithSensors = 0;
+
   updateLists() {
     this.proximos = this.partidos.filter(p => !p.jugado).sort((a,b) => a.fecha.localeCompare(b.fecha));
     
@@ -224,9 +226,6 @@ export class JugadorPartidosPage implements OnInit {
     this.pendientes = [];
 
     this.partidos.filter(p => p.jugado).forEach(p => {
-       // Ensure telemetry data is initialized for every finished match
-       this.ensureMatchTelemetry(p);
-
        if (!p.resultado_registrado) {
           const matchDateStr = p.fecha + 'T' + (p.hora_fin || '00:00:00');
           const matchDate = new Date(matchDateStr);
@@ -262,45 +261,6 @@ export class JugadorPartidosPage implements OnInit {
     this.paginate();
   }
 
-  ensureMatchTelemetry(p: any): any {
-    if (!p) return null;
-    if (!p.smartwatch_data) {
-      const seed = Math.abs(Number(p.id) || 7);
-      const smash = 12 + (seed * 3) % 15;          // 12-26 smashes
-      const bandeja = 18 + (seed * 5) % 18;        // 18-35 bandejas
-      const vibora = 8 + (seed * 2) % 10;          // 8-17 viboras
-      const other = 55 + (seed * 7) % 35;          // 55-89 control strokes
-      const total = smash + bandeja + vibora + other;
-      const maxV = 112 + (seed * 4) % 24;          // 112-135 km/h
-      const medV = 76 + (seed * 2) % 14;           // 76-89 km/h
-      const fc = 142 + (seed * 3) % 18;            // 142-159 bpm
-      const fcMax = fc + 26 + (seed % 10);         // 168-195 bpm
-      const cal = 520 + (seed * 28) % 220;         // 520-738 kcal
-
-      p.smartwatch_data = {
-        sesion_id: 0,
-        total_golpes: total,
-        smash_count: smash,
-        bandeja_count: bandeja,
-        vibora_count: vibora,
-        velocidad_max_kmh: maxV,
-        velocidad_media_kmh: medV,
-        calorias: cal,
-        fc_promedio: fc,
-        fc_maxima: fcMax,
-        marcador_t1: p.marcador?.split('-')[0]?.trim() || '6',
-        marcador_t2: p.marcador?.split('-')[1]?.trim() || '4',
-        dispositivo: 'Telemetría PadelBlox',
-        is_simulated: true
-      };
-    } else {
-      if (p.smartwatch_data.is_simulated === undefined) {
-        p.smartwatch_data.is_simulated = !p.sw_sesion_id;
-      }
-    }
-    return p.smartwatch_data;
-  }
-
   paginate() {
     const start = (this.currentPage - 1) * this.pageSize;
     const end = start + this.pageSize;
@@ -323,7 +283,7 @@ export class JugadorPartidosPage implements OnInit {
 
   calculateStats() {
     this.totalJugados = this.jugados.length;
-    this.victorias = this.jugados.filter(p => p.id_ganador && ((p.id_ganador == 1 && (p.usuario_id == this.userId || p.jugador2_id == this.userId)) || (p.id_ganador == 2 && (p.jugador3_id == this.userId || p.jugador4_id == this.userId)))).length;
+    this.victorias = this.jugados.filter(p => this.isWinner(p)).length;
     this.derrotas = this.jugados.filter(p => p.resultado_registrado && !this.isWinner(p)).length;
     
     // Categoría más jugada
@@ -336,7 +296,7 @@ export class JugadorPartidosPage implements OnInit {
         this.categoriaMasJugada = 'N/A';
     }
 
-    // --- CALCULATE GLOBAL CAREER BIOMECHANICS & STROKES ---
+    // --- CALCULATE REAL GLOBAL CAREER BIOMECHANICS & STROKES ---
     let tGolpes = 0;
     let mSmash = 0;
     let tCal = 0;
@@ -344,26 +304,28 @@ export class JugadorPartidosPage implements OnInit {
     let bCount = 0;
     let vCount = 0;
     let oCount = 0;
+    let sensorMatches = 0;
 
     this.jugados.forEach(p => {
-      this.ensureMatchTelemetry(p);
       const sw = p.smartwatch_data;
-      if (sw) {
-        tGolpes += sw.total_golpes || 0;
-        if ((sw.velocidad_max_kmh || 0) > mSmash) {
-          mSmash = sw.velocidad_max_kmh;
+      if (sw && (Number(sw.total_golpes) > 0 || Number(sw.velocidad_max_kmh) > 0 || Number(sw.calorias) > 0)) {
+        sensorMatches++;
+        tGolpes += Number(sw.total_golpes) || 0;
+        if ((Number(sw.velocidad_max_kmh) || 0) > mSmash) {
+          mSmash = Number(sw.velocidad_max_kmh);
         }
-        tCal += sw.calorias || 0;
-        sCount += sw.smash_count || 0;
-        bCount += sw.bandeja_count || 0;
-        vCount += sw.vibora_count || 0;
-        const special = (sw.smash_count || 0) + (sw.bandeja_count || 0) + (sw.vibora_count || 0);
-        oCount += Math.max(0, (sw.total_golpes || 0) - special);
+        tCal += Number(sw.calorias) || 0;
+        sCount += Number(sw.smash_count) || 0;
+        bCount += Number(sw.bandeja_count) || 0;
+        vCount += Number(sw.vibora_count) || 0;
+        const special = (Number(sw.smash_count) || 0) + (Number(sw.bandeja_count) || 0) + (Number(sw.vibora_count) || 0);
+        oCount += Math.max(0, (Number(sw.total_golpes) || 0) - special);
       }
     });
 
+    this.totalMatchesWithSensors = sensorMatches;
     this.globalTotalGolpes = tGolpes;
-    this.globalMaxSmash = mSmash > 0 ? mSmash : 124;
+    this.globalMaxSmash = mSmash;
     this.globalTotalCalorias = tCal;
     this.globalSmashCount = sCount;
     this.globalBandejaCount = bCount;
@@ -375,47 +337,43 @@ export class JugadorPartidosPage implements OnInit {
       this.globalBandejaPercent = Math.round((bCount / tGolpes) * 100);
       this.globalViboraPercent = Math.round((vCount / tGolpes) * 100);
       this.globalOtherPercent = Math.max(0, 100 - (this.globalSmashPercent + this.globalBandejaPercent + this.globalViboraPercent));
-    } else {
-      this.globalSmashPercent = 25;
-      this.globalBandejaPercent = 35;
-      this.globalViboraPercent = 15;
-      this.globalOtherPercent = 25;
-    }
 
-    if (sCount >= bCount && sCount >= vCount && sCount > 0) {
-      this.globalDominantStroke = { label: 'Smash de Potencia', icon: 'flash', cssClass: 'smash', desc: 'Juego aéreo ofensivo con alto ratio de definición' };
-    } else if (bCount >= sCount && bCount >= vCount && bCount > 0) {
-      this.globalDominantStroke = { label: 'Bandeja Táctica', icon: 'fitness-outline', cssClass: 'bandeja', desc: 'Excelente control de red y transición defensiva' };
-    } else if (vCount >= sCount && vCount >= bCount && vCount > 0) {
-      this.globalDominantStroke = { label: 'Víbora con Efecto', icon: 'sparkles', cssClass: 'vibora', desc: 'Golpes laterales con aceleración y veneno' };
+      if (sCount >= bCount && sCount >= vCount && sCount > 0) {
+        this.globalDominantStroke = { label: 'Smash de Potencia', icon: 'flash', cssClass: 'smash', desc: 'Juego aéreo ofensivo con alto ratio de definición' };
+      } else if (bCount >= sCount && bCount >= vCount && bCount > 0) {
+        this.globalDominantStroke = { label: 'Bandeja Táctica', icon: 'fitness-outline', cssClass: 'bandeja', desc: 'Excelente control de red y transición defensiva' };
+      } else if (vCount >= sCount && vCount >= bCount && vCount > 0) {
+        this.globalDominantStroke = { label: 'Víbora con Efecto', icon: 'sparkles', cssClass: 'vibora', desc: 'Golpes laterales con aceleración y veneno' };
+      } else {
+        this.globalDominantStroke = { label: 'Control y Distribución', icon: 'fitness-outline', cssClass: 'balanced', desc: 'Gran consistencia y volumen de juego en pista' };
+      }
     } else {
-      this.globalDominantStroke = { label: 'Juego Balanceado', icon: 'fitness-outline', cssClass: 'balanced', desc: 'Distribución sólida en todas las fases del partido' };
+      this.globalSmashPercent = 0;
+      this.globalBandejaPercent = 0;
+      this.globalViboraPercent = 0;
+      this.globalOtherPercent = 0;
+      this.globalDominantStroke = { label: 'Sin registros de sensores', icon: 'watch-outline', cssClass: 'balanced', desc: 'Juega tus partidos con la app de Apple Watch para registrar potencia y distribución de golpes.' };
     }
   }
 
-  // --- STROKE STATISTICS HELPERS (UX BIOMECHANICS) ---
+  // --- STROKE STATISTICS HELPERS (REAL BIOMECHANICS) ---
   getSmashCount(match: any): number {
-    this.ensureMatchTelemetry(match);
-    return match?.smartwatch_data?.smash_count || 0;
+    return Number(match?.smartwatch_data?.smash_count) || 0;
   }
 
   getBandejaCount(match: any): number {
-    this.ensureMatchTelemetry(match);
-    return match?.smartwatch_data?.bandeja_count || 0;
+    return Number(match?.smartwatch_data?.bandeja_count) || 0;
   }
 
   getViboraCount(match: any): number {
-    this.ensureMatchTelemetry(match);
-    return match?.smartwatch_data?.vibora_count || 0;
+    return Number(match?.smartwatch_data?.vibora_count) || 0;
   }
 
   getTotalStrokes(match: any): number {
-    this.ensureMatchTelemetry(match);
     if (match?.smartwatch_data?.total_golpes) {
-      return match.smartwatch_data.total_golpes;
+      return Number(match.smartwatch_data.total_golpes) || 0;
     }
-    const special = this.getSmashCount(match) + this.getBandejaCount(match) + this.getViboraCount(match);
-    return special > 0 ? Math.max(special, 100) : 0;
+    return this.getSmashCount(match) + this.getBandejaCount(match) + this.getViboraCount(match);
   }
 
   getOtherStrokesCount(match: any): number {
@@ -747,20 +705,8 @@ export class JugadorPartidosPage implements OnInit {
         categoria: this.storyMatchData.categoria || 'Open Pro',
         es_ganador: isWin,
         pareja1: this.storyMatchData.jugador1_nombre ? `${this.storyMatchData.jugador1_nombre} / ${this.storyMatchData.jugador2_nombre || 'Partner'}` : 'Emmanuel Villar / Mi Pareja',
-        pareja2: this.storyMatchData.jugador3_nombre ? `${this.storyMatchData.jugador3_nombre} / ${this.storyMatchData.jugador4_nombre || 'Rival'}` : 'Lucas / Diego',
-        smartwatch_data: this.storyMatchData.smartwatch_data || {
-          velocidad_max_kmh: 124,
-          velocidad_media_kmh: 86,
-          total_golpes: 164,
-          smash_count: 18,
-          bandeja_count: 26,
-          vibora_count: 14,
-          fc_promedio: 148,
-          fc_maxima: 182,
-          calorias: 640,
-          duracion_segundos: 4800,
-          dispositivo: 'Apple Watch Ultra 2'
-        }
+        pareja2: this.storyMatchData.jugador3_nombre ? `${this.storyMatchData.jugador3_nombre} / ${this.storyMatchData.jugador4_nombre || 'Rival'}` : 'Rival 1 / Rival 2',
+        smartwatch_data: this.storyMatchData.smartwatch_data || undefined
       };
 
       this.storyImageUrl = await this.matchStoryService.generateStoryImage(data, this.storyTheme);
