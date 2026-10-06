@@ -168,17 +168,104 @@
         Aún no tienes historial de partidos
       </div>
 
-      <div class="match-card-v8" *ngFor="let p of paginatedJugados" [class.has-watch-data]="!!p.smartwatch_data">
-        
-        <!-- APPLE WATCH SYNC TAG (IF TRACKED BY WATCH) -->
-        <div class="watch-sync-header" *ngIf="p.smartwatch_data">
-          <div class="wsh-tag">
+      <!-- GLOBAL CAREER BIOMECHANICS & STROKE RADAR BANNER -->
+      <div class="global-stroke-radar-card" *ngIf="jugados.length > 0">
+        <div class="gsr-header">
+          <div class="gsr-badge">
+            <ion-icon name="analytics-outline"></ion-icon>
+            <span>RADAR GLOBAL DE GOLPES & TELEMETRÍA</span>
+          </div>
+          <div class="gsr-dominant-chip" [ngClass]="globalDominantStroke.cssClass">
+            <ion-icon [name]="globalDominantStroke.icon"></ion-icon>
+            <span>{{ globalDominantStroke.label }}</span>
+          </div>
+        </div>
+
+        <div class="gsr-kpi-grid">
+          <div class="gsr-kpi-item smash">
+            <div class="gsr-kpi-icon"><ion-icon name="flash"></ion-icon></div>
+            <div class="gsr-kpi-text">
+              <span class="gsr-kpi-val">{{ globalMaxSmash | number:'1.0-0' }} <small>km/h</small></span>
+              <span class="gsr-kpi-lbl">Smash Récord</span>
+            </div>
+          </div>
+
+          <div class="gsr-kpi-item hits">
+            <div class="gsr-kpi-icon"><ion-icon name="fitness-outline"></ion-icon></div>
+            <div class="gsr-kpi-text">
+              <span class="gsr-kpi-val">{{ globalTotalGolpes | number:'1.0-0' }}</span>
+              <span class="gsr-kpi-lbl">Impactos Totales</span>
+            </div>
+          </div>
+
+          <div class="gsr-kpi-item calories">
+            <div class="gsr-kpi-icon"><ion-icon name="flame-outline"></ion-icon></div>
+            <div class="gsr-kpi-text">
+              <span class="gsr-kpi-val">{{ globalTotalCalorias | number:'1.0-0' }} <small>kcal</small></span>
+              <span class="gsr-kpi-lbl">Calorías Totales</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- GLOBAL SEGMENTED STROKE DISTRIBUTION -->
+        <div class="gsr-dist-section">
+          <div class="gsr-dist-title">
+            <span>DISTRIBUCIÓN HISTÓRICA DE GOLPES</span>
+            <span class="gsr-sub-matches">{{ jugados.length }} Partidos Analizados</span>
+          </div>
+
+          <div class="stroke-progress-bar global">
+            <div class="sp-segment smash" [style.width.%]="globalSmashPercent" *ngIf="globalSmashCount > 0" title="Smashes"></div>
+            <div class="sp-segment bandeja" [style.width.%]="globalBandejaPercent" *ngIf="globalBandejaCount > 0" title="Bandejas"></div>
+            <div class="sp-segment vibora" [style.width.%]="globalViboraPercent" *ngIf="globalViboraCount > 0" title="Víboras"></div>
+            <div class="sp-segment other" [style.width.%]="globalOtherPercent" *ngIf="globalOtherPercent > 0" title="Control"></div>
+          </div>
+
+          <div class="stroke-legend-grid">
+            <div class="sl-item smash" *ngIf="globalSmashCount > 0">
+              <span class="sl-dot"></span>
+              <span class="sl-name">Smash</span>
+              <span class="sl-count">{{ globalSmashCount }} <small>({{ globalSmashPercent }}%)</small></span>
+            </div>
+            <div class="sl-item bandeja" *ngIf="globalBandejaCount > 0">
+              <span class="sl-dot"></span>
+              <span class="sl-name">Bandeja</span>
+              <span class="sl-count">{{ globalBandejaCount }} <small>({{ globalBandejaPercent }}%)</small></span>
+            </div>
+            <div class="sl-item vibora" *ngIf="globalViboraCount > 0">
+              <span class="sl-dot"></span>
+              <span class="sl-name">Víbora</span>
+              <span class="sl-count">{{ globalViboraCount }} <small>({{ globalViboraPercent }}%)</small></span>
+            </div>
+            <div class="sl-item other" *ngIf="globalOtherPercent > 0">
+              <span class="sl-dot"></span>
+              <span class="sl-name">Control</span>
+              <span class="sl-count">{{ globalOtherCount }} <small>({{ globalOtherPercent }}%)</small></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="gsr-footer-cta" (click)="router.navigate(['/smartwatch-stats'])">
+          <span class="gsr-cta-text">
             <ion-icon name="watch-outline"></ion-icon>
-            <span>APPLE WATCH SYNC</span>
+            Ver Laboratorio Biomecánico Apple Watch
+          </span>
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+        </div>
+      </div>
+
+      <div class="match-card-v8 has-watch-data" *ngFor="let p of paginatedJugados">
+        
+        <!-- SYNC TAG (APPLE WATCH OR AI BIOMECHANICS ESTIMATION) -->
+        <div class="watch-sync-header" *ngIf="p.smartwatch_data">
+          <div class="wsh-tag" [class.simulated]="p.smartwatch_data.is_simulated">
+            <ion-icon name="watch-outline" *ngIf="!p.smartwatch_data.is_simulated"></ion-icon>
+            <ion-icon name="analytics-outline" *ngIf="p.smartwatch_data.is_simulated"></ion-icon>
+            <span>{{ p.smartwatch_data.is_simulated ? 'TELEMETRÍA BIOMECÁNICA' : 'APPLE WATCH SYNC' }}</span>
           </div>
           <div class="wsh-status">
-            <span class="pulse-green-dot"></span>
-            <span>Telemetría Registrada</span>
+            <span [class]="p.smartwatch_data.is_simulated ? 'pulse-cyan-dot' : 'pulse-green-dot'"></span>
+            <span>{{ p.smartwatch_data.is_simulated ? 'Análisis IA' : 'Telemetría Registrada' }}</span>
           </div>
         </div>
 
@@ -211,8 +298,8 @@
           </div>
         </div>
 
-        <!-- APPLE WATCH SENSOR TELEMETRY & STROKES BIOMECHANICS BLOCK -->
-        <div class="watch-telemetry-block" *ngIf="p.smartwatch_data" (click)="openWatchModal(p, $event)">
+        <!-- SENSOR TELEMETRY & STROKES BIOMECHANICS BLOCK -->
+        <div class="watch-telemetry-block" (click)="openWatchModal(p, $event)">
           
           <!-- STROKE DISTRIBUTION VISUAL BAR (NIKE / STRAVA PRO STYLE) -->
           <div class="stroke-dist-card">
@@ -261,7 +348,7 @@
           </div>
 
           <!-- KPI METRICS GRID -->
-          <div class="wt-metrics-grid">
+          <div class="wt-metrics-grid" *ngIf="p.smartwatch_data">
             <div class="wt-metric smash">
               <div class="wt-icon"><ion-icon name="flash-outline"></ion-icon></div>
               <div class="wt-content">

@@ -403,6 +403,249 @@ ion-content {
   box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
 }
 
+// ==========================================
+// GLOBAL CAREER BIOMECHANICS & STROKE RADAR
+// ==========================================
+.global-stroke-radar-card {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-radius: 24px;
+  padding: 20px;
+  color: #ffffff;
+  margin-bottom: 24px;
+  border: 1.5px solid rgba(204, 255, 0, 0.35);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25), 0 0 20px rgba(204, 255, 0, 0.1);
+
+  .gsr-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    .gsr-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 950;
+      color: #ccff00;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      ion-icon { font-size: 16px; color: #ccff00; }
+    }
+
+    .gsr-dominant-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: 950;
+      padding: 5px 10px;
+      border-radius: 12px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+
+      &.smash {
+        background: rgba(204, 255, 0, 0.2);
+        color: #ccff00;
+        border: 1px solid rgba(204, 255, 0, 0.5);
+      }
+      &.bandeja {
+        background: rgba(56, 189, 248, 0.2);
+        color: #38bdf8;
+        border: 1px solid rgba(56, 189, 248, 0.5);
+      }
+      &.vibora {
+        background: rgba(192, 132, 252, 0.2);
+        color: #c084fc;
+        border: 1px solid rgba(192, 132, 252, 0.5);
+      }
+      &.balanced {
+        background: rgba(255, 255, 255, 0.15);
+        color: #f8fafc;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+    }
+  }
+
+  .gsr-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+
+    .gsr-kpi-item {
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 6px;
+
+      .gsr-kpi-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
+
+      &.smash .gsr-kpi-icon { background: rgba(204, 255, 0, 0.25); color: #ccff00; }
+      &.hits .gsr-kpi-icon { background: rgba(56, 189, 248, 0.25); color: #38bdf8; }
+      &.calories .gsr-kpi-icon { background: rgba(249, 115, 22, 0.25); color: #fb923c; }
+
+      .gsr-kpi-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .gsr-kpi-val {
+          font-size: 16px;
+          font-weight: 950;
+          color: #ffffff;
+          line-height: 1.1;
+          small { font-size: 9px; font-weight: 700; color: rgba(255, 255, 255, 0.7); }
+        }
+
+        .gsr-kpi-lbl {
+          font-size: 8.5px;
+          font-weight: 800;
+          color: #94a3b8;
+          text-transform: uppercase;
+          margin-top: 3px;
+          letter-spacing: 0.3px;
+        }
+      }
+    }
+  }
+
+  .gsr-dist-section {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 14px;
+
+    .gsr-dist-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 900;
+      color: #cbd5e1;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+
+      .gsr-sub-matches {
+        font-size: 9px;
+        font-weight: 800;
+        color: #ccff00;
+      }
+    }
+
+    .stroke-progress-bar.global {
+      display: flex;
+      height: 10px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.1);
+      margin-bottom: 12px;
+      gap: 2px;
+
+      .sp-segment {
+        height: 100%;
+        transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        border-radius: 3px;
+
+        &.smash { background: linear-gradient(90deg, #bef264, #a3e635); }
+        &.bandeja { background: linear-gradient(90deg, #38bdf8, #0ea5e9); }
+        &.vibora { background: linear-gradient(90deg, #c084fc, #a855f7); }
+        &.other { background: linear-gradient(90deg, #94a3b8, #64748b); }
+      }
+    }
+
+    .stroke-legend-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+
+      .sl-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #cbd5e1;
+
+        .sl-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        .sl-name {
+          flex: 1;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .sl-count {
+          font-weight: 900;
+          color: #ffffff;
+          small {
+            font-weight: 700;
+            color: #94a3b8;
+          }
+        }
+
+        &.smash .sl-dot { background: #84cc16; }
+        &.bandeja .sl-dot { background: #0ea5e9; }
+        &.vibora .sl-dot { background: #a855f7; }
+        &.other .sl-dot { background: #94a3b8; }
+      }
+    }
+  }
+
+  .gsr-footer-cta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: rgba(204, 255, 0, 0.12);
+    border: 1px solid rgba(204, 255, 0, 0.3);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+
+    &:active {
+      background: rgba(204, 255, 0, 0.2);
+    }
+
+    .gsr-cta-text {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 900;
+      color: #ccff00;
+      ion-icon { font-size: 15px; }
+    }
+
+    ion-icon {
+      font-size: 14px;
+      color: #ccff00;
+    }
+  }
+}
+
 .watch-sync-header {
   display: flex;
   justify-content: space-between;
@@ -425,6 +668,13 @@ ion-content {
     ion-icon {
       font-size: 13px;
     }
+
+    &.simulated {
+      background: #0f172a;
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      ion-icon { color: #38bdf8; }
+    }
   }
 
   .wsh-status {
@@ -435,6 +685,21 @@ ion-content {
     font-weight: 700;
     color: #059669;
   }
+}
+
+.pulse-cyan-dot {
+  width: 7px;
+  height: 7px;
+  background: #06b6d4;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #06b6d4;
+  animation: pulseCyan 1.5s infinite;
+}
+
+@keyframes pulseCyan {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.7); }
+  70% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(6, 182, 212, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
 }
 
 .m-score-row {
