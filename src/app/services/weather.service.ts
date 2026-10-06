@@ -122,31 +122,34 @@ export class WeatherService {
   /**
    * Resuelve coordenadas precisas a partir de los datos del club
    */
-  resolveCoordinates(club: any): { lat: number; lng: number; locationName: string } {
+  resolveCoordinates(club: any): { lat: number; lng: number; name: string; locationName: string } {
     if (club?.latitud && club?.longitud && !isNaN(Number(club.latitud)) && !isNaN(Number(club.longitud))) {
       const name = club.comuna || club.ciudad || club.nombre || 'Club';
-      return { lat: Number(club.latitud), lng: Number(club.longitud), locationName: name };
+      return { lat: Number(club.latitud), lng: Number(club.longitud), name, locationName: name };
     }
 
     const comuna = (club?.comuna || '').toLowerCase().trim();
     if (comuna && this.LOCATION_COORDS[comuna]) {
-      return this.LOCATION_COORDS[comuna];
+      const c = this.LOCATION_COORDS[comuna];
+      return { ...c, locationName: c.name };
     }
 
     const direccion = (club?.direccion || '').toLowerCase();
     for (const [key, coords] of Object.entries(this.LOCATION_COORDS)) {
       if (direccion.includes(key)) {
-        return coords;
+        return { ...coords, locationName: coords.name };
       }
     }
 
     const region = (club?.region || '').toLowerCase().trim();
     if (region && this.LOCATION_COORDS[region]) {
-      return this.LOCATION_COORDS[region];
+      const r = this.LOCATION_COORDS[region];
+      return { ...r, locationName: r.name };
     }
 
     // Default Santiago, Chile
-    return { lat: -33.4489, lng: -70.6693, name: club?.comuna || 'Santiago' };
+    const defaultName = club?.comuna || 'Santiago';
+    return { lat: -33.4489, lng: -70.6693, name: defaultName, locationName: defaultName };
   }
 
   /**

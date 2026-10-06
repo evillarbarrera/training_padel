@@ -122,6 +122,14 @@ ion-content {
 
 .match-card-v8 {
   background: white; border-radius: 24px; padding: 22px; margin-bottom: 20px; border: 1px solid var(--nike-border); box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+
   .m-header {
     display: flex; gap: 18px; margin-bottom: 20px;
     .m-date {
@@ -137,10 +145,12 @@ ion-content {
   .m-footer {
     display: flex; justify-content: space-between; align-items: center; padding-top: 18px; border-top: 1px solid var(--nike-border);
     .player-stack {
-      display: flex; .p-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; margin-right: -10px; background: var(--nike-gray); img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; } &.placeholder { display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--nike-text-gray); } }
+      display: flex; align-items: center;
+      .p-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; margin-right: -10px; background: var(--nike-gray); img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; } &.placeholder { display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--nike-text-gray); } }
+      .score-display-text { font-size: 16px; font-weight: 950; color: var(--nike-navy); letter-spacing: -0.3px; }
     }
     .status-badge {
-      font-size: 11px; font-weight: 900; color: #2563eb; background: #eff6ff; padding: 6px 12px; border-radius: 10px; text-transform: uppercase;
+      font-size: 11px; font-weight: 900; color: #2563eb; background: #eff6ff; padding: 6px 12px; border-radius: 10px; text-transform: uppercase; display: flex; align-items: center;
       &.win { background: #ecfdf5; color: #10b981; }
       &.loss { background: #fef2f2; color: #ef4444; }
     }
