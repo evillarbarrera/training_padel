@@ -552,16 +552,16 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 210;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				INFOPLIST_KEY_CFBundleDisplayName = PadelBloxWatch;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				INFOPLIST_KEY_CFBundleDisplayName = PadelBlox;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 3.0.5;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = cl.padelacademy.PadelBloxWatch.PadelBloxWatch;
+				PRODUCT_BUNDLE_IDENTIFIER = cl.padelacademy.app.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -576,15 +576,15 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 210;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				INFOPLIST_KEY_CFBundleDisplayName = PadelBloxWatch;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				INFOPLIST_KEY_CFBundleDisplayName = PadelBlox;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 3.0.5;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = cl.padelacademy.PadelBloxWatch.PadelBloxWatch;
+				PRODUCT_BUNDLE_IDENTIFIER = cl.padelacademy.app.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -601,27 +601,28 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = "PadelBloxWatch Watch App/PadelBloxWatch Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 210;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = PadelBloxWatch;
+				INFOPLIST_KEY_CFBundleDisplayName = "PadelBlox Watch";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "PadelBlox utiliza HealthKit para leer tu frecuencia cardiaca y calorias activas durante el juego.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "PadelBlox utiliza HealthKit para registrar tus entrenamientos y partidos de padel.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "PadelBlox utiliza los sensores de movimiento para detectar y clasificar tus golpes de padel.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKBackgroundModes = "workout-processing";
-				INFOPLIST_KEY_WKWatchOnly = YES;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = cl.padelacademy.app;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 3.0.5;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = cl.padelacademy.PadelBloxWatch.PadelBloxWatch.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = cl.padelacademy.app.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -633,7 +634,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 27.0;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
 			};
 			name = Debug;
 		};
@@ -646,26 +647,27 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = "PadelBloxWatch Watch App/PadelBloxWatch Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 210;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = PadelBloxWatch;
+				INFOPLIST_KEY_CFBundleDisplayName = "PadelBlox Watch";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "PadelBlox utiliza HealthKit para leer tu frecuencia cardiaca y calorias activas durante el juego.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "PadelBlox utiliza HealthKit para registrar tus entrenamientos y partidos de padel.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "PadelBlox utiliza los sensores de movimiento para detectar y clasificar tus golpes de padel.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKBackgroundModes = "workout-processing";
-				INFOPLIST_KEY_WKWatchOnly = YES;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = cl.padelacademy.app;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 3.0.5;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = cl.padelacademy.PadelBloxWatch.PadelBloxWatch.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = cl.padelacademy.app.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -676,7 +678,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 27.0;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
 			};
 			name = Release;
 		};
