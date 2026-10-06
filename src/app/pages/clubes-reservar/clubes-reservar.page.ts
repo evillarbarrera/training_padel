@@ -22,6 +22,7 @@ import {
 } from 'ionicons/icons';
 import { environment } from '../../../environments/environment';
 import { HapticFeedbackService } from '../../services/haptics.service';
+import { WeatherService, WeatherInfo } from '../../services/weather.service';
 
 import { PadelLoaderComponent } from '../../components/padel-loader/padel-loader.component';
 
@@ -56,6 +57,10 @@ export class ClubesReservarPage implements OnInit {
   bookingPreview: any = null;
   showOccupied: boolean = false;
   apiBaseUrl: string = 'https://api.padelmanager.cl';
+
+  // LIVE WEATHER FORECAST STATE
+  currentWeather: WeatherInfo | null = null;
+  isLoadingWeather: boolean = false;
   
   partidosProximos: any[] = [];
   partidosHistorial: any[] = [];
@@ -248,7 +253,8 @@ export class ClubesReservarPage implements OnInit {
     private actionSheetCtrl: ActionSheetController,
     private loadingCtrl: LoadingController,
     private cdr: ChangeDetectorRef,
-    public haptics: HapticFeedbackService
+    public haptics: HapticFeedbackService,
+    private weatherService: WeatherService
   ) {
     addIcons({ 
       locationOutline, searchOutline, calendarOutline, 
@@ -270,6 +276,7 @@ export class ClubesReservarPage implements OnInit {
     this.generateWeekDays();
     this.loadClubes();
     this.loadUserProfile();
+    this.loadWeatherForSelection();
   }
 
   loadUserProfile() {
@@ -512,6 +519,7 @@ export class ClubesReservarPage implements OnInit {
     this.loadDisponibilidad();
     this.prefetchUpcomingDays();
     this.loadMisPartidosClub();
+    this.loadWeatherForSelection();
   }
 
   loadMisPartidosClub() {
@@ -709,6 +717,7 @@ export class ClubesReservarPage implements OnInit {
     this.selectedFecha = date;
     this.loadDisponibilidad();
     this.prefetchUpcomingDays();
+    this.loadWeatherForSelection();
   }
 
   toggleTimeSlot(slot: any) {
@@ -957,12 +966,40 @@ export class ClubesReservarPage implements OnInit {
     }
   }
 
-  getWeatherSummary(fecha?: string): { temp: string; desc: string; icon: string; isOutdoorGood: boolean } {
+  loadWeatherForSelection() {
+    const targetClub = this.selectedClub || this.getHabitualClub() || (this.clubes && this.clubes.length > 0 ? this.clubes[0] : null);
+    if (!targetClub) return;
+
+    this.isLoadingWeather = true;
+    this.weatherService.getWeather(targetClub, this.selectedFecha).subscribe({
+      next: (info) => {
+        this.currentWeather = info;
+        this.isLoadingWeather = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.warn('Could not load live weather:', err);
+        this.isLoadingWeather = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  getWeatherSummary(fecha?: string): WeatherInfo {
+    if (this.currentWeather) {
+      return this.currentWeather;
+    }
+    const targetClub = this.selectedClub || this.getHabitualClub();
+    const coords = this.weatherService.resolveCoordinates(targetClub);
     return {
-      temp: '22°C',
+      temp: '21°C',
       desc: 'Cielo Despejado',
       icon: '☀️',
-      isOutdoorGood: true
+      locationName: coords.name || targetClub?.comuna || 'Machalí',
+      isOutdoorGood: true,
+      badgeText: '🎾 Clima Óptimo para Pádel',
+      badgeClass: 'optimal',
+      isLive: false
     };
   }
 

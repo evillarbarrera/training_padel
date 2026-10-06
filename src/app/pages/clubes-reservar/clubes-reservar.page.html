@@ -107,17 +107,32 @@
             </div>
         </div>
 
-        <!-- WEATHER FORECAST CALLOUT -->
-        <div class="weather-forecast-badge" style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd; border-radius: 14px; padding: 9px 14px; margin-bottom: 14px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 18px;">{{ getWeatherSummary(selectedFecha).icon }}</span>
-            <div>
-              <span style="font-size: 12px; font-weight: 850; color: #0369a1;">{{ getWeatherSummary(selectedFecha).temp }} • {{ getWeatherSummary(selectedFecha).desc }}</span>
+        <!-- WEATHER FORECAST CALLOUT (LOCATION-AWARE & REAL-TIME) -->
+        <div class="weather-forecast-card" [ngClass]="getWeatherSummary(selectedFecha).badgeClass">
+          <div class="wf-left">
+            <div class="wf-icon-wrap">
+              {{ getWeatherSummary(selectedFecha).icon }}
+            </div>
+            <div class="wf-info">
+              <div class="wf-title-row">
+                <span class="wf-temp">{{ getWeatherSummary(selectedFecha).temp }}</span>
+                <span class="wf-dot">•</span>
+                <span class="wf-desc">{{ getWeatherSummary(selectedFecha).desc }}</span>
+              </div>
+              <div class="wf-loc-row">
+                <ion-icon name="location-outline"></ion-icon>
+                <span>{{ getWeatherSummary(selectedFecha).locationName }}</span>
+                <span *ngIf="getWeatherSummary(selectedFecha).tempMax" class="wf-minmax">
+                  (Máx: {{ getWeatherSummary(selectedFecha).tempMax }}° / Mín: {{ getWeatherSummary(selectedFecha).tempMin }}°)
+                </span>
+              </div>
             </div>
           </div>
-          <span style="background: rgba(3, 105, 161, 0.12); color: #0369a1; font-size: 10.5px; font-weight: 850; padding: 3px 8px; border-radius: 8px;">
-            🎾 Clima Óptimo
-          </span>
+          <div class="wf-right">
+            <span class="wf-pill" [ngClass]="getWeatherSummary(selectedFecha).badgeClass">
+              {{ getWeatherSummary(selectedFecha).badgeText }}
+            </span>
+          </div>
         </div>
 
         <!-- DURATION SELECTOR V6 -->
