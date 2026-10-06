@@ -1785,14 +1785,17 @@ ion-modal.custom-bottom-sheet {
 
   .action-btn-v2 {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
+    gap: 10px;
     background: #f8f8fa;
-    border-radius: 16px;
-    padding: 12px 14px;
+    border-radius: 20px;
+    padding: 16px 8px;
     width: 100%;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     border: 1px solid rgba(0,0,0,0.02);
+    text-align: center;
     
     &:active {
       transform: scale(0.96);
@@ -1800,26 +1803,31 @@ ion-modal.custom-bottom-sheet {
     }
 
     .a-icon {
-      width: 40px; height: 40px;
-      border-radius: 12px;
+      width: 44px; height: 44px;
+      border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      background: rgba(204, 255, 0, 0.12);
+      background: rgba(204, 255, 0, 0.14);
       flex-shrink: 0;
 
       ion-icon {
-        font-size: 20px;
-        color: #99eb00 !important;
-        --color: #99eb00 !important;
+        font-size: 22px;
+        color: #8ed200 !important;
+        --color: #8ed200 !important;
       }
     }
 
     span, .a-label {
-      font-size: 13px;
-      font-weight: 850;
+      font-size: 11px;
+      font-weight: 900;
       color: #000;
-      letter-spacing: -0.2px;
-      text-align: left;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
   }
 }
