@@ -42,6 +42,12 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Necesitamos acceso a tu cámara para que puedas tomar una foto de perfil.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>PadelBlox utiliza HealthKit para leer tu frecuencia cardíaca y calorías activas durante el juego.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>PadelBlox utiliza HealthKit para registrar tus entrenamientos y partidos de pádel.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>PadelBlox utiliza los sensores de movimiento para detectar y clasificar tus golpes de pádel.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Necesitamos permiso para guardar fotos en tu galería.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

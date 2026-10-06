@@ -512,3 +512,40 @@ button,
     transform: scale(0.92) !important;
   }
 }
+
+// ============================================================================
+// FLOATING BACK BUTTON (GLOBAL V8 / V6 - INFERIOR DERECHA)
+// ============================================================================
+.fab-back-v8,
+.fab-back-v6.right {
+  position: fixed;
+  bottom: 25px;
+  right: 20px;
+  width: 52px;
+  height: 52px;
+  background: #0f172a;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ccff00;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35), 0 0 12px rgba(204, 255, 0, 0.2);
+  z-index: 999;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+
+  ion-icon {
+    font-size: 24px;
+    color: #ccff00;
+  }
+
+  &:hover {
+    transform: scale(1.06);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45), 0 0 16px rgba(204, 255, 0, 0.35);
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+}

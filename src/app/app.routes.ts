@@ -121,5 +121,9 @@ export const routes: Routes = [
   {
     path: 'partido-detalle/:id',
     loadComponent: () => import('./pages/partido-detalle/partido-detalle.page').then(m => m.PartidoDetallePage)
+  },
+  {
+    path: 'smartwatch-stats',
+    loadComponent: () => import('./pages/smartwatch-stats/smartwatch-stats.page').then(m => m.SmartwatchStatsPage)
   }
 ];

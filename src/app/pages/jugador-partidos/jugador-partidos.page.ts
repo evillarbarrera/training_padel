@@ -7,6 +7,9 @@ import {
   AlertController, ToastController, LoadingController
 } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
+import { SmartwatchService } from '../../services/smartwatch.service';
+import { MatchStoryService, StoryMatchData } from '../../services/match-story.service';
+import { NotificationService } from '../../services/notification.service';
 import { environment } from '../../../environments/environment';
 import { Router } from '@angular/router';
 import { addIcons } from 'ionicons';
@@ -17,7 +20,12 @@ import {
   lockClosedOutline, checkmarkCircle, ellipsisVertical,
   shareOutline, pencilOutline, ribbon, calendarClearOutline,
   ellipsisHorizontal, add, chevronDown, personAddOutline,
-  closeOutline, timeOutline
+  closeOutline, timeOutline, watchOutline, flashOutline,
+  flameOutline, heartOutline, fitnessOutline, analyticsOutline,
+  speedometerOutline, playCircleOutline, trophy, shieldOutline,
+  chevronForwardOutline, openOutline, cameraOutline, downloadOutline,
+  logoInstagram, logoWhatsapp, colorPaletteOutline, flash, sparkles,
+  arrowRedoOutline, radioOutline, chevronBackOutline, notificationsOutline
 } from 'ionicons/icons';
 import { NavController } from '@ionic/angular';
 
@@ -39,6 +47,21 @@ export class JugadorPartidosPage implements OnInit {
   pendientes: any[] = [];
   loading = true;
   userId = Number(localStorage.getItem('userId'));
+
+  // Live Watch Companion Status
+  isWatchMatchLive = false;
+  liveMatchState: any = null;
+
+  // Smartwatch Modal Detail
+  showWatchDetailModal = false;
+  selectedWatchMatch: any = null;
+
+  // Social Story Generator Modal
+  showStoryModal = false;
+  storyImageUrl = '';
+  isGeneratingStory = false;
+  storyTheme: 'dark' | 'volt' | 'ocean' = 'dark';
+  storyMatchData: any = null;
 
   // Stats
   totalJugados = 0;
@@ -84,6 +107,9 @@ export class JugadorPartidosPage implements OnInit {
 
   constructor(
     private mysqlService: MysqlService,
+    private smartwatchService: SmartwatchService,
+    private matchStoryService: MatchStoryService,
+    private notificationService: NotificationService,
     public router: Router,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
@@ -97,12 +123,35 @@ export class JugadorPartidosPage implements OnInit {
       lockClosedOutline, checkmarkCircle, ellipsisVertical,
       shareOutline, pencilOutline, ribbon, calendarClearOutline,
       ellipsisHorizontal, add, chevronDown, personAddOutline,
-      closeOutline, timeOutline
+      closeOutline, timeOutline, watchOutline, flashOutline,
+      flameOutline, heartOutline, fitnessOutline, analyticsOutline,
+      speedometerOutline, playCircleOutline, trophy, shieldOutline,
+      chevronForwardOutline, openOutline, cameraOutline, downloadOutline,
+      logoInstagram, logoWhatsapp, colorPaletteOutline, flash, sparkles,
+      arrowRedoOutline, radioOutline, chevronBackOutline, notificationsOutline
     });
   }
 
   ngOnInit() {
     this.loadPartidos();
+    this.listenToLiveWatch();
+  }
+
+  private listenToLiveWatch() {
+    this.smartwatchService.isMatchActive$.subscribe(active => {
+      this.isWatchMatchLive = active;
+    });
+
+    this.smartwatchService.liveScore$.subscribe(score => {
+      if (score) {
+        this.liveMatchState = score;
+        this.isWatchMatchLive = true;
+      }
+    });
+  }
+
+  isReminderActive(match: any): boolean {
+    return this.notificationService.isMatchReminderActive(match);
   }
 
   loadPartidos(event?: any) {
@@ -112,6 +161,9 @@ export class JugadorPartidosPage implements OnInit {
         this.partidos = (res || []).filter(p => p.estado !== 'Cancelada' && p.estado !== 'Cancelado');
         this.updateLists();
         this.calculateStats();
+
+        // Automatically schedule 2-hour pre-match reminders for upcoming matches
+        this.notificationService.scheduleMatchReminders(this.proximos);
         
         // Extract unique clubs for filter
         const cMap = new Map();
@@ -433,4 +485,96 @@ export class JugadorPartidosPage implements OnInit {
       }
     });
   }
+
+  // SMARTWATCH TELEMETRY MODAL
+  openWatchModal(match: any, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.selectedWatchMatch = match;
+    this.showWatchDetailModal = true;
+  }
+
+  closeWatchModal() {
+    this.showWatchDetailModal = false;
+    this.selectedWatchMatch = null;
+  }
+
+  goToSmartwatchStats(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.closeWatchModal();
+    this.router.navigate(['/smartwatch-stats']);
+  }
+
+  // SOCIAL STORY GENERATOR (NIKE / STRAVA STYLE 9:16)
+  async openStoryModal(match: any, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.storyMatchData = match;
+    this.showStoryModal = true;
+    await this.renderStory();
+  }
+
+  closeStoryModal() {
+    this.showStoryModal = false;
+    this.storyImageUrl = '';
+  }
+
+  async setStoryTheme(theme: 'dark' | 'volt' | 'ocean') {
+    this.storyTheme = theme;
+    await this.renderStory();
+  }
+
+  private async renderStory() {
+    if (!this.storyMatchData) return;
+    this.isGeneratingStory = true;
+
+    try {
+      const isWin = this.isWinner(this.storyMatchData);
+      const data: StoryMatchData = {
+        club_nombre: this.storyMatchData.club_nombre || 'Club PadelBlox',
+        cancha_nombre: this.storyMatchData.cancha_nombre || 'Cancha Central Cristal',
+        fecha: this.storyMatchData.fecha,
+        hora_inicio: this.storyMatchData.hora_inicio,
+        marcador: this.storyMatchData.marcador || (this.storyMatchData.smartwatch_data?.marcador_t1 + ' - ' + this.storyMatchData.smartwatch_data?.marcador_t2) || '6-4 7-5',
+        categoria: this.storyMatchData.categoria || 'Open Pro',
+        es_ganador: isWin,
+        pareja1: this.storyMatchData.jugador1_nombre ? `${this.storyMatchData.jugador1_nombre} / ${this.storyMatchData.jugador2_nombre || 'Partner'}` : 'Emmanuel Villar / Mi Pareja',
+        pareja2: this.storyMatchData.jugador3_nombre ? `${this.storyMatchData.jugador3_nombre} / ${this.storyMatchData.jugador4_nombre || 'Rival'}` : 'Lucas / Diego',
+        smartwatch_data: this.storyMatchData.smartwatch_data || {
+          velocidad_max_kmh: 124,
+          velocidad_media_kmh: 86,
+          total_golpes: 164,
+          smash_count: 18,
+          bandeja_count: 26,
+          vibora_count: 14,
+          fc_promedio: 148,
+          fc_maxima: 182,
+          calorias: 640,
+          duracion_segundos: 4800,
+          dispositivo: 'Apple Watch Ultra 2'
+        }
+      };
+
+      this.storyImageUrl = await this.matchStoryService.generateStoryImage(data, this.storyTheme);
+    } catch (err) {
+      console.error('Error generating story image:', err);
+    } finally {
+      this.isGeneratingStory = false;
+    }
+  }
+
+  async shareStory() {
+    if (!this.storyImageUrl) return;
+    await this.matchStoryService.shareStoryImage(this.storyImageUrl, '¡Victoria en Pádel! 🎾⚡');
+  }
+
+  downloadStory() {
+    if (!this.storyImageUrl) return;
+    this.matchStoryService.downloadStoryImage(this.storyImageUrl, `padelblox-match-${this.storyMatchData?.id || 'story'}.png`);
+  }
 }
+

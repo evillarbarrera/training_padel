@@ -195,6 +195,14 @@ export class MysqlService {
     );
   }
 
+  programarRecordatorioPartido2H(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.api}/notifications/notificaciones.php?action=recordatorio_partido_2h`,
+      data,
+      { headers: this.getHeaders() }
+    );
+  }
+
   getAllPacks(entrenadorId?: number): Observable<any[]> {
     let url = `${this.api}/packs/get_all_packs.php`;
     if (entrenadorId) {

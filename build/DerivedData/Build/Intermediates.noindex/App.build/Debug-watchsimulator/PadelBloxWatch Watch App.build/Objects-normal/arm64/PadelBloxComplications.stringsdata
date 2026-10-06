@@ -1,0 +1,64 @@
+{
+  "source": "/Users/ejvillarb/Documents/Privado Emmanuel Villar/Proyectos/Padelblox/training_padel/ios/App/PadelBloxWatch Watch App/PadelBloxWatch/Complications/PadelBloxComplications.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "⚡ Max %lld km/h · %lld golpes",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 143
+        }
+      },
+      {
+        "comment": "",
+        "key": "PADELBLOX",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 125
+        }
+      },
+      {
+        "comment": "",
+        "key": "EN VIVO:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 136
+        }
+      },
+      {
+        "comment": "",
+        "key": "🎾 %@ · %@",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 165
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ · PadelBlox",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 178
+        }
+      },
+      {
+        "comment": "",
+        "key": "PadelBlox",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 193
+        }
+      },
+      {
+        "comment": "",
+        "key": "Acceso rápido a tu próximo partido y estadísticas en vivo.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 194
+        }
+      }
+    ]
+  },
+  "version": 1
+}

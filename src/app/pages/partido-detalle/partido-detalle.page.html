@@ -33,6 +33,88 @@
         </div>
     </div>
 
+    <!-- APPLE WATCH SCORE & TELEMETRY CARD (IF RECORDED) -->
+    <div class="watch-match-summary-card" *ngIf="match?.smartwatch_data || match?.marcador">
+        <div class="wm-card-header">
+            <div class="wm-card-tag">
+                <ion-icon name="watch-outline"></ion-icon>
+                <span>APPLE WATCH MATCH</span>
+            </div>
+            <div class="wm-card-status">
+                <span class="pulse-green-dot"></span>
+                <span>Sincronizado</span>
+            </div>
+        </div>
+
+        <!-- SCORE HERO -->
+        <div class="wm-score-banner" *ngIf="match?.marcador">
+            <div class="score-title">Marcador Final</div>
+            <div class="score-digits">{{ match.marcador }}</div>
+            <div class="winner-pill" *ngIf="match?.id_ganador">
+                <ion-icon name="trophy"></ion-icon>
+                <span>{{ match.id_ganador === 1 ? 'Victoria Dupla 1' : 'Victoria Dupla 2' }}</span>
+            </div>
+        </div>
+
+        <!-- TELEMETRY METRICS GRID (IF SMARTWATCH DATA PRESENT) -->
+        <div class="wm-telemetry-grid" *ngIf="match?.smartwatch_data">
+            <div class="wm-grid-box smash">
+                <ion-icon name="flash-outline"></ion-icon>
+                <div class="wm-box-data">
+                    <span class="val">{{ match.smartwatch_data.velocidad_max_kmh || 120 | number:'1.0-0' }} <small>km/h</small></span>
+                    <span class="lbl">Smash Máx</span>
+                </div>
+            </div>
+
+            <div class="wm-grid-box strokes">
+                <ion-icon name="fitness-outline"></ion-icon>
+                <div class="wm-box-data">
+                    <span class="val">{{ match.smartwatch_data.total_golpes || 150 }}</span>
+                    <span class="lbl">Total Golpes</span>
+                </div>
+            </div>
+
+            <div class="wm-grid-box hr">
+                <ion-icon name="heart-outline"></ion-icon>
+                <div class="wm-box-data">
+                    <span class="val">{{ match.smartwatch_data.fc_promedio || 145 }} <small>bpm</small></span>
+                    <span class="lbl">Cardio Prom.</span>
+                </div>
+            </div>
+
+            <div class="wm-grid-box cal">
+                <ion-icon name="flame-outline"></ion-icon>
+                <div class="wm-box-data">
+                    <span class="val">{{ match.smartwatch_data.calorias || 580 | number:'1.0-0' }} <small>kcal</small></span>
+                    <span class="lbl">Calorías</span>
+                </div>
+            </div>
+        </div>
+
+        <button class="wm-story-cta" (click)="openStoryModal()">
+            <ion-icon name="sparkles"></ion-icon>
+            <span>Crear Match Story (Instagram / WhatsApp) 📸</span>
+        </button>
+
+        <button class="wm-detail-cta" (click)="router.navigate(['/smartwatch-stats'])">
+            <ion-icon name="analytics-outline"></ion-icon>
+            <span>Ver Centro Smartwatch & Biomecánica</span>
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+        </button>
+    </div>
+
+    <!-- UPCOMING WATCH CALLOUT (IF FUTURE MATCH) -->
+    <div class="watch-play-callout" *ngIf="!match?.jugado && !match?.marcador" (click)="router.navigate(['/smartwatch-stats'])">
+        <div class="wpc-left">
+            <ion-icon name="watch-outline"></ion-icon>
+            <div>
+                <h4>Jugar este partido con Apple Watch</h4>
+                <p>Abre la app en tu reloj, selecciona esta cancha y guarda tu marcador</p>
+            </div>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="wpc-arrow"></ion-icon>
+    </div>
+
     <!-- STATUS STRIPS -->
     <div class="info-strip-card">
         <div class="i-left">
@@ -172,6 +254,70 @@
             <p>No pudimos encontrar a "{{ playerSearchTerm }}".</p>
           </div>
         </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- SOCIAL MATCH STORY GENERATOR MODAL -->
+  <ion-modal [isOpen]="showStoryModal" (didDismiss)="closeStoryModal()" class="premium-story-modal">
+    <ng-template>
+      <div class="story-modal-wrapper">
+        
+        <!-- MODAL HEADER -->
+        <div class="sm-header">
+          <div class="sm-title-group">
+            <div class="sm-icon-badge">
+              <ion-icon name="sparkles"></ion-icon>
+            </div>
+            <div>
+              <h2>Match Story Generator</h2>
+              <span class="sm-sub">Tarjeta oficial 9:16 con telemetría biomecánica</span>
+            </div>
+          </div>
+          <button class="sm-close-btn" (click)="closeStoryModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <!-- THEME SELECTOR PILLS -->
+        <div class="sm-theme-selector">
+          <div class="theme-pill" [class.active]="storyTheme === 'dark'" (click)="setStoryTheme('dark')">
+            <span class="t-dot dark"></span>
+            <span>Stealth Dark</span>
+          </div>
+          <div class="theme-pill" [class.active]="storyTheme === 'volt'" (click)="setStoryTheme('volt')">
+            <span class="t-dot volt"></span>
+            <span>Neon Volt</span>
+          </div>
+          <div class="theme-pill" [class.active]="storyTheme === 'ocean'" (click)="setStoryTheme('ocean')">
+            <span class="t-dot ocean"></span>
+            <span>Deep Ocean</span>
+          </div>
+        </div>
+
+        <!-- CANVAS PREVIEW CONTAINER -->
+        <div class="sm-preview-container">
+          <div class="sm-loading-overlay" *ngIf="isGeneratingStory">
+            <div class="pulse-spinner"></div>
+            <span>Generando diseño en alta definición...</span>
+          </div>
+          <div class="sm-story-card-frame" *ngIf="storyImageUrl">
+            <img [src]="storyImageUrl" alt="Match Story Preview" class="sm-story-img" />
+          </div>
+        </div>
+
+        <!-- MODAL ACTION FOOTER -->
+        <div class="sm-footer">
+          <button class="sm-btn-share" (click)="shareStory()" [disabled]="isGeneratingStory || !storyImageUrl">
+            <ion-icon name="share-outline"></ion-icon>
+            COMPARTIR EN REDES SOCIALES
+          </button>
+          <button class="sm-btn-download" (click)="downloadStory()" [disabled]="isGeneratingStory || !storyImageUrl">
+            <ion-icon name="download-outline"></ion-icon>
+            DESCARGAR HD (PNG)
+          </button>
+        </div>
+
       </div>
     </ng-template>
   </ion-modal>

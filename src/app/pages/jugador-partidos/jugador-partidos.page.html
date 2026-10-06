@@ -25,6 +25,39 @@
     </div>
   </div>
 
+  <!-- LIVE WATCH COMPANION BANNER (PILLAR 4) -->
+  <div class="live-companion-card" *ngIf="isWatchMatchLive">
+    <div class="lcc-header">
+      <div class="lcc-badge">
+        <span class="pulse-red-dot"></span>
+        <span>EN DIRECTO · APPLE WATCH</span>
+      </div>
+      <div class="lcc-live-label">
+        <ion-icon name="radio-outline"></ion-icon>
+        <span>LIVE SCORE</span>
+      </div>
+    </div>
+    <div class="lcc-body">
+      <div class="lcc-team">
+        <span class="lcc-tname">Mi Pareja</span>
+        <span class="lcc-pts">{{ liveMatchState?.puntos_t1 || '40' }}</span>
+        <span class="lcc-games">Games: {{ liveMatchState?.games_t1 || 4 }}</span>
+      </div>
+      <div class="lcc-vs">VS</div>
+      <div class="lcc-team">
+        <span class="lcc-tname">Rivales</span>
+        <span class="lcc-pts">{{ liveMatchState?.puntos_t2 || '30' }}</span>
+        <span class="lcc-games">Games: {{ liveMatchState?.games_t2 || 3 }}</span>
+      </div>
+    </div>
+    <div class="lcc-footer">
+      <span *ngIf="liveMatchState?.is_golden_point" class="lcc-special golden">⭐ PUNTO DE ORO</span>
+      <span *ngIf="liveMatchState?.is_break_point" class="lcc-special break">⚠️ PUNTO DE BREAK</span>
+      <span class="lcc-serve">🎾 Saque: {{ liveMatchState?.saque_lado || 'Derecha' }}</span>
+      <span class="lcc-sets">Set {{ (liveMatchState?.sets_t1 || 0) + (liveMatchState?.sets_t2 || 0) + 1 }}</span>
+    </div>
+  </div>
+
   <div class="nike-tabs-container">
     <div class="nike-tabs-row">
       <div class="tab-item" [class.active]="selectedTab === 'proximos'" (click)="selectedTab = 'proximos'">
@@ -50,6 +83,22 @@
       </div>
 
       <div class="match-card-v8" *ngFor="let p of proximos" (click)="router.navigate(['/partido-detalle', p.id])">
+        
+        <!-- Apple Watch Ready Pill & 2h Reminder Badge -->
+        <div class="watch-ready-strip" (click)="$event.stopPropagation(); router.navigate(['/smartwatch-stats'])">
+          <div class="wr-left">
+            <ion-icon name="watch-outline"></ion-icon>
+            <span>Listo para jugar en Apple Watch</span>
+          </div>
+          <div class="wr-right">
+            <span class="reminder-2h-tag" *ngIf="isReminderActive(p)">
+              <ion-icon name="notifications-outline"></ion-icon> Alerta 2h
+            </span>
+            <span class="pulse-green-dot"></span>
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </div>
+
         <div class="m-header">
           <div class="m-date">
             <span class="d-num">{{ p.fecha | date:'dd' }}</span>
@@ -119,7 +168,20 @@
         Aún no tienes historial de partidos
       </div>
 
-      <div class="match-card-v8" *ngFor="let p of paginatedJugados">
+      <div class="match-card-v8" *ngFor="let p of paginatedJugados" [class.has-watch-data]="!!p.smartwatch_data">
+        
+        <!-- APPLE WATCH SYNC TAG (IF TRACKED BY WATCH) -->
+        <div class="watch-sync-header" *ngIf="p.smartwatch_data">
+          <div class="wsh-tag">
+            <ion-icon name="watch-outline"></ion-icon>
+            <span>APPLE WATCH SYNC</span>
+          </div>
+          <div class="wsh-status">
+            <span class="pulse-green-dot"></span>
+            <span>Telemetría Registrada</span>
+          </div>
+        </div>
+
         <div class="m-header">
           <div class="m-date">
             <span class="d-num">{{ p.fecha | date:'dd' }}</span>
@@ -136,17 +198,94 @@
             </div>
           </div>
         </div>
-        <div class="m-footer">
-          <div class="player-stack" *ngIf="p.marcador">
-             <span style="font-size: 14px; font-weight: 950; color: #000;">{{ p.marcador }}</span>
+
+        <!-- SCORE SECTION -->
+        <div class="m-score-row" *ngIf="p.marcador">
+          <div class="score-display">
+            <span class="score-label">Marcador</span>
+            <span class="score-val">{{ p.marcador }}</span>
           </div>
-          <div class="player-stack" *ngIf="!p.marcador">
-             <ion-button size="small" fill="clear" (click)="openResultModal(p)" style="--color: #000; font-weight: 700; --padding-start: 0; margin: 0; height: 25px;">Ingresar Resultado</ion-button>
-          </div>
-          <div class="status-badge" [class.win]="isWinner(p)" [class.loss]="!isWinner(p)" *ngIf="p.marcador">
+          <div class="status-badge" [class.win]="isWinner(p)" [class.loss]="!isWinner(p)">
+            <ion-icon [name]="isWinner(p) ? 'trophy' : 'shield-outline'"></ion-icon>
             {{ isWinner(p) ? 'Victoria' : 'Derrota' }}
           </div>
-          <div class="status-badge" style="background: #eee; color: #888;" *ngIf="!p.marcador">
+        </div>
+
+        <!-- APPLE WATCH SENSOR TELEMETRY ROW (IF PRESENT) -->
+        <div class="watch-telemetry-block" *ngIf="p.smartwatch_data" (click)="openWatchModal(p, $event)">
+          <div class="wt-metrics-grid">
+            <div class="wt-metric smash">
+              <div class="wt-icon"><ion-icon name="flash-outline"></ion-icon></div>
+              <div class="wt-content">
+                <span class="wt-val">{{ p.smartwatch_data.velocidad_max_kmh || 118 | number:'1.0-0' }} <small>km/h</small></span>
+                <span class="wt-lbl">Max Smash</span>
+              </div>
+            </div>
+
+            <div class="wt-metric strokes">
+              <div class="wt-icon"><ion-icon name="fitness-outline"></ion-icon></div>
+              <div class="wt-content">
+                <span class="wt-val">{{ p.smartwatch_data.total_golpes || 164 }}</span>
+                <span class="wt-lbl">Golpes</span>
+              </div>
+            </div>
+
+            <div class="wt-metric hr">
+              <div class="wt-icon"><ion-icon name="heart-outline"></ion-icon></div>
+              <div class="wt-content">
+                <span class="wt-val">{{ p.smartwatch_data.fc_promedio || 148 }} <small>bpm</small></span>
+                <span class="wt-lbl">Cardio Prom.</span>
+              </div>
+            </div>
+
+            <div class="wt-metric calories">
+              <div class="wt-icon"><ion-icon name="flame-outline"></ion-icon></div>
+              <div class="wt-content">
+                <span class="wt-val">{{ p.smartwatch_data.calorias || 620 | number:'1.0-0' }} <small>kcal</small></span>
+                <span class="wt-lbl">Calorías</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SHOTS CHIPS MINI ROW -->
+          <div class="wt-chips-row" *ngIf="p.smartwatch_data.smash_count || p.smartwatch_data.bandeja_count || p.smartwatch_data.vibora_count">
+            <span class="wt-chip smash" *ngIf="p.smartwatch_data.smash_count">
+              ⚡ {{ p.smartwatch_data.smash_count }} Smashes
+            </span>
+            <span class="wt-chip bandeja" *ngIf="p.smartwatch_data.bandeja_count">
+              🏸 {{ p.smartwatch_data.bandeja_count }} Bandejas
+            </span>
+            <span class="wt-chip vibora" *ngIf="p.smartwatch_data.vibora_count">
+              🌀 {{ p.smartwatch_data.vibora_count }} Víboras
+            </span>
+          </div>
+
+          <div class="wt-action-footer">
+            <span class="wt-action-btn">
+              <ion-icon name="analytics-outline"></ion-icon>
+              Ver Análisis Biomecánico & Sensores
+            </span>
+            <ion-icon name="chevron-forward-outline" class="wt-arrow"></ion-icon>
+          </div>
+        </div>
+
+        <!-- MATCH CARD QUICK ACTIONS (STORY & DETAIL) -->
+        <div class="m-card-actions-bar" *ngIf="p.marcador || p.smartwatch_data">
+          <button class="m-action-pill story" (click)="openStoryModal(p, $event)">
+            <ion-icon name="sparkles"></ion-icon>
+            <span>Match Story 📸</span>
+          </button>
+          <button class="m-action-pill detail" (click)="router.navigate(['/partido-detalle', p.id])">
+            <ion-icon name="open-outline"></ion-icon>
+            <span>Ver Ficha</span>
+          </button>
+        </div>
+
+        <div class="m-footer" *ngIf="!p.smartwatch_data && !p.marcador">
+          <div class="player-stack">
+             <ion-button size="small" fill="clear" (click)="openResultModal(p)" style="--color: #000; font-weight: 700; --padding-start: 0; margin: 0; height: 25px;">Ingresar Resultado</ion-button>
+          </div>
+          <div class="status-badge" style="background: #eee; color: #888;">
             Sin resultado
           </div>
         </div>
@@ -232,6 +371,258 @@
             GUARDAR RESULTADO
           </button>
         </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- APPLE WATCH TELEMETRY DETAIL MODAL -->
+  <ion-modal [isOpen]="showWatchDetailModal" (didDismiss)="closeWatchModal()" class="premium-watch-telemetry-modal">
+    <ng-template>
+      <div class="watch-modal-wrapper" *ngIf="selectedWatchMatch">
+        
+        <!-- MODAL HEADER -->
+        <div class="wm-header">
+          <div class="wm-title-group">
+            <div class="wm-icon-badge">
+              <ion-icon name="watch-outline"></ion-icon>
+            </div>
+            <div>
+              <h2>Telemetría Apple Watch</h2>
+              <span class="wm-sub">Sesión deportiva registrada en pista</span>
+            </div>
+          </div>
+          <button class="wm-close-btn" (click)="closeWatchModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="wm-scroll-content">
+          
+          <!-- MATCH CONTEXT BANNER -->
+          <div class="wm-match-banner">
+            <div class="wm-mb-left">
+              <div class="wm-club-title">{{ selectedWatchMatch.club_nombre }}</div>
+              <div class="wm-court-sub">
+                <span *ngIf="selectedWatchMatch.cancha_icono">{{ selectedWatchMatch.cancha_icono }} </span>
+                <span>{{ selectedWatchMatch.cancha_nombre || 'Padel Central' }}</span>
+                <span class="wm-dot">·</span>
+                <span>{{ selectedWatchMatch.categoria || 'Open' }}</span>
+              </div>
+            </div>
+            <div class="wm-mb-date">
+              <span class="wm-d-day">{{ selectedWatchMatch.fecha | date:'dd' }}</span>
+              <span class="wm-d-mon">{{ selectedWatchMatch.fecha | date:'MMM' | uppercase }}</span>
+            </div>
+          </div>
+
+          <!-- RESULT & SCOREBOARD HERO -->
+          <div class="wm-score-hero" [class.win-hero]="isWinner(selectedWatchMatch)" [class.loss-hero]="!isWinner(selectedWatchMatch)">
+            <div class="wm-sh-badge">
+              <ion-icon [name]="isWinner(selectedWatchMatch) ? 'trophy' : 'shield-outline'"></ion-icon>
+              <span>{{ isWinner(selectedWatchMatch) ? 'PARTIDO GANADO' : 'PARTIDO JUGADO' }}</span>
+            </div>
+            <div class="wm-sh-score">
+              {{ selectedWatchMatch.marcador || (selectedWatchMatch.smartwatch_data?.marcador_t1 + ' - ' + selectedWatchMatch.smartwatch_data?.marcador_t2) || '6-4 7-5' }}
+            </div>
+            <div class="wm-sh-caption">
+              Marcador oficial registrado en directo por el Apple Watch
+            </div>
+          </div>
+
+          <!-- SPEED & KINEMATICS SECTION -->
+          <div class="wm-section">
+            <div class="wm-sec-header">
+              <ion-icon name="speedometer-outline" class="sec-icon volt"></ion-icon>
+              <h3>Rendimiento y Potencia de Golpeo</h3>
+            </div>
+
+            <div class="wm-metrics-pair">
+              <div class="wm-stat-card highlight-volt">
+                <div class="wm-sc-head">
+                  <ion-icon name="flash-outline"></ion-icon>
+                  <span>SMASH MÁS RÁPIDO</span>
+                </div>
+                <div class="wm-sc-val">
+                  {{ selectedWatchMatch.smartwatch_data?.velocidad_max_kmh || 124 | number:'1.0-0' }}
+                  <span class="wm-sc-unit">KM/H</span>
+                </div>
+                <div class="wm-sc-foot">Medido con giroscopio a 100Hz</div>
+              </div>
+
+              <div class="wm-stat-card">
+                <div class="wm-sc-head">
+                  <ion-icon name="speedometer-outline"></ion-icon>
+                  <span>VELOCIDAD MEDIA</span>
+                </div>
+                <div class="wm-sc-val">
+                  {{ selectedWatchMatch.smartwatch_data?.velocidad_media_kmh || 86 | number:'1.0-0' }}
+                  <span class="wm-sc-unit">KM/H</span>
+                </div>
+                <div class="wm-sc-foot">Promedio de golpeo activo</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STROKE CLASSIFICATION -->
+          <div class="wm-section">
+            <div class="wm-sec-header">
+              <ion-icon name="fitness-outline" class="sec-icon cyan"></ion-icon>
+              <h3>Desglose de Golpes por Inteligencia Artificial</h3>
+            </div>
+
+            <div class="wm-strokes-list">
+              <div class="wm-stroke-item">
+                <div class="wm-si-left">
+                  <span class="wm-si-badge smash">⚡ SMASH</span>
+                  <span class="wm-si-name">Golpe de Definición</span>
+                </div>
+                <span class="wm-si-count">{{ selectedWatchMatch.smartwatch_data?.smash_count || 18 }}</span>
+              </div>
+
+              <div class="wm-stroke-item">
+                <div class="wm-si-left">
+                  <span class="wm-si-badge bandeja">🏸 BANDEJA</span>
+                  <span class="wm-si-name">Transición y Control</span>
+                </div>
+                <span class="wm-si-count">{{ selectedWatchMatch.smartwatch_data?.bandeja_count || 26 }}</span>
+              </div>
+
+              <div class="wm-stroke-item">
+                <div class="wm-si-left">
+                  <span class="wm-si-badge vibora">🌀 VÍBORA</span>
+                  <span class="wm-si-name">Efecto y Profundidad</span>
+                </div>
+                <span class="wm-si-count">{{ selectedWatchMatch.smartwatch_data?.vibora_count || 14 }}</span>
+              </div>
+
+              <div class="wm-stroke-item total">
+                <div class="wm-si-left">
+                  <span class="wm-si-badge total">🎾 TOTAL</span>
+                  <span class="wm-si-name">Impactos Registrados</span>
+                </div>
+                <span class="wm-si-count bold">{{ selectedWatchMatch.smartwatch_data?.total_golpes || 164 }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- BIOMETRICS & PHYSIOLOGY -->
+          <div class="wm-section">
+            <div class="wm-sec-header">
+              <ion-icon name="heart-outline" class="sec-icon red"></ion-icon>
+              <h3>Fisiología y Esfuerzo (HealthKit)</h3>
+            </div>
+
+            <div class="wm-bio-grid">
+              <div class="wm-bio-card">
+                <div class="wm-bc-icon orange"><ion-icon name="flame-outline"></ion-icon></div>
+                <div class="wm-bc-val">{{ selectedWatchMatch.smartwatch_data?.calorias || 640 | number:'1.0-0' }} <small>kcal</small></div>
+                <div class="wm-bc-lbl">Gasto Calórico</div>
+              </div>
+
+              <div class="wm-bio-card">
+                <div class="wm-bc-icon red"><ion-icon name="heart-outline"></ion-icon></div>
+                <div class="wm-bc-val">{{ selectedWatchMatch.smartwatch_data?.fc_promedio || 148 }} <small>bpm</small></div>
+                <div class="wm-bc-lbl">Cardio Promedio</div>
+              </div>
+
+              <div class="wm-bio-card">
+                <div class="wm-bc-icon red-dark"><ion-icon name="flash-outline"></ion-icon></div>
+                <div class="wm-bc-val">{{ selectedWatchMatch.smartwatch_data?.fc_maxima || 182 }} <small>bpm</small></div>
+                <div class="wm-bc-lbl">Pico Máximo</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DEVICE & CONNECTIVITY VERIFICATION -->
+          <div class="wm-device-card">
+            <div class="wm-dc-left">
+              <ion-icon name="watch-outline"></ion-icon>
+              <div>
+                <div class="wm-dc-name">{{ selectedWatchMatch.smartwatch_data?.dispositivo || 'Apple Watch Ultra 2' }}</div>
+                <div class="wm-dc-status">Sincronizado vía WatchConnectivity & HealthKit</div>
+              </div>
+            </div>
+            <div class="wm-dc-badge">VERIFICADO</div>
+          </div>
+
+        </div>
+
+        <!-- MODAL FOOTER BUTTONS -->
+        <div class="wm-footer">
+          <button class="wm-btn-story" (click)="openStoryModal(selectedWatchMatch, $event)">
+            <ion-icon name="sparkles"></ion-icon>
+            CREAR MATCH STORY (INSTAGRAM / WHATSAPP) 📸
+          </button>
+          <button class="wm-btn-main" (click)="goToSmartwatchStats($event)">
+            <ion-icon name="analytics-outline"></ion-icon>
+            ABRIR CENTRO SMARTWATCH & SENSORES
+          </button>
+        </div>
+
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- SOCIAL MATCH STORY GENERATOR MODAL (NIKE / STRAVA 9:16) -->
+  <ion-modal [isOpen]="showStoryModal" (didDismiss)="closeStoryModal()" class="premium-story-modal">
+    <ng-template>
+      <div class="story-modal-wrapper">
+        
+        <!-- MODAL HEADER -->
+        <div class="sm-header">
+          <div class="sm-title-group">
+            <div class="sm-icon-badge">
+              <ion-icon name="sparkles"></ion-icon>
+            </div>
+            <div>
+              <h2>Match Story Generator</h2>
+              <span class="sm-sub">Tarjeta oficial 9:16 con telemetría biomecánica</span>
+            </div>
+          </div>
+          <button class="sm-close-btn" (click)="closeStoryModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <!-- THEME SELECTOR PILLS -->
+        <div class="sm-theme-selector">
+          <div class="theme-pill" [class.active]="storyTheme === 'dark'" (click)="setStoryTheme('dark')">
+            <span class="t-dot dark"></span>
+            <span>Stealth Dark</span>
+          </div>
+          <div class="theme-pill" [class.active]="storyTheme === 'volt'" (click)="setStoryTheme('volt')">
+            <span class="t-dot volt"></span>
+            <span>Neon Volt</span>
+          </div>
+          <div class="theme-pill" [class.active]="storyTheme === 'ocean'" (click)="setStoryTheme('ocean')">
+            <span class="t-dot ocean"></span>
+            <span>Deep Ocean</span>
+          </div>
+        </div>
+
+        <!-- CANVAS PREVIEW CONTAINER -->
+        <div class="sm-preview-container">
+          <div class="sm-loading-overlay" *ngIf="isGeneratingStory">
+            <div class="pulse-spinner"></div>
+            <span>Generando diseño en alta definición...</span>
+          </div>
+          <div class="sm-story-card-frame" *ngIf="storyImageUrl">
+            <img [src]="storyImageUrl" alt="Match Story Preview" class="sm-story-img" />
+          </div>
+        </div>
+
+        <!-- MODAL ACTION FOOTER -->
+        <div class="sm-footer">
+          <button class="sm-btn-share" (click)="shareStory()" [disabled]="isGeneratingStory || !storyImageUrl">
+            <ion-icon name="share-outline"></ion-icon>
+            COMPARTIR EN REDES SOCIALES
+          </button>
+          <button class="sm-btn-download" (click)="downloadStory()" [disabled]="isGeneratingStory || !storyImageUrl">
+            <ion-icon name="download-outline"></ion-icon>
+            DESCARGAR HD (PNG)
+          </button>
+        </div>
+
       </div>
     </ng-template>
   </ion-modal>

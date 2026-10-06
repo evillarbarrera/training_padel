@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>logFormatVersion</key>
+	<integer>13</integer>
+	<key>logs</key>
+	<dict>
+		<key>8E41CE96-BA26-49FA-A753-CAC28BED430B</key>
+		<dict>
+			<key>className</key>
+			<string>IDECommandLineBuildLog</string>
+			<key>documentTypeString</key>
+			<string>&lt;nil&gt;</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
+			<key>fileName</key>
+			<string>8E41CE96-BA26-49FA-A753-CAC28BED430B.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>E</string>
+				<key>totalNumberOfAnalyzerIssues</key>
+				<integer>0</integer>
+				<key>totalNumberOfErrors</key>
+				<integer>26</integer>
+				<key>totalNumberOfTestFailures</key>
+				<integer>0</integer>
+				<key>totalNumberOfWarnings</key>
+				<integer>0</integer>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>App project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>PadelBloxWatch Watch App</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Building workspace App with scheme PadelBloxWatch Watch App</string>
+			<key>timeStartedRecording</key>
+			<real>812986160.49915898</real>
+			<key>timeStoppedRecording</key>
+			<real>812986165.35737097</real>
+			<key>title</key>
+			<string>Building workspace App with scheme PadelBloxWatch Watch App</string>
+			<key>uniqueIdentifier</key>
+			<string>8E41CE96-BA26-49FA-A753-CAC28BED430B</string>
+		</dict>
+		<key>A916B540-78B1-4C71-8EA1-BFACE8143985</key>
+		<dict>
+			<key>className</key>
+			<string>IDECommandLineBuildLog</string>
+			<key>documentTypeString</key>
+			<string>&lt;nil&gt;</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
+			<key>fileName</key>
+			<string>A916B540-78B1-4C71-8EA1-BFACE8143985.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>E</string>
+				<key>totalNumberOfAnalyzerIssues</key>
+				<integer>0</integer>
+				<key>totalNumberOfErrors</key>
+				<integer>26</integer>
+				<key>totalNumberOfTestFailures</key>
+				<integer>0</integer>
+				<key>totalNumberOfWarnings</key>
+				<integer>0</integer>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>App project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>PadelBloxWatch Watch App</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Building workspace App with scheme PadelBloxWatch Watch App</string>
+			<key>timeStartedRecording</key>
+			<real>812986257.83174896</real>
+			<key>timeStoppedRecording</key>
+			<real>812986259.44328594</real>
+			<key>title</key>
+			<string>Building workspace App with scheme PadelBloxWatch Watch App</string>
+			<key>uniqueIdentifier</key>
+			<string>A916B540-78B1-4C71-8EA1-BFACE8143985</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

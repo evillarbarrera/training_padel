@@ -376,6 +376,36 @@ ion-content {
       }
       ion-icon[name="arrow-forward"] { color: #ccff00; opacity: 1; }
     }
+
+    &.watch-hero {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      box-shadow: 0 12px 35px rgba(2, 132, 199, 0.25);
+      
+      .hero-icon-wrap { 
+        background: rgba(255, 255, 255, 0.15); 
+        font-size: 22px;
+      }
+      .hero-text-wrap {
+        h3 { color: #ffffff !important; }
+        p { color: rgba(255, 255, 255, 0.85) !important; }
+      }
+      ion-icon[name="arrow-forward"] { color: #ffffff; opacity: 0.9; }
+    }
+
+    &.matches-hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+      box-shadow: 0 12px 35px rgba(79, 70, 229, 0.25);
+      
+      .hero-icon-wrap { 
+        background: rgba(255, 255, 255, 0.15); 
+        font-size: 22px;
+      }
+      .hero-text-wrap {
+        h3 { color: #ffffff !important; }
+        p { color: rgba(255, 255, 255, 0.85) !important; }
+      }
+      ion-icon[name="arrow-forward"] { color: #ffffff; opacity: 0.9; }
+    }
   }
 }
 

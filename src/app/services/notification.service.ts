@@ -1,18 +1,24 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging';
 import { firebaseConfig } from '../../firebase.config';
 import { MysqlService } from './mysql.service';
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
+
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
   private messaging: Messaging | null = null;
   private userId: number | null = null;
+  private scheduledRemindersCache = new Set<string>();
 
-  constructor(private mysqlService: MysqlService) {
+  constructor(
+    private mysqlService: MysqlService,
+    private router: Router
+  ) {
     this.userId = Number(localStorage.getItem('userId'));
   }
 
@@ -77,14 +83,21 @@ export class NotificationService {
 
           // Escuchar cuando llega la notificación y la app está abierta (foreground)
           PushNotifications.addListener('pushNotificationReceived', (notification) => {
-            // Capacitor Push (depende configuración plugin) suele ponerla en la barra superior automáticamente,
-            // o aquí podemos disparar un evento si queremos un modal en pantalla
             console.log('Push received: ', notification);
           });
 
-          // Acción al tocar la notificación en la barra
+          // Acción al tocar la notificación en la barra (Deep Linking deportivo)
           PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
             console.log('Push action performed: ', notification);
+            try {
+              const data = notification.notification?.data || {};
+              const route = data.route || (data.event_type === 'clase_padel' ? '/jugador-reservas' : '/jugador-partidos');
+              if (route) {
+                this.router.navigateByUrl(route);
+              }
+            } catch (e) {
+              console.error('Error navigating from push action:', e);
+            }
           });
 
         } else {
@@ -351,4 +364,64 @@ export class NotificationService {
       this.initializeMessaging();
     }
   }
+
+  /**
+   * Programar recordatorios automáticos de 2 horas antes para una lista de partidos/entrenamientos
+   */
+  scheduleMatchReminders(partidos: any[]): void {
+    if (!partidos || !Array.isArray(partidos) || partidos.length === 0) return;
+
+    const currentUserId = this.userId || Number(localStorage.getItem('userId'));
+    if (!currentUserId) return;
+
+    partidos.forEach(match => {
+      // Identifier for cache to prevent repetitive calls in the same session
+      const matchKey = match.id || `${match.fecha}_${match.hora_inicio}_${match.cancha_id || match.reserva_id || match.liga_partido_id}`;
+      if (this.scheduledRemindersCache.has(matchKey)) return;
+
+      // Only schedule for future / upcoming matches
+      const fecha = match.fecha;
+      const hora = match.hora_inicio ? match.hora_inicio.substring(0, 5) : '19:00';
+      
+      if (!fecha) return;
+
+      const matchDate = new Date(`${fecha}T${hora}:00`);
+      const now = new Date();
+
+      // If match is in the future
+      if (matchDate.getTime() > now.getTime()) {
+        this.scheduledRemindersCache.add(matchKey);
+
+        const tipoEvento = match.tipo_origen || (match.pack_nombre ? 'clase' : (match.liga_partido_id ? 'liga' : 'reserva'));
+        const cancha = match.cancha_nombre || 'Cancha Principal';
+        const club = match.club_nombre || 'Club Pádel';
+
+        this.mysqlService.programarRecordatorioPartido2H({
+          user_id: currentUserId,
+          match_id: match.id || match.reserva_id || match.liga_partido_id,
+          tipo_evento: tipoEvento,
+          fecha: fecha,
+          hora_inicio: hora,
+          cancha: cancha,
+          club: club
+        }).subscribe({
+          next: () => console.log(`🔔 Recordatorio 2h registrado en servidor para partido ${matchKey}`),
+          error: (err) => console.warn(`⚠️ No se pudo registrar recordatorio 2h para ${matchKey}:`, err)
+        });
+      }
+    });
+  }
+
+  /**
+   * Determina si un partido tiene el recordatorio de 2 horas activo
+   */
+  isMatchReminderActive(match: any): boolean {
+    if (!match || !match.fecha) return false;
+    const hora = match.hora_inicio ? match.hora_inicio.substring(0, 5) : '19:00';
+    const matchDate = new Date(`${match.fecha}T${hora}:00`);
+    const now = new Date();
+    // Return true if future match and not cancelled
+    return matchDate.getTime() > now.getTime() && match.estado !== 'Cancelada' && match.estado !== 'Cancelado';
+  }
 }
+

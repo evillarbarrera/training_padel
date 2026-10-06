@@ -1,0 +1,40 @@
+{
+  "source": "/Users/ejvillarb/Documents/Privado Emmanuel Villar/Proyectos/Padelblox/training_padel/ios/App/PadelBloxWatch Watch App/PadelBloxWatch/Views/MatchPickerView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Selecciona tu Cancha",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 19
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ vs %@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 66
+        }
+      },
+      {
+        "comment": "",
+        "key": "Partido Libre / Amistoso",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sin reserva ni liga vinculada",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 106
+        }
+      }
+    ]
+  },
+  "version": 1
+}

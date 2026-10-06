@@ -47,7 +47,7 @@
           <div class="h-dot" *ngIf="getNotificacionesCount() > 0"></div>
         </div>
         <!-- Avatar -->
-        <div class="h-avatar">
+        <div class="h-avatar" (click)="goToPerfil()" style="cursor: pointer;">
           <img [src]="fotoPerfil || 'assets/avatar.png'" (error)="onImgError($event)" alt="Avatar" />
         </div>
       </div>
@@ -102,29 +102,16 @@
             <h4 class="v2-subtitle">Centro de Mando</h4>
             <span class="v2-status-dot pulse"></span>
          </div>
-         
-         <div class="actions-grid-v2" style="margin-bottom: 25px;">
-             <!-- BOTÓN SECUNDARIO (AGENDAR CLASE) -->
-             <div class="action-btn-v2" (click)="goToAgenda()">
-                <div class="a-icon bg-soft"><ion-icon name="calendar-outline"></ion-icon></div>
-                <span class="a-label">Agendar Clase</span>
-             </div>
-             
-             <div class="action-btn-v2" (click)="goToMisClases()">
-                <div class="a-icon bg-soft"><ion-icon name="time-outline"></ion-icon></div>
-                <span class="a-label">Mi Agenda</span>
-             </div>
-          </div>
 
-          <!-- HERO BUTTONS GRID -->
-          <div class="hero-actions-grid">
+         <!-- HERO BUTTONS GRID (CANCHAS, CAMPEONATOS, SMARTWATCH, PARTIDOS) -->
+         <div class="hero-actions-grid" style="margin-bottom: 20px;">
              <!-- HERO 1: RESERVA -->
              <div class="hero-booking-action animate-pulse" (click)="goToReservarCancha()">
                 <div class="hero-btn-content">
                   <div class="hero-icon-wrap">🎾</div>
                   <div class="hero-text-wrap">
-                    <h3>Reserva</h3>
-                    <p>Clubes y Disponibilidad</p>
+                    <h3>Reserva Cancha</h3>
+                    <p>Clubes y Pistas</p>
                   </div>
                 </div>
                 <ion-icon name="arrow-forward"></ion-icon>
@@ -136,15 +123,60 @@
                   <div class="hero-icon-wrap trophy">🏆</div>
                   <div class="hero-text-wrap">
                     <h3>Campeonatos</h3>
-                    <p>Torneos y Americanos</p>
+                    <p>Torneos y Ligas</p>
+                  </div>
+                </div>
+                <ion-icon name="arrow-forward"></ion-icon>
+             </div>
+
+             <!-- HERO 3: APPLE WATCH -->
+             <div class="hero-booking-action watch-hero animate-pop delay-2" (click)="goToSmartwatch()">
+                <div class="hero-btn-content">
+                  <div class="hero-icon-wrap watch">⌚</div>
+                  <div class="hero-text-wrap">
+                    <h3>Apple Watch</h3>
+                    <p>Telemetría & Reloj</p>
+                  </div>
+                </div>
+                <ion-icon name="arrow-forward"></ion-icon>
+             </div>
+
+             <!-- HERO 4: MIS PARTIDOS -->
+             <div class="hero-booking-action matches-hero animate-pop delay-3" (click)="goToPartidos()">
+                <div class="hero-btn-content">
+                  <div class="hero-icon-wrap matches">📊</div>
+                  <div class="hero-text-wrap">
+                    <h3>Mis Partidos</h3>
+                    <p>Resultados & H2H</p>
                   </div>
                 </div>
                 <ion-icon name="arrow-forward"></ion-icon>
              </div>
           </div>
+         
+         <!-- BOTONES SECUNDARIOS (AGENDA, CLASES, PUNTOS, LOGROS) -->
+         <div class="actions-grid-v2">
+             <div class="action-btn-v2" (click)="goToAgenda()">
+                <div class="a-icon bg-soft"><ion-icon name="calendar-outline"></ion-icon></div>
+                <span class="a-label">Agendar Clase</span>
+             </div>
+             
+             <div class="action-btn-v2" (click)="goToMisClases()">
+                <div class="a-icon bg-soft"><ion-icon name="time-outline"></ion-icon></div>
+                <span class="a-label">Mi Agenda</span>
+             </div>
+
+             <div class="action-btn-v2" (click)="goToMisClubesPuntos()">
+                <div class="a-icon bg-soft"><ion-icon name="wallet-outline"></ion-icon></div>
+                <span class="a-label">Puntos Wallet</span>
+             </div>
+
+             <div class="action-btn-v2" (click)="goToLogros()">
+                <div class="a-icon bg-soft"><ion-icon name="ribbon-outline"></ion-icon></div>
+                <span class="a-label">Mis Logros</span>
+             </div>
+          </div>
       </div>
-
-
 
     </div>
   </ng-container>
@@ -292,6 +324,23 @@
             <p>Seguimiento de tu progreso técnico</p>
           </div>
           <ion-icon name="chevron-forward-outline" class="module-arrow"></ion-icon>
+        </div>
+      </div>
+
+      <!-- Smartwatch & Apple Watch Card -->
+      <div class="nike-card module-card animate-pop delay-5" (click)="goToSmartwatch()" style="border: 1px solid rgba(6, 182, 212, 0.4); background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(30,41,59,0.9) 100%);">
+        <div style="font-size: 2.2rem; padding: 12px 14px; display: flex; align-items: center; justify-content: center; background: rgba(6, 182, 212, 0.15); border-radius: 14px; margin: 8px;">
+          ⌚
+        </div>
+        <div class="module-body">
+          <div class="module-text">
+            <h3 style="color: #22d3ee; display: flex; align-items: center; gap: 6px;">
+              Apple Watch & Stats
+              <span style="font-size: 0.65rem; background: #06b6d4; color: #0f172a; padding: 2px 6px; border-radius: 4px; font-weight: 900;">PRO</span>
+            </h3>
+            <p>Marcador en vivo, velocidad y golpes</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="module-arrow" style="color: #22d3ee;"></ion-icon>
         </div>
       </div>
 

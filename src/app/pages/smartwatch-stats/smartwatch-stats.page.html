@@ -1,0 +1,799 @@
+<ion-content class="smartwatch-content" [fullscreen]="true">
+
+  <!-- V2 HEADER (ESTILO GENERAL DE LA WEB / APP) -->
+  <div class="header-v2 animate-fade">
+    <div class="h-text">
+      <p>APPLE WATCH & TELEMETRÍA</p>
+      <div class="h-title-row">
+        <h1>{{ jugadorNombre }}</h1>
+        <span class="h-wave">⌚</span>
+      </div>
+    </div>
+    
+    <div class="h-actions">
+      <!-- Avatar del usuario con borde neón -->
+      <div class="h-avatar" (click)="navCtrl.navigateForward('/perfil')">
+        <img [src]="fotoPerfil || 'assets/avatar.png'" (error)="onImgError($event)" alt="Foto de perfil" />
+      </div>
+    </div>
+  </div>
+
+  <!-- SUB-NAVIGATION BUTTONS (4 BOTONES PERFECTAMENTE ORDENADOS SIN SCROLL) -->
+  <div class="sw-subnav-container animate-up">
+    <div class="sw-subnav-bar">
+      <button class="sw-nav-btn" [class.active]="activeTab === 'reservas'" (click)="activeTab = 'reservas'">
+        <div class="btn-top-row">
+          <span class="btn-icon">🏟️</span>
+          <span class="btn-count" *ngIf="proximosPartidos.length > 0">{{ proximosPartidos.length }}</span>
+        </div>
+        <span class="btn-text">Canchas</span>
+      </button>
+
+      <button class="sw-nav-btn" [class.active]="activeTab === 'resumen'" (click)="activeTab = 'resumen'">
+        <div class="btn-top-row">
+          <span class="btn-icon">📊</span>
+        </div>
+        <span class="btn-text">Métricas</span>
+      </button>
+
+      <button class="sw-nav-btn" [class.active]="activeTab === 'historial'" (click)="activeTab = 'historial'">
+        <div class="btn-top-row">
+          <span class="btn-icon">📅</span>
+          <span class="btn-count secondary" *ngIf="sesiones.length > 0">{{ sesiones.length }}</span>
+        </div>
+        <span class="btn-text">Historial</span>
+      </button>
+
+      <button class="sw-nav-btn" [class.active]="activeTab === 'conexion'" (click)="activeTab = 'conexion'">
+        <div class="btn-top-row">
+          <span class="btn-icon">⌚</span>
+          <span class="status-indicator" [class.online]="watchStatus.isPaired"></span>
+        </div>
+        <span class="btn-text">Reloj</span>
+      </button>
+    </div>
+  </div>
+  <div *ngIf="loading" class="loading-state">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Cargando datos del Smartwatch...</p>
+  </div>
+
+  <div *ngIf="!loading">
+
+    <!-- TAB 1: PARTIDOS & SELECCIÓN DE CANCHAS -->
+    <div *ngIf="activeTab === 'reservas'" class="tab-content animate-fade">
+      
+      <!-- Banner de Sincronización Directa -->
+      <div class="sync-banner">
+        <div class="sync-info">
+          <h3>Sincronización con Apple Watch</h3>
+          <p>Tus canchas reservadas y partidos de liga se envían a tu muñeca en tiempo real.</p>
+        </div>
+        <button class="btn-sync-action" (click)="syncWithAppleWatch()" [disabled]="isSyncingWatch || proximosPartidos.length === 0">
+          <span *ngIf="!isSyncingWatch && proximosPartidos.length > 0">📲 Enviar al Apple Watch</span>
+          <span *ngIf="!isSyncingWatch && proximosPartidos.length === 0">📲 Sincronizar Reloj</span>
+          <span *ngIf="isSyncingWatch">⏳ Sincronizando...</span>
+        </button>
+      </div>
+
+      <!-- SECCIÓN: PRÓXIMO PARTIDO ASIGNADO (REAL) -->
+      <div class="section-card featured-match-card" *ngIf="selectedMatch">
+        <div class="section-header">
+          <span class="badge-featured">{{ selectedMatch.tipo_label | uppercase }}</span>
+          <span class="badge-time">⏰ {{ selectedMatch.horario_texto }}</span>
+        </div>
+
+        <div class="match-main-info">
+          <div class="court-badge">
+            <span class="court-icon">🏟️</span>
+            <div>
+              <h4>{{ selectedMatch.cancha_nombre }}</h4>
+              <p class="club-title">📍 {{ selectedMatch.club_nombre }}</p>
+            </div>
+          </div>
+
+          <div class="teams-versus">
+            <div class="team-box team-blue">
+              <span class="team-tag">PAREJA 1</span>
+              <span class="team-names">{{ selectedMatch.pareja1 }}</span>
+            </div>
+            <span class="vs-circle">VS</span>
+            <div class="team-box team-orange">
+              <span class="team-tag">PAREJA 2</span>
+              <span class="team-names">{{ selectedMatch.pareja2 }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="match-meta-pills">
+          <span class="meta-pill">⭐ Punto de Oro: {{ selectedMatch.punto_oro ? 'SÍ' : 'NO' }}</span>
+          <span class="meta-pill">🎾 Al mejor de {{ selectedMatch.sets }} sets</span>
+          <span class="meta-pill reminder-pill" *ngIf="isReminderActive(selectedMatch)">🔔 Recordatorio 2h Activo</span>
+          <span class="meta-pill sync-indicator">✓ Listo para Apple Watch</span>
+        </div>
+      </div>
+
+      <!-- EMPTY STATE CUANDO NO HAY RESERVAS ASIGNADAS -->
+      <div class="empty-reservas-container" *ngIf="!selectedMatch && proximosPartidos.length === 0">
+        <div class="empty-state-pro">
+          <div class="empty-icon-circle">
+            <ion-icon name="calendar-outline"></ion-icon>
+          </div>
+          <h3>Sin Canchas Agendadas</h3>
+          <p>No tienes reservas ni partidos próximos registrados. Reserva tu cancha para que aparezca directamente en tu Apple Watch.</p>
+          <button class="btn-book-court" (click)="navCtrl.navigateForward('/clubes-reservar')">
+            🎾 Reservar Cancha
+          </button>
+        </div>
+      </div>
+
+      <!-- LISTADO DE OTRAS RESERVAS / PARTIDOS -->
+      <div class="section-card" *ngIf="proximosPartidos.length > 1">
+        <div class="section-header">
+          <h3>📅 Otras Reservas Disponibles</h3>
+          <span class="badge-total">{{ proximosPartidos.length }} agendados</span>
+        </div>
+
+        <div class="reservation-list">
+          <div *ngFor="let m of proximosPartidos" 
+               class="res-item" 
+               [class.selected]="selectedMatch?.id === m.id"
+               (click)="selectMatch(m)">
+            <div class="res-left">
+              <span class="res-type">{{ m.tipo_label }}</span>
+              <span class="res-court">{{ m.cancha_nombre }}</span>
+              <span class="res-club">{{ m.club_nombre }}</span>
+            </div>
+            <div class="res-right">
+              <span class="res-time">{{ m.horario_texto }}</span>
+              <span class="res-btn-select">{{ selectedMatch?.id === m.id ? '✓ Activo' : 'Elegir' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIMULADOR INTERACTIVO: ASÍ SE VE EN TU APPLE WATCH -->
+      <div class="section-card watch-preview-section">
+        <div class="section-header">
+          <h3>⌚ Vista Previa en tu Apple Watch</h3>
+          <div class="preview-mode-switch">
+            <button [class.active]="watchPreviewScreen === 'home'" (click)="watchPreviewScreen = 'home'">Inicio</button>
+            <button [class.active]="watchPreviewScreen === 'picker'" (click)="watchPreviewScreen = 'picker'">Canchas</button>
+            <button [class.active]="watchPreviewScreen === 'scoreboard'" (click)="watchPreviewScreen = 'scoreboard'">Marcador</button>
+          </div>
+        </div>
+
+        <p class="preview-desc">Interactúa con el Apple Watch para ver cómo se presenta tu partido y cómo se lleva el marcador en la cancha:</p>
+
+        <!-- APPLE WATCH ULTRA FRAME MOCKUP -->
+        <div class="watch-mockup-wrapper">
+          <div class="watch-case">
+            <div class="watch-crown"></div>
+            <div class="watch-button"></div>
+            
+            <div class="watch-screen">
+              <!-- PANTALLA 1: HOME CON PARTIDO SELECCIONADO O MODO LIBRE -->
+              <div *ngIf="watchPreviewScreen === 'home'" class="screen-view screen-home animate-fade">
+                <div class="w-header">
+                  <span class="w-brand"><span class="w-white">Padel</span><span class="w-neon">Blox</span></span>
+                  <span class="w-sync-pill">🟢 Sync</span>
+                </div>
+
+                <div class="w-card w-match-card" *ngIf="selectedMatch">
+                  <div class="w-card-top">
+                    <span class="w-pill-neon">{{ selectedMatch.tipo_label | uppercase }}</span>
+                    <span class="w-time">{{ selectedMatch.hora_inicio }}</span>
+                  </div>
+                  <div class="w-court-name">🏟️ {{ selectedMatch.cancha_nombre }}</div>
+                  <div class="w-club-name">{{ selectedMatch.club_nombre }}</div>
+                  <div class="w-match-rivals">👥 {{ selectedMatch.pareja1.slice(0, 12) }} vs {{ selectedMatch.pareja2.slice(0, 10) }}</div>
+                </div>
+
+                <div class="w-card w-match-card w-empty-card" *ngIf="!selectedMatch">
+                  <div class="w-card-top">
+                    <span class="w-pill-neon">PARTIDO LIBRE</span>
+                    <span class="w-time">En Directo</span>
+                  </div>
+                  <div class="w-court-name">🎾 Partido Rápido</div>
+                  <div class="w-club-name">PadelBlox Direct</div>
+                  <div class="w-match-rivals">Anota puntos en cancha</div>
+                </div>
+
+                <button class="w-btn-play" (click)="watchPreviewScreen = 'scoreboard'">
+                  ▶ Iniciar Partido
+                </button>
+
+                <button class="w-btn-picker" (click)="watchPreviewScreen = 'picker'" *ngIf="proximosPartidos.length > 0">
+                  🔄 Cambiar Cancha / Partido
+                </button>
+
+                <div class="w-quick-setting">
+                  <span>✋ Mano pala: <strong>Diestro</strong></span>
+                </div>
+              </div>
+
+              <!-- PANTALLA 2: SELECTOR DE CANCHAS -->
+              <div *ngIf="watchPreviewScreen === 'picker'" class="screen-view screen-picker animate-fade">
+                <div class="w-picker-title">
+                  <span>📅 Selecciona Cancha</span>
+                </div>
+
+                <div class="w-picker-items">
+                  <div *ngFor="let m of proximosPartidos" 
+                       class="w-picker-card" 
+                       [class.w-active]="selectedMatch?.id === m.id"
+                       (click)="selectMatch(m); watchPreviewScreen = 'home'">
+                    <div class="w-p-top">
+                      <span class="w-p-tag">{{ m.tipo_label }}</span>
+                      <span class="w-p-time">{{ m.hora_inicio }}</span>
+                    </div>
+                    <div class="w-p-name">{{ m.cancha_nombre }}</div>
+                    <div class="w-p-club">{{ m.club_nombre }}</div>
+                  </div>
+
+                  <div class="w-picker-card w-casual" (click)="watchPreviewScreen = 'scoreboard'">
+                    <span class="w-p-name">⚡ Partido Rápido Libre</span>
+                    <span class="w-p-club">Sin reserva vinculada</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PANTALLA 3: MARCADOR TÁCTIL EN JUEGO -->
+              <div *ngIf="watchPreviewScreen === 'scoreboard'" class="screen-view screen-score animate-fade">
+                <div class="w-score-header">
+                  <span class="w-set-tag">SET 1</span>
+                  <span class="w-serve-tag">🎾 T{{ previewServingTeam }} (Der)</span>
+                </div>
+
+                <div class="w-score-blocks">
+                  <!-- Bloque T1 -->
+                  <div class="w-team-block t1" [class.serving]="previewServingTeam === 1" (click)="simAddPoint(1)">
+                    <span class="w-t-name">EQUIPO 1</span>
+                    <span class="w-points">{{ previewScoreT1 }}</span>
+                    <span class="w-games">G: {{ previewGamesT1 }}</span>
+                  </div>
+
+                  <!-- Bloque T2 -->
+                  <div class="w-team-block t2" [class.serving]="previewServingTeam === 2" (click)="simAddPoint(2)">
+                    <span class="w-t-name">EQUIPO 2</span>
+                    <span class="w-points">{{ previewScoreT2 }}</span>
+                    <span class="w-games">G: {{ previewGamesT2 }}</span>
+                  </div>
+                </div>
+
+                <div class="w-score-footer">
+                  <button class="w-undo-btn" (click)="previewScoreT1 = '0'; previewScoreT2 = '0'">↩</button>
+                  <span class="w-hr-pill">❤️ 152</span>
+                  <span class="w-smash-pill">⚡ {{ previewLastSpeed }}k</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- TAB 2: RESUMEN Y GOLPES (TELEMETRÍA Y MÉTRICAS REALES) -->
+    <div *ngIf="activeTab === 'resumen'" class="tab-content animate-fade">
+
+      <!-- SUB-TABS SELECTOR DE MÉTRICAS -->
+      <div class="metrics-subnav-bar animate-up" *ngIf="resumenAcumulado && (resumenAcumulado?.total_sesiones > 0 || resumenAcumulado?.total_golpes > 0)">
+        <button class="m-subnav-btn" [class.active]="metricsSubTab === 'general'" (click)="metricsSubTab = 'general'">
+          <span class="m-icon">⚡</span>
+          <span class="m-label">General</span>
+        </button>
+        <button class="m-subnav-btn" [class.active]="metricsSubTab === 'golpes'" (click)="metricsSubTab = 'golpes'">
+          <span class="m-icon">🎾</span>
+          <span class="m-label">Golpes (IA)</span>
+        </button>
+        <button class="m-subnav-btn" [class.active]="metricsSubTab === 'cardio'" (click)="metricsSubTab = 'cardio'">
+          <span class="m-icon">💓</span>
+          <span class="m-label">Cardio & FC</span>
+        </button>
+      </div>
+
+      <!-- EMPTY STATE CUANDO NO HAY TELEMETRÍA REAL REGISTRADA -->
+      <div *ngIf="!resumenAcumulado || (!resumenAcumulado?.total_sesiones && !resumenAcumulado?.total_golpes) || (resumenAcumulado?.total_sesiones == 0 && resumenAcumulado?.total_golpes == 0)" class="empty-metrics-container animate-fade">
+        <div class="empty-state-pro">
+          <div class="empty-icon-circle">
+            <ion-icon name="watch-outline"></ion-icon>
+          </div>
+          <h3>Sin Datos de Telemetría Aún</h3>
+          <p>Juega un partido o entrenamiento con la app de <strong>PadelBlox en tu Apple Watch</strong> para medir tus smashes, clasificar tus golpes con IA y registrar tu frecuencia cardíaca real.</p>
+
+          <div class="empty-features-list">
+            <div class="ef-item">
+              <span class="ef-icon">⚡</span>
+              <span>Velocidad de smash y potencia en km/h</span>
+            </div>
+            <div class="ef-item">
+              <span class="ef-icon">🎯</span>
+              <span>Clasificación CoreML (Bandeja, Víbora, Voleas)</span>
+            </div>
+            <div class="ef-item">
+              <span class="ef-icon">💓</span>
+              <span>Zonas de esfuerzo y frecuencia cardíaca</span>
+            </div>
+          </div>
+
+          <button class="btn-goto-watch" (click)="activeTab = 'conexion'">
+            ⌚ Ver Cómo Usar Apple Watch
+          </button>
+        </div>
+      </div>
+
+      <!-- CONTENIDO DE MÉTRICAS (CUANDO HAY DATOS REALES) -->
+      <div *ngIf="resumenAcumulado && (resumenAcumulado?.total_sesiones > 0 || resumenAcumulado?.total_golpes > 0)">
+
+        <!-- PESTAÑA 1: RESUMEN GENERAL & KPIS -->
+        <div *ngIf="metricsSubTab === 'general'" class="subtab-content animate-fade">
+          <!-- HERO BANNER: CENTRO BIOMECÁNICO & RENDIMIENTO -->
+          <div class="metrics-hero-card">
+            <div class="hero-top-row">
+              <div class="hero-chip-badge">
+                <span class="live-dot"></span>
+                <span>COREML IA TELEMETRY</span>
+              </div>
+              <span class="hero-sensor-tag">IMU 100Hz</span>
+            </div>
+
+            <div class="hero-body">
+              <div class="hero-text-block">
+                <h2>Rendimiento en Pista</h2>
+                <p>Análisis cinemático y biomecánico registrado con tu Apple Watch.</p>
+              </div>
+              <div class="hero-stat-badge">
+                <span class="badge-lbl">Índice Potencia</span>
+                <span class="badge-val">ELITE A+</span>
+              </div>
+            </div>
+
+            <div class="hero-meta-strip">
+              <div class="h-meta-item">
+                <span class="m-icon">⚡</span>
+                <span class="m-text"><strong>{{ resumenAcumulado?.velocidad_promedio_general || (resumenAcumulado?.record_velocidad_kmh * 0.85) || 0 | number:'1.0-0' }} km/h</strong> vel. media</span>
+              </div>
+              <div class="h-meta-item">
+                <span class="m-icon">⏱️</span>
+                <span class="m-text"><strong>{{ formatDuration(resumenAcumulado?.total_segundos_jugados) }}</strong> activos</span>
+              </div>
+              <div class="h-meta-item">
+                <span class="m-icon">🎾</span>
+                <span class="m-text"><strong>{{ resumenAcumulado?.total_golpes || 0 }}</strong> impactos</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- GRID DE MÉTRICAS CLAVE (2X2 PRO TILES) -->
+          <div class="pro-metrics-grid">
+
+            <!-- 1. VELOCIDAD MÁXIMA / SMASH -->
+            <div class="pro-metric-tile speed-tile">
+              <div class="tile-header">
+                <div class="tile-icon-badge">
+                  <span>⚡</span>
+                  <span class="tile-tag">MAX SPEED</span>
+                </div>
+                <span class="record-pill" *ngIf="resumenAcumulado?.record_velocidad_kmh > 0">RÉCORD</span>
+              </div>
+              <div class="tile-value-block">
+                <span class="tile-number">{{ resumenAcumulado?.record_velocidad_kmh || 0 | number:'1.0-0' }}</span>
+                <span class="tile-unit">KM/H</span>
+              </div>
+              <div class="tile-meter">
+                <div class="meter-track">
+                  <div class="meter-bar speed-bar" [style.width.%]="resumenAcumulado?.record_velocidad_kmh ? ((resumenAcumulado?.record_velocidad_kmh / 160) * 100) : 0"></div>
+                </div>
+              </div>
+              <span class="tile-footnote">🎯 Smash más potente registrado</span>
+            </div>
+
+            <!-- 2. CALORÍAS ACTIVAS -->
+            <div class="pro-metric-tile cal-tile">
+              <div class="tile-header">
+                <div class="tile-icon-badge">
+                  <span>🔥</span>
+                  <span class="tile-tag">CALORÍAS</span>
+                </div>
+              </div>
+              <div class="tile-value-block">
+                <span class="tile-number">{{ resumenAcumulado?.total_calorias || 0 | number:'1.0-0' }}</span>
+                <span class="tile-unit">KCAL</span>
+              </div>
+              <div class="tile-meter">
+                <div class="meter-track">
+                  <div class="meter-bar cal-bar" [style.width.%]="resumenAcumulado?.total_calorias ? 80 : 0"></div>
+                </div>
+              </div>
+              <span class="tile-footnote">⏱️ Gasto metabólico activo</span>
+            </div>
+
+            <!-- 3. FRECUENCIA CARDÍACA -->
+            <div class="pro-metric-tile hr-tile">
+              <div class="tile-header">
+                <div class="tile-icon-badge">
+                  <span>💓</span>
+                  <span class="tile-tag">CARDIO</span>
+                </div>
+                <span class="pulse-tag" *ngIf="resumenAcumulado?.fc_maxima_historica > 0">Pico {{ resumenAcumulado?.fc_maxima_historica }} bpm</span>
+              </div>
+              <div class="tile-value-block">
+                <span class="tile-number">{{ resumenAcumulado?.fc_promedio_general || 0 | number:'1.0-0' }}</span>
+                <span class="tile-unit">BPM</span>
+              </div>
+              <div class="tile-meter">
+                <div class="meter-track">
+                  <div class="meter-bar hr-bar" [style.width.%]="resumenAcumulado?.fc_promedio_general ? ((resumenAcumulado?.fc_promedio_general / 200) * 100) : 0"></div>
+                </div>
+              </div>
+              <span class="tile-footnote">❤️ Intensidad media en juego</span>
+            </div>
+
+            <!-- 4. TOTAL DE IMPACTOS -->
+            <div class="pro-metric-tile strokes-tile">
+              <div class="tile-header">
+                <div class="tile-icon-badge">
+                  <span>🎾</span>
+                  <span class="tile-tag">IMPACTOS</span>
+                </div>
+                <span class="session-pill">{{ resumenAcumulado?.total_sesiones || sesiones.length || 0 }} part.</span>
+              </div>
+              <div class="tile-value-block">
+                <span class="tile-number">{{ resumenAcumulado?.total_golpes || 0 }}</span>
+                <span class="tile-unit">GOLPES</span>
+              </div>
+              <div class="tile-meter">
+                <div class="meter-track">
+                  <div class="meter-bar strokes-bar" [style.width.%]="resumenAcumulado?.total_golpes ? 85 : 0"></div>
+                </div>
+              </div>
+              <span class="tile-footnote">📊 Volumen total clasificado</span>
+            </div>
+
+          </div>
+
+          <!-- SOCIAL MATCH STORY CTA CARD -->
+          <div class="story-cta-card" (click)="generarStoryResumen()">
+            <div class="story-cta-content">
+              <div class="story-badge-top">
+                <span class="sparkle-icon">✨</span>
+                <span>PADELBLOX SOCIAL STORY</span>
+              </div>
+              <h3>Comparte tu Telemetría Pro</h3>
+              <p>Crea una imagen 9:16 de alta resolución con tus récords de velocidad y golpes para Instagram y WhatsApp.</p>
+              <button class="btn-generate-story">
+                <span>📸 Generar Match Story 9:16</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 2: DESGLOSE TÉCNICO DE GOLPES (IA COREML) -->
+        <div *ngIf="metricsSubTab === 'golpes'" class="subtab-content animate-fade">
+          <div class="section-card strokes-pro-card">
+            <div class="section-header">
+              <div>
+                <h3>🎯 Distribución Técnica de Golpes</h3>
+                <p class="section-subtitle">Clasificación biomecánica por IA en tiempo real</p>
+              </div>
+              <span class="badge-total-neon">{{ resumenAcumulado?.total_golpes || 0 }} golpes</span>
+            </div>
+
+            <div class="strokes-list-v2">
+
+              <!-- 1. SMASH -->
+              <div class="stroke-row-v2">
+                <div class="stroke-lead">
+                  <div class="stroke-icon-circle smash-circle">⚡</div>
+                  <div class="stroke-titles">
+                    <span class="stroke-name">Smash / Remate x3 - x4</span>
+                    <span class="stroke-detail">Potencia alta & definición</span>
+                  </div>
+                </div>
+                <div class="stroke-stat-side">
+                  <span class="stroke-count-pill">{{ resumenAcumulado?.total_smash || 0 }}</span>
+                  <span class="stroke-pct">{{ getStrokePercentage(resumenAcumulado?.total_smash, resumenAcumulado?.total_golpes) }}%</span>
+                </div>
+                <div class="stroke-bar-track">
+                  <div class="stroke-bar-fill smash-fill" [style.width.%]="getStrokePercentage(resumenAcumulado?.total_smash, resumenAcumulado?.total_golpes)"></div>
+                </div>
+              </div>
+
+              <!-- 2. BANDEJA -->
+              <div class="stroke-row-v2">
+                <div class="stroke-lead">
+                  <div class="stroke-icon-circle bandeja-circle">🌪️</div>
+                  <div class="stroke-titles">
+                    <span class="stroke-name">Bandeja de Control</span>
+                    <span class="stroke-detail">Mantenimiento de red & colocación</span>
+                  </div>
+                </div>
+                <div class="stroke-stat-side">
+                  <span class="stroke-count-pill">{{ resumenAcumulado?.total_bandejas || 0 }}</span>
+                  <span class="stroke-pct">{{ getStrokePercentage(resumenAcumulado?.total_bandejas, resumenAcumulado?.total_golpes) }}%</span>
+                </div>
+                <div class="stroke-bar-track">
+                  <div class="stroke-bar-fill bandeja-fill" [style.width.%]="getStrokePercentage(resumenAcumulado?.total_bandejas, resumenAcumulado?.total_golpes)"></div>
+                </div>
+              </div>
+
+              <!-- 3. VÍBORA -->
+              <div class="stroke-row-v2">
+                <div class="stroke-lead">
+                  <div class="stroke-icon-circle vibora-circle">🔥</div>
+                  <div class="stroke-titles">
+                    <span class="stroke-name">Víbora con Efecto Lateral</span>
+                    <span class="stroke-detail">Ataque raso a las esquinas</span>
+                  </div>
+                </div>
+                <div class="stroke-stat-side">
+                  <span class="stroke-count-pill">{{ resumenAcumulado?.total_viboras || 0 }}</span>
+                  <span class="stroke-pct">{{ getStrokePercentage(resumenAcumulado?.total_viboras, resumenAcumulado?.total_golpes) }}%</span>
+                </div>
+                <div class="stroke-bar-track">
+                  <div class="stroke-bar-fill vibora-fill" [style.width.%]="getStrokePercentage(resumenAcumulado?.total_viboras, resumenAcumulado?.total_golpes)"></div>
+                </div>
+              </div>
+
+              <!-- 4. VOLEAS -->
+              <div class="stroke-row-v2">
+                <div class="stroke-lead">
+                  <div class="stroke-icon-circle volea-circle">🛡️</div>
+                  <div class="stroke-titles">
+                    <span class="stroke-name">Voleas en Ataque (Red)</span>
+                    <span class="stroke-detail">Bloqueo y aceleración</span>
+                  </div>
+                </div>
+                <div class="stroke-stat-side">
+                  <span class="stroke-count-pill">{{ resumenAcumulado?.total_voleas || 0 }}</span>
+                  <span class="stroke-pct">{{ getStrokePercentage(resumenAcumulado?.total_voleas, resumenAcumulado?.total_golpes) }}%</span>
+                </div>
+                <div class="stroke-bar-track">
+                  <div class="stroke-bar-fill volea-fill" [style.width.%]="getStrokePercentage(resumenAcumulado?.total_voleas, resumenAcumulado?.total_golpes)"></div>
+                </div>
+              </div>
+
+              <!-- 5. DRIVE -->
+              <div class="stroke-row-v2">
+                <div class="stroke-lead">
+                  <div class="stroke-icon-circle drive-circle">🎾</div>
+                  <div class="stroke-titles">
+                    <span class="stroke-name">Drive de Fondo (Derecha)</span>
+                    <span class="stroke-detail">Construcción y ritmo</span>
+                  </div>
+                </div>
+                <div class="stroke-stat-side">
+                  <span class="stroke-count-pill">{{ resumenAcumulado?.total_drives || 0 }}</span>
+                  <span class="stroke-pct">{{ getStrokePercentage(resumenAcumulado?.total_drives, resumenAcumulado?.total_golpes) }}%</span>
+                </div>
+                <div class="stroke-bar-track">
+                  <div class="stroke-bar-fill drive-fill" [style.width.%]="getStrokePercentage(resumenAcumulado?.total_drives, resumenAcumulado?.total_golpes)"></div>
+                </div>
+              </div>
+
+              <!-- 6. REVÉS -->
+              <div class="stroke-row-v2">
+                <div class="stroke-lead">
+                  <div class="stroke-icon-circle reves-circle">↩️</div>
+                  <div class="stroke-titles">
+                    <span class="stroke-name">Revés Plano & Cortado</span>
+                    <span class="stroke-detail">Salidas y control</span>
+                  </div>
+                </div>
+                <div class="stroke-stat-side">
+                  <span class="stroke-count-pill">{{ resumenAcumulado?.total_reves || 0 }}</span>
+                  <span class="stroke-pct">{{ getStrokePercentage(resumenAcumulado?.total_reves, resumenAcumulado?.total_golpes) }}%</span>
+                </div>
+                <div class="stroke-bar-track">
+                  <div class="stroke-bar-fill reves-fill" [style.width.%]="getStrokePercentage(resumenAcumulado?.total_reves, resumenAcumulado?.total_golpes)"></div>
+                </div>
+              </div>
+
+              <!-- 7. GLOBO -->
+              <div class="stroke-row-v2">
+                <div class="stroke-lead">
+                  <div class="stroke-icon-circle globo-circle">☁️</div>
+                  <div class="stroke-titles">
+                    <span class="stroke-name">Globo & Salida Pared</span>
+                    <span class="stroke-detail">Recuperación de red</span>
+                  </div>
+                </div>
+                <div class="stroke-stat-side">
+                  <span class="stroke-count-pill">{{ resumenAcumulado?.total_globos || 0 }}</span>
+                  <span class="stroke-pct">{{ getStrokePercentage(resumenAcumulado?.total_globos, resumenAcumulado?.total_golpes) }}%</span>
+                </div>
+                <div class="stroke-bar-track">
+                  <div class="stroke-bar-fill globo-fill" [style.width.%]="getStrokePercentage(resumenAcumulado?.total_globos, resumenAcumulado?.total_golpes)"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- INSIGHT CARD TÉCNICO -->
+          <div class="tech-insight-card">
+            <div class="ti-icon">💡</div>
+            <div class="ti-content">
+              <h4>Análisis Táctico CoreML</h4>
+              <p>Tu mayor volumen ofensivo se concentra en la red (<strong>{{ getStrokePercentage((resumenAcumulado?.total_voleas || 0) + (resumenAcumulado?.total_bandejas || 0), resumenAcumulado?.total_golpes || 1) }}% Voleas + Bandejas</strong>). Continúa ganando la posición en la malla para cerrar los puntos.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 3: CARDIO & ZONAS DE INTENSIDAD -->
+        <div *ngIf="metricsSubTab === 'cardio'" class="subtab-content animate-fade">
+
+          <!-- RESUMEN HERO CARDIO -->
+          <div class="cardio-hero-summary">
+            <div class="ch-box">
+              <span class="ch-lbl">FC PROMEDIO</span>
+              <span class="ch-val">{{ resumenAcumulado?.fc_promedio_general || 0 | number:'1.0-0' }} <small>bpm</small></span>
+            </div>
+            <div class="ch-divider"></div>
+            <div class="ch-box">
+              <span class="ch-lbl">PICO MÁXIMO</span>
+              <span class="ch-val highlight">{{ resumenAcumulado?.fc_maxima_historica || 0 }} <small>bpm</small></span>
+            </div>
+            <div class="ch-divider"></div>
+            <div class="ch-box">
+              <span class="ch-lbl">CALORÍAS</span>
+              <span class="ch-val orange">{{ resumenAcumulado?.total_calorias || 0 | number:'1.0-0' }} <small>kcal</small></span>
+            </div>
+          </div>
+
+          <!-- DISTRIBUCIÓN DE ZONAS -->
+          <div class="section-card cardio-zones-card">
+            <div class="section-header">
+              <div>
+                <h3>💓 Zonas Cardiovasculares en Juego</h3>
+                <p class="section-subtitle">Distribución del esfuerzo por zonas de FC</p>
+              </div>
+              <span class="badge-cardio-avg">Avg: {{ resumenAcumulado?.fc_promedio_general || 0 | number:'1.0-0' }} bpm</span>
+            </div>
+
+            <div class="zones-bar-segmented">
+              <div class="segment-zone z-warmup" style="width: 20%;" title="Zona 1-2 (Calentamiento)">20%</div>
+              <div class="segment-zone z-aerobic" style="width: 55%;" title="Zona 3-4 (Ritmo de Partido)">55%</div>
+              <div class="segment-zone z-peak" style="width: 25%;" title="Zona 5 (Pico Anaeróbico)">25%</div>
+            </div>
+
+            <div class="zones-legend-grid">
+              <div class="zone-legend-item">
+                <span class="legend-dot dot-warmup"></span>
+                <div class="legend-text">
+                  <span class="z-title">Control / Calentamiento</span>
+                  <span class="z-range">&lt; 130 bpm • 20% tiempo</span>
+                </div>
+              </div>
+              <div class="zone-legend-item">
+                <span class="legend-dot dot-aerobic"></span>
+                <div class="legend-text">
+                  <span class="z-title">Ritmo de Partido</span>
+                  <span class="z-range">130 - 165 bpm • 55% tiempo</span>
+                </div>
+              </div>
+              <div class="zone-legend-item">
+                <span class="legend-dot dot-peak"></span>
+                <div class="legend-text">
+                  <span class="z-title">Pico Anaeróbico</span>
+                  <span class="z-range">&gt; 165 bpm • 25% tiempo</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARDIO RECOMENDACIÓN -->
+          <div class="tech-insight-card cardio-insight">
+            <div class="ti-icon">❤️</div>
+            <div class="ti-content">
+              <h4>Capacidad Aeróbica Óptima</h4>
+              <p>Mantienes una excelente respuesta cardiovascular durante tus partidos con rápida recuperación entre puntos de alta intensidad.</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- TAB 3: HISTORIAL DE PARTIDOS -->
+    <div *ngIf="activeTab === 'historial'" class="tab-content animate-fade">
+      <div *ngIf="sesiones.length === 0" class="empty-state">
+        <div class="icon">⌚</div>
+        <h3>Sin partidos registrados</h3>
+        <p>Inicia un partido desde tu Apple Watch para medir tus golpes, velocidad y tanteador en vivo.</p>
+      </div>
+
+      <div *ngFor="let s of sesiones" class="match-session-card" (click)="verDetalle(s)">
+        <div class="card-header">
+          <span class="activity-type">{{ s.tipo_actividad | uppercase }}</span>
+          <span class="date">{{ s.fecha_inicio | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+
+        <div class="card-body">
+          <div class="stat-col">
+            <span class="val">{{ s.total_golpes }}</span>
+            <span class="lbl">Golpes</span>
+          </div>
+          <div class="stat-col">
+            <span class="val highlight">{{ s.velocidad_max_kmh }} <small>km/h</small></span>
+            <span class="lbl">Vel. Máx</span>
+          </div>
+          <div class="stat-col">
+            <span class="val">{{ s.fc_promedio }} <small>bpm</small></span>
+            <span class="lbl">FC Media</span>
+          </div>
+          <div class="stat-col">
+            <span class="val">{{ s.calorias_quemadas | number:'1.0-0' }}</span>
+            <span class="lbl">Kcal</span>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <span>⏱️ {{ formatDuration(s.duracion_segundos) }}</span>
+          <span *ngIf="s.club_nombre">📍 {{ s.club_nombre }}</span>
+          <span class="device-tag">⌚ {{ s.dispositivo_modelo || 'Apple Watch' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: ESTADO DEL RELOJ & CONEXIÓN -->
+    <div *ngIf="activeTab === 'conexion'" class="tab-content animate-fade">
+      <div class="watch-connection-card">
+        <div class="watch-icon-wrapper">
+          <ion-icon name="watch-outline" class="watch-big-icon"></ion-icon>
+        </div>
+
+        <h2>Apple Watch & PadelBlox</h2>
+        <p class="subtitle">Sincroniza tus partidos, anota los puntos con vibración háptica y analiza tu técnica con sensores CoreMotion.</p>
+
+        <div class="status-list">
+          <div class="status-row">
+            <span>Soporte de Smartwatch:</span>
+            <span class="badge" [class.badge-ok]="watchStatus.supported" [class.badge-warn]="!watchStatus.supported">
+              {{ watchStatus.supported ? '✓ Soportado' : 'Simulador / Web' }}
+            </span>
+          </div>
+
+          <div class="status-row">
+            <span>Reloj Enlazado (Bluetooth):</span>
+            <span class="badge" [class.badge-ok]="watchStatus.isPaired" [class.badge-warn]="!watchStatus.isPaired">
+              {{ watchStatus.isPaired ? '✓ Emparejado' : 'No detectado' }}
+            </span>
+          </div>
+
+          <div class="status-row">
+            <span>App PadelBlox Watch:</span>
+            <span class="badge" [class.badge-ok]="watchStatus.isWatchAppInstalled" [class.badge-warn]="!watchStatus.isWatchAppInstalled">
+              {{ watchStatus.isWatchAppInstalled ? '✓ Instalada' : 'Pendiente' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="instructions-box">
+          <h4>📌 Instrucciones de Uso en Cancha:</h4>
+          <ol>
+            <li>Coloca el Apple Watch en la <strong>mano dominante (mano de la pala)</strong> para una máxima precisión en la detección de golpes y velocidad.</li>
+            <li>Abre <strong>PadelBlox</strong> en tu Apple Watch e inicia el partido.</li>
+            <li>Toca en la pantalla para sumar puntos (+1) o usa el marcador de Punto de Oro.</li>
+            <li>Al finalizar, presiona <strong>Guardar y Sincronizar</strong> para ver tu informe completo aquí y en el club.</li>
+          </ol>
+        </div>
+
+        <button class="btn-refresh-watch" (click)="checkStatus()">
+          🔄 Comprobar Conexión con Apple Watch
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING BACK BUTTON (INFERIOR DERECHA) -->
+  <div class="fab-back-v8" (click)="volver()" aria-label="Volver atrás">
+    <ion-icon name="chevron-back-outline"></ion-icon>
+  </div>
+
+</ion-content>

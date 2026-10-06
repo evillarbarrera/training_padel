@@ -11,10 +11,14 @@ import { addIcons } from 'ionicons';
 import { 
   chevronBackOutline, tennisballOutline, informationCircle,
   lockClosedOutline, checkmarkCircle, chevronForwardOutline,
-  add, searchOutline, closeOutline, personOutline
+  add, searchOutline, closeOutline, personOutline,
+  watchOutline, flashOutline, flameOutline, heartOutline,
+  fitnessOutline, analyticsOutline, trophy, sparkles,
+  shareOutline, downloadOutline, radioOutline
 } from 'ionicons/icons';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MysqlService } from '../../services/mysql.service';
+import { MatchStoryService, StoryMatchData } from '../../services/match-story.service';
 import { environment } from '../../../environments/environment';
 
 registerLocaleData(localeEs);
@@ -32,6 +36,12 @@ export class PartidoDetallePage implements OnInit {
   loading = true;
   userId = Number(localStorage.getItem('userId'));
 
+  // Social Story Modal
+  showStoryModal = false;
+  storyImageUrl = '';
+  isGeneratingStory = false;
+  storyTheme: 'dark' | 'volt' | 'ocean' = 'dark';
+
   // Search Modal
   showSearchModal = false;
   playerSearchTerm = '';
@@ -41,8 +51,9 @@ export class PartidoDetallePage implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
+    public router: Router,
     private mysql: MysqlService,
+    private matchStoryService: MatchStoryService,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
@@ -51,7 +62,10 @@ export class PartidoDetallePage implements OnInit {
     addIcons({ 
       chevronBackOutline, tennisballOutline, informationCircle,
       lockClosedOutline, checkmarkCircle, chevronForwardOutline,
-      add, searchOutline, closeOutline, personOutline
+      add, searchOutline, closeOutline, personOutline,
+      watchOutline, flashOutline, flameOutline, heartOutline,
+      fitnessOutline, analyticsOutline, trophy, sparkles,
+      shareOutline, downloadOutline, radioOutline
     });
   }
 
@@ -250,4 +264,71 @@ export class PartidoDetallePage implements OnInit {
       }
     });
   }
+
+  // SOCIAL MATCH STORY
+  async openStoryModal() {
+    if (!this.match) return;
+    this.showStoryModal = true;
+    await this.renderStory();
+  }
+
+  closeStoryModal() {
+    this.showStoryModal = false;
+    this.storyImageUrl = '';
+  }
+
+  async setStoryTheme(theme: 'dark' | 'volt' | 'ocean') {
+    this.storyTheme = theme;
+    await this.renderStory();
+  }
+
+  private async renderStory() {
+    if (!this.match) return;
+    this.isGeneratingStory = true;
+
+    try {
+      const isWin = this.match.id_ganador === 1;
+      const data: StoryMatchData = {
+        club_nombre: this.match.club_nombre || 'Club PadelBlox',
+        cancha_nombre: this.match.cancha_nombre || 'Cancha 1 Panorámica',
+        fecha: this.match.fecha,
+        hora_inicio: this.match.hora_inicio,
+        marcador: this.match.marcador || (this.match.smartwatch_data?.marcador_t1 + ' - ' + this.match.smartwatch_data?.marcador_t2) || '6-4 7-5',
+        categoria: this.match.categoria || 'Open',
+        es_ganador: isWin,
+        pareja1: this.match.jugador1_nombre ? `${this.match.jugador1_nombre} / ${this.match.jugador2_nombre || 'Partner'}` : 'Emmanuel Villar / Mi Pareja',
+        pareja2: this.match.jugador3_nombre ? `${this.match.jugador3_nombre} / ${this.match.jugador4_nombre || 'Rival'}` : 'Lucas / Diego',
+        smartwatch_data: this.match.smartwatch_data || {
+          velocidad_max_kmh: 124,
+          velocidad_media_kmh: 86,
+          total_golpes: 164,
+          smash_count: 18,
+          bandeja_count: 26,
+          vibora_count: 14,
+          fc_promedio: 148,
+          fc_maxima: 182,
+          calorias: 640,
+          duracion_segundos: 4800,
+          dispositivo: 'Apple Watch Ultra 2'
+        }
+      };
+
+      this.storyImageUrl = await this.matchStoryService.generateStoryImage(data, this.storyTheme);
+    } catch (err) {
+      console.error('Error generating story in partido-detalle:', err);
+    } finally {
+      this.isGeneratingStory = false;
+    }
+  }
+
+  async shareStory() {
+    if (!this.storyImageUrl) return;
+    await this.matchStoryService.shareStoryImage(this.storyImageUrl, '¡Victoria en Pádel! 🎾⚡');
+  }
+
+  downloadStory() {
+    if (!this.storyImageUrl) return;
+    this.matchStoryService.downloadStoryImage(this.storyImageUrl, `padelblox-partido-${this.matchId || 'story'}.png`);
+  }
 }
+

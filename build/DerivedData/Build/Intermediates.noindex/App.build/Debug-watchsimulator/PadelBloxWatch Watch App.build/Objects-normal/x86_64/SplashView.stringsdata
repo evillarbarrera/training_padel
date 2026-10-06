@@ -1,0 +1,32 @@
+{
+  "source": "/Users/ejvillarb/Documents/Privado Emmanuel Villar/Proyectos/Padelblox/training_padel/ios/App/PadelBloxWatch Watch App/PadelBloxWatch/Views/SplashView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "PadelBlox",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 123
+        }
+      },
+      {
+        "comment": "",
+        "key": "Gestión y evolución",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 133
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cargando experiencia...",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 161
+        }
+      }
+    ]
+  },
+  "version": 1
+}

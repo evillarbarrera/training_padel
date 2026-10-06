@@ -758,12 +758,19 @@ export class JugadorCampeonatosPage implements OnInit {
     this.confirmEnrollment();
   }
 
-  // HEAD TO HEAD (H2H) MODAL
+  // HEAD TO HEAD (H2H) MODAL - DATOS 100% REALES
   openH2HModal(item: any, type: 'match' | 'standing' = 'standing') {
-    const myName = this.userName || 'Tú';
+    let myTeamDisplay = (this.userName || 'Tú').trim();
+    const partnerRaw = (this.getEnrolledPartnerName() || '').trim();
+    if (partnerRaw) {
+      if (partnerRaw.includes('/')) {
+        myTeamDisplay = partnerRaw;
+      } else if (partnerRaw.toLowerCase() !== myTeamDisplay.toLowerCase()) {
+        myTeamDisplay = `${myTeamDisplay} / ${partnerRaw}`;
+      }
+    }
+
     let rivalName = 'Pareja Rival';
-    let rivalP1 = '';
-    let rivalP2 = '';
     let matchScore = '';
     let matchEstado = '';
     let posData: any = null;
@@ -771,67 +778,350 @@ export class JugadorCampeonatosPage implements OnInit {
     if (type === 'match') {
       const teams = this.getMatchTeamNames(item);
       rivalName = teams.team2;
-      rivalP1 = item.jugador3_nombre || item.p2_nom || 'Rival 1';
-      rivalP2 = item.jugador4_nombre || item.p4_nom || 'Rival 2';
       matchScore = this.getMatchScore(item);
       matchEstado = item.estado || 'Programado';
     } else {
-      rivalName = this.getStandingPairName(item);
-      rivalP1 = item.p1_nombre || item.jugador1 || '';
-      rivalP2 = item.p2_nombre || item.jugador2 || '';
+      rivalName = this.getStandingPairName(item) || this.getInscritoPairName(item) || 'Pareja Rival';
       posData = item;
     }
 
-    const myTeamDisplay = this.getEnrolledPartnerName() ? `${myName} / ${this.getEnrolledPartnerName()}` : myName;
+    // =========================================================================
+    // 1. RESOLUCIÓN PRECISA DE LA CATEGORÍA (5ª CATEGORÍA vs 4ª CATEGORÍA, ETC.)
+    // =========================================================================
+    let matchedCategory: any = null;
+    const allCats = this.selectedCompeticionDetail?.categorias || [];
+    
+    // Check 1: ID o nombre de categoría en el item
+    const itemCatId = Number(item?.categoria_id || item?.id_categoria || item?.cat_id || 0);
+    const itemCatName = (item?.categoria_nombre || item?.categoria || item?.categoria_txt || '').trim();
+
+    if (itemCatId && allCats.length > 0) {
+      matchedCategory = allCats.find((c: any) => Number(c.id) === itemCatId || Number(c.categoria_id) === itemCatId);
+    }
+    if (!matchedCategory && itemCatName && allCats.length > 0) {
+      matchedCategory = allCats.find((c: any) => 
+        (c.nombre || '').toLowerCase().trim() === itemCatName.toLowerCase() ||
+        (c.nombre || '').toLowerCase().includes(itemCatName.toLowerCase()) ||
+        itemCatName.toLowerCase().includes((c.nombre || '').toLowerCase())
+      );
+    }
+
+    // Check 2: Buscar en qué categoría está el rival o la dupla del usuario
+    const normRival = (rivalName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const normMyTeam = (myTeamDisplay || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const uId = this.getStoredUserId();
+
+    if (!matchedCategory && allCats.length > 0) {
+      for (const cat of allCats) {
+        const list = [...(cat.parejas || []), ...(cat.inscritos || []), ...(cat.tabla_posiciones || [])];
+        const found = list.some((p: any) => {
+          const pName = (this.getStandingPairName(p) || this.getInscritoPairName(p) || p.nombre_pareja || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (normRival && pName && (pName.includes(normRival) || normRival.includes(pName))) return true;
+          if (uId && (Number(p.jugador1_id) === uId || Number(p.jugador2_id) === uId || Number(p.usuario_id) === uId)) return true;
+          return false;
+        });
+        if (found) {
+          matchedCategory = cat;
+          break;
+        }
+      }
+    }
+
+    // Check 3: Categoría en la que el usuario está inscrito
+    if (!matchedCategory) {
+      matchedCategory = this.getEnrolledCategoryObj(this.selectedCompeticionDetail);
+    }
+
+    // Check 4: Categoría actual seleccionada en la vista
+    if (!matchedCategory) {
+      matchedCategory = this.currentDetailCategory || allCats[0] || null;
+    }
+
+    const resolvedCategoryName = matchedCategory?.nombre || itemCatName || 
+                                 this.selectedMiTorneo?.categoria_nombre || this.selectedMiTorneo?.categoria || 
+                                 '5ª Categoría';
+
+    // =========================================================================
+    // 2. BUSCAR POSICIÓN Y ESTADÍSTICAS DEL RIVAL EN LA TABLA
+    // =========================================================================
+    let tabla = matchedCategory?.tabla_posiciones || [];
+    if (!tabla || tabla.length === 0) {
+      for (const cat of allCats) {
+        if (cat.tabla_posiciones && cat.tabla_posiciones.length > 0) {
+          tabla = cat.tabla_posiciones;
+          break;
+        }
+      }
+    }
+
+    if (!posData && tabla && tabla.length > 0 && rivalName) {
+      posData = tabla.find((t: any) => {
+        const tName = (this.getStandingPairName(t) || t.nombre_pareja || (t.p1_nombre ? t.p1_nombre + ' ' + (t.p2_nombre || '') : '')).toLowerCase().replace(/[^a-z0-9]/g, '');
+        const tId = Number(t.pareja_id || t.id || 0);
+        const matchRivId = Number(item?.pareja2_id || item?.pareja1_id || item?.pareja_id || 0);
+        if (matchRivId && tId && tId === matchRivId) return true;
+        return tName && normRival && (tName.includes(normRival) || normRival.includes(tName));
+      });
+    }
+
+    // =========================================================================
+    // 3. BUSCAR ENFRENTAMIENTOS DIRECTOS Y TODOS LOS JUEGOS DEL RIVAL EN LA LIGA
+    // =========================================================================
+    const directMatches: any[] = [];
+    const rivalMatchesHistory: any[] = [];
+    const allMatches: any[] = [];
+    const allJornadas = matchedCategory?.jornadas || this.currentDetailCategory?.jornadas || [];
+    
+    allJornadas.forEach((j: any) => {
+      if (Array.isArray(j.partidos)) {
+        j.partidos.forEach((p: any) => {
+          allMatches.push({ ...p, jornadaLabel: j.nombre || `Jornada ${j.numero_jornada || j.jornada || ''}` });
+        });
+      }
+    });
+
+    const categoryPartidos = matchedCategory?.partidos || this.currentDetailCategory?.partidos || [];
+    if (Array.isArray(categoryPartidos)) {
+      categoryPartidos.forEach((p: any) => {
+        allMatches.push(p);
+      });
+    }
+
+    let h2hWins = 0;
+    let h2hLosses = 0;
+    let myGames = 0;
+    let rivalGames = 0;
+
+    let rivalTotalGamesWon = 0;
+    let rivalTotalGamesLost = 0;
+    let rivalTotalSetsWon = 0;
+    let rivalTotalSetsLost = 0;
+
+    allMatches.forEach((m: any) => {
+      const p1Str = (this.formatMatchTeam(m, 1) || m.pareja1_nombre || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const p2Str = (this.formatMatchTeam(m, 2) || m.pareja2_nombre || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+      const isRivalT1 = p1Str && normRival && (p1Str.includes(normRival) || normRival.includes(p1Str));
+      const isRivalT2 = p2Str && normRival && (p2Str.includes(normRival) || normRival.includes(p2Str));
+      const isRivalInMatch = isRivalT1 || isRivalT2;
+
+      // 3.A EVALUAR SI ES ENFRENTAMIENTO DIRECTO CONTRA EL USUARIO
+      if (this.isUserInMatch(m) && isRivalInMatch) {
+        const isUserT2 = this.isUserInTeam2(m);
+        const totalGamesInMatch = Number(m.set1_p1 || 0) + Number(m.set1_p2 || 0) + 
+                                  Number(m.set2_p1 || 0) + Number(m.set2_p2 || 0) + 
+                                  Number(m.set3_p1 || 0) + Number(m.set3_p2 || 0) +
+                                  Number(m.resultado_t1 || 0) + Number(m.resultado_t2 || 0);
+        
+        const statusStr = (m.estado || '').toLowerCase();
+        const isFinished = (statusStr === 'finalizado' || statusStr === 'jugado' || statusStr === 'terminado' || totalGamesInMatch > 0) && totalGamesInMatch > 0;
+        
+        if (isFinished) {
+          let mySetsWon = 0;
+          let rivalSetsWon = 0;
+          let matchMyGames = 0;
+          let matchRivalGames = 0;
+          const scoreParts: string[] = [];
+
+          if (m.set1_p1 !== null && m.set1_p1 !== undefined && m.set1_p1 !== '') {
+            const myS1 = isUserT2 ? Number(m.set1_p2 || 0) : Number(m.set1_p1 || 0);
+            const rivS1 = isUserT2 ? Number(m.set1_p1 || 0) : Number(m.set1_p2 || 0);
+            if (myS1 > 0 || rivS1 > 0) {
+              scoreParts.push(`${myS1}-${rivS1}`);
+              matchMyGames += myS1;
+              matchRivalGames += rivS1;
+              if (myS1 > rivS1) mySetsWon++; else if (rivS1 > myS1) rivalSetsWon++;
+            }
+          }
+          if (m.set2_p1 !== null && m.set2_p1 !== undefined && m.set2_p1 !== '') {
+            const myS2 = isUserT2 ? Number(m.set2_p2 || 0) : Number(m.set2_p1 || 0);
+            const rivS2 = isUserT2 ? Number(m.set2_p1 || 0) : Number(m.set2_p2 || 0);
+            if (myS2 > 0 || rivS2 > 0) {
+              scoreParts.push(`${myS2}-${rivS2}`);
+              matchMyGames += myS2;
+              matchRivalGames += rivS2;
+              if (myS2 > rivS2) mySetsWon++; else if (rivS2 > myS2) rivalSetsWon++;
+            }
+          }
+          if (m.set3_p1 !== null && m.set3_p1 !== undefined && m.set3_p1 !== '' && (Number(m.set3_p1) > 0 || Number(m.set3_p2) > 0)) {
+            const myS3 = isUserT2 ? Number(m.set3_p2 || 0) : Number(m.set3_p1 || 0);
+            const rivS3 = isUserT2 ? Number(m.set3_p1 || 0) : Number(m.set3_p2 || 0);
+            if (myS3 > 0 || rivS3 > 0) {
+              scoreParts.push(`${myS3}-${rivS3}`);
+              matchMyGames += myS3;
+              matchRivalGames += rivS3;
+              if (myS3 > rivS3) mySetsWon++; else if (rivS3 > myS3) rivalSetsWon++;
+            }
+          }
+
+          if (scoreParts.length === 0 && m.resultado_t1 !== null && m.resultado_t1 !== undefined && m.resultado_t1 !== '') {
+            const r1 = Number(m.resultado_t1 || 0);
+            const r2 = Number(m.resultado_t2 || 0);
+            if (r1 > 0 || r2 > 0) {
+              const myR = isUserT2 ? r2 : r1;
+              const rivR = isUserT2 ? r1 : r2;
+              scoreParts.push(`${myR}-${rivR}`);
+              matchMyGames += myR;
+              matchRivalGames += rivR;
+              if (myR > rivR) mySetsWon++; else if (rivR > myR) rivalSetsWon++;
+            }
+          }
+
+          if (scoreParts.length > 0 && (matchMyGames > 0 || matchRivalGames > 0)) {
+            myGames += matchMyGames;
+            rivalGames += matchRivalGames;
+
+            let ganador = 'myTeam';
+            if (mySetsWon < rivalSetsWon) {
+              ganador = 'rivalTeam';
+              h2hLosses++;
+            } else if (mySetsWon > rivalSetsWon) {
+              ganador = 'myTeam';
+              h2hWins++;
+            } else if (matchMyGames !== matchRivalGames) {
+              ganador = matchMyGames > matchRivalGames ? 'myTeam' : 'rivalTeam';
+              if (ganador === 'myTeam') h2hWins++; else h2hLosses++;
+            } else {
+              ganador = 'myTeam';
+            }
+
+            directMatches.push({
+              torneo: m.jornadaLabel || this.selectedCompeticionDetail?.nombre || 'Competición',
+              fecha: this.getMatchFechaDisplay(m),
+              resultado: scoreParts.join(', ') || this.getMatchScore(m),
+              ganador: ganador,
+              duracion: m.duracion ? `${m.duracion} min` : 'Oficial'
+            });
+          }
+        }
+      }
+
+      // 3.B RECOPILAR TODOS LOS JUEGOS Y PARTIDOS DEL RIVAL EN ESTE TORNEO (SCOUTING)
+      if (isRivalInMatch) {
+        const opponentName = isRivalT1 ? (this.formatMatchTeam(m, 2) || m.pareja2_nombre || 'Rival') 
+                                       : (this.formatMatchTeam(m, 1) || m.pareja1_nombre || 'Rival');
+        
+        let rivalSets = 0;
+        let oppSets = 0;
+        let matchRivalG = 0;
+        let matchOppG = 0;
+        const setScores: string[] = [];
+
+        if (m.set1_p1 !== null && m.set1_p1 !== undefined && m.set1_p1 !== '') {
+          const r1 = isRivalT1 ? Number(m.set1_p1) : Number(m.set1_p2);
+          const o1 = isRivalT1 ? Number(m.set1_p2) : Number(m.set1_p1);
+          if (r1 > 0 || o1 > 0) {
+            setScores.push(`${r1}-${o1}`);
+            matchRivalG += r1;
+            matchOppG += o1;
+            if (r1 > o1) rivalSets++; else if (o1 > r1) oppSets++;
+          }
+        }
+        if (m.set2_p1 !== null && m.set2_p1 !== undefined && m.set2_p1 !== '') {
+          const r2 = isRivalT1 ? Number(m.set2_p1) : Number(m.set2_p2);
+          const o2 = isRivalT1 ? Number(m.set2_p2) : Number(m.set2_p1);
+          if (r2 > 0 || o2 > 0) {
+            setScores.push(`${r2}-${o2}`);
+            matchRivalG += r2;
+            matchOppG += o2;
+            if (r2 > o2) rivalSets++; else if (o2 > r2) oppSets++;
+          }
+        }
+        if (m.set3_p1 !== null && m.set3_p1 !== undefined && m.set3_p1 !== '' && (Number(m.set3_p1) > 0 || Number(m.set3_p2) > 0)) {
+          const r3 = isRivalT1 ? Number(m.set3_p1) : Number(m.set3_p2);
+          const o3 = isRivalT1 ? Number(m.set3_p2) : Number(m.set3_p1);
+          if (r3 > 0 || o3 > 0) {
+            setScores.push(`${r3}-${o3}`);
+            matchRivalG += r3;
+            matchOppG += o3;
+            if (r3 > o3) rivalSets++; else if (o3 > r3) oppSets++;
+          }
+        }
+
+        if (setScores.length === 0 && m.resultado_t1 !== null && m.resultado_t1 !== undefined && m.resultado_t1 !== '') {
+          const r1 = Number(m.resultado_t1 || 0);
+          const r2 = Number(m.resultado_t2 || 0);
+          if (r1 > 0 || r2 > 0) {
+            const myR = isRivalT1 ? r1 : r2;
+            const oppR = isRivalT1 ? r2 : r1;
+            setScores.push(`${myR}-${oppR}`);
+            matchRivalG += myR;
+            matchOppG += oppR;
+            if (myR > oppR) rivalSets++; else if (oppR > myR) oppSets++;
+          }
+        }
+
+        const isMatchPlayed = setScores.length > 0 && (matchRivalG > 0 || matchOppG > 0);
+        if (isMatchPlayed) {
+          rivalTotalGamesWon += matchRivalG;
+          rivalTotalGamesLost += matchOppG;
+          rivalTotalSetsWon += rivalSets;
+          rivalTotalSetsLost += oppSets;
+
+          const isWin = rivalSets > oppSets || (rivalSets === oppSets && matchRivalG > matchOppG);
+
+          rivalMatchesHistory.push({
+            id: m.id,
+            jornada: m.jornadaLabel || 'Partido Oficial',
+            fecha: this.getMatchFechaDisplay(m),
+            oponente: opponentName,
+            resultado: setScores.join(', '),
+            isWin: isWin,
+            resultadoTexto: isWin ? 'Victoria' : 'Derrota',
+            gamesFavor: matchRivalG,
+            gamesContra: matchOppG
+          });
+        }
+      }
+    });
+
+    const h2hTotal = h2hWins + h2hLosses;
+    const myWinRate = h2hTotal > 0 ? Math.round((h2hWins / h2hTotal) * 100) : 50;
+    const rivalWinRate = h2hTotal > 0 ? (100 - myWinRate) : 50;
+
+    // Calcular métricas de juegos del rival
+    const standingPJ = posData ? Number(posData.pj ?? posData.partidos_jugados ?? rivalMatchesHistory.length) : rivalMatchesHistory.length;
+    const standingPG = posData ? Number(posData.pg ?? posData.partidos_ganados ?? rivalMatchesHistory.filter(r => r.isWin).length) : rivalMatchesHistory.filter(r => r.isWin).length;
+    const standingPP = posData ? Number(posData.pp ?? posData.partidos_perdidos ?? (standingPJ - standingPG)) : Math.max(0, standingPJ - standingPG);
+    const standingPTS = posData ? Number(posData.puntos ?? posData.pts ?? (standingPG * 3)) : (standingPG * 3);
+    const standingDG = posData ? (posData.dif_games ?? posData.dg ?? (rivalTotalGamesWon - rivalTotalGamesLost)) : (rivalTotalGamesWon - rivalTotalGamesLost);
+    const standingGF = posData ? Number(posData.gf ?? posData.games_favor ?? rivalTotalGamesWon) : rivalTotalGamesWon;
+    const standingGC = posData ? Number(posData.gc ?? posData.games_contra ?? rivalTotalGamesLost) : rivalTotalGamesLost;
+    const standingPos = posData?.posicion || posData?.puesto || '-';
 
     this.selectedH2HData = {
       myTeam: myTeamDisplay,
       rivalTeam: rivalName,
-      rivalP1: rivalP1,
-      rivalP2: rivalP2,
-      categoria: this.currentDetailCategory?.nombre || 'Categoría General',
-      torneo: this.selectedCompeticionDetail?.nombre || 'Torneo de Pádel',
-      h2hWins: 2,
-      h2hLosses: 1,
-      h2hTotal: 3,
-      myGames: 34,
-      rivalGames: 28,
-      myWinRate: 67,
-      rivalWinRate: 33,
-      racha: '🔥 1 Victoria',
+      categoria: resolvedCategoryName,
+      torneo: this.selectedCompeticionDetail?.nombre || 'Competición',
+      h2hWins: h2hWins,
+      h2hLosses: h2hLosses,
+      h2hTotal: h2hTotal,
+      myGames: myGames,
+      rivalGames: rivalGames,
+      myWinRate: myWinRate,
+      rivalWinRate: rivalWinRate,
       matchScore: matchScore,
       matchEstado: matchEstado,
-      standing: posData ? {
-        posicion: posData.posicion,
-        pj: posData.pj,
-        pg: posData.pg,
-        pp: posData.pp,
-        puntos: posData.puntos,
-        dif_games: posData.dif_games
-      } : null,
-      historialMatches: [
-        {
-          torneo: 'Americano Andes Norte',
-          fecha: 'Hace 2 semanas',
-          resultado: '6-4, 7-5',
-          ganador: 'myTeam',
-          duracion: '1h 15m'
-        },
-        {
-          torneo: 'Liga Apertura Power Padel',
-          fecha: 'Hace 1 mes',
-          resultado: '4-6, 6-3, 6-7',
-          ganador: 'rivalTeam',
-          duracion: '1h 40m'
-        },
-        {
-          torneo: 'Torneo Express Machalí',
-          fecha: 'Hace 2 meses',
-          resultado: '6-2, 6-4',
-          ganador: 'myTeam',
-          duracion: '55m'
-        }
-      ]
+      standing: {
+        posicion: standingPos,
+        pj: standingPJ,
+        pg: standingPG,
+        pp: standingPP,
+        puntos: standingPTS,
+        gf: standingGF,
+        gc: standingGC,
+        dif_games: (Number(standingDG) > 0 ? '+' : '') + String(standingDG),
+        winRate: standingPJ > 0 ? Math.round((standingPG / standingPJ) * 100) : 0
+      },
+      historialMatches: directMatches,
+      rivalMatchesHistory: rivalMatchesHistory,
+      totalGamesRival: {
+        ganados: standingGF || rivalTotalGamesWon,
+        perdidos: standingGC || rivalTotalGamesLost,
+        setsGanados: rivalTotalSetsWon,
+        setsPerdidos: rivalTotalSetsLost
+      }
     };
 
     this.showH2HModal = true;

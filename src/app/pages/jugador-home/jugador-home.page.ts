@@ -20,7 +20,8 @@ import {
   calendarNumberOutline, trophyOutline, barChartOutline,
   sparklesOutline, videocamOutline, chevronDownOutline, locationOutline,
   notificationsOutline, closeOutline, ribbonOutline, lockClosedOutline,
-  chevronForwardOutline, arrowForward, timeOutline, cardOutline
+  chevronForwardOutline, arrowForward, timeOutline, cardOutline,
+  watchOutline, walletOutline, fitnessOutline
 } from 'ionicons/icons';
 import { ActionSheetController, LoadingController, AlertController } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
@@ -114,7 +115,10 @@ export class JugadorHomePage implements OnInit {
       'chevron-forward-outline': chevronForwardOutline,
       'arrow-forward': arrowForward,
       'time-outline': timeOutline,
-      'card-outline': cardOutline
+      'card-outline': cardOutline,
+      'watch-outline': watchOutline,
+      'wallet-outline': walletOutline,
+      'fitness-outline': fitnessOutline
     });
   }
 
@@ -241,6 +245,21 @@ export class JugadorHomePage implements OnInit {
   misHabilidades() {
     this.cerrarModalProgreso();
     this.router.navigate(['/mis-habilidades']);
+  }
+
+  goToSmartwatch() {
+    this.cerrarModalProgreso();
+    this.router.navigate(['/smartwatch-stats']);
+  }
+
+  goToPartidos() {
+    this.cerrarModalProgreso();
+    this.router.navigate(['/jugador-partidos']);
+  }
+
+  goToMisClubesPuntos() {
+    this.cerrarModalProgreso();
+    this.router.navigate(['/mis-clubes-puntos']);
   }
 
   abrirModalPacks() {
