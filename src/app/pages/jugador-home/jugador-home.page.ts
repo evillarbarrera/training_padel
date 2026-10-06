@@ -25,6 +25,7 @@ import {
 } from 'ionicons/icons';
 import { ActionSheetController, LoadingController, AlertController } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
+import { NotificationService } from '../../services/notification.service';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { ViewChild, ElementRef } from '@angular/core';
@@ -88,7 +89,7 @@ export class JugadorHomePage implements OnInit {
     private alertCtrl: AlertController,
     private ngZone: NgZone,
     private mysqlService: MysqlService,
-
+    private notificationService: NotificationService,
     private http: HttpClient
   ) {
     addIcons({
@@ -132,6 +133,7 @@ export class JugadorHomePage implements OnInit {
       this.fotoPerfil = this.getProfileImage(savedFoto);
     }
     this.cargarStats();
+    this.notificationService.updateTokenForUser();
   }
 
   cargarStats() {
