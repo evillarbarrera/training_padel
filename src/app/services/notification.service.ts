@@ -52,23 +52,32 @@ export class NotificationService {
             let finalToken = token.value;
 
             if (Capacitor.getPlatform() === 'ios') {
-              if (finalToken.length <= 64) {
+              // Si es un token APNs nativo de 64 caracteres hex, esperar el de Firebase
+              if (finalToken.length <= 64 && /^[0-9A-Fa-f]+$/.test(finalToken)) {
                 console.log('Token APNs (64 chars) detectado, ignorando y esperando el FCM...');
                 return;
               }
 
-              // De-hexificar el token que viene del AppDelegate.swift (FCM trucado)
-              try {
-                let str = '';
-                for (let i = 0; i < finalToken.length; i += 2) {
-                  str += String.fromCharCode(parseInt(finalToken.substring(i, i + 2), 16));
+              // De-hexificar ÚNICAMENTE si viene codificado en hexadecimal puro (Data convertida por Capacitor)
+              if (finalToken.length > 100 && /^[0-9A-Fa-f]+$/.test(finalToken)) {
+                try {
+                  let str = '';
+                  let isValidAscii = true;
+                  for (let i = 0; i < finalToken.length; i += 2) {
+                    const code = parseInt(finalToken.substring(i, i + 2), 16);
+                    if (isNaN(code) || code < 32 || code > 126) {
+                      isValidAscii = false;
+                      break;
+                    }
+                    str += String.fromCharCode(code);
+                  }
+                  if (isValidAscii && str.length > 30) {
+                    finalToken = str;
+                    console.log('FCM Token de-hexificado con éxito:', finalToken.substring(0, 10) + '...');
+                  }
+                } catch (e) {
+                  console.error('Error de-hexificando token:', e);
                 }
-                if (str.length > 30) { // Los tokens de Firebase son largos
-                  finalToken = str;
-                  console.log('FCM Token de-hexificado con éxito:', finalToken.substring(0, 10) + '...');
-                }
-              } catch (e) {
-                console.error('Error de-hexificando token:', e);
               }
             }
 

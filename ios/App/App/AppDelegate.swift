@@ -11,34 +11,43 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         FirebaseApp.configure()
         Messaging.messaging().delegate = self
+        
+        // Recuperar activamente el token FCM al iniciar la app
+        Messaging.messaging().token { token, error in
+            if let token = token {
+                print("Firebase registration token on launch: \(token)")
+                NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: token)
+            } else if let error = error {
+                print("Error retrieving FCM token on launch: \(error)")
+            }
+        }
         return true
     }
 
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         // Vincula el token de Apple (APNs) con Firebase Messaging
         Messaging.messaging().apnsToken = deviceToken
-        // NOTA: Comentamos esta línea para que Capacitor NO reciba el token APNs de 32 bytes.
-        // Solo queremos que reciba el token de Firebase (FCM) que enviamos en didReceiveRegistrationToken.
-        // NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
+        
+        // Recuperar activamente el token FCM cada vez que iOS registra el dispositivo
+        Messaging.messaging().token { token, error in
+            if let token = token {
+                print("Firebase registration token on APNs register: \(token)")
+                NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: token)
+            } else if let error = error {
+                print("Error retrieving FCM token on APNs register: \(error)")
+            }
+        }
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
         NotificationCenter.default.post(name: .capacitorDidFailToRegisterForRemoteNotifications, object: error)
     }
     
-    // Método para recibir el token de Firebase (FCM) directamente
+    // Método para recibir el token de Firebase (FCM) directamente cuando cambia o se refresca
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         if let token = fcmToken {
-            print("Firebase registration token: \(token)")
-            
-            // Enviamos el token de Firebase al bridge de Capacitor.
-            // Lo enviamos como Data para que el plugin de Capacitor lo procese correctamente.
-            // El plugin lo convertirá a hex en JS, por lo que en JS deberemos de-hexificarlo.
-            if let fcmData = token.data(using: .utf8) {
-                NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: fcmData)
-            }
-            
-            // También enviamos el evento personalizado por si acaso
+            print("Firebase registration token from delegate: \(token)")
+            NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: token)
             let data = ["token": token]
             NotificationCenter.default.post(name: Notification.Name("messaging_token"), object: nil, userInfo: data)
         }
