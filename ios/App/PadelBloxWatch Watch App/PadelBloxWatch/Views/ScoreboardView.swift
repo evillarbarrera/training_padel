@@ -208,8 +208,8 @@ struct ScoreboardView: View {
         .padding(4)
         .focusable()
         .digitalCrownRotation($crownAccumulator, from: -100.0, through: 100.0, by: 1.0, sensitivity: .low, isContinuous: true)
-        .onChange(of: crownAccumulator) { oldVal, newVal in
-            if newVal - oldVal < -3.0 {
+        .onChange(of: crownAccumulator) { newVal in
+            if newVal < -3.0 {
                 // Girar corona hacia atrás -> Deshacer
                 scoreManager.undoLastPoint()
                 syncScore()
