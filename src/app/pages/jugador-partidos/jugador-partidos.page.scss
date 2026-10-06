@@ -2056,17 +2056,33 @@ ion-content {
       }
 
       .gmm-close-btn {
-        width: 36px;
-        height: 36px;
+        width: 44px;
+        height: 44px;
         border-radius: 50%;
-        background: rgba(255, 255, 255, 0.1);
-        border: none;
+        background: rgba(255, 255, 255, 0.14);
+        border: 1.5px solid rgba(255, 255, 255, 0.2);
         color: #ffffff;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        ion-icon { font-size: 20px; }
+        z-index: 999;
+        position: relative;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        pointer-events: auto;
+        transition: all 0.2s ease;
+
+        &:active {
+          transform: scale(0.88);
+          background: rgba(255, 255, 255, 0.3);
+        }
+
+        ion-icon { 
+          font-size: 26px; 
+          color: #ffffff;
+          pointer-events: none;
+        }
       }
     }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
@@ -41,6 +41,8 @@ import { NavController } from '@ionic/angular';
   ]
 })
 export class JugadorPartidosPage implements OnInit {
+  @ViewChild('globalMetricsModal') globalMetricsModal?: IonModal;
+
   partidos: any[] = [];
   jugados: any[] = [];
   proximos: any[] = [];
@@ -131,7 +133,8 @@ export class JugadorPartidosPage implements OnInit {
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
     private loadingCtrl: LoadingController,
-    private navCtrl: NavController
+    private navCtrl: NavController,
+    private cdr: ChangeDetectorRef
   ) {
     addIcons({ 
       arrowBack, trophyOutline, calendarOutline, locationOutline, 
@@ -688,10 +691,17 @@ export class JugadorPartidosPage implements OnInit {
   // GLOBAL METRICS & CAREER STATS MODAL
   openGlobalMetricsModal() {
     this.showGlobalMetricsModal = true;
+    this.cdr.detectChanges();
   }
 
   closeGlobalMetricsModal() {
     this.showGlobalMetricsModal = false;
+    if (this.globalMetricsModal) {
+      try {
+        this.globalMetricsModal.dismiss();
+      } catch (e) {}
+    }
+    this.cdr.detectChanges();
   }
 
   goToSmartwatchStats(event?: Event) {

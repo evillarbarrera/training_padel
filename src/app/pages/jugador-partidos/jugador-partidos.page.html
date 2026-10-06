@@ -287,7 +287,7 @@
   </ion-modal>
 
   <!-- GLOBAL CAREER METRICS & STROKE RADAR MODAL -->
-  <ion-modal [isOpen]="showGlobalMetricsModal" (didDismiss)="closeGlobalMetricsModal()" class="premium-global-metrics-modal">
+  <ion-modal #globalMetricsModal [isOpen]="showGlobalMetricsModal" (didDismiss)="closeGlobalMetricsModal()" class="premium-global-metrics-modal">
     <ng-template>
       <div class="gmm-modal-wrapper">
         
@@ -302,7 +302,7 @@
               <span class="gmm-sub">Consolidado general de partidos realizados</span>
             </div>
           </div>
-          <button class="gmm-close-btn" (click)="closeGlobalMetricsModal()">
+          <button type="button" class="gmm-close-btn" (click)="closeGlobalMetricsModal(); globalMetricsModal.dismiss()">
             <ion-icon name="close-outline"></ion-icon>
           </button>
         </div>
