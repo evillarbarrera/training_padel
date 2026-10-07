@@ -14,7 +14,7 @@
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
-		5A981A253074521300BB13E9 /* PadelBloxWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 5A981A243074521300BB13E9 /* PadelBloxWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		5A981A253074521300BB13E9 /* PadelBloxWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 5A981A243074521300BB13E9 /* PadelBloxWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, CodeSignOnCopy, ); }; };
 		D3A1B2C3D4E5F6A7B8C9D1E2 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3A1B2C3D4E5F6A7B8C9D0E1 /* GoogleService-Info.plist */; };
 		F9426DF055215AA0B4C579A1 /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F78AE358694E4E715D671BB9 /* Pods_App.framework */; };
 		F9B000010000000000000002 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F9B000010000000000000001 /* PrivacyInfo.xcprivacy */; };
@@ -56,7 +56,6 @@
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
-		5A981A1F3074521300BB13E9 /* PadelBloxWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PadelBloxWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A981A243074521300BB13E9 /* PadelBloxWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PadelBloxWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3A1B2C3D4E5F6A7B8C9D0E1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		E3A1B2C3D4E5F6A7B8C9D1E4 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
@@ -119,7 +118,6 @@
 			isa = PBXGroup;
 			children = (
 				504EC3041FED79650016851F /* PadelBlox.app */,
-				5A981A1F3074521300BB13E9 /* PadelBloxWatch.app */,
 				5A981A243074521300BB13E9 /* PadelBloxWatch Watch App.app */,
 			);
 			name = Products;
@@ -167,25 +165,6 @@
 			productReference = 504EC3041FED79650016851F /* PadelBlox.app */;
 			productType = "com.apple.product-type.application";
 		};
-		5A981A1E3074521300BB13E9 /* PadelBloxWatch */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 5A981A353074521400BB13E9 /* Build configuration list for PBXNativeTarget "PadelBloxWatch" */;
-			buildPhases = (
-				5A981A1D3074521300BB13E9 /* Resources */,
-				5A981A313074521400BB13E9 /* Embed Watch Content */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				5A981A273074521300BB13E9 /* PBXTargetDependency */,
-			);
-			name = PadelBloxWatch;
-			packageProductDependencies = (
-			);
-			productName = PadelBloxWatch;
-			productReference = 5A981A1F3074521300BB13E9 /* PadelBloxWatch.app */;
-			productType = "com.apple.product-type.application.watchapp2-container";
-		};
 		5A981A233074521300BB13E9 /* PadelBloxWatch Watch App */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5A981A343074521400BB13E9 /* Build configuration list for PBXNativeTarget "PadelBloxWatch Watch App" */;
@@ -220,14 +199,14 @@
 				TargetAttributes = {
 					504EC3031FED79650016851F = {
 						CreatedOnToolsVersion = 9.2;
+						DevelopmentTeam = Y77KT97ZQW;
 						LastSwiftMigration = 1100;
 						ProvisioningStyle = Automatic;
 					};
-					5A981A1E3074521300BB13E9 = {
-						CreatedOnToolsVersion = 27.0;
-					};
 					5A981A233074521300BB13E9 = {
 						CreatedOnToolsVersion = 27.0;
+						DevelopmentTeam = Y77KT97ZQW;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -245,7 +224,6 @@
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* App */,
-				5A981A1E3074521300BB13E9 /* PadelBloxWatch */,
 				5A981A233074521300BB13E9 /* PadelBloxWatch Watch App */,
 			);
 		};
@@ -264,13 +242,6 @@
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
 				F9B000010000000000000002 /* PrivacyInfo.xcprivacy in Resources */,
 				D3A1B2C3D4E5F6A7B8C9D1E2 /* GoogleService-Info.plist in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		5A981A1D3074521300BB13E9 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -548,52 +519,6 @@
 			};
 			name = Release;
 		};
-		5A981A2F3074521400BB13E9 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 221;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				INFOPLIST_KEY_CFBundleDisplayName = PadelBlox;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.0.7;
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = cl.padelacademy.app.watchkitapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		5A981A303074521400BB13E9 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 221;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				INFOPLIST_KEY_CFBundleDisplayName = PadelBlox;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 3.0.7;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = cl.padelacademy.app.watchkitapp;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
 		5A981A323074521400BB13E9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -604,6 +529,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PadelBloxWatch Watch App/PadelBloxWatch Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 221;
+				DEVELOPMENT_TEAM = Y77KT97ZQW;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -650,6 +576,7 @@
 				CODE_SIGN_ENTITLEMENTS = "PadelBloxWatch Watch App/PadelBloxWatch Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 221;
+				DEVELOPMENT_TEAM = Y77KT97ZQW;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
@@ -710,15 +637,6 @@
 			buildConfigurations = (
 				5A981A323074521400BB13E9 /* Debug */,
 				5A981A333074521400BB13E9 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		5A981A353074521400BB13E9 /* Build configuration list for PBXNativeTarget "PadelBloxWatch" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				5A981A2F3074521400BB13E9 /* Debug */,
-				5A981A303074521400BB13E9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
