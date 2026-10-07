@@ -155,10 +155,12 @@
 				504EC3011FED79650016851F /* Frameworks */,
 				504EC3021FED79650016851F /* Resources */,
 				740003F14B9DAD705357037E /* [CP] Copy Pods Resources */,
+				5A981A313074521400BB13E9 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				5A981A273074521300BB13E9 /* PBXTargetDependency */,
 			);
 			name = App;
 			productName = App;
