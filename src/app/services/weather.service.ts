@@ -12,6 +12,8 @@ export interface WeatherInfo {
   locationName: string;
   isOutdoorGood: boolean;
   badgeText: string;
+  shortBadgeText: string;
+  recommendation?: string;
   badgeClass: 'optimal' | 'rain' | 'wind' | 'hot' | 'cold';
   precipProb?: number;
   windSpeed?: number;
@@ -231,6 +233,8 @@ export class WeatherService {
       locationName,
       isOutdoorGood: assessment.isOutdoorGood,
       badgeText: assessment.badgeText,
+      shortBadgeText: assessment.shortBadgeText,
+      recommendation: assessment.recommendation,
       badgeClass: assessment.badgeClass,
       precipProb,
       windSpeed,
@@ -281,6 +285,8 @@ export class WeatherService {
   private assessPadelConditions(wmoCode: number, tempMax: number, precipProb: number, windSpeed: number): {
     isOutdoorGood: boolean;
     badgeText: string;
+    shortBadgeText: string;
+    recommendation: string;
     badgeClass: 'optimal' | 'rain' | 'wind' | 'hot' | 'cold';
   } {
     // Lluvia o tormenta
@@ -288,7 +294,9 @@ export class WeatherService {
       const pText = precipProb > 0 ? ` (${precipProb}%)` : '';
       return {
         isOutdoorGood: false,
-        badgeText: `⚠️ Riesgo de Lluvia${pText} · Cancha Techada Sugerida`,
+        badgeText: `⚠️ Riesgo de Lluvia${pText}`,
+        shortBadgeText: `⚠️ Lluvia${pText}`,
+        recommendation: 'Cancha Techada Sugerida',
         badgeClass: 'rain'
       };
     }
@@ -297,7 +305,9 @@ export class WeatherService {
     if (windSpeed >= 28) {
       return {
         isOutdoorGood: false,
-        badgeText: `💨 Viento Fuerte (${windSpeed} km/h) · Recomendado Indoor`,
+        badgeText: `💨 Viento Fuerte (${windSpeed} km/h)`,
+        shortBadgeText: `💨 Viento ${windSpeed} km/h`,
+        recommendation: 'Recomendado Indoor',
         badgeClass: 'wind'
       };
     }
@@ -306,7 +316,9 @@ export class WeatherService {
     if (tempMax >= 31) {
       return {
         isOutdoorGood: true,
-        badgeText: `☀️ Calor Intenso (${tempMax}°C) · Hidratación Recomendada`,
+        badgeText: `☀️ Calor Intenso (${tempMax}°C)`,
+        shortBadgeText: `☀️ Calor ${tempMax}°C`,
+        recommendation: 'Hidratación Recomendada',
         badgeClass: 'hot'
       };
     }
@@ -315,7 +327,9 @@ export class WeatherService {
     if (tempMax <= 6) {
       return {
         isOutdoorGood: true,
-        badgeText: `❄️ Clima Frío (${tempMax}°C) · Buen Calentamiento Previo`,
+        badgeText: `❄️ Clima Frío (${tempMax}°C)`,
+        shortBadgeText: `❄️ Frío ${tempMax}°C`,
+        recommendation: 'Calentamiento Previo',
         badgeClass: 'cold'
       };
     }
@@ -323,6 +337,8 @@ export class WeatherService {
     return {
       isOutdoorGood: true,
       badgeText: '🎾 Clima Óptimo para Pádel',
+      shortBadgeText: '🎾 Clima Óptimo',
+      recommendation: 'Ideal para Pistas Outdoor',
       badgeClass: 'optimal'
     };
   }
@@ -361,6 +377,8 @@ export class WeatherService {
       locationName: coords.name,
       isOutdoorGood: true,
       badgeText: '🎾 Clima Óptimo para Pádel',
+      shortBadgeText: '🎾 Clima Óptimo',
+      recommendation: 'Ideal para Pistas Outdoor',
       badgeClass: 'optimal',
       precipProb: 5,
       windSpeed: 12,

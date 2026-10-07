@@ -107,31 +107,39 @@
             </div>
         </div>
 
-        <!-- WEATHER FORECAST CALLOUT (LOCATION-AWARE & REAL-TIME) -->
+        <!-- WEATHER FORECAST CALLOUT (LOCATION-AWARE & REAL-TIME PRO) -->
         <div class="weather-forecast-card" [ngClass]="getWeatherSummary(selectedFecha).badgeClass">
-          <div class="wf-left">
-            <div class="wf-icon-wrap">
-              {{ getWeatherSummary(selectedFecha).icon }}
-            </div>
-            <div class="wf-info">
-              <div class="wf-title-row">
+          <!-- TOP ROW: Icon + Temp + Desc + Status Badge -->
+          <div class="wf-main-row">
+            <div class="wf-condition-group">
+              <div class="wf-icon-wrap">
+                {{ getWeatherSummary(selectedFecha).icon }}
+              </div>
+              <div class="wf-headline">
                 <span class="wf-temp">{{ getWeatherSummary(selectedFecha).temp }}</span>
-                <span class="wf-dot">•</span>
+                <span class="wf-divider">·</span>
                 <span class="wf-desc">{{ getWeatherSummary(selectedFecha).desc }}</span>
               </div>
-              <div class="wf-loc-row">
-                <ion-icon name="location-outline"></ion-icon>
-                <span>{{ getWeatherSummary(selectedFecha).locationName }}</span>
-                <span *ngIf="getWeatherSummary(selectedFecha).tempMax" class="wf-minmax">
-                  (Máx: {{ getWeatherSummary(selectedFecha).tempMax }}° / Mín: {{ getWeatherSummary(selectedFecha).tempMin }}°)
-                </span>
-              </div>
+            </div>
+            <div class="wf-status-pill" [ngClass]="getWeatherSummary(selectedFecha).badgeClass">
+              {{ getWeatherSummary(selectedFecha).shortBadgeText || getWeatherSummary(selectedFecha).badgeText }}
             </div>
           </div>
-          <div class="wf-right">
-            <span class="wf-pill" [ngClass]="getWeatherSummary(selectedFecha).badgeClass">
-              {{ getWeatherSummary(selectedFecha).badgeText }}
-            </span>
+
+          <!-- BOTTOM ROW: Location + Min/Max Temp + Suggestion -->
+          <div class="wf-details-row">
+            <div class="wf-loc-item">
+              <ion-icon name="location-outline"></ion-icon>
+              <span>{{ getWeatherSummary(selectedFecha).locationName }}</span>
+            </div>
+            <div class="wf-meta-group">
+              <span *ngIf="getWeatherSummary(selectedFecha).tempMax" class="wf-minmax">
+                Máx: {{ getWeatherSummary(selectedFecha).tempMax }}° · Mín: {{ getWeatherSummary(selectedFecha).tempMin }}°
+              </span>
+              <span *ngIf="getWeatherSummary(selectedFecha).recommendation" class="wf-rec-chip">
+                {{ getWeatherSummary(selectedFecha).recommendation }}
+              </span>
+            </div>
           </div>
         </div>
 

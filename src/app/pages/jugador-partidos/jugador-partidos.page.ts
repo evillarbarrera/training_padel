@@ -25,7 +25,8 @@ import {
   speedometerOutline, playCircleOutline, trophy, shieldOutline,
   chevronForwardOutline, openOutline, cameraOutline, downloadOutline,
   logoInstagram, logoWhatsapp, colorPaletteOutline, flash, sparkles,
-  arrowRedoOutline, radioOutline, chevronBackOutline, notificationsOutline
+  arrowRedoOutline, radioOutline, chevronBackOutline, notificationsOutline,
+  pulseOutline
 } from 'ionicons/icons';
 import { NavController } from '@ionic/angular';
 
@@ -148,7 +149,8 @@ export class JugadorPartidosPage implements OnInit {
       speedometerOutline, playCircleOutline, trophy, shieldOutline,
       chevronForwardOutline, openOutline, cameraOutline, downloadOutline,
       logoInstagram, logoWhatsapp, colorPaletteOutline, flash, sparkles,
-      arrowRedoOutline, radioOutline, chevronBackOutline, notificationsOutline
+      arrowRedoOutline, radioOutline, chevronBackOutline, notificationsOutline,
+      pulseOutline
     });
   }
 
@@ -179,6 +181,13 @@ export class JugadorPartidosPage implements OnInit {
     this.mysqlService.getMisPartidos().subscribe({
       next: (res: any[]) => {
         this.partidos = (res || []).filter(p => p.estado !== 'Cancelada' && p.estado !== 'Cancelado');
+        this.partidos.forEach(p => {
+          if (p.smartwatch_data && typeof p.smartwatch_data === 'string') {
+            try {
+              p.smartwatch_data = JSON.parse(p.smartwatch_data);
+            } catch (e) {}
+          }
+        });
         this.updateLists();
         this.calculateStats();
 
@@ -210,10 +219,21 @@ export class JugadorPartidosPage implements OnInit {
   }
 
   getProfileImage(url: string | null) {
-    if (!url || url === 'null') return 'assets/avatar.png';
+    if (!url || url === 'null' || url === 'undefined' || url.trim() === '') return 'assets/avatar.png';
     if (url.startsWith('http')) return url;
     const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
     return `${cleanApiUrl}/prd/${url}`;
+  }
+
+  handleAvatarError(event: any) {
+    if (event?.target) {
+      event.target.src = 'assets/avatar.png';
+    }
+  }
+
+  isUserInTeam1(p: any): boolean {
+    if (!p) return true;
+    return (Number(p.usuario_id) === this.userId || Number(p.jugador2_id) === this.userId);
   }
 
   totalMatchesWithSensors = 0;
@@ -495,23 +515,50 @@ export class JugadorPartidosPage implements OnInit {
     }
   }
 
+  setWinsA: number = 0;
+  setWinsB: number = 0;
+
   updateGanadorManual() {
      let winsA = 0;
      let winsB = 0;
 
-     if (this.set1A !== null && this.set1B !== null) {
-        if (this.set1A > this.set1B) winsA++; else if (this.set1B > this.set1A) winsB++;
+     const s1A = this.set1A !== null && this.set1A !== undefined && this.set1A !== ('' as any) ? Number(this.set1A) : null;
+     const s1B = this.set1B !== null && this.set1B !== undefined && this.set1B !== ('' as any) ? Number(this.set1B) : null;
+     const s2A = this.set2A !== null && this.set2A !== undefined && this.set2A !== ('' as any) ? Number(this.set2A) : null;
+     const s2B = this.set2B !== null && this.set2B !== undefined && this.set2B !== ('' as any) ? Number(this.set2B) : null;
+     const s3A = this.set3A !== null && this.set3A !== undefined && this.set3A !== ('' as any) ? Number(this.set3A) : null;
+     const s3B = this.set3B !== null && this.set3B !== undefined && this.set3B !== ('' as any) ? Number(this.set3B) : null;
+
+     if (s1A !== null && s1B !== null) {
+        if (s1A > s1B) winsA++; else if (s1B > s1A) winsB++;
      }
-     if (this.set2A !== null && this.set2B !== null) {
-        if (this.set2A > this.set2B) winsA++; else if (this.set2B > this.set2A) winsB++;
+     if (s2A !== null && s2B !== null) {
+        if (s2A > s2B) winsA++; else if (s2B > s2A) winsB++;
      }
-     if (this.set3A !== null && this.set3B !== null) {
-        if (this.set3A > this.set3B) winsA++; else if (this.set3B > this.set3A) winsB++;
+     if (s3A !== null && s3B !== null) {
+        if (s3A > s3B) winsA++; else if (s3B > s3A) winsB++;
      }
+
+     this.setWinsA = winsA;
+     this.setWinsB = winsB;
 
      if (winsA > winsB) this.idGanador = 1;
      else if (winsB > winsA) this.idGanador = 2;
      else this.idGanador = null;
+  }
+
+  applyScorePreset(s1A: number, s1B: number, s2A: number | null = null, s2B: number | null = null, s3A: number | null = null, s3B: number | null = null) {
+    this.set1A = s1A;
+    this.set1B = s1B;
+    this.set2A = s2A;
+    this.set2B = s2B;
+    this.set3A = s3A;
+    this.set3B = s3B;
+    this.updateGanadorManual();
+  }
+
+  setCategoria(cat: string) {
+    this.categoria = cat;
   }
 
   async saveResult() {
@@ -632,18 +679,25 @@ export class JugadorPartidosPage implements OnInit {
     });
   }
 
-  // SMARTWATCH TELEMETRY MODAL
+  // SMARTWATCH TELEMETRY / MATCH STATS MODAL
   openWatchModal(match: any, event?: Event) {
     if (event) {
       event.stopPropagation();
     }
+    if (match && typeof match.smartwatch_data === 'string') {
+      try {
+        match.smartwatch_data = JSON.parse(match.smartwatch_data);
+      } catch (e) {}
+    }
     this.selectedWatchMatch = match;
     this.showWatchDetailModal = true;
+    this.cdr.detectChanges();
   }
 
   closeWatchModal() {
     this.showWatchDetailModal = false;
     this.selectedWatchMatch = null;
+    this.cdr.detectChanges();
   }
 
   // GLOBAL METRICS & CAREER STATS MODAL

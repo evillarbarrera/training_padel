@@ -5,6 +5,7 @@ import { ActionSheetController } from '@ionic/angular';
 import { MysqlService } from 'src/app/services/mysql.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { EntrenamientoService } from 'src/app/services/entrenamiento.service';
+import { NotificationService } from 'src/app/services/notification.service';
 import {
   IonContent,
   IonFab,
@@ -73,15 +74,13 @@ export class EntrenadorHomePage {
 
 
   constructor(
-
     public router: Router,
     private mysqlService: MysqlService,
     private authService: AuthService,
     private entrenamientoService: EntrenamientoService,
+    private notificationService: NotificationService,
     private actionSheetCtrl: ActionSheetController,
     private ngZone: NgZone,
-
-
   ) {
     addIcons({
       settingsOutline,
@@ -149,6 +148,7 @@ export class EntrenadorHomePage {
 
   ionViewWillEnter() {
     this.loadProfile();
+    this.notificationService.updateTokenForUser();
   }
 
   loadProfile() {

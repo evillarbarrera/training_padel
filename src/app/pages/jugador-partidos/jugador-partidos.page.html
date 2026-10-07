@@ -136,7 +136,7 @@
         No tienes partidos pendientes de resultado.
       </div>
 
-      <div class="match-card-v8" *ngFor="let p of pendientes">
+      <div class="match-card-v8 clickable" *ngFor="let p of pendientes" (click)="openWatchModal(p)">
         <div class="m-header">
           <div class="m-date">
             <span class="d-num">{{ p.fecha | date:'dd' }}</span>
@@ -155,7 +155,7 @@
         </div>
         <div class="m-footer">
           <div class="player-stack" style="flex: 1;">
-             <ion-button size="small" fill="solid" (click)="openResultModal(p)" style="--background: #ccff00; --color: #0f172a; font-weight: 900; --border-radius: 8px; margin: 0; width: 100%; box-shadow: none;">
+             <ion-button size="small" fill="solid" (click)="$event.stopPropagation(); openResultModal(p)" style="--background: #ccff00; --color: #0f172a; font-weight: 900; --border-radius: 8px; margin: 0; width: 100%; box-shadow: none;">
                 REGISTRAR RESULTADO
              </ion-button>
           </div>
@@ -169,7 +169,7 @@
         Aún no tienes historial de partidos
       </div>
 
-      <div class="match-card-v8 clickable" *ngFor="let p of paginatedJugados" (click)="router.navigate(['/partido-detalle', p.id])">
+      <div class="match-card-v8 clickable" *ngFor="let p of paginatedJugados" (click)="openWatchModal(p)">
         <div class="m-header">
           <div class="m-date">
             <span class="d-num">{{ p.fecha | date:'dd' }}</span>
@@ -225,61 +225,166 @@
 
   </div>
 
-  <!-- RESULT MODAL -->
+  <!-- RESULT MODAL (PRO UX REDESIGN) -->
   <ion-modal [isOpen]="showResultModal" (didDismiss)="showResultModal = false" class="premium-result-modal">
     <ng-template>
       <div class="result-modal-container">
         
+        <!-- MODAL HEADER -->
         <div class="modal-header">
-          <h2>Registrar Marcador</h2>
+          <div class="mh-text">
+            <h2>Registrar Marcador</h2>
+            <span class="mh-sub" *ngIf="selectedMatch">
+              {{ selectedMatch.club_nombre }} · {{ selectedMatch.fecha | date:'dd MMM' }} · {{ selectedMatch.hora_inicio?.slice(0,5) }} HRS
+            </span>
+          </div>
           <div class="close-btn" (click)="showResultModal = false">
             <ion-icon name="close-outline"></ion-icon>
           </div>
         </div>
 
         <div class="modal-body">
-          <div class="category-selector">
-            <label>Categoría</label>
-            <div class="select-wrapper">
-              <select [(ngModel)]="categoria">
-                <option value="Amistoso">Amistoso (Práctica)</option>
-                <option value="Iniciacion">Iniciación (Principiante)</option>
-                <option value="Intermedio">Intermedio (Amateur)</option>
-                <option value="Competitivo">Competitivo (Avanzado)</option>
-                <option value="Open">Open (Libre / Pro)</option>
-              </select>
-              <ion-icon name="chevron-down-outline"></ion-icon>
+
+          <!-- CONTEXT DUPLAS STRIP -->
+          <div class="modal-match-strip" *ngIf="selectedMatch">
+            <div class="mms-team">
+              <span class="mms-label">{{ isUserInTeam1(selectedMatch) ? 'MI DUPLA' : 'EQUIPO 1' }}</span>
+              <div class="mms-players">
+                <img [src]="getProfileImage(selectedMatch.jugador1_foto)" (error)="handleAvatarError($event)" class="mms-avatar">
+                <span class="mms-name">{{ selectedMatch.jugador1_nombre || 'Tú' }}</span>
+                <span class="mms-sep">&</span>
+                <img [src]="getProfileImage(selectedMatch.jugador2_foto)" (error)="handleAvatarError($event)" class="mms-avatar">
+                <span class="mms-name">{{ selectedMatch.jugador2_nombre || 'Pareja' }}</span>
+              </div>
+            </div>
+            
+            <div class="mms-vs">VS</div>
+
+            <div class="mms-team">
+              <span class="mms-label">{{ !isUserInTeam1(selectedMatch) ? 'MI DUPLA' : 'RIVALES' }}</span>
+              <div class="mms-players">
+                <img [src]="getProfileImage(selectedMatch.jugador3_foto)" (error)="handleAvatarError($event)" class="mms-avatar">
+                <span class="mms-name">{{ selectedMatch.jugador3_nombre || 'Rival 1' }}</span>
+                <span class="mms-sep">&</span>
+                <img [src]="getProfileImage(selectedMatch.jugador4_foto)" (error)="handleAvatarError($event)" class="mms-avatar">
+                <span class="mms-name">{{ selectedMatch.jugador4_nombre || 'Rival 2' }}</span>
+              </div>
             </div>
           </div>
 
-          <div class="scoreboard-container">
+          <!-- CATEGORY SELECTOR PILLS -->
+          <div class="category-selector-pro">
+            <label class="section-label">Categoría del Encuentro</label>
+            <div class="category-chips-row">
+              <button type="button" class="cat-chip" [class.active]="categoria === 'Amistoso'" (click)="setCategoria('Amistoso')">
+                <span>🎾</span> Amistoso
+              </button>
+              <button type="button" class="cat-chip" [class.active]="categoria === 'Competitivo'" (click)="setCategoria('Competitivo')">
+                <span>🏆</span> Competitivo
+              </button>
+              <button type="button" class="cat-chip" [class.active]="categoria === 'Iniciacion'" (click)="setCategoria('Iniciacion')">
+                <span>🌱</span> Iniciación
+              </button>
+              <button type="button" class="cat-chip" [class.active]="categoria === 'Intermedio'" (click)="setCategoria('Intermedio')">
+                <span>⚡</span> Intermedio
+              </button>
+              <button type="button" class="cat-chip" [class.active]="categoria === 'Open'" (click)="setCategoria('Open')">
+                <span>👑</span> Open
+              </button>
+            </div>
+          </div>
+
+          <!-- SCOREBOARD CONTAINER -->
+          <div class="scoreboard-pro-card">
             <div class="sb-header-row">
-              <div class="sb-col empty"></div>
-              <div class="sb-col">S1</div>
-              <div class="sb-col">S2</div>
-              <div class="sb-col">S3</div>
+              <div class="sb-col-team">EQUIPO</div>
+              <div class="sb-col-set">SET 1</div>
+              <div class="sb-col-set">SET 2</div>
+              <div class="sb-col-set">SET 3</div>
             </div>
 
-            <!-- Nosotros -->
-            <div class="sb-row">
-              <div class="team-label">Tú / Eq.1</div>
-              <div class="score-input"><input type="number" [(ngModel)]="set1A" placeholder="-"></div>
-              <div class="score-input"><input type="number" [(ngModel)]="set2A" placeholder="-"></div>
-              <div class="score-input"><input type="number" [(ngModel)]="set3A" placeholder="-"></div>
+            <!-- Team 1 -->
+            <div class="sb-team-row" [class.winner-row]="idGanador === 1">
+              <div class="sb-team-info">
+                <div class="team-badge" [class.win]="idGanador === 1">
+                  {{ isUserInTeam1(selectedMatch) ? 'MI DUPLA' : 'EQ. 1' }}
+                </div>
+                <span class="team-players-summary">{{ selectedMatch?.jugador1_nombre || 'Tú' }} & {{ selectedMatch?.jugador2_nombre || 'Pareja' }}</span>
+              </div>
+              <div class="sb-inputs-group">
+                <div class="score-input-box">
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="7" [(ngModel)]="set1A" (input)="updateGanadorManual()" placeholder="-">
+                </div>
+                <div class="score-input-box">
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="7" [(ngModel)]="set2A" (input)="updateGanadorManual()" placeholder="-">
+                </div>
+                <div class="score-input-box">
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="7" [(ngModel)]="set3A" (input)="updateGanadorManual()" placeholder="-">
+                </div>
+              </div>
             </div>
 
-            <!-- Rivales -->
-            <div class="sb-row mt-3">
-              <div class="team-label">Rivales</div>
-              <div class="score-input"><input type="number" [(ngModel)]="set1B" placeholder="-"></div>
-              <div class="score-input"><input type="number" [(ngModel)]="set2B" placeholder="-"></div>
-              <div class="score-input"><input type="number" [(ngModel)]="set3B" placeholder="-"></div>
+            <div class="sb-divider-row">
+              <span class="sb-divider-text">VS</span>
+            </div>
+
+            <!-- Team 2 -->
+            <div class="sb-team-row" [class.winner-row]="idGanador === 2">
+              <div class="sb-team-info">
+                <div class="team-badge" [class.win]="idGanador === 2">
+                  {{ !isUserInTeam1(selectedMatch) ? 'MI DUPLA' : 'RIVALES' }}
+                </div>
+                <span class="team-players-summary">{{ selectedMatch?.jugador3_nombre || 'Rival 1' }} & {{ selectedMatch?.jugador4_nombre || 'Rival 2' }}</span>
+              </div>
+              <div class="sb-inputs-group">
+                <div class="score-input-box">
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="7" [(ngModel)]="set1B" (input)="updateGanadorManual()" placeholder="-">
+                </div>
+                <div class="score-input-box">
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="7" [(ngModel)]="set2B" (input)="updateGanadorManual()" placeholder="-">
+                </div>
+                <div class="score-input-box">
+                  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="7" [(ngModel)]="set3B" (input)="updateGanadorManual()" placeholder="-">
+                </div>
+              </div>
+            </div>
+
+            <!-- LIVE OUTCOME BANNER -->
+            <div class="sb-outcome-banner" [class.win]="idGanador === 1" [class.loss]="idGanador === 2" *ngIf="idGanador">
+              <ion-icon [name]="idGanador === 1 ? 'trophy' : 'shield-outline'"></ion-icon>
+              <span>{{ idGanador === 1 ? '¡VICTORIA PARA TU DUPLA! (' + setWinsA + ' - ' + setWinsB + ')' : 'Victoria para los Rivales (' + setWinsB + ' - ' + setWinsA + ')' }}</span>
+            </div>
+            <div class="sb-outcome-banner info" *ngIf="!idGanador && (set1A !== null || set1B !== null)">
+              <ion-icon name="information-circle-outline"></ion-icon>
+              <span>Marcador empatado o incompleto. Asegura que una dupla gane más sets.</span>
             </div>
           </div>
+
+          <!-- QUICK SCORE PRESETS -->
+          <div class="quick-presets-section">
+            <span class="presets-label">⚡ Marcadores Rápidos:</span>
+            <div class="presets-chips">
+              <button type="button" class="preset-pill win" (click)="applyScorePreset(6, 4, 6, 3)">
+                6-4 / 6-3 🏆
+              </button>
+              <button type="button" class="preset-pill win" (click)="applyScorePreset(6, 2, 6, 4)">
+                6-2 / 6-4 🏆
+              </button>
+              <button type="button" class="preset-pill win" (click)="applyScorePreset(6, 3, 4, 6, 7, 6)">
+                6-3 / 4-6 / 7-6 🏆
+              </button>
+              <button type="button" class="preset-pill loss" (click)="applyScorePreset(4, 6, 3, 6)">
+                4-6 / 3-6
+              </button>
+            </div>
+          </div>
+
         </div>
 
+        <!-- FOOTER CTA -->
         <div class="modal-footer">
-          <button class="btn-save-result" (click)="saveResult()">
+          <button class="btn-save-result" (click)="saveResult()" [disabled]="!idGanador || set1A === null || set1B === null">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
             GUARDAR RESULTADO
           </button>
         </div>
@@ -408,6 +513,440 @@
             <ion-icon name="watch-outline"></ion-icon>
             <span>VER LABORATORIO APPLE WATCH & SENSORES</span>
             <ion-icon name="chevron-forward-outline"></ion-icon>
+          </button>
+        </div>
+
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- MATCH STATISTICS & TELEMETRY MODAL -->
+  <ion-modal [isOpen]="showWatchDetailModal" (didDismiss)="closeWatchModal()" class="premium-watch-telemetry-modal">
+    <ng-template>
+      <div class="watch-modal-wrapper" *ngIf="selectedWatchMatch">
+        
+        <!-- MODAL HEADER -->
+        <div class="wm-header">
+          <div class="wm-title-group">
+            <div class="wm-icon-badge">
+              <ion-icon name="analytics-outline"></ion-icon>
+            </div>
+            <div>
+              <h2>Estadísticas del Partido</h2>
+              <span class="wm-sub">{{ selectedWatchMatch.club_nombre }} · {{ selectedWatchMatch.fecha | date:'dd MMM yyyy' }}</span>
+            </div>
+          </div>
+          <button type="button" class="wm-close-btn" (click)="closeWatchModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="wm-scroll-content">
+          
+          <!-- MATCH BANNER (CLUB, CANCHA, HORA) -->
+          <div class="wm-match-banner">
+            <div class="wm-mb-left">
+              <div class="wm-club-title">{{ selectedWatchMatch.club_nombre }}</div>
+              <div class="wm-court-sub">
+                <span *ngIf="selectedWatchMatch.cancha_icono">{{ selectedWatchMatch.cancha_icono }} </span>
+                <span>{{ selectedWatchMatch.cancha_nombre || 'Cancha por asignar' }}</span>
+                <span class="wm-dot">·</span>
+                <span>{{ selectedWatchMatch.hora_inicio?.slice(0,5) }} HRS</span>
+                <span class="wm-dot" *ngIf="selectedWatchMatch.categoria">·</span>
+                <span *ngIf="selectedWatchMatch.categoria">{{ selectedWatchMatch.categoria }}</span>
+              </div>
+            </div>
+            <div class="wm-mb-date">
+              <span class="wm-d-day">{{ selectedWatchMatch.fecha | date:'dd' }}</span>
+              <span class="wm-d-mon">{{ selectedWatchMatch.fecha | date:'MMM' | uppercase }}</span>
+            </div>
+          </div>
+
+          <!-- SCORE HERO CARD -->
+          <div class="wm-score-hero" [class.win-hero]="isWinner(selectedWatchMatch)">
+            <div class="wm-sh-badge" *ngIf="selectedWatchMatch.marcador">
+              <ion-icon [name]="isWinner(selectedWatchMatch) ? 'trophy' : 'shield-outline'"></ion-icon>
+              <span>{{ isWinner(selectedWatchMatch) ? 'VICTORIA' : 'DERROTA' }}</span>
+            </div>
+            <div class="wm-sh-score" *ngIf="selectedWatchMatch.marcador">
+              {{ selectedWatchMatch.marcador }}
+            </div>
+            <div class="wm-sh-score" *ngIf="!selectedWatchMatch.marcador" style="font-size: 18px; color: #94a3b8;">
+              Sin marcador registrado
+            </div>
+            <div class="wm-sh-caption" *ngIf="selectedWatchMatch.id_ganador">
+              {{ selectedWatchMatch.id_ganador === 1 ? 'Ganador: Dupla 1 (Tú / Pareja)' : 'Ganador: Dupla 2 (Rivales)' }}
+            </div>
+          </div>
+
+          <!-- DUPLAS / JUGADORES SECTION (PRO UX) -->
+          <div class="wm-section">
+            <div class="wm-sec-header">
+              <ion-icon name="people-outline" class="sec-icon cyan"></ion-icon>
+              <h3>DUPLAS & JUGADORES</h3>
+            </div>
+            
+            <div class="pro-duplas-roster-card">
+              <!-- DUPLA 1 -->
+              <div class="dupla-side team-1" [class.is-winner]="selectedWatchMatch.id_ganador === 1">
+                <div class="dupla-header">
+                  <span class="team-title">{{ isUserInTeam1(selectedWatchMatch) ? 'MI DUPLA' : 'EQUIPO 1' }}</span>
+                  <span class="winner-pill" *ngIf="selectedWatchMatch.id_ganador === 1">
+                    <ion-icon name="trophy"></ion-icon> WIN
+                  </span>
+                </div>
+                
+                <div class="dupla-player-list">
+                  <div class="player-entry" [class.is-me]="selectedWatchMatch.usuario_id == userId">
+                    <div class="p-avatar-wrap">
+                      <img [src]="getProfileImage(selectedWatchMatch.jugador1_foto)" (error)="handleAvatarError($event)" alt="Jugador 1">
+                      <span class="me-dot" *ngIf="selectedWatchMatch.usuario_id == userId">TÚ</span>
+                    </div>
+                    <div class="p-details">
+                      <span class="p-name">{{ selectedWatchMatch.jugador1_nombre || 'Tú' }}</span>
+                      <span class="p-role">{{ selectedWatchMatch.usuario_id == userId ? 'Capitán (Tú)' : 'Jugador 1' }}</span>
+                    </div>
+                  </div>
+
+                  <div class="player-entry" [class.is-me]="selectedWatchMatch.jugador2_id == userId">
+                    <div class="p-avatar-wrap">
+                      <img [src]="getProfileImage(selectedWatchMatch.jugador2_foto)" (error)="handleAvatarError($event)" alt="Jugador 2">
+                      <span class="me-dot" *ngIf="selectedWatchMatch.jugador2_id == userId">TÚ</span>
+                    </div>
+                    <div class="p-details">
+                      <span class="p-name">{{ selectedWatchMatch.jugador2_nombre || 'Invitado' }}</span>
+                      <span class="p-role">{{ selectedWatchMatch.jugador2_id == userId ? 'Tú' : (selectedWatchMatch.jugador2_nombre ? 'Pareja' : 'Por asignar') }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CENTER VS DIVIDER -->
+              <div class="roster-vs-divider">
+                <div class="vs-line"></div>
+                <div class="vs-circle">VS</div>
+                <div class="vs-line"></div>
+              </div>
+
+              <!-- DUPLA 2 -->
+              <div class="dupla-side team-2" [class.is-winner]="selectedWatchMatch.id_ganador === 2">
+                <div class="dupla-header">
+                  <span class="team-title">{{ !isUserInTeam1(selectedWatchMatch) ? 'MI DUPLA' : 'RIVALES' }}</span>
+                  <span class="winner-pill" *ngIf="selectedWatchMatch.id_ganador === 2">
+                    <ion-icon name="trophy"></ion-icon> WIN
+                  </span>
+                </div>
+                
+                <div class="dupla-player-list">
+                  <div class="player-entry" [class.is-me]="selectedWatchMatch.jugador3_id == userId">
+                    <div class="p-avatar-wrap">
+                      <img [src]="getProfileImage(selectedWatchMatch.jugador3_foto)" (error)="handleAvatarError($event)" alt="Jugador 3">
+                      <span class="me-dot" *ngIf="selectedWatchMatch.jugador3_id == userId">TÚ</span>
+                    </div>
+                    <div class="p-details">
+                      <span class="p-name">{{ selectedWatchMatch.jugador3_nombre || 'Invitado' }}</span>
+                      <span class="p-role">{{ selectedWatchMatch.jugador3_id == userId ? 'Tú' : (selectedWatchMatch.jugador3_nombre ? 'Rival' : 'Por asignar') }}</span>
+                    </div>
+                  </div>
+
+                  <div class="player-entry" [class.is-me]="selectedWatchMatch.jugador4_id == userId">
+                    <div class="p-avatar-wrap">
+                      <img [src]="getProfileImage(selectedWatchMatch.jugador4_foto)" (error)="handleAvatarError($event)" alt="Jugador 4">
+                      <span class="me-dot" *ngIf="selectedWatchMatch.jugador4_id == userId">TÚ</span>
+                    </div>
+                    <div class="p-details">
+                      <span class="p-name">{{ selectedWatchMatch.jugador4_nombre || 'Invitado' }}</span>
+                      <span class="p-role">{{ selectedWatchMatch.jugador4_id == userId ? 'Tú' : (selectedWatchMatch.jugador4_nombre ? 'Rival' : 'Por asignar') }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TELEMETRÍA / SMARTWATCH STATS (IF SMARTWATCH DATA AVAILABLE) -->
+          <ng-container *ngIf="selectedWatchMatch.smartwatch_data">
+            
+            <!-- DOMINANT STROKE HERO -->
+            <div class="wm-section">
+              <div class="wm-sec-header">
+                <ion-icon name="sparkles" class="sec-icon volt"></ion-icon>
+                <h3>PERFIL DOMINANTE DEL PARTIDO</h3>
+              </div>
+              <div class="stroke-dominant-box" [ngClass]="getDominantStroke(selectedWatchMatch).cssClass">
+                <div class="sdb-icon">
+                  <ion-icon [name]="getDominantStroke(selectedWatchMatch).icon"></ion-icon>
+                </div>
+                <div class="sdb-info">
+                  <span class="sdb-title">{{ getDominantStroke(selectedWatchMatch).label }}</span>
+                  <span class="sdb-sub">Mayor porcentaje de definiciones e impactos en el partido</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4 METRICS GRID -->
+            <div class="wm-section">
+              <div class="wm-sec-header">
+                <ion-icon name="speedometer-outline" class="sec-icon volt"></ion-icon>
+                <h3>MÉTRICAS DE RENDIMIENTO</h3>
+              </div>
+
+              <div class="wm-metrics-pair">
+                <div class="wm-stat-card highlight-volt">
+                  <div class="wm-sc-head">
+                    <ion-icon name="flash"></ion-icon>
+                    <span>SMASH MÁXIMO</span>
+                  </div>
+                  <div class="wm-sc-val">
+                    {{ selectedWatchMatch.smartwatch_data.velocidad_max_kmh ? (selectedWatchMatch.smartwatch_data.velocidad_max_kmh | number:'1.0-0') : '0' }}
+                    <span class="wm-sc-unit">km/h</span>
+                  </div>
+                  <div class="wm-sc-foot">Velocidad pico de remate</div>
+                </div>
+
+                <div class="wm-stat-card">
+                  <div class="wm-sc-head">
+                    <ion-icon name="fitness-outline"></ion-icon>
+                    <span>TOTAL IMPACTOS</span>
+                  </div>
+                  <div class="wm-sc-val">
+                    {{ getTotalStrokes(selectedWatchMatch) }}
+                  </div>
+                  <div class="wm-sc-foot">Golpes registrados</div>
+                </div>
+              </div>
+
+              <div class="wm-bio-grid" style="margin-top: 12px;">
+                <div class="wm-bio-card">
+                  <div class="wm-bc-icon orange">
+                    <ion-icon name="flame-outline"></ion-icon>
+                  </div>
+                  <div class="wm-bc-val">
+                    {{ selectedWatchMatch.smartwatch_data.calorias ? (selectedWatchMatch.smartwatch_data.calorias | number:'1.0-0') : '0' }}
+                    <small>kcal</small>
+                  </div>
+                  <div class="wm-bc-lbl">Calorías</div>
+                </div>
+
+                <div class="wm-bio-card">
+                  <div class="wm-bc-icon red">
+                    <ion-icon name="heart-outline"></ion-icon>
+                  </div>
+                  <div class="wm-bc-val">
+                    {{ selectedWatchMatch.smartwatch_data.fc_promedio || 0 }}
+                    <small>bpm</small>
+                  </div>
+                  <div class="wm-bc-lbl">Cardio Prom.</div>
+                </div>
+
+                <div class="wm-bio-card">
+                  <div class="wm-bc-icon red-dark">
+                    <ion-icon name="pulse-outline"></ion-icon>
+                  </div>
+                  <div class="wm-bc-val">
+                    {{ selectedWatchMatch.smartwatch_data.fc_maxima || selectedWatchMatch.smartwatch_data.fc_promedio || 0 }}
+                    <small>bpm</small>
+                  </div>
+                  <div class="wm-bc-lbl">Cardio Máx.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STROKE DISTRIBUTION BREAKDOWN -->
+            <div class="wm-section" *ngIf="getTotalStrokes(selectedWatchMatch) > 0">
+              <div class="wm-sec-header">
+                <ion-icon name="analytics-outline" class="sec-icon cyan"></ion-icon>
+                <h3>DISTRIBUCIÓN DE GOLPES</h3>
+              </div>
+
+              <div class="wm-strokes-list">
+                <!-- Smash -->
+                <div class="wm-stroke-row-v8" *ngIf="getSmashCount(selectedWatchMatch) > 0">
+                  <div class="wm-sr-header">
+                    <div class="wm-sr-type">
+                      <span class="wm-si-badge smash">SMASH</span>
+                      <span class="wm-si-name">Remate Ofensivo</span>
+                    </div>
+                    <div class="wm-sr-stats">
+                      <span class="wm-sr-count">{{ getSmashCount(selectedWatchMatch) }}</span>
+                      <span class="wm-sr-pct">({{ getSmashPercent(selectedWatchMatch) }}%)</span>
+                    </div>
+                  </div>
+                  <div class="wm-bar-track">
+                    <div class="wm-bar-fill smash" [style.width.%]="getSmashPercent(selectedWatchMatch)"></div>
+                  </div>
+                </div>
+
+                <!-- Bandeja -->
+                <div class="wm-stroke-row-v8" *ngIf="getBandejaCount(selectedWatchMatch) > 0">
+                  <div class="wm-sr-header">
+                    <div class="wm-sr-type">
+                      <span class="wm-si-badge bandeja">BANDEJA</span>
+                      <span class="wm-si-name">Control de Red</span>
+                    </div>
+                    <div class="wm-sr-stats">
+                      <span class="wm-sr-count">{{ getBandejaCount(selectedWatchMatch) }}</span>
+                      <span class="wm-sr-pct">({{ getBandejaPercent(selectedWatchMatch) }}%)</span>
+                    </div>
+                  </div>
+                  <div class="wm-bar-track">
+                    <div class="wm-bar-fill bandeja" [style.width.%]="getBandejaPercent(selectedWatchMatch)"></div>
+                  </div>
+                </div>
+
+                <!-- Vibora -->
+                <div class="wm-stroke-row-v8" *ngIf="getViboraCount(selectedWatchMatch) > 0">
+                  <div class="wm-sr-header">
+                    <div class="wm-sr-type">
+                      <span class="wm-si-badge vibora">VÍBORA</span>
+                      <span class="wm-si-name">Aceleración Lateral</span>
+                    </div>
+                    <div class="wm-sr-stats">
+                      <span class="wm-sr-count">{{ getViboraCount(selectedWatchMatch) }}</span>
+                      <span class="wm-sr-pct">({{ getViboraPercent(selectedWatchMatch) }}%)</span>
+                    </div>
+                  </div>
+                  <div class="wm-bar-track">
+                    <div class="wm-bar-fill vibora" [style.width.%]="getViboraPercent(selectedWatchMatch)"></div>
+                  </div>
+                </div>
+
+                <!-- Control / Otros -->
+                <div class="wm-stroke-row-v8" *ngIf="getOtherPercent(selectedWatchMatch) > 0">
+                  <div class="wm-sr-header">
+                    <div class="wm-sr-type">
+                      <span class="wm-si-badge other">CONTROL</span>
+                      <span class="wm-si-name">Fondo y Voleas</span>
+                    </div>
+                    <div class="wm-sr-stats">
+                      <span class="wm-sr-count">{{ getOtherStrokesCount(selectedWatchMatch) }}</span>
+                      <span class="wm-sr-pct">({{ getOtherPercent(selectedWatchMatch) }}%)</span>
+                    </div>
+                  </div>
+                  <div class="wm-bar-track">
+                    <div class="wm-bar-fill other" [style.width.%]="getOtherPercent(selectedWatchMatch)"></div>
+                  </div>
+                </div>
+
+                <!-- Total Row -->
+                <div class="wm-stroke-item total">
+                  <div class="wm-si-left">
+                    <span class="wm-si-badge total">TOTAL</span>
+                    <span class="wm-si-name">Golpes del Partido</span>
+                  </div>
+                  <span class="wm-si-count bold">{{ getTotalStrokes(selectedWatchMatch) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- DEVICE SYNC CARD -->
+            <div class="wm-device-card">
+              <div class="wm-dc-left">
+                <ion-icon name="watch-outline"></ion-icon>
+                <div>
+                  <div class="wm-dc-name">{{ selectedWatchMatch.smartwatch_data.dispositivo || 'Apple Watch' }}</div>
+                  <div class="wm-dc-status">Telemetría Biomecánica Sincronizada</div>
+                </div>
+              </div>
+              <div class="wm-dc-badge">CONECTADO</div>
+            </div>
+
+          </ng-container>
+
+          <!-- IF NO SMARTWATCH DATA -->
+          <div class="no-sensor-box" *ngIf="!selectedWatchMatch.smartwatch_data">
+            <div class="nsb-icon">
+              <ion-icon name="watch-outline"></ion-icon>
+            </div>
+            <h4>Marcador Manual Registrado</h4>
+            <p>Este partido fue anotado sin telemetría de sensores. Juega tus próximos partidos con tu <strong>Apple Watch</strong> para registrar velocidad de smash, frecuencia cardíaca y desglose de golpes.</p>
+            <button class="nsb-btn" (click)="closeWatchModal(); router.navigate(['/smartwatch-stats'])">
+              <ion-icon name="analytics-outline"></ion-icon>
+              <span>Ver Centro Apple Watch</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- MODAL FOOTER -->
+        <div class="wm-footer">
+          <button class="wm-btn-register" (click)="closeWatchModal(); openResultModal(selectedWatchMatch)" *ngIf="!selectedWatchMatch.marcador">
+            <ion-icon name="create-outline"></ion-icon>
+            <span>Registrar Marcador del Partido</span>
+          </button>
+
+          <button class="wm-btn-story" (click)="openStoryModal(selectedWatchMatch)" *ngIf="selectedWatchMatch.marcador">
+            <ion-icon name="sparkles"></ion-icon>
+            <span>Crear Match Story (Instagram / WhatsApp) 📸</span>
+          </button>
+          
+          <button class="wm-btn-main" (click)="closeWatchModal(); router.navigate(['/partido-detalle', selectedWatchMatch.id])">
+            <ion-icon name="open-outline"></ion-icon>
+            <span>Ver Ficha de Reserva Completa</span>
+          </button>
+        </div>
+
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- SOCIAL MATCH STORY GENERATOR MODAL -->
+  <ion-modal [isOpen]="showStoryModal" (didDismiss)="closeStoryModal()" class="premium-story-modal">
+    <ng-template>
+      <div class="story-modal-wrapper">
+        
+        <!-- MODAL HEADER -->
+        <div class="sm-header">
+          <div class="sm-title-group">
+            <div class="sm-icon-badge">
+              <ion-icon name="sparkles"></ion-icon>
+            </div>
+            <div>
+              <h2>Match Story Generator</h2>
+              <span class="sm-sub">Tarjeta oficial 9:16 con telemetría biomecánica</span>
+            </div>
+          </div>
+          <button class="sm-close-btn" (click)="closeStoryModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <!-- THEME SELECTOR PILLS -->
+        <div class="sm-theme-selector">
+          <div class="theme-pill" [class.active]="storyTheme === 'dark'" (click)="setStoryTheme('dark')">
+            <span class="t-dot dark"></span>
+            <span>Stealth Dark</span>
+          </div>
+          <div class="theme-pill" [class.active]="storyTheme === 'volt'" (click)="setStoryTheme('volt')">
+            <span class="t-dot volt"></span>
+            <span>Neon Volt</span>
+          </div>
+          <div class="theme-pill" [class.active]="storyTheme === 'ocean'" (click)="setStoryTheme('ocean')">
+            <span class="t-dot ocean"></span>
+            <span>Deep Ocean</span>
+          </div>
+        </div>
+
+        <!-- CANVAS PREVIEW CONTAINER -->
+        <div class="sm-preview-container">
+          <div class="sm-loading-overlay" *ngIf="isGeneratingStory">
+            <div class="pulse-spinner"></div>
+            <span>Generando diseño en alta definición...</span>
+          </div>
+          <div class="sm-story-card-frame" *ngIf="storyImageUrl">
+            <img [src]="storyImageUrl" alt="Match Story Preview" class="sm-story-img" />
+          </div>
+        </div>
+
+        <!-- MODAL ACTION FOOTER -->
+        <div class="sm-footer">
+          <button class="sm-btn-share" (click)="shareStory()" [disabled]="isGeneratingStory || !storyImageUrl">
+            <ion-icon name="share-outline"></ion-icon>
+            COMPARTIR EN REDES SOCIALES
+          </button>
+          <button class="sm-btn-download" (click)="downloadStory()" [disabled]="isGeneratingStory || !storyImageUrl">
+            <ion-icon name="download-outline"></ion-icon>
+            DESCARGAR HD (PNG)
           </button>
         </div>
 

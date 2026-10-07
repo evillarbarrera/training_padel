@@ -364,7 +364,7 @@ export class NotificationService {
   }
 
   /**
-   * Forzar la actualización del token para el usuario actual (usado tras login)
+   * Forzar la actualización del token para el usuario actual (usado tras login o carga de vistas)
    */
   async updateTokenForUser(): Promise<void> {
     const userId = Number(localStorage.getItem('userId'));
@@ -373,15 +373,16 @@ export class NotificationService {
     }
     const token = localStorage.getItem('fcm_token');
 
+    // 1. Sincronizar token en caché con el userId actual si existe
     if (userId && token) {
       this.mysqlService.guardarTokenFCM(userId, token).subscribe({
         next: () => console.log('Token vinculado al usuario correctamente'),
         error: (err) => console.error('Error vinculando token:', err)
       });
-    } else {
-      // Si el token aún no está en localStorage (ej. recién reinstalado), re-inicializar messaging
-      this.initializeMessaging();
     }
+
+    // 2. Re-inicializar messaging para solicitar y validar token fresco con Apple APNs / Firebase
+    await this.initializeMessaging();
   }
 
   /**

@@ -998,6 +998,8 @@ export class ClubesReservarPage implements OnInit {
       locationName: coords.name || targetClub?.comuna || 'Machalí',
       isOutdoorGood: true,
       badgeText: '🎾 Clima Óptimo para Pádel',
+      shortBadgeText: '🎾 Clima Óptimo',
+      recommendation: 'Ideal para Pistas Outdoor',
       badgeClass: 'optimal',
       isLive: false
     };
