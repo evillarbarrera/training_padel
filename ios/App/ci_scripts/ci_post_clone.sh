@@ -41,28 +41,28 @@ fi
 echo "--- Using PROJECT_ROOT: $PROJECT_ROOT ---"
 cd "$PROJECT_ROOT"
 
-# 3. Detección / Instalación Rápida de Node.js 20+
-export PATH="/opt/homebrew/bin:/opt/homebrew/opt/node@22/bin:/opt/homebrew/opt/node@20/bin:/usr/local/bin:/usr/local/opt/node@22/bin:/usr/local/opt/node@20/bin:$PATH"
+# 3. Detección / Instalación Rápida de Node.js 22 LTS (Requerido por Angular 20)
+export PATH="/opt/homebrew/bin:/opt/homebrew/opt/node@22/bin:/usr/local/bin:/usr/local/opt/node@22/bin:$PATH"
 
 NEED_NODE=false
 if ! command -v node >/dev/null 2>&1; then
     NEED_NODE=true
 else
     NODE_MAJOR=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
-    if [ "$NODE_MAJOR" -lt 20 ]; then
+    if [ "$NODE_MAJOR" -lt 22 ]; then
         NEED_NODE=true
     fi
 fi
 
 if [ "$NEED_NODE" = true ]; then
-    echo "--- Installing Node.js standalone binary (Fast & Zero dependencies)... ---"
+    echo "--- Installing Node.js 22 LTS standalone binary... ---"
     ARCH=$(uname -m)
     if [ "$ARCH" = "arm64" ]; then
         NODE_DIST="darwin-arm64"
     else
         NODE_DIST="darwin-x64"
     fi
-    NODE_TAG="v20.18.0"
+    NODE_TAG="v22.14.0"
     mkdir -p /tmp/node_standalone
     
     if curl -fsSL --retry 3 "https://nodejs.org/dist/${NODE_TAG}/node-${NODE_TAG}-${NODE_DIST}.tar.gz" -o /tmp/node.tar.gz; then
@@ -70,8 +70,8 @@ if [ "$NEED_NODE" = true ]; then
         export PATH="/tmp/node_standalone/bin:$PATH"
     elif command -v brew >/dev/null 2>&1; then
         echo "--- Fallback: Installing Node via Homebrew ---"
-        brew install node@20 || brew install node
-        NODE_PREFIX=$(brew --prefix node@20 2>/dev/null || brew --prefix node 2>/dev/null || echo "")
+        brew install node@22 || brew install node
+        NODE_PREFIX=$(brew --prefix node@22 2>/dev/null || brew --prefix node 2>/dev/null || echo "")
         if [ -n "$NODE_PREFIX" ]; then
             export PATH="$NODE_PREFIX/bin:$PATH"
         fi
