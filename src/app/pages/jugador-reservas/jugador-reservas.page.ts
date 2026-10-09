@@ -11,8 +11,9 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { addIcons } from 'ionicons';
 import { settingsOutline, homeOutline, calendarOutline, logOutOutline, peopleOutline, locationOutline, searchOutline, closeOutline, checkmarkCircleOutline, personOutline, mailOutline, addOutline, callOutline, mapOutline, warningOutline } from 'ionicons/icons';
-import { chevronBackOutline, ticketOutline, tennisballOutline } from 'ionicons/icons';
+import { chevronBackOutline, ticketOutline, tennisballOutline, watchOutline, flashOutline, analyticsOutline, flameOutline, heartOutline } from 'ionicons/icons';
 import { NotificationService } from '../../services/notification.service';
+import { SmartwatchService, ScheduledMatchItem } from '../../services/smartwatch.service';
 import { environment } from '../../../environments/environment';
 
 import { PadelLoaderComponent } from '../../components/padel-loader/padel-loader.component';
@@ -139,6 +140,7 @@ export class JugadorReservasPage implements OnInit {
     private mysqlService: MysqlService,
     private packsService: PacksService,
     private packAlumnoService: PackAlumnoService,
+    public smartwatchService: SmartwatchService,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
     private loadingCtrl: LoadingController,
@@ -165,7 +167,61 @@ export class JugadorReservasPage implements OnInit {
       mapOutline,
       warningOutline,
       ticketOutline,
-      tennisballOutline
+      tennisballOutline,
+      watchOutline,
+      flashOutline,
+      analyticsOutline,
+      flameOutline,
+      heartOutline
+    });
+  }
+
+  get watchDeviceName(): string {
+    return this.smartwatchService.watchDeviceName;
+  }
+
+  async sincronizarEntrenamientoConReloj(reserva: any, event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+    const rId = Number(reserva.reserva_id || reserva.id || 0);
+    const matchItem: ScheduledMatchItem = {
+      id: 'entrena_' + rId,
+      reserva_id: rId,
+      tipo_origen: 'entrenamiento',
+      tipo_label: reserva.tipo === 'grupal' ? 'Clase Grupal' : 'Entrenamiento',
+      tipo_actividad: 'entrenamiento',
+      entrenador_nombre: reserva.entrenador_nombre || 'Coach',
+      club_id: Number(reserva.club_id || 1),
+      club_nombre: reserva.club_nombre || 'Club PadelBlox',
+      cancha_nombre: reserva.pack_nombre || 'Pista de Entrenamiento',
+      fecha: reserva.fecha,
+      hora_inicio: (reserva.hora_inicio || '18:00').slice(0, 5),
+      hora_fin: (reserva.hora_fin || '19:00').slice(0, 5),
+      horario_texto: `${(reserva.hora_inicio || '').slice(0, 5)} - ${(reserva.hora_fin || '').slice(0, 5)} hrs`,
+      pareja1: `Coach: ${reserva.entrenador_nombre || 'Coach'}`,
+      pareja2: 'Sesión Técnica',
+      punto_oro: false,
+      sets: 1,
+      es_hoy: true
+    };
+
+    await this.smartwatchService.syncMatchesToWatch([matchItem], this.jugadorNombre);
+
+    const toast = await this.toastCtrl.create({
+      message: `✓ ¡Entrenamiento sincronizado con tu ${this.watchDeviceName}! Ábrelo en tu reloj para registrar tu biomecánica.`,
+      duration: 3500,
+      position: 'bottom',
+      color: 'success'
+    });
+    await toast.present();
+  }
+
+  verEstadisticasReloj(reserva: any, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.router.navigate(['/smartwatch-stats'], {
+      queryParams: {
+        reserva_id: reserva.reserva_id || reserva.id,
+        tipo: 'entrenamiento'
+      }
     });
   }
 

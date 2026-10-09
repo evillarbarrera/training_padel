@@ -182,9 +182,10 @@ export class MatchStoryService {
     ctx.lineWidth = 2;
     ctx.stroke();
 
+    const deviceName = (data.smartwatch_data?.dispositivo || 'SMARTWATCH').toUpperCase();
     ctx.fillStyle = '#06b6d4';
     ctx.font = '800 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText('⚡ APPLE WATCH ULTRA', rightPillX + 24, pillY + 40);
+    ctx.fillText(`⚡ ${deviceName} TELEMETRY`, rightPillX + 24, pillY + 40);
 
     ctx.restore();
   }

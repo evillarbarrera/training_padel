@@ -17,6 +17,8 @@ export interface ScheduledMatchItem {
   liga_partido_id?: number;
   tipo_origen: string;
   tipo_label: string;
+  tipo_actividad?: string; // 'partido', 'entrenamiento', 'clase'
+  entrenador_nombre?: string;
   club_id: number;
   club_nombre: string;
   cancha_nombre: string;
@@ -111,6 +113,25 @@ export class SmartwatchService {
   public upcomingMatches$ = new BehaviorSubject<ScheduledMatchItem[]>([]);
   public activeMatch$ = new BehaviorSubject<ScheduledMatchItem | null>(null);
 
+  get isAndroid(): boolean {
+    return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
+  }
+
+  get isIos(): boolean {
+    return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
+  }
+
+  get watchDeviceName(): string {
+    if (this.isIos) return 'Apple Watch';
+    return 'Smartwatch';
+  }
+
+  get watchPlatformName(): string {
+    if (this.isIos) return 'Apple Watch';
+    if (this.isAndroid) return 'Wear OS';
+    return 'Smartwatch';
+  }
+
   constructor(private http: HttpClient) {
     this.initPluginListeners();
   }
@@ -187,7 +208,17 @@ export class SmartwatchService {
       this.activeMatch$.next(matches[0]);
     }
 
-    if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios') {
+    try {
+      localStorage.setItem('padelblox_smartwatch_matches', JSON.stringify({
+        usuario_nombre: userName,
+        proximos_partidos: matches,
+        timestamp: Date.now()
+      }));
+    } catch (e) {
+      console.warn('Error guardando en localStorage para smartwatch:', e);
+    }
+
+    if (this.isIos) {
       try {
         await PadelBloxWatch.syncUpcomingMatches({
           usuario_nombre: userName,
@@ -197,6 +228,9 @@ export class SmartwatchService {
       } catch (err) {
         console.error('Error enviando partidos a Apple Watch:', err);
       }
+    } else if (this.isAndroid) {
+      console.log('[Smartwatch] Partidos listos para sincronización con Android Smartwatch (Wear OS)');
+      return true;
     }
     return true;
   }
@@ -264,6 +298,11 @@ export class SmartwatchService {
 
   getMatchStats(ligaPartidoId: number): Observable<any> {
     const url = `${this.api}/smartwatch/get_stats.php?liga_partido_id=${ligaPartidoId}`;
+    return this.http.get(url, { headers: this.getHeaders() });
+  }
+
+  getReservaStats(reservaId: number): Observable<any> {
+    const url = `${this.api}/smartwatch/get_stats.php?reserva_id=${reservaId}`;
     return this.http.get(url, { headers: this.getHeaders() });
   }
 

@@ -47,7 +47,7 @@
     <div class="lcc-header">
       <div class="lcc-badge">
         <span class="pulse-red-dot"></span>
-        <span>EN DIRECTO · APPLE WATCH</span>
+        <span>EN DIRECTO · {{ watchDeviceName | uppercase }}</span>
       </div>
       <div class="lcc-live-label">
         <ion-icon name="radio-outline"></ion-icon>
@@ -501,7 +501,7 @@
 
             <div class="gdc-empty-box" *ngIf="globalTotalGolpes === 0" style="padding: 16px 0; text-align: center; color: #94a3b8; font-size: 13px;">
               <ion-icon name="watch-outline" style="font-size: 26px; color: #ccff00; margin-bottom: 6px; display: block; margin-inline: auto;"></ion-icon>
-              <span>Aún no hay golpes registrados. Sincroniza tus partidos con Apple Watch para visualizar tu desglose biomecánico real.</span>
+              <span>Aún no hay golpes registrados. Sincroniza tus partidos con {{ watchDeviceName }} para visualizar tu desglose biomecánico real.</span>
             </div>
           </div>
 
@@ -511,7 +511,7 @@
         <div class="gmm-footer">
           <button class="gmm-btn-smartwatch" (click)="closeGlobalMetricsModal(); router.navigate(['/smartwatch-stats'])">
             <ion-icon name="watch-outline"></ion-icon>
-            <span>VER LABORATORIO APPLE WATCH & SENSORES</span>
+            <span>VER LABORATORIO {{ watchDeviceName | uppercase }} & SENSORES</span>
             <ion-icon name="chevron-forward-outline"></ion-icon>
           </button>
         </div>
@@ -844,7 +844,7 @@
               <div class="wm-dc-left">
                 <ion-icon name="watch-outline"></ion-icon>
                 <div>
-                  <div class="wm-dc-name">{{ selectedWatchMatch.smartwatch_data.dispositivo || 'Apple Watch' }}</div>
+                  <div class="wm-dc-name">{{ selectedWatchMatch.smartwatch_data.dispositivo || watchDeviceName }}</div>
                   <div class="wm-dc-status">Telemetría Biomecánica Sincronizada</div>
                 </div>
               </div>
@@ -859,10 +859,10 @@
               <ion-icon name="watch-outline"></ion-icon>
             </div>
             <h4>Marcador Manual Registrado</h4>
-            <p>Este partido fue anotado sin telemetría de sensores. Juega tus próximos partidos con tu <strong>Apple Watch</strong> para registrar velocidad de smash, frecuencia cardíaca y desglose de golpes.</p>
+            <p>Este partido fue anotado sin telemetría de sensores. Juega tus próximos partidos con tu <strong>{{ watchDeviceName }}</strong> para registrar velocidad de smash, frecuencia cardíaca y desglose de golpes.</p>
             <button class="nsb-btn" (click)="closeWatchModal(); router.navigate(['/smartwatch-stats'])">
               <ion-icon name="analytics-outline"></ion-icon>
-              <span>Ver Centro Apple Watch</span>
+              <span>Ver Centro {{ watchDeviceName }}</span>
             </button>
           </div>
 

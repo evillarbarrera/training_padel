@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, NavController, ToastController } from '@ionic/angular';
+import { ActivatedRoute } from '@angular/router';
 import { SmartwatchService, SmartwatchSessionSummary, SmartwatchStatus, ScheduledMatchItem } from '../../services/smartwatch.service';
 import { MatchStoryService } from '../../services/match-story.service';
 import { NotificationService } from '../../services/notification.service';
@@ -33,12 +34,17 @@ export class SmartwatchStatsPage implements OnInit {
   activeTab: 'resumen' | 'reservas' | 'historial' | 'conexion' = 'reservas';
   metricsSubTab: 'general' | 'golpes' | 'cardio' = 'general';
 
+  // Filtros de Actividad (Partidos vs Entrenamientos)
+  filtroActividad: 'todos' | 'partidos' | 'entrenamientos' = 'todos';
+  filtroHistorial: 'todos' | 'partidos' | 'entrenamientos' = 'todos';
+  reservaIdFiltro: number | null = null;
+
   // Partidos y Reservas
   proximosPartidos: ScheduledMatchItem[] = [];
   selectedMatch: ScheduledMatchItem | null = null;
   isSyncingWatch: boolean = false;
 
-  // Modo Simulador de Apple Watch en la App Móvil
+  // Modo Simulador de Smartwatch en la App Móvil
   watchPreviewScreen: 'home' | 'picker' | 'scoreboard' = 'home';
   previewScoreT1: string = '30';
   previewScoreT2: string = '15';
@@ -47,10 +53,43 @@ export class SmartwatchStatsPage implements OnInit {
   previewServingTeam: number = 1;
   previewLastSpeed: number = 112;
 
+  get watchDeviceName(): string {
+    return this.smartwatchService.watchDeviceName;
+  }
+
+  get watchBrand(): string {
+    return this.smartwatchService.watchPlatformName;
+  }
+
+  get isAndroid(): boolean {
+    return this.smartwatchService.isAndroid;
+  }
+
+  get proximosFiltrados(): ScheduledMatchItem[] {
+    if (this.filtroActividad === 'entrenamientos') {
+      return this.proximosPartidos.filter(p => p.tipo_actividad === 'entrenamiento' || p.tipo_origen === 'entrenamiento');
+    }
+    if (this.filtroActividad === 'partidos') {
+      return this.proximosPartidos.filter(p => p.tipo_actividad !== 'entrenamiento' && p.tipo_origen !== 'entrenamiento');
+    }
+    return this.proximosPartidos;
+  }
+
+  get sesionesFiltradas(): any[] {
+    if (this.filtroHistorial === 'entrenamientos') {
+      return this.sesiones.filter(s => s.tipo_actividad === 'entrenamiento' || s.tipo_actividad === 'clase');
+    }
+    if (this.filtroHistorial === 'partidos') {
+      return this.sesiones.filter(s => s.tipo_actividad === 'partido' || s.tipo_actividad === 'libre' || !s.tipo_actividad);
+    }
+    return this.sesiones;
+  }
+
   constructor(
     private smartwatchService: SmartwatchService,
     private matchStoryService: MatchStoryService,
     private notificationService: NotificationService,
+    private route: ActivatedRoute,
     public navCtrl: NavController,
     private toastCtrl: ToastController
   ) {}
@@ -58,7 +97,7 @@ export class SmartwatchStatsPage implements OnInit {
   ngOnInit(): void {
     this.loadUser();
     this.checkStatus();
-    this.loadData();
+    this.checkQueryParams();
     this.loadUpcomingMatches();
   }
 
@@ -104,6 +143,57 @@ export class SmartwatchStatsPage implements OnInit {
 
   async checkStatus(): Promise<void> {
     this.watchStatus = await this.smartwatchService.checkWatchConnection();
+  }
+
+  checkQueryParams(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params && params['reserva_id']) {
+        const rId = Number(params['reserva_id']);
+        if (rId && !isNaN(rId)) {
+          this.reservaIdFiltro = rId;
+          this.cargarEstadisticasReserva(rId);
+          return;
+        }
+      }
+      this.loadData();
+    });
+  }
+
+  cargarEstadisticasReserva(reservaId: number): void {
+    this.loading = true;
+    this.smartwatchService.getReservaStats(reservaId).subscribe({
+      next: (res) => {
+        this.loading = false;
+        if (res && res.success && res.sesion) {
+          this.activeTab = 'resumen';
+          this.selectedSession = res.sesion;
+          this.resumenAcumulado = {
+            total_sesiones: 1,
+            total_golpes: res.sesion.total_golpes || 0,
+            record_velocidad_kmh: res.sesion.velocidad_max_kmh || 0,
+            velocidad_promedio_general: res.sesion.velocidad_promedio_kmh || 0,
+            total_calorias: res.sesion.calorias_quemadas || 0,
+            fc_promedio_general: res.sesion.fc_promedio || 0,
+            fc_maxima_historica: res.sesion.fc_maxima || 0,
+            total_segundos_jugados: res.sesion.duracion_segundos || 0,
+            total_smash: res.sesion.smash_count || 0,
+            total_bandejas: res.sesion.bandeja_count || 0,
+            total_viboras: res.sesion.vibora_count || 0,
+            total_voleas: res.sesion.volea_count || 0,
+            total_drives: res.sesion.drive_count || 0,
+            total_reves: res.sesion.reves_count || 0,
+            total_globos: res.sesion.globo_count || 0
+          };
+          this.sesiones = [res.sesion];
+        } else {
+          this.loadData();
+        }
+      },
+      error: (err) => {
+        console.warn('No se encontraron métricas específicas para la reserva, cargando acumulado:', err);
+        this.loadData();
+      }
+    });
   }
 
   loadData(): void {
@@ -188,7 +278,7 @@ export class SmartwatchStatsPage implements OnInit {
     setTimeout(async () => {
       this.isSyncingWatch = false;
       const toast = await this.toastCtrl.create({
-        message: `✓ ¡Partido en ${this.selectedMatch?.cancha_nombre} sincronizado con tu Apple Watch!`,
+        message: `✓ ¡Partido en ${this.selectedMatch?.cancha_nombre} sincronizado con tu ${this.watchDeviceName}!`,
         duration: 3000,
         position: 'bottom',
         color: 'success'
@@ -251,7 +341,7 @@ export class SmartwatchStatsPage implements OnInit {
   async generarStoryResumen(): Promise<void> {
     if (!this.resumenAcumulado || !this.resumenAcumulado.total_golpes || this.resumenAcumulado.total_golpes === 0) {
       const toast = await this.toastCtrl.create({
-        message: 'Aún no tienes partidos sincronizados con tu Apple Watch. ¡Juega tu primer partido para generar tu Match Story!',
+        message: `Aún no tienes partidos sincronizados con tu ${this.watchDeviceName}. ¡Juega tu primer partido para generar tu Match Story!`,
         duration: 3000,
         color: 'warning'
       });
@@ -279,7 +369,7 @@ export class SmartwatchStatsPage implements OnInit {
           fc_maxima: stats.fc_maxima_historica || 0,
           calorias: stats.total_calorias || 0,
           duracion_segundos: stats.total_segundos_jugados || 0,
-          dispositivo: 'Apple Watch'
+          dispositivo: this.watchDeviceName
         }
       }, 'volt');
 

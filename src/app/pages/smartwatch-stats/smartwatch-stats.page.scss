@@ -1866,3 +1866,184 @@
   }
 }
 
+/* =========================================================
+   FILTROS DE ACTIVIDAD & ENTRENAMIENTOS
+========================================================= */
+.activity-filter-chips {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  padding: 2px 0;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+
+  .chip-filter {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #64748b;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #cbd5e1;
+    }
+
+    &.active {
+      background: #0f172a;
+      color: #ccff00;
+      border-color: #0f172a;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+    }
+  }
+}
+
+.featured-match-card.training-featured {
+  border-color: rgba(204, 255, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(204, 255, 0, 0.08);
+}
+
+.badge-training, .badge-volt {
+  background: #ccff00 !important;
+  color: #080c14 !important;
+  font-weight: 900 !important;
+}
+
+.training-coach-box {
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .coach-badge-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .coach-tag {
+      font-size: 0.65rem;
+      font-weight: 900;
+      color: #64748b;
+      letter-spacing: 0.5px;
+    }
+
+    .coach-name {
+      font-size: 0.95rem;
+      font-weight: 850;
+      color: #0f172a;
+    }
+  }
+
+  .drill-tag {
+    font-size: 0.75rem;
+    color: #0284c7;
+    font-weight: 700;
+  }
+}
+
+.volt-pill {
+  background: rgba(204, 255, 0, 0.15) !important;
+  color: #4d6600 !important;
+  font-weight: 850 !important;
+}
+
+.coach-sub {
+  color: #0284c7 !important;
+  font-weight: 700 !important;
+}
+
+.training-item {
+  border-left: 3px solid #ccff00 !important;
+}
+
+.training-card-border {
+  border-left: 3px solid #ccff00 !important;
+}
+
+// Watch Mockup Training View
+.w-training-card {
+  border-color: rgba(204, 255, 0, 0.4) !important;
+}
+
+.w-volt-tag {
+  background: #ccff00 !important;
+  color: #080c14 !important;
+  font-weight: 900 !important;
+}
+
+.w-training-drill-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 8px 0;
+
+  .w-drill-box {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 8px 6px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    cursor: pointer;
+
+    &:active {
+      transform: scale(0.96);
+    }
+
+    .w-drill-lbl {
+      font-size: 8px;
+      font-weight: 900;
+      color: #94a3b8;
+      letter-spacing: 0.3px;
+    }
+
+    .w-drill-val {
+      font-size: 16px;
+      font-weight: 950;
+      line-height: 1.1;
+
+      &.volt { color: #ccff00; }
+      &.cyan { color: #06b6d4; }
+
+      small {
+        font-size: 9px;
+        font-weight: 700;
+      }
+    }
+
+    .w-drill-hint {
+      font-size: 7px;
+      color: #64748b;
+    }
+  }
+}
+
+.training-footer {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  margin-top: 4px;
+
+  .w-cal-pill {
+    background: rgba(249, 115, 22, 0.2);
+    color: #f97316;
+    font-size: 9px;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+}
+
+

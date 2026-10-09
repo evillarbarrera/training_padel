@@ -3,7 +3,7 @@
   <!-- V2 HEADER (ESTILO GENERAL DE LA WEB / APP) -->
   <div class="header-v2 animate-fade">
     <div class="h-text">
-      <p>APPLE WATCH & TELEMETRÍA</p>
+      <p>{{ watchDeviceName | uppercase }} & TELEMETRÍA</p>
       <div class="h-title-row">
         <h1>{{ jugadorNombre }}</h1>
         <span class="h-wave">⌚</span>
@@ -66,33 +66,60 @@
       <!-- Banner de Sincronización Directa -->
       <div class="sync-banner">
         <div class="sync-info">
-          <h3>Sincronización con Apple Watch</h3>
-          <p>Tus canchas reservadas y partidos de liga se envían a tu muñeca en tiempo real.</p>
+          <h3>Sincronización con {{ watchDeviceName }}</h3>
+          <p>Tus canchas reservadas, clases y partidos de liga se envían a tu muñeca en tiempo real.</p>
         </div>
         <button class="btn-sync-action" (click)="syncWithAppleWatch()" [disabled]="isSyncingWatch || proximosPartidos.length === 0">
-          <span *ngIf="!isSyncingWatch && proximosPartidos.length > 0">📲 Enviar al Apple Watch</span>
+          <span *ngIf="!isSyncingWatch && proximosPartidos.length > 0">📲 Enviar al {{ watchDeviceName }}</span>
           <span *ngIf="!isSyncingWatch && proximosPartidos.length === 0">📲 Sincronizar Reloj</span>
           <span *ngIf="isSyncingWatch">⏳ Sincronizando...</span>
         </button>
       </div>
 
-      <!-- SECCIÓN: PRÓXIMO PARTIDO ASIGNADO (REAL) -->
-      <div class="section-card featured-match-card" *ngIf="selectedMatch">
+      <!-- Filtro de Tipo de Actividad (Partidos vs Entrenamientos) -->
+      <div class="activity-filter-chips" *ngIf="proximosPartidos.length > 0">
+        <button class="chip-filter" [class.active]="filtroActividad === 'todos'" (click)="filtroActividad = 'todos'">
+          <span>🌟 Todos ({{ proximosPartidos.length }})</span>
+        </button>
+        <button class="chip-filter" [class.active]="filtroActividad === 'partidos'" (click)="filtroActividad = 'partidos'">
+          <span>🎾 Partidos</span>
+        </button>
+        <button class="chip-filter" [class.active]="filtroActividad === 'entrenamientos'" (click)="filtroActividad = 'entrenamientos'">
+          <span>🏋️ Entrenamientos</span>
+        </button>
+      </div>
+
+      <!-- SECCIÓN: PRÓXIMO PARTIDO / ENTRENAMIENTO ASIGNADO (REAL) -->
+      <div class="section-card featured-match-card" [class.training-featured]="selectedMatch.tipo_actividad === 'entrenamiento' || selectedMatch.tipo_origen === 'entrenamiento'" *ngIf="selectedMatch">
         <div class="section-header">
-          <span class="badge-featured">{{ selectedMatch.tipo_label | uppercase }}</span>
+          <span class="badge-featured" [class.badge-training]="selectedMatch.tipo_actividad === 'entrenamiento' || selectedMatch.tipo_origen === 'entrenamiento'">
+            {{ (selectedMatch.tipo_actividad === 'entrenamiento' || selectedMatch.tipo_origen === 'entrenamiento') ? '🏋️ ENTRENAMIENTO' : (selectedMatch.tipo_label | uppercase) }}
+          </span>
           <span class="badge-time">⏰ {{ selectedMatch.horario_texto }}</span>
         </div>
 
         <div class="match-main-info">
           <div class="court-badge">
-            <span class="court-icon">🏟️</span>
+            <span class="court-icon">{{ (selectedMatch.tipo_actividad === 'entrenamiento' || selectedMatch.tipo_origen === 'entrenamiento') ? '🏋️' : '🏟️' }}</span>
             <div>
               <h4>{{ selectedMatch.cancha_nombre }}</h4>
               <p class="club-title">📍 {{ selectedMatch.club_nombre }}</p>
             </div>
           </div>
 
-          <div class="teams-versus">
+          <!-- Si es Entrenamiento: Mostrar Info del Entrenador -->
+          <div class="training-coach-box" *ngIf="selectedMatch.tipo_actividad === 'entrenamiento' || selectedMatch.tipo_origen === 'entrenamiento'">
+            <div class="coach-badge-info">
+              <span class="coach-tag">PROFESOR / COACH</span>
+              <span class="coach-name">🎓 {{ selectedMatch.entrenador_nombre || selectedMatch.pareja2 || 'Entrenador PadelBlox' }}</span>
+            </div>
+            <div class="drill-tag">
+              <span>⚡ Mide golpes, velocidad de bola y pulso en vivo</span>
+            </div>
+          </div>
+
+          <!-- Si es Partido: Mostrar Equipos VS -->
+          <div class="teams-versus" *ngIf="selectedMatch.tipo_actividad !== 'entrenamiento' && selectedMatch.tipo_origen !== 'entrenamiento'">
             <div class="team-box team-blue">
               <span class="team-tag">PAREJA 1</span>
               <span class="team-names">{{ selectedMatch.pareja1 }}</span>
@@ -106,43 +133,53 @@
         </div>
 
         <div class="match-meta-pills">
-          <span class="meta-pill">⭐ Punto de Oro: {{ selectedMatch.punto_oro ? 'SÍ' : 'NO' }}</span>
-          <span class="meta-pill">🎾 Al mejor de {{ selectedMatch.sets }} sets</span>
+          <ng-container *ngIf="selectedMatch.tipo_actividad !== 'entrenamiento' && selectedMatch.tipo_origen !== 'entrenamiento'">
+            <span class="meta-pill">⭐ Punto de Oro: {{ selectedMatch.punto_oro ? 'SÍ' : 'NO' }}</span>
+            <span class="meta-pill">🎾 Al mejor de {{ selectedMatch.sets }} sets</span>
+          </ng-container>
+          <ng-container *ngIf="selectedMatch.tipo_actividad === 'entrenamiento' || selectedMatch.tipo_origen === 'entrenamiento'">
+            <span class="meta-pill volt-pill">🏋️ Sesión de Técnica y Físico</span>
+            <span class="meta-pill">🎯 Conteo IA de Golpes & Telemetría</span>
+          </ng-container>
           <span class="meta-pill reminder-pill" *ngIf="isReminderActive(selectedMatch)">🔔 Recordatorio 2h Activo</span>
-          <span class="meta-pill sync-indicator">✓ Listo para Apple Watch</span>
+          <span class="meta-pill sync-indicator">✓ Listo para {{ watchDeviceName }}</span>
         </div>
       </div>
 
       <!-- EMPTY STATE CUANDO NO HAY RESERVAS ASIGNADAS -->
-      <div class="empty-reservas-container" *ngIf="!selectedMatch && proximosPartidos.length === 0">
+      <div class="empty-reservas-container" *ngIf="!selectedMatch && proximosFiltrados.length === 0">
         <div class="empty-state-pro">
           <div class="empty-icon-circle">
             <ion-icon name="calendar-outline"></ion-icon>
           </div>
-          <h3>Sin Canchas Agendadas</h3>
-          <p>No tienes reservas ni partidos próximos registrados. Reserva tu cancha para que aparezca directamente en tu Apple Watch.</p>
+          <h3>Sin Sesiones Agendadas</h3>
+          <p>No tienes reservas ni entrenamientos próximos registrados. Reserva tu cancha para que aparezca directamente en tu {{ watchDeviceName }}.</p>
           <button class="btn-book-court" (click)="navCtrl.navigateForward('/clubes-reservar')">
-            🎾 Reservar Cancha
+            🎾 Reservar Cancha / Clase
           </button>
         </div>
       </div>
 
       <!-- LISTADO DE OTRAS RESERVAS / PARTIDOS -->
-      <div class="section-card" *ngIf="proximosPartidos.length > 1">
+      <div class="section-card" *ngIf="proximosFiltrados.length > 1">
         <div class="section-header">
-          <h3>📅 Otras Reservas Disponibles</h3>
-          <span class="badge-total">{{ proximosPartidos.length }} agendados</span>
+          <h3>📅 Otras Sesiones Disponibles</h3>
+          <span class="badge-total">{{ proximosFiltrados.length }} agendados</span>
         </div>
 
         <div class="reservation-list">
-          <div *ngFor="let m of proximosPartidos" 
+          <div *ngFor="let m of proximosFiltrados" 
                class="res-item" 
                [class.selected]="selectedMatch?.id === m.id"
+               [class.training-item]="m.tipo_actividad === 'entrenamiento' || m.tipo_origen === 'entrenamiento'"
                (click)="selectMatch(m)">
             <div class="res-left">
-              <span class="res-type">{{ m.tipo_label }}</span>
+              <span class="res-type" [class.badge-volt]="m.tipo_actividad === 'entrenamiento' || m.tipo_origen === 'entrenamiento'">
+                {{ (m.tipo_actividad === 'entrenamiento' || m.tipo_origen === 'entrenamiento') ? '🏋️ ENTRENAMIENTO' : m.tipo_label }}
+              </span>
               <span class="res-court">{{ m.cancha_nombre }}</span>
-              <span class="res-club">{{ m.club_nombre }}</span>
+              <span class="res-club" *ngIf="m.tipo_actividad !== 'entrenamiento' && m.tipo_origen !== 'entrenamiento'">{{ m.club_nombre }}</span>
+              <span class="res-club coach-sub" *ngIf="m.tipo_actividad === 'entrenamiento' || m.tipo_origen === 'entrenamiento'">🎓 {{ m.entrenador_nombre || m.pareja2 || m.club_nombre }}</span>
             </div>
             <div class="res-right">
               <span class="res-time">{{ m.horario_texto }}</span>
@@ -152,34 +189,48 @@
         </div>
       </div>
 
-      <!-- SIMULADOR INTERACTIVO: ASÍ SE VE EN TU APPLE WATCH -->
+      <!-- SIMULADOR INTERACTIVO: ASÍ SE VE EN TU SMARTWATCH -->
       <div class="section-card watch-preview-section">
         <div class="section-header">
-          <h3>⌚ Vista Previa en tu Apple Watch</h3>
+          <h3>⌚ Vista Previa en tu {{ watchDeviceName }}</h3>
           <div class="preview-mode-switch">
             <button [class.active]="watchPreviewScreen === 'home'" (click)="watchPreviewScreen = 'home'">Inicio</button>
             <button [class.active]="watchPreviewScreen === 'picker'" (click)="watchPreviewScreen = 'picker'">Canchas</button>
-            <button [class.active]="watchPreviewScreen === 'scoreboard'" (click)="watchPreviewScreen = 'scoreboard'">Marcador</button>
+            <button [class.active]="watchPreviewScreen === 'scoreboard'" (click)="watchPreviewScreen = 'scoreboard'">
+              {{ (selectedMatch?.tipo_actividad === 'entrenamiento' || selectedMatch?.tipo_origen === 'entrenamiento') ? 'Drill' : 'Marcador' }}
+            </button>
           </div>
         </div>
 
-        <p class="preview-desc">Interactúa con el Apple Watch para ver cómo se presenta tu partido y cómo se lleva el marcador en la cancha:</p>
+        <p class="preview-desc">Interactúa con el {{ watchDeviceName }} para ver cómo se presenta tu sesión y cómo se lleva la telemetría en la cancha:</p>
 
-        <!-- APPLE WATCH ULTRA FRAME MOCKUP -->
+        <!-- APPLE WATCH ULTRA / WEAR OS FRAME MOCKUP -->
         <div class="watch-mockup-wrapper">
           <div class="watch-case">
             <div class="watch-crown"></div>
             <div class="watch-button"></div>
             
             <div class="watch-screen">
-              <!-- PANTALLA 1: HOME CON PARTIDO SELECCIONADO O MODO LIBRE -->
+              <!-- PANTALLA 1: HOME CON PARTIDO O ENTRENAMIENTO SELECCIONADO O MODO LIBRE -->
               <div *ngIf="watchPreviewScreen === 'home'" class="screen-view screen-home animate-fade">
                 <div class="w-header">
                   <span class="w-brand"><span class="w-white">Padel</span><span class="w-neon">Blox</span></span>
                   <span class="w-sync-pill">🟢 Sync</span>
                 </div>
 
-                <div class="w-card w-match-card" *ngIf="selectedMatch">
+                <!-- Card Entrenamiento -->
+                <div class="w-card w-match-card w-training-card" *ngIf="selectedMatch && (selectedMatch.tipo_actividad === 'entrenamiento' || selectedMatch.tipo_origen === 'entrenamiento')">
+                  <div class="w-card-top">
+                    <span class="w-pill-neon">🏋️ ENTRENAMIENTO</span>
+                    <span class="w-time">{{ selectedMatch.hora_inicio }}</span>
+                  </div>
+                  <div class="w-court-name">🏟️ {{ selectedMatch.cancha_nombre }}</div>
+                  <div class="w-club-name">{{ selectedMatch.club_nombre }}</div>
+                  <div class="w-match-rivals">🎓 {{ selectedMatch.entrenador_nombre || selectedMatch.pareja2 || 'Profesor Padel' }}</div>
+                </div>
+
+                <!-- Card Partido -->
+                <div class="w-card w-match-card" *ngIf="selectedMatch && selectedMatch.tipo_actividad !== 'entrenamiento' && selectedMatch.tipo_origen !== 'entrenamiento'">
                   <div class="w-card-top">
                     <span class="w-pill-neon">{{ selectedMatch.tipo_label | uppercase }}</span>
                     <span class="w-time">{{ selectedMatch.hora_inicio }}</span>
@@ -189,6 +240,7 @@
                   <div class="w-match-rivals">👥 {{ selectedMatch.pareja1.slice(0, 12) }} vs {{ selectedMatch.pareja2.slice(0, 10) }}</div>
                 </div>
 
+                <!-- Card Libre -->
                 <div class="w-card w-match-card w-empty-card" *ngIf="!selectedMatch">
                   <div class="w-card-top">
                     <span class="w-pill-neon">PARTIDO LIBRE</span>
@@ -200,11 +252,11 @@
                 </div>
 
                 <button class="w-btn-play" (click)="watchPreviewScreen = 'scoreboard'">
-                  ▶ Iniciar Partido
+                  {{ (selectedMatch?.tipo_actividad === 'entrenamiento' || selectedMatch?.tipo_origen === 'entrenamiento') ? '▶ Iniciar Entrenamiento' : '▶ Iniciar Partido' }}
                 </button>
 
                 <button class="w-btn-picker" (click)="watchPreviewScreen = 'picker'" *ngIf="proximosPartidos.length > 0">
-                  🔄 Cambiar Cancha / Partido
+                  🔄 Cambiar Sesión
                 </button>
 
                 <div class="w-quick-setting">
@@ -212,10 +264,10 @@
                 </div>
               </div>
 
-              <!-- PANTALLA 2: SELECTOR DE CANCHAS -->
+              <!-- PANTALLA 2: SELECTOR DE CANCHAS Y SESIONES -->
               <div *ngIf="watchPreviewScreen === 'picker'" class="screen-view screen-picker animate-fade">
                 <div class="w-picker-title">
-                  <span>📅 Selecciona Cancha</span>
+                  <span>📅 Selecciona Sesión</span>
                 </div>
 
                 <div class="w-picker-items">
@@ -224,7 +276,9 @@
                        [class.w-active]="selectedMatch?.id === m.id"
                        (click)="selectMatch(m); watchPreviewScreen = 'home'">
                     <div class="w-p-top">
-                      <span class="w-p-tag">{{ m.tipo_label }}</span>
+                      <span class="w-p-tag" [class.w-volt-tag]="m.tipo_actividad === 'entrenamiento' || m.tipo_origen === 'entrenamiento'">
+                        {{ (m.tipo_actividad === 'entrenamiento' || m.tipo_origen === 'entrenamiento') ? '🏋️ ENTRENAMIENTO' : m.tipo_label }}
+                      </span>
                       <span class="w-p-time">{{ m.hora_inicio }}</span>
                     </div>
                     <div class="w-p-name">{{ m.cancha_nombre }}</div>
@@ -238,34 +292,63 @@
                 </div>
               </div>
 
-              <!-- PANTALLA 3: MARCADOR TÁCTIL EN JUEGO -->
+              <!-- PANTALLA 3: EN JUEGO (MODO PARTIDO O MODO ENTRENAMIENTO) -->
               <div *ngIf="watchPreviewScreen === 'scoreboard'" class="screen-view screen-score animate-fade">
-                <div class="w-score-header">
-                  <span class="w-set-tag">SET 1</span>
-                  <span class="w-serve-tag">🎾 T{{ previewServingTeam }} (Der)</span>
-                </div>
-
-                <div class="w-score-blocks">
-                  <!-- Bloque T1 -->
-                  <div class="w-team-block t1" [class.serving]="previewServingTeam === 1" (click)="simAddPoint(1)">
-                    <span class="w-t-name">EQUIPO 1</span>
-                    <span class="w-points">{{ previewScoreT1 }}</span>
-                    <span class="w-games">G: {{ previewGamesT1 }}</span>
+                <!-- Modo Partido: Marcador Clásico -->
+                <ng-container *ngIf="selectedMatch?.tipo_actividad !== 'entrenamiento' && selectedMatch?.tipo_origen !== 'entrenamiento'">
+                  <div class="w-score-header">
+                    <span class="w-set-tag">SET 1</span>
+                    <span class="w-serve-tag">🎾 T{{ previewServingTeam }} (Der)</span>
                   </div>
 
-                  <!-- Bloque T2 -->
-                  <div class="w-team-block t2" [class.serving]="previewServingTeam === 2" (click)="simAddPoint(2)">
-                    <span class="w-t-name">EQUIPO 2</span>
-                    <span class="w-points">{{ previewScoreT2 }}</span>
-                    <span class="w-games">G: {{ previewGamesT2 }}</span>
-                  </div>
-                </div>
+                  <div class="w-score-blocks">
+                    <!-- Bloque T1 -->
+                    <div class="w-team-block t1" [class.serving]="previewServingTeam === 1" (click)="simAddPoint(1)">
+                      <span class="w-t-name">EQUIPO 1</span>
+                      <span class="w-points">{{ previewScoreT1 }}</span>
+                      <span class="w-games">G: {{ previewGamesT1 }}</span>
+                    </div>
 
-                <div class="w-score-footer">
-                  <button class="w-undo-btn" (click)="previewScoreT1 = '0'; previewScoreT2 = '0'">↩</button>
-                  <span class="w-hr-pill">❤️ 152</span>
-                  <span class="w-smash-pill">⚡ {{ previewLastSpeed }}k</span>
-                </div>
+                    <!-- Bloque T2 -->
+                    <div class="w-team-block t2" [class.serving]="previewServingTeam === 2" (click)="simAddPoint(2)">
+                      <span class="w-t-name">EQUIPO 2</span>
+                      <span class="w-points">{{ previewScoreT2 }}</span>
+                      <span class="w-games">G: {{ previewGamesT2 }}</span>
+                    </div>
+                  </div>
+
+                  <div class="w-score-footer">
+                    <button class="w-undo-btn" (click)="previewScoreT1 = '0'; previewScoreT2 = '0'">↩</button>
+                    <span class="w-hr-pill">❤️ 152</span>
+                    <span class="w-smash-pill">⚡ {{ previewLastSpeed }}k</span>
+                  </div>
+                </ng-container>
+
+                <!-- Modo Entrenamiento: Telemetría de Ejercicios y Drills -->
+                <ng-container *ngIf="selectedMatch?.tipo_actividad === 'entrenamiento' || selectedMatch?.tipo_origen === 'entrenamiento'">
+                  <div class="w-score-header">
+                    <span class="w-set-tag" style="background:#ccff00; color:#080c14; font-weight:900;">🏋️ DRILLS</span>
+                    <span class="w-serve-tag">⏱️ 00:28:40</span>
+                  </div>
+
+                  <div class="w-training-drill-grid">
+                    <div class="w-drill-box" (click)="simAddPoint(1)">
+                      <span class="w-drill-lbl">TOTAL GOLPES</span>
+                      <span class="w-drill-val volt">{{ previewGamesT1 * 25 + 48 }}</span>
+                      <span class="w-drill-hint">+ Tap para simular</span>
+                    </div>
+                    <div class="w-drill-box">
+                      <span class="w-drill-lbl">VEL. MÁXIMA</span>
+                      <span class="w-drill-val cyan">{{ previewLastSpeed }} <small>km/h</small></span>
+                      <span class="w-drill-hint">Smash Top</span>
+                    </div>
+                  </div>
+
+                  <div class="w-score-footer training-footer">
+                    <span class="w-hr-pill">❤️ 164 BPM</span>
+                    <span class="w-cal-pill">🔥 312 KCAL</span>
+                  </div>
+                </ng-container>
               </div>
 
             </div>
@@ -700,17 +783,32 @@
 
     </div>
 
-    <!-- TAB 3: HISTORIAL DE PARTIDOS -->
+    <!-- TAB 3: HISTORIAL DE SESIONES -->
     <div *ngIf="activeTab === 'historial'" class="tab-content animate-fade">
-      <div *ngIf="sesiones.length === 0" class="empty-state">
-        <div class="icon">⌚</div>
-        <h3>Sin partidos registrados</h3>
-        <p>Inicia un partido desde tu Apple Watch para medir tus golpes, velocidad y tanteador en vivo.</p>
+      <!-- Filtros Historial -->
+      <div class="activity-filter-chips" *ngIf="sesiones.length > 0">
+        <button class="chip-filter" [class.active]="filtroHistorial === 'todos'" (click)="filtroHistorial = 'todos'">
+          <span>🌟 Todos ({{ sesiones.length }})</span>
+        </button>
+        <button class="chip-filter" [class.active]="filtroHistorial === 'partidos'" (click)="filtroHistorial = 'partidos'">
+          <span>🎾 Partidos</span>
+        </button>
+        <button class="chip-filter" [class.active]="filtroHistorial === 'entrenamientos'" (click)="filtroHistorial = 'entrenamientos'">
+          <span>🏋️ Entrenamientos</span>
+        </button>
       </div>
 
-      <div *ngFor="let s of sesiones" class="match-session-card" (click)="verDetalle(s)">
+      <div *ngIf="sesionesFiltradas.length === 0" class="empty-state">
+        <div class="icon">⌚</div>
+        <h3>Sin actividades registradas</h3>
+        <p>Inicia un partido o entrenamiento desde tu {{ watchDeviceName }} para medir tus golpes, velocidad y tanteador en vivo.</p>
+      </div>
+
+      <div *ngFor="let s of sesionesFiltradas" class="match-session-card" [class.training-card-border]="s.tipo_actividad === 'entrenamiento' || s.tipo_actividad === 'clase'" (click)="verDetalle(s)">
         <div class="card-header">
-          <span class="activity-type">{{ s.tipo_actividad | uppercase }}</span>
+          <span class="activity-type" [class.badge-volt]="s.tipo_actividad === 'entrenamiento' || s.tipo_actividad === 'clase'">
+            {{ (s.tipo_actividad === 'entrenamiento' || s.tipo_actividad === 'clase') ? '🏋️ ENTRENAMIENTO' : (s.tipo_actividad | uppercase) }}
+          </span>
           <span class="date">{{ s.fecha_inicio | date:'dd/MM/yyyy HH:mm' }}</span>
         </div>
 
@@ -736,7 +834,7 @@
         <div class="card-footer">
           <span>⏱️ {{ formatDuration(s.duracion_segundos) }}</span>
           <span *ngIf="s.club_nombre">📍 {{ s.club_nombre }}</span>
-          <span class="device-tag">⌚ {{ s.dispositivo_modelo || 'Apple Watch' }}</span>
+          <span class="device-tag">⌚ {{ s.dispositivo_modelo || watchDeviceName }}</span>
         </div>
       </div>
     </div>
@@ -748,8 +846,8 @@
           <ion-icon name="watch-outline" class="watch-big-icon"></ion-icon>
         </div>
 
-        <h2>Apple Watch & PadelBlox</h2>
-        <p class="subtitle">Sincroniza tus partidos, anota los puntos con vibración háptica y analiza tu técnica con sensores CoreMotion.</p>
+        <h2>{{ watchDeviceName }} & PadelBlox</h2>
+        <p class="subtitle">Sincroniza tus partidos, anota los puntos con vibración háptica y analiza tu técnica con sensores biomecánicos.</p>
 
         <div class="status-list">
           <div class="status-row">
@@ -777,15 +875,15 @@
         <div class="instructions-box">
           <h4>📌 Instrucciones de Uso en Cancha:</h4>
           <ol>
-            <li>Coloca el Apple Watch en la <strong>mano dominante (mano de la pala)</strong> para una máxima precisión en la detección de golpes y velocidad.</li>
-            <li>Abre <strong>PadelBlox</strong> en tu Apple Watch e inicia el partido.</li>
+            <li>Coloca el {{ watchDeviceName }} en la <strong>mano dominante (mano de la pala)</strong> para una máxima precisión en la detección de golpes y velocidad.</li>
+            <li>Abre <strong>PadelBlox</strong> en tu {{ watchDeviceName }} e inicia el partido.</li>
             <li>Toca en la pantalla para sumar puntos (+1) o usa el marcador de Punto de Oro.</li>
             <li>Al finalizar, presiona <strong>Guardar y Sincronizar</strong> para ver tu informe completo aquí y en el club.</li>
           </ol>
         </div>
 
         <button class="btn-refresh-watch" (click)="checkStatus()">
-          🔄 Comprobar Conexión con Apple Watch
+          🔄 Comprobar Conexión con {{ watchDeviceName }}
         </button>
       </div>
     </div>

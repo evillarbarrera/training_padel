@@ -120,6 +120,20 @@
             </div>
           </div>
         </div>
+
+        <!-- Smartwatch Telemetry CTA -->
+        <div class="watch-training-bar">
+          <button type="button" class="btn-watch-sync" (click)="sincronizarEntrenamientoConReloj(reserva, $event)">
+            <ion-icon name="watch-outline"></ion-icon>
+            <span>Entrenar con {{ watchDeviceName }}</span>
+            <ion-icon name="flash-outline" class="flash-icon"></ion-icon>
+          </button>
+          <button type="button" class="btn-watch-stats" (click)="verEstadisticasReloj(reserva, $event)">
+            <ion-icon name="analytics-outline"></ion-icon>
+            <span>Métricas</span>
+          </button>
+        </div>
+
         <div class="card-actions" *ngIf="reserva.estado === 'reservado'">
           <ion-button fill="clear" color="danger" (click)="mostrarConfirmacionCancelar(reserva)" class="cancel-btn">
             CANCELAR RESERVA
@@ -166,6 +180,19 @@
               (Ver dirección)
             </a>
           </div>
+        </div>
+
+        <!-- Smartwatch Telemetry CTA for Group Classes -->
+        <div class="watch-training-bar">
+          <button type="button" class="btn-watch-sync" (click)="sincronizarEntrenamientoConReloj(grupal, $event)">
+            <ion-icon name="watch-outline"></ion-icon>
+            <span>Entrenar con {{ watchDeviceName }}</span>
+            <ion-icon name="flash-outline" class="flash-icon"></ion-icon>
+          </button>
+          <button type="button" class="btn-watch-stats" (click)="verEstadisticasReloj(grupal, $event)">
+            <ion-icon name="analytics-outline"></ion-icon>
+            <span>Métricas</span>
+          </button>
         </div>
 
       </div>

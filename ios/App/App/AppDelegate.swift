@@ -16,13 +16,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
         Messaging.messaging().token { token, error in
             if let token = token {
                 print("Firebase registration token on launch: \(token)")
-                NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: token)
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: token)
+                }
             } else if let error = error {
                 print("Error retrieving FCM token on launch: \(error)")
             }
         }
         return true
     }
+
+    // MARK: - UISceneSession Lifecycle (iOS 27 / Xcode 27 support)
+
+    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        let configuration = UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
+        configuration.delegateClass = SceneDelegate.self
+        return configuration
+    }
+
+    func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {}
 
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         // Vincula el token de Apple (APNs) con Firebase Messaging
@@ -32,7 +44,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
         Messaging.messaging().token { token, error in
             if let token = token {
                 print("Firebase registration token on APNs register: \(token)")
-                NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: token)
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: token)
+                }
             } else if let error = error {
                 print("Error retrieving FCM token on APNs register: \(error)")
             }
@@ -40,16 +54,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        NotificationCenter.default.post(name: .capacitorDidFailToRegisterForRemoteNotifications, object: error)
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .capacitorDidFailToRegisterForRemoteNotifications, object: error)
+        }
     }
     
     // Método para recibir el token de Firebase (FCM) directamente cuando cambia o se refresca
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         if let token = fcmToken {
             print("Firebase registration token from delegate: \(token)")
-            NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: token)
-            let data = ["token": token]
-            NotificationCenter.default.post(name: Notification.Name("messaging_token"), object: nil, userInfo: data)
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: token)
+                let data = ["token": token]
+                NotificationCenter.default.post(name: Notification.Name("messaging_token"), object: nil, userInfo: data)
+            }
         }
     }
 
@@ -66,6 +84,4 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
     func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
-
-    // Build 41: forcing fresh CI run
 }

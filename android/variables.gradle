@@ -13,4 +13,9 @@ ext {
     androidxJunitVersion = '1.2.1'
     androidxEspressoCoreVersion = '3.6.1'
     cordovaAndroidVersion = '10.1.1'
+    kotlinVersion = '2.0.21'
+    wearMinSdkVersion = 30
+    wearComposeVersion = '1.4.0'
+    playServicesWearableVersion = '18.2.0'
+    healthServicesVersion = '1.0.0-rc02'
 }

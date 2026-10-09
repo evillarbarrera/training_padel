@@ -33,12 +33,12 @@
         </div>
     </div>
 
-    <!-- APPLE WATCH SCORE & TELEMETRY CARD (IF RECORDED) -->
+    <!-- SMARTWATCH SCORE & TELEMETRY CARD (IF RECORDED) -->
     <div class="watch-match-summary-card" *ngIf="match?.smartwatch_data || match?.marcador">
         <div class="wm-card-header">
             <div class="wm-card-tag">
                 <ion-icon name="watch-outline"></ion-icon>
-                <span>{{ match?.smartwatch_data ? 'APPLE WATCH MATCH' : 'RESULTADO DEL PARTIDO' }}</span>
+                <span>{{ match?.smartwatch_data ? ((watchDeviceName | uppercase) + ' MATCH') : 'RESULTADO DEL PARTIDO' }}</span>
             </div>
             <div class="wm-card-status" *ngIf="match?.smartwatch_data">
                 <span class="pulse-green-dot"></span>
@@ -154,7 +154,7 @@
         <div class="wpc-left">
             <ion-icon name="watch-outline"></ion-icon>
             <div>
-                <h4>Jugar este partido con Apple Watch</h4>
+                <h4>Jugar este partido con {{ watchDeviceName }}</h4>
                 <p>Abre la app en tu reloj, selecciona esta cancha y guarda tu marcador</p>
             </div>
         </div>

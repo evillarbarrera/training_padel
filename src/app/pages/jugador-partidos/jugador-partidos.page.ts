@@ -55,6 +55,10 @@ export class JugadorPartidosPage implements OnInit {
   isWatchMatchLive = false;
   liveMatchState: any = null;
 
+  get watchDeviceName(): string {
+    return this.smartwatchService.watchDeviceName;
+  }
+
   // Smartwatch Modal Detail
   showWatchDetailModal = false;
   selectedWatchMatch: any = null;
@@ -372,7 +376,7 @@ export class JugadorPartidosPage implements OnInit {
       this.globalBandejaPercent = 0;
       this.globalViboraPercent = 0;
       this.globalOtherPercent = 0;
-      this.globalDominantStroke = { label: 'Sin registros de sensores', icon: 'watch-outline', cssClass: 'balanced', desc: 'Juega tus partidos con la app de Apple Watch para registrar potencia y distribución de golpes.' };
+      this.globalDominantStroke = { label: 'Sin registros de sensores', icon: 'watch-outline', cssClass: 'balanced', desc: `Juega tus partidos con la app de ${this.watchDeviceName} para registrar potencia y distribución de golpes.` };
     }
   }
 

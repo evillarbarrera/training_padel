@@ -26,6 +26,7 @@ import {
 import { ActionSheetController, LoadingController, AlertController } from '@ionic/angular/standalone';
 import { MysqlService } from '../../services/mysql.service';
 import { NotificationService } from '../../services/notification.service';
+import { SmartwatchService } from '../../services/smartwatch.service';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { ViewChild, ElementRef } from '@angular/core';
@@ -52,6 +53,10 @@ export class JugadorHomePage implements OnInit {
 
   jugadorNombre = "...";
   fotoPerfil = "";
+
+  get watchDeviceName(): string {
+    return this.smartwatchService.watchDeviceName;
+  }
 
   // Datos de Packs
   clasesPagadas = 0;
@@ -90,6 +95,7 @@ export class JugadorHomePage implements OnInit {
     private ngZone: NgZone,
     private mysqlService: MysqlService,
     private notificationService: NotificationService,
+    private smartwatchService: SmartwatchService,
     private http: HttpClient
   ) {
     addIcons({

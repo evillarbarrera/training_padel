@@ -18,6 +18,7 @@ import {
 } from 'ionicons/icons';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MysqlService } from '../../services/mysql.service';
+import { SmartwatchService } from '../../services/smartwatch.service';
 import { MatchStoryService, StoryMatchData } from '../../services/match-story.service';
 import { environment } from '../../../environments/environment';
 
@@ -36,6 +37,10 @@ export class PartidoDetallePage implements OnInit {
   loading = true;
   userId = Number(localStorage.getItem('userId'));
 
+  get watchDeviceName(): string {
+    return this.smartwatchService.watchDeviceName;
+  }
+
   // Social Story Modal
   showStoryModal = false;
   storyImageUrl = '';
@@ -53,6 +58,7 @@ export class PartidoDetallePage implements OnInit {
     private route: ActivatedRoute,
     public router: Router,
     private mysql: MysqlService,
+    private smartwatchService: SmartwatchService,
     private matchStoryService: MatchStoryService,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
