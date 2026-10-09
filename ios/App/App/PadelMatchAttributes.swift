@@ -2,6 +2,7 @@ import Foundation
 import ActivityKit
 
 // MARK: - ActivityAttributes para Live Activity y Dynamic Island de PadelBlox
+@available(iOS 16.1, *)
 public struct PadelMatchAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         public var puntosT1: String

@@ -177,10 +177,10 @@ public class PadelBloxWatchPlugin: CAPPlugin, WCSessionDelegate {
         }
     }
 
-    // MARK: - ActivityKit Live Activity Lifecycle (iOS 16.1+)
+    // MARK: - ActivityKit Live Activity Lifecycle (iOS 16.2+)
 
     private func startLiveActivity(club: String, cancha: String, p1: String, p2: String) {
-        if #available(iOS 16.1, *) {
+        if #available(iOS 16.2, *) {
             let attributes = PadelMatchAttributes(matchId: UUID().uuidString, clubNombre: club, canchaNombre: cancha, pareja1: p1, pareja2: p2)
             let initialContent = PadelMatchAttributes.ContentState()
             do {
@@ -193,7 +193,7 @@ public class PadelBloxWatchPlugin: CAPPlugin, WCSessionDelegate {
     }
 
     private func updateLiveActivity(puntosT1: String, puntosT2: String, g1: Int, g2: Int, s1: Int, s2: Int, servingTeam: Int, isGoldenPoint: Bool, isBreakPoint: Bool) {
-        if #available(iOS 16.1, *) {
+        if #available(iOS 16.2, *) {
             guard let activity = self.currentLiveActivity as? Activity<PadelMatchAttributes> else { return }
             let updatedState = PadelMatchAttributes.ContentState(
                 puntosT1: puntosT1,
@@ -214,7 +214,7 @@ public class PadelBloxWatchPlugin: CAPPlugin, WCSessionDelegate {
     }
 
     private func endLiveActivity() {
-        if #available(iOS 16.1, *) {
+        if #available(iOS 16.2, *) {
             guard let activity = self.currentLiveActivity as? Activity<PadelMatchAttributes> else { return }
             Task {
                 await activity.end(nil, dismissalPolicy: .immediate)
