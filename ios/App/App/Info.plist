@@ -26,6 +26,14 @@
 				<string>com.googleusercontent.apps.786145270372-1pilhghaglafm9l0vihjhagcugovtvh8</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>padelblox</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>cl.padelacademy.app</string>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>

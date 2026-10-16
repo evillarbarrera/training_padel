@@ -61,18 +61,17 @@
 
             <div class="badges-right">
               <div class="modalidad-tag" [class.grupal]="reserva.tipo === 'grupal'"
-                [class.multi]="reserva.cantidad_personas > 1 && reserva.tipo !== 'grupal'"
-                [class.individual]="reserva.tipo !== 'grupal' && reserva.cantidad_personas <= 1">
+                [class.cancha]="reserva.tipo === 'cancha'"
+                [class.multi]="reserva.cantidad_personas > 1 && reserva.tipo !== 'grupal' && reserva.tipo !== 'cancha'"
+                [class.individual]="reserva.tipo !== 'grupal' && reserva.tipo !== 'cancha' && reserva.cantidad_personas <= 1">
                 <ion-icon
-                  [name]="(reserva.tipo === 'grupal' || reserva.cantidad_personas > 1) ? 'people' : 'person'"></ion-icon>
-                {{ reserva.tipo === 'grupal' ? 'GRUPAL (' + reserva.cupos_ocupados + '/' + reserva.capacidad_maxima +
-                ')' :
-                (reserva.cantidad_personas > 1 ? 'MULTIJUGADOR' : 'INDIVIDUAL') }}
+                  [name]="reserva.tipo === 'cancha' ? 'tennisball-outline' : ((reserva.tipo === 'grupal' || reserva.cantidad_personas > 1) ? 'people' : 'person')"></ion-icon>
+                {{ reserva.tipo === 'cancha' ? 'CANCHA' : (reserva.tipo === 'grupal' ? 'GRUPAL (' + reserva.cupos_ocupados + '/' + reserva.capacidad_maxima + ')' : (reserva.cantidad_personas > 1 ? 'MULTIJUGADOR' : 'INDIVIDUAL')) }}
               </div>
               <div class="status-tag"
                 [ngClass]="reserva.tipo === 'grupal' ? (reserva.estado_grupo?.toLowerCase() || 'pendiente') : (reserva.estado?.toLowerCase() || 'reservada')">
                 <ion-icon
-                  [name]="(reserva.estado_grupo === 'activo' || reserva.estado === 'reservado' || reserva.estado === 'confirmada') ? 'checkmark-circle' : 'time'"></ion-icon>
+                  [name]="(reserva.estado_grupo === 'activo' || reserva.estado === 'reservado' || reserva.estado === 'confirmada' || reserva.estado === 'confirmado') ? 'checkmark-circle' : 'time'"></ion-icon>
                 {{ reserva.tipo === 'grupal' ? (reserva.estado_grupo === 'activo' ? 'ACTIVADA' : 'PENDIENTE') :
                 (reserva.estado || 'RESERVADA') }}
               </div>
@@ -114,11 +113,12 @@
           </div>
 
           <div class="coach-row" *ngIf="reserva.entrenador_nombre">
-            <ion-avatar class="avatar-mini">
+            <ion-avatar class="avatar-mini" *ngIf="reserva.tipo !== 'cancha'">
               <img [src]="reserva.entrenador_foto || 'assets/images/placeholder_avatar.png'"
                 style="object-fit: cover;" />
             </ion-avatar>
-            <span>Coach: <strong>{{ reserva.entrenador_nombre }}</strong></span>
+            <ion-icon name="tennisball-outline" *ngIf="reserva.tipo === 'cancha'" style="font-size: 20px; margin-right: 6px; color: #10b981;"></ion-icon>
+            <span>{{ reserva.tipo === 'cancha' ? 'Pista: ' : 'Coach: ' }}<strong>{{ reserva.entrenador_nombre }}</strong></span>
           </div>
 
           <div class="pack-row">
@@ -128,7 +128,7 @@
           <!-- Cancel Button -->
           <div class="actions-row" *ngIf="tipoVista === 'proximas'">
             <ion-button fill="outline" color="danger" size="small" expand="block" (click)="cancelarReserva(reserva)">
-              Cancelar Clase
+              {{ reserva.tipo === 'cancha' ? 'Cancelar Reserva' : 'Cancelar Clase' }}
             </ion-button>
           </div>
         </div>

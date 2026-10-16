@@ -69,6 +69,28 @@ export class AppComponent implements OnInit {
       } catch (e) {
         console.warn('Google Auth init skipped or failed:', e);
       }
+
+      try {
+        const { App } = await import('@capacitor/app');
+        App.addListener('appUrlOpen', (event: any) => {
+          if (event && event.url) {
+            // Examples: padelblox://jugador-reservas?entrenador_id=123 or https://padelblox.cl/app/...
+            let path = event.url;
+            if (path.includes('://')) {
+              path = path.substring(path.indexOf('://') + 3);
+            }
+            if (path.startsWith('padelblox.cl/app/')) {
+              path = path.replace('padelblox.cl/app/', '');
+            }
+            if (!path.startsWith('/')) {
+              path = '/' + path;
+            }
+            this.router.navigateByUrl(path);
+          }
+        });
+      } catch (e) {
+        console.warn('Deep link listener error:', e);
+      }
     }
 
     this.notificationService.initializeMessaging();

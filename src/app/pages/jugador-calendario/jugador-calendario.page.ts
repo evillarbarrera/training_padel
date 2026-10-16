@@ -7,7 +7,7 @@ import { PackAlumnoService } from '../../services/pack_alumno.service';
 import { Router } from '@angular/router';
 import { NotificationService } from '../../services/notification.service';
 import { addIcons } from 'ionicons';
-import { chevronBackOutline, calendarOutline, personOutline, timeOutline, informationCircleOutline, addOutline, mailOutline, closeOutline } from 'ionicons/icons';
+import { chevronBackOutline, calendarOutline, personOutline, timeOutline, informationCircleOutline, addOutline, mailOutline, closeOutline, tennisballOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-jugador-calendario',
@@ -37,7 +37,7 @@ export class JugadorCalendarioPage implements OnInit {
     private toastController: ToastController,
     private notificationService: NotificationService
   ) {
-    addIcons({ chevronBackOutline, calendarOutline, personOutline, timeOutline, informationCircleOutline, addOutline, mailOutline, closeOutline });
+    addIcons({ chevronBackOutline, calendarOutline, personOutline, timeOutline, informationCircleOutline, addOutline, mailOutline, closeOutline, tennisballOutline });
   }
 
   ngOnInit() {
@@ -82,7 +82,15 @@ export class JugadorCalendarioPage implements OnInit {
     this.cargando = true;
     this.mysqlService.getReservasJugador(userId).subscribe({
       next: (res: any) => {
-        this.reservasIndividuales = res.reservas_individuales || [];
+        const individuales = res.reservas_individuales || [];
+        const canchas = res.reservas_cancha || [];
+        const combined = [...individuales];
+        canchas.forEach((c: any) => {
+          if (!combined.some(x => Number(x.reserva_id) === Number(c.reserva_id) && x.tipo === 'cancha')) {
+            combined.push(c);
+          }
+        });
+        this.reservasIndividuales = combined;
         this.entrenamientosGrupales = res.entrenamientos_grupales || [];
         this.cargando = false;
         if (event) event.target.complete();
