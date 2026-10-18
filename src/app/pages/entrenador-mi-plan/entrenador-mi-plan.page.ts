@@ -199,7 +199,7 @@ export class EntrenadorMiPlanPage implements OnInit {
               return false;
             }
             const lastFour = data.num.toString().slice(-4) || '4242';
-            this.confirmarVinculacion(lastFour);
+            this.confirmarVinculacion(data.name, data.num, data.exp, lastFour);
             return true;
           }
         }
@@ -209,13 +209,40 @@ export class EntrenadorMiPlanPage implements OnInit {
     await alert.present();
   }
 
-  async confirmarVinculacion(lastFour: string) {
+  async confirmarVinculacion(holder: string, num: string, exp: string, lastFour: string) {
     this.loading = true;
-    setTimeout(async () => {
-      this.loading = false;
-      await this.showToast(`Tarjeta terminada en **** ${lastFour} vinculada correctamente⚡`, 'success');
-      if (this.sub) this.sub.card_last_four = lastFour;
-    }, 1500);
+    const token = localStorage.getItem('token');
+    
+    this.http.post<any>(`${environment.apiUrl}/subscriptions/save_payment_card.php`, {
+      coach_id: this.coachId,
+      user_id: this.coachId,
+      card_holder: holder,
+      card_number: num,
+      card_expiry: exp
+    }, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'X-Authorization': `Bearer ${token}`
+      }
+    }).subscribe({
+      next: async (res) => {
+        this.loading = false;
+        if (res && res.success) {
+          await this.showToast(`Tarjeta terminada en **** ${res.card_last_four || lastFour} vinculada correctamente⚡`, 'success');
+          if (this.sub) {
+            this.sub.card_last_four = res.card_last_four || lastFour;
+            this.sub.card_brand = res.card_brand || 'Visa';
+            this.sub.card_holder = res.card_holder || holder;
+          }
+        } else {
+          await this.showToast(res.message || 'No se pudo vincular la tarjeta', 'danger');
+        }
+      },
+      error: async () => {
+        this.loading = false;
+        await this.showToast('Error de conexión al guardar la tarjeta', 'danger');
+      }
+    });
   }
 
   async showToast(message: string, color: string) {

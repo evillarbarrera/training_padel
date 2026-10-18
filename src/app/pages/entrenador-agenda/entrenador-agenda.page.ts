@@ -97,13 +97,18 @@ export class EntrenadorAgendaPage {
 
   filtrarPorDia() {
     const diaSel = this.semana[this.diaSeleccionadoIdx];
-    const fechaStr = diaSel.fecha.toISOString().split('T')[0];
+    if (!diaSel) return;
+    const d = diaSel.fecha;
+    const fechaStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     const diaNombre = diaSel.nombre;
 
     this.entrenamientosFiltrados = this.entrenamientos.filter(e => {
-      if (e.fecha) return e.fecha === fechaStr;
+      if (e.fecha) {
+        const eFecha = String(e.fecha).split('T')[0].split(' ')[0];
+        return eFecha === fechaStr;
+      }
       return false;
-    }).sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio));
+    }).sort((a, b) => (a.hora_inicio || '').localeCompare(b.hora_inicio || ''));
   }
 
   mapDia(val: any): string {
@@ -127,13 +132,16 @@ export class EntrenadorAgendaPage {
   generarSemana() {
     const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
     const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
 
     // Find monday of current week
     const currentDay = hoy.getDay();
     const diff = hoy.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
-    const monday = new Date(hoy.setDate(diff));
+    const monday = new Date(hoy);
+    monday.setDate(diff);
 
     this.semana = [];
+    const today = new Date();
     for (let i = 0; i < 7; i++) {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
@@ -143,8 +151,7 @@ export class EntrenadorAgendaPage {
         fecha: d
       });
       // Set initial selection to today if possible
-      const today = new Date();
-      if (d.getDate() === today.getDate() && d.getMonth() === today.getMonth()) {
+      if (d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear()) {
         this.diaSeleccionadoIdx = i;
       }
     }

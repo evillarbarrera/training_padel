@@ -1,4 +1,9 @@
 {
+  "/dev": {
+    "target": "https://api.padelmanager.cl",
+    "secure": false,
+    "changeOrigin": true
+  },
   "/prd": {
     "target": "https://api.padelmanager.cl",
     "secure": false,

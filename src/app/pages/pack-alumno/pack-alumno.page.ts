@@ -342,7 +342,7 @@ export class PackAlumnoPage implements OnInit {
   }
 
   goToAgenda() {
-    this.router.navigate(['/jugador-agenda']);
+    this.router.navigate(['/jugador-calendario']);
   }
 
   logout() {

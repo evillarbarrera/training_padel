@@ -59,15 +59,18 @@ export class JugadorCalendarioPage implements OnInit {
       // Backend now sends 'fecha' for both types
       if (!reserva.fecha) return false;
 
-      const fechaReserva = new Date(reserva.fecha + 'T00:00:00');
+      const fechaStr = String(reserva.fecha).split('T')[0].split(' ')[0];
+      const fechaReserva = new Date(fechaStr + 'T00:00:00');
       if (this.tipoVista === 'proximas') {
         return fechaReserva >= hoy;
       } else {
         return fechaReserva < hoy;
       }
     }).sort((a, b) => {
-      const dateA = new Date(a.fecha + 'T' + (a.hora_inicio || '00:00')).getTime();
-      const dateB = new Date(b.fecha + 'T' + (b.hora_inicio || '00:00')).getTime();
+      const fechaA = String(a.fecha).split('T')[0].split(' ')[0];
+      const fechaB = String(b.fecha).split('T')[0].split(' ')[0];
+      const dateA = new Date(fechaA + 'T' + (a.hora_inicio || '00:00')).getTime();
+      const dateB = new Date(fechaB + 'T' + (b.hora_inicio || '00:00')).getTime();
       return this.tipoVista === 'proximas' ? dateA - dateB : dateB - dateA;
     });
   }
@@ -82,15 +85,8 @@ export class JugadorCalendarioPage implements OnInit {
     this.cargando = true;
     this.mysqlService.getReservasJugador(userId).subscribe({
       next: (res: any) => {
-        const individuales = res.reservas_individuales || [];
-        const canchas = res.reservas_cancha || [];
-        const combined = [...individuales];
-        canchas.forEach((c: any) => {
-          if (!combined.some(x => Number(x.reserva_id) === Number(c.reserva_id) && x.tipo === 'cancha')) {
-            combined.push(c);
-          }
-        });
-        this.reservasIndividuales = combined;
+        const individuales = (res.reservas_individuales || []).filter((r: any) => String(r.estado || '').toLowerCase() === 'reservado');
+        this.reservasIndividuales = individuales;
         this.entrenamientosGrupales = res.entrenamientos_grupales || [];
         this.cargando = false;
         if (event) event.target.complete();

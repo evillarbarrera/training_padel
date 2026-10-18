@@ -287,6 +287,13 @@ export class JugadorReservasPage implements OnInit {
     });
   }
 
+  getLocalDateStr(d: Date = new Date()): string {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   handleRefresh(event: any) {
     this.fetchAllData(event);
   }
@@ -321,19 +328,29 @@ export class JugadorReservasPage implements OnInit {
       })
     ).subscribe(({ reservas, partidos, perfil }) => {
       if (reservas) {
-        const todayStr = new Date().toISOString().split('T')[0];
-        this.reservasIndividuales = (reservas.reservas_individuales || []).filter((r:any) => r.fecha >= todayStr);
+        const todayStr = this.getLocalDateStr();
+        this.reservasIndividuales = (reservas.reservas_individuales || []).filter((r: any) => {
+          const rFecha = String(r.fecha || '').split('T')[0].split(' ')[0];
+          const estado = String(r.estado || '').toLowerCase();
+          return rFecha >= todayStr && estado === 'reservado' && r.tipo !== 'cancha';
+        });
         this.entrenamientosGrupales = (reservas.entrenamientos_grupales || [])
-          .filter((eg:any) => eg.fecha >= todayStr)
+          .filter((eg: any) => {
+            const egFecha = String(eg.fecha || '').split('T')[0].split(' ')[0];
+            return egFecha >= todayStr;
+          })
           .map((eg: any) => ({
-          ...eg,
-          genero: this.detectarGenero(eg.pack_nombre || '', eg.categoria || '')
-        }));
+            ...eg,
+            genero: this.detectarGenero(eg.pack_nombre || '', eg.categoria || '')
+          }));
       }
 
       if (partidos) {
-        const todayStr = new Date().toISOString().split('T')[0];
-        this.misPartidos = (partidos || []).filter((p: any) => p.fecha >= todayStr && p.estado !== 'Cancelada' && p.estado !== 'Cancelado');
+        const todayStr = this.getLocalDateStr();
+        this.misPartidos = (partidos || []).filter((p: any) => {
+          const pFecha = String(p.fecha || '').split('T')[0].split(' ')[0];
+          return pFecha >= todayStr && p.estado !== 'Cancelada' && p.estado !== 'Cancelado';
+        });
       }
 
       if (perfil) {
@@ -429,15 +446,25 @@ export class JugadorReservasPage implements OnInit {
       )
     }).subscribe({
       next: ({ reservas, partidos }) => {
-        const todayStr = new Date().toISOString().split('T')[0];
-        this.reservasIndividuales = (reservas.reservas_individuales || []).filter((r:any) => r.fecha >= todayStr);
+        const todayStr = this.getLocalDateStr();
+        this.reservasIndividuales = (reservas.reservas_individuales || []).filter((r: any) => {
+          const rFecha = String(r.fecha || '').split('T')[0].split(' ')[0];
+          const estado = String(r.estado || '').toLowerCase();
+          return rFecha >= todayStr && estado === 'reservado' && r.tipo !== 'cancha';
+        });
         this.entrenamientosGrupales = (reservas.entrenamientos_grupales || [])
-          .filter((eg:any) => eg.fecha >= todayStr)
+          .filter((eg: any) => {
+            const egFecha = String(eg.fecha || '').split('T')[0].split(' ')[0];
+            return egFecha >= todayStr;
+          })
           .map((eg: any) => ({
             ...eg,
             genero: this.detectarGenero(eg.pack_nombre || '', eg.categoria || '')
           }));
-        this.misPartidos = (partidos || []).filter((p: any) => p.fecha >= todayStr && p.estado !== 'Cancelada' && p.estado !== 'Cancelado');
+        this.misPartidos = (partidos || []).filter((p: any) => {
+          const pFecha = String(p.fecha || '').split('T')[0].split(' ')[0];
+          return pFecha >= todayStr && p.estado !== 'Cancelada' && p.estado !== 'Cancelado';
+        });
         this.cargando = false;
       },
       error: (err) => {
