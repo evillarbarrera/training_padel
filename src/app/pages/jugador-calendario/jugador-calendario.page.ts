@@ -49,23 +49,44 @@ export class JugadorCalendarioPage implements OnInit {
     this.cargarReservas();
   }
 
-  get reservasFiltradas() {
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+  getLocalDateStr(d: Date = new Date()): string {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
 
+  esFechaFutura(fecha: string, horaFin?: string, horaInicio?: string): boolean {
+    if (!fecha) return false;
+    const fechaStr = String(fecha).split('T')[0].split(' ')[0];
+    const todayStr = this.getLocalDateStr();
+
+    if (fechaStr > todayStr) return true;
+    if (fechaStr < todayStr) return false;
+
+    const horaRef = (horaFin || horaInicio || '').trim();
+    if (!horaRef) return true;
+
+    const now = new Date();
+    const parts = horaRef.slice(0, 5).split(':');
+    const h = parseInt(parts[0], 10);
+    const m = parseInt(parts[1] || '0', 10);
+
+    const horaActual = now.getHours();
+    const minutoActual = now.getMinutes();
+
+    if (h > horaActual) return true;
+    if (h === horaActual && m > minutoActual) return true;
+    return false;
+  }
+
+  get reservasFiltradas() {
     const todasReservas = [...this.reservasIndividuales, ...this.entrenamientosGrupales];
 
     return todasReservas.filter(reserva => {
-      // Backend now sends 'fecha' for both types
       if (!reserva.fecha) return false;
-
-      const fechaStr = String(reserva.fecha).split('T')[0].split(' ')[0];
-      const fechaReserva = new Date(fechaStr + 'T00:00:00');
-      if (this.tipoVista === 'proximas') {
-        return fechaReserva >= hoy;
-      } else {
-        return fechaReserva < hoy;
-      }
+      const isFutura = this.esFechaFutura(reserva.fecha, reserva.hora_fin, reserva.hora_inicio || reserva.hora);
+      return this.tipoVista === 'proximas' ? isFutura : !isFutura;
     }).sort((a, b) => {
       const fechaA = String(a.fecha).split('T')[0].split(' ')[0];
       const fechaB = String(b.fecha).split('T')[0].split(' ')[0];

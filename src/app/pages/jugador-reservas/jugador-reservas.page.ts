@@ -294,6 +294,31 @@ export class JugadorReservasPage implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
+  esFechaFutura(fecha: string, horaFin?: string, horaInicio?: string): boolean {
+    if (!fecha) return false;
+    const fechaStr = String(fecha).split('T')[0].split(' ')[0];
+    const todayStr = this.getLocalDateStr();
+
+    if (fechaStr > todayStr) return true;
+    if (fechaStr < todayStr) return false;
+
+    // Si la fecha es hoy, comparamos la hora
+    const horaRef = (horaFin || horaInicio || '').trim();
+    if (!horaRef) return true;
+
+    const now = new Date();
+    const parts = horaRef.slice(0, 5).split(':');
+    const h = parseInt(parts[0], 10);
+    const m = parseInt(parts[1] || '0', 10);
+
+    const horaActual = now.getHours();
+    const minutoActual = now.getMinutes();
+
+    if (h > horaActual) return true;
+    if (h === horaActual && m > minutoActual) return true;
+    return false;
+  }
+
   handleRefresh(event: any) {
     this.fetchAllData(event);
   }
@@ -328,17 +353,12 @@ export class JugadorReservasPage implements OnInit {
       })
     ).subscribe(({ reservas, partidos, perfil }) => {
       if (reservas) {
-        const todayStr = this.getLocalDateStr();
         this.reservasIndividuales = (reservas.reservas_individuales || []).filter((r: any) => {
-          const rFecha = String(r.fecha || '').split('T')[0].split(' ')[0];
           const estado = String(r.estado || '').toLowerCase();
-          return rFecha >= todayStr && estado === 'reservado' && r.tipo !== 'cancha';
+          return this.esFechaFutura(r.fecha, r.hora_fin, r.hora_inicio) && estado === 'reservado' && r.tipo !== 'cancha';
         });
         this.entrenamientosGrupales = (reservas.entrenamientos_grupales || [])
-          .filter((eg: any) => {
-            const egFecha = String(eg.fecha || '').split('T')[0].split(' ')[0];
-            return egFecha >= todayStr;
-          })
+          .filter((eg: any) => this.esFechaFutura(eg.fecha, eg.hora_fin, eg.hora_inicio))
           .map((eg: any) => ({
             ...eg,
             genero: this.detectarGenero(eg.pack_nombre || '', eg.categoria || '')
@@ -346,10 +366,8 @@ export class JugadorReservasPage implements OnInit {
       }
 
       if (partidos) {
-        const todayStr = this.getLocalDateStr();
         this.misPartidos = (partidos || []).filter((p: any) => {
-          const pFecha = String(p.fecha || '').split('T')[0].split(' ')[0];
-          return pFecha >= todayStr && p.estado !== 'Cancelada' && p.estado !== 'Cancelado';
+          return this.esFechaFutura(p.fecha, p.hora_fin, p.hora_inicio) && p.estado !== 'Cancelada' && p.estado !== 'Cancelado';
         });
       }
 
@@ -446,24 +464,18 @@ export class JugadorReservasPage implements OnInit {
       )
     }).subscribe({
       next: ({ reservas, partidos }) => {
-        const todayStr = this.getLocalDateStr();
         this.reservasIndividuales = (reservas.reservas_individuales || []).filter((r: any) => {
-          const rFecha = String(r.fecha || '').split('T')[0].split(' ')[0];
           const estado = String(r.estado || '').toLowerCase();
-          return rFecha >= todayStr && estado === 'reservado' && r.tipo !== 'cancha';
+          return this.esFechaFutura(r.fecha, r.hora_fin, r.hora_inicio) && estado === 'reservado' && r.tipo !== 'cancha';
         });
         this.entrenamientosGrupales = (reservas.entrenamientos_grupales || [])
-          .filter((eg: any) => {
-            const egFecha = String(eg.fecha || '').split('T')[0].split(' ')[0];
-            return egFecha >= todayStr;
-          })
+          .filter((eg: any) => this.esFechaFutura(eg.fecha, eg.hora_fin, eg.hora_inicio))
           .map((eg: any) => ({
             ...eg,
             genero: this.detectarGenero(eg.pack_nombre || '', eg.categoria || '')
           }));
         this.misPartidos = (partidos || []).filter((p: any) => {
-          const pFecha = String(p.fecha || '').split('T')[0].split(' ')[0];
-          return pFecha >= todayStr && p.estado !== 'Cancelada' && p.estado !== 'Cancelado';
+          return this.esFechaFutura(p.fecha, p.hora_fin, p.hora_inicio) && p.estado !== 'Cancelada' && p.estado !== 'Cancelado';
         });
         this.cargando = false;
       },
