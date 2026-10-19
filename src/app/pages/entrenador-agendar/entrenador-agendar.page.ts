@@ -693,6 +693,33 @@ export class EntrenadorAgendarPage implements OnInit {
 
                 this.entrenamientoService.crearReserva(payloadReserva).subscribe({
                     next: () => {
+                        try {
+                            const packNombre = this.packsDisponibles?.find(p => p.id == fId)?.nombre || 'Entrenamiento';
+                            const fecha = payloadReserva.fecha;
+                            const hora = payloadReserva.hora_inicio;
+                            const coachId = Number(this.entrenadorId);
+
+                            // Notificar a los alumnos participantes
+                            const targets = (payloadReserva.jugador_ids && payloadReserva.jugador_ids.length > 0)
+                                ? payloadReserva.jugador_ids
+                                : (payloadReserva.jugador_id ? [payloadReserva.jugador_id] : []);
+
+                            targets.forEach((jId: number) => {
+                                if (jId > 0) {
+                                    this.notificationService.notificarReservaCreada(jId, packNombre, fecha, hora);
+                                    this.notificationService.programarRecordatorio(jId, packNombre, fecha, hora);
+                                }
+                            });
+
+                            // Notificar al Entrenador
+                            const alumnoNombreStr = payloadReserva.jugador_nombre || 'Un alumno';
+                            if (coachId > 0) {
+                                this.notificationService.notificarReservaACoach(coachId, alumnoNombreStr, fecha, hora);
+                            }
+                        } catch (eNotif) {
+                            console.error('Error enviando notificaciones desde entrenador-agendar:', eNotif);
+                        }
+
                         if (this.planificacionId && this.claseMallaId) {
                             this.entrenamientoService.asignarMalla({
                                 jugador_id: primerJugador.jugador_id || primerJugador.id,
