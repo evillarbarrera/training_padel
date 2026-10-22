@@ -2,15 +2,17 @@ import UIKit
 import Capacitor
 import FirebaseCore
 import FirebaseMessaging
+import UserNotifications
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUserNotificationCenterDelegate {
 
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         FirebaseApp.configure()
         Messaging.messaging().delegate = self
+        UNUserNotificationCenter.current().delegate = self
         
         // Recuperar activamente el token FCM al iniciar la app
         Messaging.messaging().token { token, error in
@@ -24,6 +26,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
             }
         }
         return true
+    }
+
+    // Permitir que las notificaciones muestren banner y sonido incluso con la app abierta (Foreground)
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        if #available(iOS 14.0, *) {
+            completionHandler([[.banner, .sound, .badge, .list]])
+        } else {
+            completionHandler([[.alert, .sound, .badge]])
+        }
     }
 
     // MARK: - UISceneSession Lifecycle (iOS 27 / Xcode 27 support)

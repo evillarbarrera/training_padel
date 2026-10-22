@@ -45,13 +45,23 @@ public class PadelBloxWatchPlugin: CAPPlugin, WCSessionDelegate {
 
         let matches = call.getArray("proximos_partidos") ?? []
         let userName = call.getString("usuario_nombre") ?? "Jugador PadelBlox"
+        let userId = call.getInt("usuario_id") ?? 0
+        let authToken = call.getString("auth_token") ?? ""
 
-        let payload: [String: Any] = [
+        // Cachear en UserDefaults de la app para respuestas inmediatas al Watch
+        UserDefaults.standard.set(matches, forKey: "padelblox_cached_matches")
+        UserDefaults.standard.set(userName, forKey: "padelblox_cached_username")
+        if userId > 0 { UserDefaults.standard.set(userId, forKey: "padelblox_cached_user_id") }
+        if !authToken.isEmpty { UserDefaults.standard.set(authToken, forKey: "padelblox_cached_token") }
+
+        var payload: [String: Any] = [
             "action": "SYNC_MATCHES",
             "usuario_nombre": userName,
             "proximos_partidos": matches,
             "timestamp": Date().timeIntervalSince1970
         ]
+        if userId > 0 { payload["usuario_id"] = userId }
+        if !authToken.isEmpty { payload["auth_token"] = authToken }
 
         if session.isReachable {
             session.sendMessage(payload, replyHandler: { reply in
@@ -266,6 +276,40 @@ public class PadelBloxWatchPlugin: CAPPlugin, WCSessionDelegate {
             default:
                 self.notifyListeners("watchMessage", data: message)
             }
+        }
+    }
+
+    public func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
+        DispatchQueue.main.async {
+            guard let action = message["action"] as? String else {
+                replyHandler(["status": "error", "message": "Acción no especificada"])
+                return
+            }
+
+            if action == "GET_UPCOMING_MATCHES" {
+                let cachedMatches = UserDefaults.standard.array(forKey: "padelblox_cached_matches") as? [[String: Any]] ?? []
+                let cachedName = UserDefaults.standard.string(forKey: "padelblox_cached_username") ?? "Jugador PadelBlox"
+                let cachedUserId = UserDefaults.standard.integer(forKey: "padelblox_cached_user_id")
+                let cachedToken = UserDefaults.standard.string(forKey: "padelblox_cached_token") ?? ""
+
+                var reply: [String: Any] = [
+                    "action": "SYNC_MATCHES",
+                    "status": "ok",
+                    "usuario_nombre": cachedName,
+                    "proximos_partidos": cachedMatches,
+                    "timestamp": Date().timeIntervalSince1970
+                ]
+                if cachedUserId > 0 { reply["usuario_id"] = cachedUserId }
+                if !cachedToken.isEmpty { reply["auth_token"] = cachedToken }
+
+                replyHandler(reply)
+                self.notifyListeners("watchRequestedMatches", data: ["timestamp": Date().timeIntervalSince1970])
+                return
+            }
+
+            // Para cualquier otro mensaje procesarlo normalmente
+            self.session(session, didReceiveMessage: message)
+            replyHandler(["status": "ok"])
         }
     }
 

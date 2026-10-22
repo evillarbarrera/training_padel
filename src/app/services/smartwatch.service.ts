@@ -202,15 +202,24 @@ export class SmartwatchService {
     return fallback;
   }
 
-  async syncMatchesToWatch(matches: ScheduledMatchItem[], userName: string = 'Jugador PadelBlox'): Promise<boolean> {
+  async syncMatchesToWatch(
+    matches: ScheduledMatchItem[], 
+    userName: string = 'Jugador PadelBlox',
+    userId?: number,
+    token?: string
+  ): Promise<boolean> {
     this.upcomingMatches$.next(matches);
     if (matches.length > 0) {
       this.activeMatch$.next(matches[0]);
     }
 
+    const uid = userId || Number(localStorage.getItem('userId')) || 0;
+    const utoken = token || localStorage.getItem('token') || '';
+
     try {
       localStorage.setItem('padelblox_smartwatch_matches', JSON.stringify({
         usuario_nombre: userName,
+        usuario_id: uid,
         proximos_partidos: matches,
         timestamp: Date.now()
       }));
@@ -222,6 +231,8 @@ export class SmartwatchService {
       try {
         await PadelBloxWatch.syncUpcomingMatches({
           usuario_nombre: userName,
+          usuario_id: uid,
+          auth_token: utoken,
           proximos_partidos: matches
         });
         return true;
@@ -233,6 +244,34 @@ export class SmartwatchService {
       return true;
     }
     return true;
+  }
+
+  async autoSyncUpcomingMatches(userId?: number): Promise<boolean> {
+    const uid = userId || Number(localStorage.getItem('userId')) || 0;
+    if (uid <= 0) return false;
+
+    const token = localStorage.getItem('token') || '';
+    const rawName = localStorage.getItem('nombre') || localStorage.getItem('userName') || 'Jugador PadelBlox';
+
+    try {
+      this.getProximosPartidos(uid).subscribe({
+        next: async (res: any) => {
+          if (res && res.success && Array.isArray(res.proximos_partidos)) {
+            const matches: ScheduledMatchItem[] = res.proximos_partidos;
+            const finalName = res.usuario?.nombre ? `${res.usuario.nombre} ${res.usuario.apellido || ''}`.trim() : rawName;
+            await this.syncMatchesToWatch(matches, finalName, uid, token);
+            console.log(`[Smartwatch] ${matches.length} partidos sincronizados automáticamente con el reloj.`);
+          }
+        },
+        error: (err) => {
+          console.warn('[Smartwatch] AutoSync de partidos próximos falló:', err);
+        }
+      });
+      return true;
+    } catch (e) {
+      console.warn('[Smartwatch] Error en autoSyncUpcomingMatches:', e);
+      return false;
+    }
   }
 
   async startMatch(config: MatchConfig): Promise<boolean> {

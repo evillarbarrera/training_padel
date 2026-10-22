@@ -249,6 +249,13 @@
             {{ isMatchComplete(p) ? 'Completo' : 'Faltan ' + getMissingPlayersCount(p) }}
           </div>
         </div>
+        <div class="watch-training-bar" style="margin-top: 10px; padding-top: 10px;">
+          <button type="button" class="btn-watch-sync" (click)="sincronizarPartidoConReloj(p, $event)">
+            <ion-icon name="watch-outline"></ion-icon>
+            <span>Enviar a {{ watchDeviceName }}</span>
+            <ion-icon name="flash-outline" class="flash-icon"></ion-icon>
+          </button>
+        </div>
       </div>
     </div>
   </div>

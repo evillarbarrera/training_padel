@@ -18,7 +18,7 @@ import {
 } from 'ionicons/icons';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MysqlService } from '../../services/mysql.service';
-import { SmartwatchService } from '../../services/smartwatch.service';
+import { SmartwatchService, ScheduledMatchItem } from '../../services/smartwatch.service';
 import { MatchStoryService, StoryMatchData } from '../../services/match-story.service';
 import { environment } from '../../../environments/environment';
 
@@ -392,6 +392,59 @@ export class PartidoDetallePage implements OnInit {
   downloadStory() {
     if (!this.storyImageUrl) return;
     this.matchStoryService.downloadStoryImage(this.storyImageUrl, `padelblox-partido-${this.matchId || 'story'}.png`);
+  }
+
+  async sincronizarConReloj(event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+    if (!this.match) return;
+
+    const pId = Number(this.match.id || this.matchId || 0);
+    const p1Name = this.match.jugador1_nombre || 'Tú';
+    const p2Name = this.match.jugador2_nombre || '';
+    const pareja1 = p2Name ? `${p1Name} / ${p2Name}` : p1Name;
+
+    const p3Name = this.match.jugador3_nombre || 'Rival 1';
+    const p4Name = this.match.jugador4_nombre || '';
+    const pareja2 = p4Name ? `${p3Name} / ${p4Name}` : (p3Name !== 'Rival 1' ? p3Name : 'Pareja Rival');
+
+    const hIni = (this.match.hora_inicio || '19:00').slice(0, 5);
+    const hFin = (this.match.hora_fin || '20:30').slice(0, 5);
+
+    const matchItem: ScheduledMatchItem = {
+      id: 'res_' + pId,
+      reserva_id: pId,
+      tipo_origen: 'reserva',
+      tipo_label: 'Cancha Reservada',
+      tipo_actividad: 'partido',
+      club_id: Number(this.match.club_id || 1),
+      club_nombre: this.match.club_nombre || 'Club PadelBlox',
+      cancha_nombre: this.match.cancha_nombre || 'Cancha',
+      cancha_tipo: this.match.cancha_tipo || 'Pádel Cristal',
+      fecha: this.match.fecha,
+      hora_inicio: hIni,
+      hora_fin: hFin,
+      horario_texto: `${hIni} - ${hFin} hrs`,
+      pareja1: pareja1,
+      pareja2: pareja2,
+      punto_oro: true,
+      sets: 3,
+      es_hoy: true
+    };
+
+    const myName = localStorage.getItem('userName') || p1Name;
+    await this.smartwatchService.syncMatchesToWatch([matchItem], myName);
+
+    if (this.userId) {
+      this.smartwatchService.autoSyncUpcomingMatches(this.userId).catch(() => {});
+    }
+
+    const toast = await this.toastCtrl.create({
+      message: `✓ ¡Partido enviado a tu ${this.watchDeviceName}! Ábrelo en tu reloj para iniciar y registrar el marcador.`,
+      duration: 3500,
+      position: 'bottom',
+      color: 'success'
+    });
+    await toast.present();
   }
 }
 

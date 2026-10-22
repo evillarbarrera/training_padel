@@ -176,6 +176,9 @@ export class JugadorHomePage implements OnInit {
         } else {
           this.proximaClase = null;
         }
+
+        // Auto-sincronizar partidos reales y reservas con el Apple Watch / Smartwatch
+        this.smartwatchService.autoSyncUpcomingMatches(userId);
       },
       error: (err) => {
         console.error('Error al cargar estadísticas:', err);

@@ -7,8 +7,8 @@ public class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate 
 
     @Published public var isReachable: Bool = false
     @Published public var playerName: String = "Jugador PadelBlox"
-    @Published public var scheduledMatches: [ScheduledMatch] = [ScheduledMatch.sampleDefault]
-    @Published public var selectedMatch: ScheduledMatch? = ScheduledMatch.sampleDefault
+    @Published public var scheduledMatches: [ScheduledMatch] = []
+    @Published public var selectedMatch: ScheduledMatch? = nil
 
     public var onStartMatchReceived: (([String: Any]) -> Void)?
     public var onStopMatchReceived: (() -> Void)?
@@ -16,6 +16,7 @@ public class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate 
 
     private override init() {
         super.init()
+        loadCachedData()
         if WCSession.isSupported() {
             let session = WCSession.default
             session.delegate = self
@@ -23,13 +24,61 @@ public class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate 
         }
     }
 
+    public func loadCachedData() {
+        let defaults = UserDefaults.standard
+        if let name = defaults.string(forKey: "padelblox_user_name"), !name.isEmpty {
+            self.playerName = name
+        }
+        if let data = defaults.data(forKey: "padelblox_cached_scheduled_matches"),
+           let cached = try? JSONDecoder().decode([ScheduledMatch].self, from: data) {
+            self.scheduledMatches = cached
+            self.selectedMatch = cached.first
+        }
+    }
+
     public func requestMatchesFromPhone() {
-        guard WCSession.default.activationState == .activated, WCSession.default.isReachable else { return }
-        WCSession.default.sendMessage(["action": "GET_UPCOMING_MATCHES"], replyHandler: { [weak self] reply in
-            DispatchQueue.main.async {
-                self?.handleMatchesPayload(reply)
+        if WCSession.default.activationState == .activated && WCSession.default.isReachable {
+            WCSession.default.sendMessage(["action": "GET_UPCOMING_MATCHES"], replyHandler: { [weak self] reply in
+                DispatchQueue.main.async {
+                    self?.handleMatchesPayload(reply)
+                }
+            }, errorHandler: { [weak self] error in
+                print("[Watch] Error solicitando partidos al iPhone: \(error.localizedDescription)")
+                self?.fetchMatchesDirectFromBackend()
+            })
+        } else {
+            fetchMatchesDirectFromBackend()
+        }
+    }
+
+    public func fetchMatchesDirectFromBackend() {
+        let defaults = UserDefaults.standard
+        let uid = defaults.integer(forKey: "padelblox_user_id")
+        guard uid > 0 else { return }
+
+        var urlComponents = URLComponents(string: "https://padelblox.cl/api/smartwatch/get_proximos_partidos.php")
+        urlComponents?.queryItems = [URLQueryItem(name: "usuario_id", value: String(uid))]
+        guard let url = urlComponents?.url else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        if let token = defaults.string(forKey: "padelblox_auth_token"), !token.isEmpty {
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let data = data, error == nil else { return }
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let success = json["success"] as? Bool, success {
+                    DispatchQueue.main.async {
+                        self?.handleMatchesPayload(json)
+                    }
+                }
+            } catch {
+                print("[Watch] Error decodificando partidos en directo: \(error)")
             }
-        }, errorHandler: nil)
+        }.resume()
     }
 
     public func sendScoreChanged(t1: String, t2: String, g1: Int, g2: Int, s1: Int, s2: Int) {
@@ -87,8 +136,17 @@ public class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate 
     }
 
     private func handleMatchesPayload(_ payload: [String: Any]) {
-        if let name = payload["usuario_nombre"] as? String {
+        let defaults = UserDefaults.standard
+
+        if let name = payload["usuario_nombre"] as? String, !name.isEmpty {
             self.playerName = name
+            defaults.set(name, forKey: "padelblox_user_name")
+        }
+        if let uid = payload["usuario_id"] as? Int, uid > 0 {
+            defaults.set(uid, forKey: "padelblox_user_id")
+        }
+        if let token = payload["auth_token"] as? String, !token.isEmpty {
+            defaults.set(token, forKey: "padelblox_auth_token")
         }
 
         if let list = payload["proximos_partidos"] as? [[String: Any]] {
@@ -99,8 +157,8 @@ public class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate 
                 let lId = item["liga_partido_id"] as? Int
                 let tipo = item["tipo_label"] as? String ?? "Reserva"
                 let club = item["club_nombre"] as? String ?? "Club PadelBlox"
-                let cancha = item["cancha_nombre"] as? String ?? "Cancha 1"
-                let cTipo = item["cancha_tipo"] as? String ?? "Cristal"
+                let cancha = item["cancha_nombre"] as? String ?? "Cancha"
+                let cTipo = item["cancha_tipo"] as? String ?? "Pádel Cristal"
                 let hor = item["horario_texto"] as? String ?? "Hoy"
                 let p1 = item["pareja1"] as? String ?? "Mi Pareja"
                 let p2 = item["pareja2"] as? String ?? "Rivales"
@@ -124,9 +182,26 @@ public class WatchSessionManager: NSObject, ObservableObject, WCSessionDelegate 
                     esHoy: eh
                 ))
             }
-            if !parsed.isEmpty {
-                self.scheduledMatches = parsed
-                self.selectedMatch = parsed.first
+
+            self.scheduledMatches = parsed
+            self.selectedMatch = parsed.first
+
+            // Persistir partidos decodificados en el reloj
+            if let data = try? JSONEncoder().encode(parsed) {
+                defaults.set(data, forKey: "padelblox_cached_scheduled_matches")
+            } else if parsed.isEmpty {
+                defaults.removeObject(forKey: "padelblox_cached_scheduled_matches")
+            }
+
+            // Actualizar Complications de watchOS
+            if let nextMatch = parsed.first {
+                defaults.set(nextMatch.clubNombre, forKey: "padelblox_complication_club")
+                defaults.set(nextMatch.canchaNombre, forKey: "padelblox_complication_cancha")
+                defaults.set(nextMatch.horarioTexto, forKey: "padelblox_complication_horario")
+            } else {
+                defaults.removeObject(forKey: "padelblox_complication_club")
+                defaults.removeObject(forKey: "padelblox_complication_cancha")
+                defaults.removeObject(forKey: "padelblox_complication_horario")
             }
         }
     }

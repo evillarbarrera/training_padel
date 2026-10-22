@@ -150,15 +150,15 @@
     </div>
 
     <!-- UPCOMING WATCH CALLOUT (IF FUTURE MATCH) -->
-    <div class="watch-play-callout" *ngIf="!match?.jugado && !match?.marcador" (click)="router.navigate(['/smartwatch-stats'])">
+    <div class="watch-play-callout" *ngIf="!match?.jugado && !match?.marcador" (click)="sincronizarConReloj($event)">
         <div class="wpc-left">
             <ion-icon name="watch-outline"></ion-icon>
             <div>
-                <h4>Jugar este partido con {{ watchDeviceName }}</h4>
-                <p>Abre la app en tu reloj, selecciona esta cancha y guarda tu marcador</p>
+                <h4>Sincronizar y jugar con {{ watchDeviceName }}</h4>
+                <p>Toca para enviar este partido a tu reloj y registrar marcador y golpes</p>
             </div>
         </div>
-        <ion-icon name="chevron-forward-outline" class="wpc-arrow"></ion-icon>
+        <ion-icon name="flash-outline" class="wpc-arrow" style="color: #CCFF00;"></ion-icon>
     </div>
 
     <!-- STATUS STRIPS -->

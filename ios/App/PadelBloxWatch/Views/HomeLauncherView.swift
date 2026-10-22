@@ -102,6 +102,45 @@ struct HomeLauncherView: View {
                             .stroke(PadelBloxTheme.cyberCyan.opacity(0.4), lineWidth: 1)
                     )
                     .cornerRadius(10)
+                } else {
+                    // Modo Libre / Sin Reserva Activa
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack {
+                            Text("MODO LIBRE")
+                                .font(.system(size: 8, weight: .black, design: .rounded))
+                                .foregroundColor(PadelBloxTheme.goldenAmber)
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 1)
+                                .background(PadelBloxTheme.goldenAmber.opacity(0.18))
+                                .cornerRadius(4)
+
+                            Spacer()
+
+                            Text("Amistoso")
+                                .font(.system(size: 8.5, weight: .bold, design: .rounded))
+                                .foregroundColor(PadelBloxTheme.textSecondary)
+                        }
+
+                        HStack(spacing: 3) {
+                            Image(systemName: "figure.tennis")
+                                .foregroundColor(PadelBloxTheme.goldenAmber)
+                                .font(.system(size: 10))
+                            Text("Partido Libre")
+                                .font(.system(size: 11.5, weight: .heavy, design: .rounded))
+                                .foregroundColor(PadelBloxTheme.textPrimary)
+                        }
+
+                        Text("Sin cancha reservada vinculada")
+                            .font(.system(size: 9, weight: .medium, design: .rounded))
+                            .foregroundColor(PadelBloxTheme.textSecondary)
+                    }
+                    .padding(7)
+                    .background(PadelBloxTheme.bgCard)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(PadelBloxTheme.borderSubtle, lineWidth: 1)
+                    )
+                    .cornerRadius(10)
                 }
 
                 // Botón Principal de Acción (Jugar / Iniciar Partido)
@@ -112,7 +151,7 @@ struct HomeLauncherView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "play.fill")
                             .font(.system(size: 12))
-                        Text(sessionManager.selectedMatch != nil ? "Jugar este Partido" : "Iniciar Partido")
+                        Text(sessionManager.selectedMatch != nil ? "Jugar este Partido" : "Iniciar Partido Libre")
                             .font(.system(size: 12.5, weight: .heavy, design: .rounded))
                     }
                     .foregroundColor(.black)
@@ -134,7 +173,7 @@ struct HomeLauncherView: View {
                         Image(systemName: "arrow.triangle.2.circlepath")
                             .font(.system(size: 9.5))
                             .foregroundColor(PadelBloxTheme.cyberCyan)
-                        Text(sessionManager.selectedMatch != nil ? "Cambiar Cancha / Partido" : "Seleccionar Cancha")
+                        Text(sessionManager.selectedMatch != nil ? "Cambiar Cancha / Partido" : (sessionManager.scheduledMatches.isEmpty ? "Buscar Mis Canchas" : "Seleccionar Cancha"))
                             .font(.system(size: 10, weight: .bold, design: .rounded))
                             .foregroundColor(PadelBloxTheme.cyberCyan)
                     }

@@ -45,22 +45,4 @@ public struct ScheduledMatch: Identifiable, Codable, Hashable {
         self.sets = sets
         self.esHoy = esHoy
     }
-
-    public static var sampleDefault: ScheduledMatch {
-        ScheduledMatch(
-            id: "res_sample_1",
-            reservaId: 101,
-            ligaPartidoId: nil,
-            tipoLabel: "Cancha Reservada",
-            clubNombre: "Club Padel Center",
-            canchaNombre: "Cancha 2 Cristal",
-            canchaTipo: "Panorámica",
-            horarioTexto: "Hoy 19:30 - 21:00",
-            pareja1: "Emmanuel Villar / Partner",
-            pareja2: "Lucas / Diego",
-            puntoOro: true,
-            sets: 3,
-            esHoy: true
-        )
-    }
 }

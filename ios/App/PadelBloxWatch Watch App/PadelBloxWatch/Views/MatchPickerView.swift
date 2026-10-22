@@ -16,76 +16,127 @@ struct MatchPickerView: View {
                     Image(systemName: "calendar.badge.clock")
                         .foregroundColor(PadelBloxTheme.neonVolt)
                         .font(.system(size: 12))
-                    Text("Selecciona tu Cancha")
+                    Text("Partidos Reservados")
                         .font(.system(size: 11.5, weight: .heavy, design: .rounded))
                         .foregroundColor(PadelBloxTheme.textPrimary)
                     Spacer()
+
+                    // Botón para refrescar desde el iPhone o la nube
+                    Button(action: {
+                        WKInterfaceDevice.current().play(.click)
+                        sessionManager.requestMatchesFromPhone()
+                    }) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(PadelBloxTheme.cyberCyan)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
                 .padding(.horizontal, 4)
                 .padding(.top, 2)
 
-                // Lista de Partidos Programados
-                let matches = sessionManager.scheduledMatches.isEmpty ? [ScheduledMatch.sampleDefault] : sessionManager.scheduledMatches
+                // Lista de Partidos Programados Reales
+                if sessionManager.scheduledMatches.isEmpty {
+                    VStack(spacing: 6) {
+                        Image(systemName: "calendar.badge.exclamationmark")
+                            .font(.system(size: 20))
+                            .foregroundColor(PadelBloxTheme.textMuted)
+                            .padding(.top, 3)
 
-                ForEach(matches) { match in
-                    Button(action: {
-                        WKInterfaceDevice.current().play(.click)
-                        selectedMatch = match
-                        onMatchSelected(match)
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        VStack(alignment: .leading, spacing: 3) {
-                            HStack {
-                                Text(match.tipoLabel.uppercased())
-                                    .font(.system(size: 8, weight: .black, design: .rounded))
-                                    .foregroundColor(PadelBloxTheme.neonVolt)
-                                    .padding(.horizontal, 4)
-                                    .padding(.vertical, 1)
-                                    .background(PadelBloxTheme.neonVolt.opacity(0.15))
-                                    .cornerRadius(4)
+                        Text("Sin partidos reservados")
+                            .font(.system(size: 11, weight: .heavy, design: .rounded))
+                            .foregroundColor(PadelBloxTheme.textPrimary)
 
-                                Spacer()
+                        Text("Reserva tu cancha en la app de PadelBlox para sincronizarla automáticamente.")
+                            .font(.system(size: 8.5, weight: .medium, design: .rounded))
+                            .foregroundColor(PadelBloxTheme.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 6)
 
-                                Text(match.horarioTexto)
-                                    .font(.system(size: 8.5, weight: .bold, design: .rounded))
-                                    .foregroundColor(PadelBloxTheme.textSecondary)
-                            }
-
-                            Text(match.canchaNombre)
-                                .font(.system(size: 12, weight: .heavy, design: .rounded))
-                                .foregroundColor(PadelBloxTheme.cyberCyan)
-
-                            Text(match.clubNombre)
-                                .font(.system(size: 9.5, weight: .medium, design: .rounded))
-                                .foregroundColor(PadelBloxTheme.textSecondary)
-
+                        Button(action: {
+                            WKInterfaceDevice.current().play(.click)
+                            sessionManager.requestMatchesFromPhone()
+                        }) {
                             HStack(spacing: 3) {
-                                Image(systemName: "person.2.fill")
-                                    .font(.system(size: 8))
-                                    .foregroundColor(PadelBloxTheme.textMuted)
-                                Text("\(match.pareja1) vs \(match.pareja2)")
-                                    .font(.system(size: 8.5, weight: .semibold, design: .rounded))
-                                    .foregroundColor(PadelBloxTheme.textPrimary)
-                                    .lineLimit(1)
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                    .font(.system(size: 9))
+                                Text("Comprobar Reservas")
+                                    .font(.system(size: 9, weight: .bold, design: .rounded))
                             }
-                            .padding(.top, 1)
+                            .foregroundColor(PadelBloxTheme.cyberCyan)
+                            .padding(.vertical, 4)
+                            .padding(.horizontal, 8)
+                            .background(PadelBloxTheme.cyberCyan.opacity(0.12))
+                            .cornerRadius(6)
                         }
-                        .padding(8)
-                        .background(
-                            (selectedMatch?.id == match.id) ?
-                            PadelBloxTheme.team1CardFill :
-                            LinearGradient(colors: [PadelBloxTheme.bgCard, PadelBloxTheme.bgCard], startPoint: .top, endPoint: .bottom)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(
-                                    (selectedMatch?.id == match.id) ? PadelBloxTheme.neonVolt : PadelBloxTheme.borderSubtle,
-                                    lineWidth: (selectedMatch?.id == match.id) ? 1.5 : 1
-                                )
-                        )
-                        .cornerRadius(10)
+                        .buttonStyle(PlainButtonStyle())
+                        .padding(.top, 2)
                     }
-                    .buttonStyle(PlainButtonStyle())
+                    .padding(8)
+                    .frame(maxWidth: .infinity)
+                    .background(PadelBloxTheme.bgCard)
+                    .cornerRadius(10)
+                } else {
+                    ForEach(sessionManager.scheduledMatches) { match in
+                        Button(action: {
+                            WKInterfaceDevice.current().play(.click)
+                            selectedMatch = match
+                            onMatchSelected(match)
+                            presentationMode.wrappedValue.dismiss()
+                        }) {
+                            VStack(alignment: .leading, spacing: 3) {
+                                HStack {
+                                    Text(match.tipoLabel.uppercased())
+                                        .font(.system(size: 8, weight: .black, design: .rounded))
+                                        .foregroundColor(PadelBloxTheme.neonVolt)
+                                        .padding(.horizontal, 4)
+                                        .padding(.vertical, 1)
+                                        .background(PadelBloxTheme.neonVolt.opacity(0.15))
+                                        .cornerRadius(4)
+
+                                    Spacer()
+
+                                    Text(match.horarioTexto)
+                                        .font(.system(size: 8.5, weight: .bold, design: .rounded))
+                                        .foregroundColor(PadelBloxTheme.textSecondary)
+                                }
+
+                                Text(match.canchaNombre)
+                                    .font(.system(size: 12, weight: .heavy, design: .rounded))
+                                    .foregroundColor(PadelBloxTheme.cyberCyan)
+
+                                Text(match.clubNombre)
+                                    .font(.system(size: 9.5, weight: .medium, design: .rounded))
+                                    .foregroundColor(PadelBloxTheme.textSecondary)
+
+                                HStack(spacing: 3) {
+                                    Image(systemName: "person.2.fill")
+                                        .font(.system(size: 8))
+                                        .foregroundColor(PadelBloxTheme.textMuted)
+                                    Text("\(match.pareja1) vs \(match.pareja2)")
+                                        .font(.system(size: 8.5, weight: .semibold, design: .rounded))
+                                        .foregroundColor(PadelBloxTheme.textPrimary)
+                                        .lineLimit(1)
+                                }
+                                .padding(.top, 1)
+                            }
+                            .padding(8)
+                            .background(
+                                (selectedMatch?.id == match.id) ?
+                                PadelBloxTheme.team1CardFill :
+                                LinearGradient(colors: [PadelBloxTheme.bgCard, PadelBloxTheme.bgCard], startPoint: .top, endPoint: .bottom)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(
+                                        (selectedMatch?.id == match.id) ? PadelBloxTheme.neonVolt : PadelBloxTheme.borderSubtle,
+                                        lineWidth: (selectedMatch?.id == match.id) ? 1.5 : 1
+                                    )
+                            )
+                            .cornerRadius(10)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
                 }
 
                 // Opción de Partido Rápido / Libre

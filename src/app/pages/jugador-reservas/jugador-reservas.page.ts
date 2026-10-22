@@ -215,6 +215,53 @@ export class JugadorReservasPage implements OnInit {
     await toast.present();
   }
 
+  async sincronizarPartidoConReloj(partido: any, event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+    const pId = Number(partido.id || 0);
+
+    const p1Name = partido.jugador1_nombre || this.jugadorNombre || 'Jugador 1';
+    const p2Name = partido.jugador2_nombre || '';
+    const pareja1 = p2Name ? `${p1Name} / ${p2Name}` : p1Name;
+
+    const p3Name = partido.jugador3_nombre || 'Rival 1';
+    const p4Name = partido.jugador4_nombre || '';
+    const pareja2 = p4Name ? `${p3Name} / ${p4Name}` : (p3Name !== 'Rival 1' ? p3Name : 'Pareja Rival');
+
+    const hIni = (partido.hora_inicio || '19:00').slice(0, 5);
+    const hFin = (partido.hora_fin || '20:30').slice(0, 5);
+
+    const matchItem: ScheduledMatchItem = {
+      id: 'res_' + pId,
+      reserva_id: pId,
+      tipo_origen: 'reserva',
+      tipo_label: 'Cancha Reservada',
+      tipo_actividad: 'partido',
+      club_id: Number(partido.club_id || 1),
+      club_nombre: partido.club_nombre || 'Club PadelBlox',
+      cancha_nombre: partido.cancha_nombre || 'Cancha',
+      cancha_tipo: partido.cancha_tipo || 'Pádel Cristal',
+      fecha: partido.fecha,
+      hora_inicio: hIni,
+      hora_fin: hFin,
+      horario_texto: `${hIni} - ${hFin} hrs`,
+      pareja1: pareja1,
+      pareja2: pareja2,
+      punto_oro: true,
+      sets: 3,
+      es_hoy: true
+    };
+
+    await this.smartwatchService.syncMatchesToWatch([matchItem], this.jugadorNombre);
+
+    const toast = await this.toastCtrl.create({
+      message: `✓ ¡Partido en ${partido.cancha_nombre || 'cancha'} sincronizado con tu ${this.watchDeviceName}! Ábrelo en tu reloj para llevar el marcador.`,
+      duration: 3500,
+      position: 'bottom',
+      color: 'success'
+    });
+    await toast.present();
+  }
+
   verEstadisticasReloj(reserva: any, event?: Event): void {
     if (event) event.stopPropagation();
     this.router.navigate(['/smartwatch-stats'], {
@@ -369,6 +416,9 @@ export class JugadorReservasPage implements OnInit {
         this.misPartidos = (partidos || []).filter((p: any) => {
           return this.esFechaFutura(p.fecha, p.hora_fin, p.hora_inicio) && p.estado !== 'Cancelada' && p.estado !== 'Cancelado';
         });
+        if (this.jugadorId) {
+          this.smartwatchService.autoSyncUpcomingMatches(this.jugadorId).catch(() => {});
+        }
       }
 
       if (perfil) {
