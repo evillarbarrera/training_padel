@@ -1,0 +1,206 @@
+<ion-content [fullscreen]="true" class="pos-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadProductos($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- TOP BAR -->
+  <div class="top-nav-bar">
+    <div class="nav-left-title">
+      <span class="club-sub">{{ selectedClub?.nombre || 'Club' }}</span>
+      <h2>PUNTO DE VENTA (POS)</h2>
+    </div>
+    <button class="nav-cart-btn" (click)="openCart()" title="Ver Carrito">
+      <ion-icon name="cart-outline"></ion-icon>
+      <span class="cart-badge" *ngIf="totalItemsCount > 0">{{ totalItemsCount }}</span>
+    </button>
+  </div>
+
+  <!-- SEARCH BAR -->
+  <div class="search-bar-wrap">
+    <div class="search-input-box">
+      <ion-icon name="search-outline"></ion-icon>
+      <input type="text" [(ngModel)]="searchTerm" (input)="applyFilter()" placeholder="Buscar producto o bebida..." />
+    </div>
+  </div>
+
+  <!-- CATEGORY PILLS -->
+  <div class="categories-scroll-row">
+    <button *ngFor="let cat of categories" 
+            class="cat-pill" 
+            [class.active]="selectedCategory === cat" 
+            (click)="filterCategory(cat)">
+      {{ cat | titlecase }}
+    </button>
+  </div>
+
+  <!-- PRODUCTS GRID -->
+  <div class="pos-grid-container animate-up">
+    <div class="product-item-card" *ngFor="let prod of filteredProductos" (click)="addToCart(prod)">
+      <div class="prod-top">
+        <span class="prod-stock" [class.low]="prod.stock < 5">
+          {{ prod.stock > 0 ? (prod.stock + ' en stock') : 'Agotado' }}
+        </span>
+        <button class="quick-add-btn">
+          <ion-icon name="add-outline"></ion-icon>
+        </button>
+      </div>
+
+      <div class="prod-body">
+        <h4 class="prod-name">{{ prod.nombre }}</h4>
+        <span class="prod-cat">{{ prod.categoria || 'Tienda' }}</span>
+      </div>
+
+      <div class="prod-price-row">
+        <span class="price-val">${{ prod.precio_venta | number }}</span>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-products" *ngIf="filteredProductos.length === 0 && !isLoading">
+      <p>No hay productos en esta categoría.</p>
+    </div>
+  </div>
+
+  <!-- FLOATING CART FOOTER (BOTTOM BAR) -->
+  <div class="floating-cart-footer" *ngIf="cart.length > 0">
+    <div class="footer-left" (click)="openCart()">
+      <div class="cart-icon-circle">
+        <ion-icon name="cart-outline"></ion-icon>
+        <span class="badge">{{ totalItemsCount }}</span>
+      </div>
+      <div class="cart-total-text">
+        <span class="ct-lbl">Total Carrito</span>
+        <span class="ct-val">${{ totalAmount | number }}</span>
+      </div>
+    </div>
+
+    <button class="btn-checkout-volt" (click)="openCart()">
+      Cobrar ➔
+    </button>
+  </div>
+
+  <!-- CHECKOUT BOTTOM SHEET MODAL -->
+  <ion-modal [isOpen]="isCartOpen" (didDismiss)="isCartOpen = false" initialBreakpoint="0.92" [breakpoints]="[0, 0.65, 0.95]" class="nike-pos-modal">
+    <ng-template>
+      <div class="pos-sheet-container">
+        <!-- FIXED TOP HEADER -->
+        <div class="sheet-fixed-header">
+          <div class="drag-handle-bar"></div>
+
+          <div class="sheet-header">
+            <div class="sheet-titles">
+              <span class="sheet-pre">RESUMEN DE VENTA</span>
+              <h2>Cobro de Mostrador</h2>
+            </div>
+            <button type="button" class="sheet-close-btn" (click)="isCartOpen = false" aria-label="Cerrar">✕</button>
+          </div>
+        </div>
+
+        <!-- SCROLLABLE BODY -->
+        <div class="sheet-scrollable-body">
+          <!-- LISTA DE PRODUCTOS EN EL CARRITO -->
+          <div class="cart-items-card">
+            <div class="card-subtitle-row">
+              <span class="cs-label">DETALLE ({{ totalItemsCount }} {{ totalItemsCount === 1 ? 'ÍTEM' : 'ÍTEMS' }})</span>
+              <button type="button" class="btn-clear-cart" (click)="clearCart()" *ngIf="cart.length > 0">Vaciar</button>
+            </div>
+
+            <div class="cart-items-scroll">
+              <div class="cart-item-row" *ngFor="let item of cart">
+                <div class="ci-info">
+                  <strong>{{ item.nombre }}</strong>
+                  <span>${{ item.precio_venta | number }} c/u</span>
+                </div>
+
+                <div class="ci-controls">
+                  <button type="button" class="qty-btn" (click)="updateQuantity(item, -1)" aria-label="Disminuir">-</button>
+                  <span class="qty-num">{{ item.cantidad }}</span>
+                  <button type="button" class="qty-btn" (click)="updateQuantity(item, 1)" aria-label="Aumentar">+</button>
+                </div>
+
+                <span class="ci-subtotal">${{ item.subtotal | number }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TOTAL GENERAL -->
+          <div class="pos-total-card">
+            <div class="tc-left">
+              <span class="tc-label">TOTAL A COBRAR</span>
+              <span class="tc-items-count">{{ totalItemsCount }} {{ totalItemsCount === 1 ? 'producto' : 'productos' }}</span>
+            </div>
+            <span class="tc-amount">${{ totalAmount | number }}</span>
+          </div>
+
+          <!-- MÉTODOS DE PAGO -->
+          <div class="payment-methods-section">
+            <label class="section-lbl">MÉTODO DE PAGO</label>
+            <div class="methods-grid">
+              <button type="button" class="method-btn" [class.active]="metodoPago === 'efectivo'" (click)="selectMetodo('efectivo')">
+                <ion-icon name="cash-outline"></ion-icon>
+                <span>Efectivo</span>
+              </button>
+
+              <button type="button" class="method-btn" [class.active]="metodoPago === 'tarjeta'" (click)="selectMetodo('tarjeta')">
+                <ion-icon name="card-outline"></ion-icon>
+                <span>Tarjeta / POS</span>
+              </button>
+
+              <button type="button" class="method-btn" [class.active]="metodoPago === 'transferencia'" (click)="selectMetodo('transferencia')">
+                <ion-icon name="swap-horizontal-outline"></ion-icon>
+                <span>Transferencia</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- CALCULADORA DE VUELTO SI ES EFECTIVO -->
+          <div class="cash-calculator-card" *ngIf="metodoPago === 'efectivo'">
+            <div class="cash-input-row">
+              <label>Dinero Recibido:</label>
+              <div class="cash-input-box">
+                <span class="curr-sign">$</span>
+                <input type="number" [(ngModel)]="montoRecibido" class="native-cash-input" inputmode="numeric" />
+              </div>
+            </div>
+
+            <!-- BILLETES INTELIGENTES (calculados según el total) -->
+            <div class="quick-bill-pills">
+              <button type="button" 
+                      *ngFor="let billete of sugerenciasBilletes" 
+                      class="bill-pill" 
+                      [class.exact]="billete === totalAmount"
+                      [class.active]="montoRecibido === billete"
+                      (click)="setMontoRecibido(billete)">
+                <span class="pill-badge" *ngIf="billete === totalAmount">Exacto</span>
+                <span>${{ billete | number }}</span>
+              </button>
+            </div>
+
+            <div class="vuelto-result-row">
+              <span class="vr-label">Vuelto a Entregar:</span>
+              <strong class="vuelto-val" [class.insufficient]="montoRecibido < totalAmount">
+                {{ montoRecibido < totalAmount ? 'Monto insuficiente' : ('$' + (vuelto | number)) }}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- STICKY FOOTER (SIEMPRE VISIBLE, NUNCA CORTADO) -->
+        <div class="sheet-sticky-footer">
+          <button type="button" class="btn-finalize-sale" (click)="confirmarVenta()" [disabled]="isProcessingSale || cart.length === 0 || (metodoPago === 'efectivo' && montoRecibido < totalAmount)">
+            <span *ngIf="!isProcessingSale">✓ CONFIRMAR VENTA (${{ totalAmount | number }})</span>
+            <ion-spinner *ngIf="isProcessingSale" name="crescent"></ion-spinner>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- FLOATING BACK BUTTON (GENERAL APP PATTERN) -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="nike-back-fab" [class.with-cart]="cart.length > 0" *ngIf="!isCartOpen">
+    <ion-fab-button (click)="goBack()" class="back-fab">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

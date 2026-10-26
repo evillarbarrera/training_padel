@@ -7,8 +7,8 @@
         <h1>Búsqueda</h1>
       </div>
       <div class="h-right">
-        <div class="h-avatar-mini">
-          <img [src]="userPhoto" alt="Avatar">
+        <div class="h-avatar-mini" (click)="router.navigate(['/perfil'])" style="cursor: pointer;">
+          <img [src]="userPhoto" (error)="onImgError($event)" alt="Avatar">
         </div>
       </div>
     </div>

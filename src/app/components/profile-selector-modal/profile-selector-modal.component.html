@@ -1,0 +1,50 @@
+<div class="profile-sheet-container">
+  <!-- DRAG HANDLE -->
+  <div class="drag-handle-bar"></div>
+
+  <!-- HEADER -->
+  <div class="sheet-top-header">
+    <div class="header-titles">
+      <span class="badge-tag">PERFILES ACTIVOS</span>
+      <h2>¿Cómo deseas ingresar hoy?</h2>
+      <p class="header-desc">Selecciona el perfil con el que deseas operar ahora</p>
+    </div>
+    <button *ngIf="allowCancel" class="sheet-close-btn" (click)="close()" aria-label="Cerrar">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- OPTIONS LIST -->
+  <div class="profiles-list-scroll">
+    <div *ngFor="let opt of normalizedOptions" 
+         class="profile-card" 
+         [class]="'theme-' + opt.colorTheme"
+         [class.is-current]="currentRole === opt.key"
+         (click)="selectProfile(opt)">
+
+      <div class="pc-icon-box">
+        <ion-icon [name]="opt.icon"></ion-icon>
+      </div>
+
+      <div class="pc-content">
+        <div class="pc-top-row">
+          <span class="pc-badge">{{ opt.badge }}</span>
+          <span class="pc-current-tag" *ngIf="currentRole === opt.key">ACTIVO</span>
+        </div>
+        <h3 class="pc-title">{{ opt.title }}</h3>
+        <span class="pc-subtitle">{{ opt.subtitle }}</span>
+        <p class="pc-desc">{{ opt.description }}</p>
+      </div>
+
+      <div class="pc-action">
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER NOTE -->
+  <div class="sheet-footer-hint">
+    <ion-icon name="swap-horizontal-outline"></ion-icon>
+    <span>Puedes cambiar de perfil en cualquier momento desde el menú de tu cuenta.</span>
+  </div>
+</div>

@@ -1152,7 +1152,7 @@ export class JugadorCampeonatosPage implements OnInit {
 
   constructor(
     private mysql: MysqlService, 
-    private router: Router,
+    public router: Router,
     private alertCtrl: AlertController,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
@@ -1566,30 +1566,83 @@ export class JugadorCampeonatosPage implements OnInit {
   }
 
   loadUserProfile() {
+    const savedFoto = localStorage.getItem('userFoto') || localStorage.getItem('foto_perfil');
+    if (savedFoto) {
+      this.userPhoto = this.getProfileImage(savedFoto);
+    }
+
     const userId = this.getStoredUserId();
     this.userId = userId;
     this.userName = (localStorage.getItem('userNombre') || localStorage.getItem('userName') || '').trim();
     if (userId) {
-      this.mysql.getPerfil(userId).subscribe(res => {
-        if (res.success && res.user) {
-          const profileName = `${res.user.nombre || ''} ${res.user.apellido || ''}`.trim();
-          if (profileName) {
-            this.userName = profileName;
-            localStorage.setItem('userNombre', profileName);
+      this.mysql.getPerfil(userId).subscribe({
+        next: (res: any) => {
+          if (res) {
+            const userData = res.user || res;
+            const profileName = `${userData.nombre || ''} ${userData.apellido || ''}`.trim();
+            if (profileName) {
+              this.userName = profileName;
+              localStorage.setItem('userNombre', profileName);
+            }
+            const region = res.direccion?.region || userData.region;
+            if (region && !this.selectedRegion) {
+              this.selectedRegion = region;
+              this.onFilterChange();
+            }
+            const photo = userData.foto_perfil || userData.foto || userData.link_foto;
+            if (photo) {
+              localStorage.setItem('userFoto', photo);
+              localStorage.setItem('foto_perfil', photo);
+              this.userPhoto = this.getProfileImage(photo);
+            }
+            this.sortClubes();
           }
-          const region = res.direccion?.region || res.user?.region;
-          if (region && !this.selectedRegion) {
-            this.selectedRegion = region;
-            this.onFilterChange();
-          }
-          const photo = res.user.foto_perfil || res.user.foto;
-          if (photo) {
-            const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
-            this.userPhoto = photo.startsWith('http') ? photo : `${cleanApiUrl}/prd/${photo}`;
-          }
-          this.sortClubes();
+        },
+        error: (err) => {
+          console.warn('Error loading user profile in campeonatos:', err);
         }
       });
+    }
+  }
+
+  getProfileImage(url: any): string {
+    if (!url || url === 'null' || url === 'undefined' || typeof url !== 'string') {
+      return 'assets/avatar.png';
+    }
+    const cleanUrl = url.trim();
+    if (!cleanUrl || cleanUrl === '' || cleanUrl.includes('imagen_defecto') || cleanUrl.includes('default_avatar')) {
+      return 'assets/avatar.png';
+    }
+    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://') || cleanUrl.startsWith('data:image')) {
+      return cleanUrl;
+    }
+    if (cleanUrl.startsWith('assets/')) {
+      return cleanUrl;
+    }
+
+    const path = cleanUrl.startsWith('/') ? cleanUrl.substring(1) : cleanUrl;
+    if (path.startsWith('prd/') || path.startsWith('api_training/')) {
+      return `https://api.padelmanager.cl/${path}`;
+    }
+    if (path.startsWith('uploads/')) {
+      return `https://api.padelmanager.cl/${path}`;
+    }
+    return `https://api.padelmanager.cl/api_training/${path}`;
+  }
+
+  onImgError(event: any) {
+    if (event && event.target) {
+      const currentSrc: string = event.target.src || '';
+      if (currentSrc.includes('assets/avatar.png')) {
+        return;
+      }
+      if (currentSrc.includes('api.padelmanager.cl/uploads/')) {
+        event.target.src = currentSrc.replace('api.padelmanager.cl/uploads/', 'api.padelmanager.cl/api_training/uploads/');
+      } else if (currentSrc.includes('/api_training/uploads/')) {
+        event.target.src = currentSrc.replace('/api_training/uploads/', '/prd/uploads/');
+      } else {
+        event.target.src = 'assets/avatar.png';
+      }
     }
   }
 
@@ -1676,9 +1729,7 @@ export class JugadorCampeonatosPage implements OnInit {
           const cNom = (c.nombre || '').toLowerCase();
           const clubTorneos = this.torneos.filter(t => {
             const tClubId = Number(t.club_id);
-            if (tClubId === clubId) return true;
-            if (tClubId <= 1 || !tClubId) return true;
-            return false;
+            return tClubId === clubId;
           });
 
           c.numAmericanos = clubTorneos.filter(t => t.table_source === 'americanos').length;
@@ -1808,30 +1859,31 @@ export class JugadorCampeonatosPage implements OnInit {
 
     const allForClub = this.torneos.filter(t => {
       const tClubId = Number(t.club_id);
-      if (tClubId === clubId || tClubId <= 1 || !tClubId) return true;
-      return false;
+      return tClubId === clubId;
     });
     
     this.americanosList = allForClub.filter(t => t.table_source === 'americanos' && t.fecha >= today);
     this.torneosList = allForClub.filter(t => t.table_source === 'v2');
     this.ligasClubList = allForClub.filter(t => t.table_source === 'liga');
 
-    // ALSO FETCH LIGAS directly from mysql.getLigas(club.id) to guarantee ligas display
+    // ALSO FETCH LIGAS directly from mysql.getLigas(club.id) for this club only
     this.mysql.getLigas(club.id).subscribe({
       next: (res: any) => {
         const fetchedLigas = res?.ligas || (Array.isArray(res) ? res : []);
         if (Array.isArray(fetchedLigas) && fetchedLigas.length > 0) {
-          const ligasFormateadas = fetchedLigas.map((l: any) => ({
-            ...l,
-            table_source: 'liga',
-            tipo: 'Liga',
-            club_id: l.club_id || club.id,
-            imagen: l.imagen_url || '',
-            imagen_display: l.imagen_url || '',
-            fecha_display: l.fecha_inicio || '',
-            fecha: l.fecha_inicio || '',
-            inscritos: l.total_parejas || 0
-          }));
+          const ligasFormateadas = fetchedLigas
+            .filter((l: any) => Number(l.club_id) === clubId)
+            .map((l: any) => ({
+              ...l,
+              table_source: 'liga',
+              tipo: 'Liga',
+              club_id: Number(l.club_id),
+              imagen: l.imagen_url || '',
+              imagen_display: l.imagen_url || '',
+              fecha_display: l.fecha_inicio || '',
+              fecha: l.fecha_inicio || '',
+              inscritos: l.total_parejas || 0
+            }));
 
           const existingIds = new Set(this.ligasClubList.map(l => Number(l.id)));
           for (const fl of ligasFormateadas) {
@@ -1839,57 +1891,9 @@ export class JugadorCampeonatosPage implements OnInit {
               this.ligasClubList.push(fl);
             }
           }
-        } else {
-          // Ultimate fallback: fetch ALL ligas without club_id filter
-          this.mysql.getLigas().subscribe((resAll: any) => {
-            const allLigas = resAll?.ligas || (Array.isArray(resAll) ? resAll : []);
-            if (Array.isArray(allLigas) && allLigas.length > 0) {
-              const ligasFormateadas = allLigas.map((l: any) => ({
-                ...l,
-                table_source: 'liga',
-                tipo: 'Liga',
-                club_id: club.id,
-                imagen: l.imagen_url || '',
-                imagen_display: l.imagen_url || '',
-                fecha_display: l.fecha_inicio || '',
-                fecha: l.fecha_inicio || '',
-                inscritos: l.total_parejas || 0
-              }));
-              const existingIds = new Set(this.ligasClubList.map(l => Number(l.id)));
-              for (const fl of ligasFormateadas) {
-                if (!existingIds.has(Number(fl.id))) {
-                  this.ligasClubList.push(fl);
-                }
-              }
-            }
-          });
         }
       },
-      error: () => {
-        // Fallback: fetch ALL ligas
-        this.mysql.getLigas().subscribe((resAll: any) => {
-          const allLigas = resAll?.ligas || (Array.isArray(resAll) ? resAll : []);
-          if (Array.isArray(allLigas) && allLigas.length > 0) {
-            const ligasFormateadas = allLigas.map((l: any) => ({
-              ...l,
-              table_source: 'liga',
-              tipo: 'Liga',
-              club_id: club.id,
-              imagen: l.imagen_url || '',
-              imagen_display: l.imagen_url || '',
-              fecha_display: l.fecha_inicio || '',
-              fecha: l.fecha_inicio || '',
-              inscritos: l.total_parejas || 0
-            }));
-            const existingIds = new Set(this.ligasClubList.map(l => Number(l.id)));
-            for (const fl of ligasFormateadas) {
-              if (!existingIds.has(Number(fl.id))) {
-                this.ligasClubList.push(fl);
-              }
-            }
-          }
-        });
-      }
+      error: () => {}
     });
 
     if (this.selectedCompetitionFilter === 'torneo') {

@@ -1,0 +1,295 @@
+<ion-content [fullscreen]="true" class="turnos-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadTurnos($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- TOP BAR -->
+  <div class="top-nav-bar">
+    <div class="nav-left-title">
+      <span class="club-sub">{{ selectedClub?.nombre || 'Club' }}</span>
+      <h2>TURNOS DE ATENCIÓN Y STAFF</h2>
+    </div>
+    <button class="nav-action-btn" (click)="openAssignModal()" title="Asignar Nuevo Turno">
+      <ion-icon name="add-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- DATE CAROUSEL (SELECTOR DE DÍAS) -->
+  <div class="date-scroll-row">
+    <div *ngFor="let day of weekDays" 
+         class="date-chip" 
+         [class.active]="selectedFecha === day.iso"
+         (click)="selectFecha(day.iso)">
+      <span class="day-lbl">{{ day.label }}</span>
+      <span class="day-num">{{ day.dayNum }}</span>
+      <span class="day-dot"></span>
+    </div>
+  </div>
+
+  <div class="turnos-body animate-up">
+    <!-- DATE BANNER -->
+    <div class="turnos-date-card">
+      <span class="td-icon">👥</span>
+      <div class="td-text">
+        <strong>Operación y Turnos de Personal</strong>
+        <span>{{ selectedFecha | date:'EEEE, d MMMM':'':'es-CL' | titlecase }}</span>
+      </div>
+      <button class="btn-quick-add-turno" (click)="openAssignModal()">
+        <ion-icon name="add-outline"></ion-icon>
+        <span>Asignar</span>
+      </button>
+    </div>
+
+    <!-- TURNOS LIST -->
+    <div class="turnos-list" *ngIf="turnos.length > 0">
+      <div class="turno-card" *ngFor="let t of turnos" [class.unassigned-card]="!hasResponsable(t)">
+        
+        <!-- CARD HEADER: ROL Y HORARIO -->
+        <div class="turno-header">
+          <div class="t-role-badge" [class.unassigned-badge]="!hasResponsable(t)">
+            <ion-icon [name]="hasResponsable(t) ? 'briefcase-outline' : 'alert-circle-outline'"></ion-icon>
+            <strong>{{ hasResponsable(t) ? (t.rol_turno || 'Encargado de Turno') : 'Sin Personal Asignado' }}</strong>
+          </div>
+
+          <div class="t-time-pill">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>{{ (t.hora_inicio || '08:00').substring(0, 5) }} - {{ (t.hora_fin || '23:30').substring(0, 5) }}</span>
+          </div>
+        </div>
+
+        <!-- CASO 1: TIENE RESPONSABLE ASIGNADO -->
+        <ng-container *ngIf="hasResponsable(t)">
+          <div class="turno-main">
+            <div class="staff-avatar-circle">
+              <span class="staff-initial">{{ t.nombre_responsable?.charAt(0) || 'S' }}</span>
+            </div>
+            <div class="staff-info-col">
+              <h3 class="client-name">{{ t.nombre_responsable }}</h3>
+              <p class="client-meta">
+                <span *ngIf="t.telefono">📞 {{ t.telefono }}</span>
+                <span class="dot-sep" *ngIf="t.telefono && t.monto_pago">•</span>
+                <span *ngIf="t.monto_pago">💰 ${{ t.monto_pago | number }}</span>
+                <span class="tipo-tag">{{ t.tipo_turno || 'Día Completo' }}</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- ACTIONS ROW -->
+          <div class="turno-actions-row">
+            <!-- TOGGLE PAGO -->
+            <button class="btn-pay-status" [class.paid]="t.pagado == 1" (click)="togglePago(t)">
+              <ion-icon [name]="t.pagado == 1 ? 'checkmark-circle-outline' : 'alert-circle-outline'"></ion-icon>
+              <span>{{ t.pagado == 1 ? 'PAGADO' : 'COBRAR' }}</span>
+            </button>
+
+            <!-- WHATSAPP RECORDATORIO -->
+            <button class="btn-wa-reminder" (click)="sendWhatsAppReminder(t)" title="Enviar recordatorio WhatsApp">
+              <ion-icon name="logo-whatsapp"></ion-icon>
+              <span>Avisar</span>
+            </button>
+
+            <!-- REASIGNAR -->
+            <button class="btn-reassign" (click)="openAssignModal(t)" title="Cambiar responsable">
+              <ion-icon name="create-outline"></ion-icon>
+            </button>
+          </div>
+        </ng-container>
+
+        <!-- CASO 2: NO TIENE NADIE ASIGNADO -->
+        <div class="unassigned-body" *ngIf="!hasResponsable(t)">
+          <div class="unassigned-msg-wrap">
+            <div class="unassigned-icon">⚠️</div>
+            <div class="unassigned-text">
+              <h4>Turno Vacante</h4>
+              <p>Este turno no tiene ninguna persona asignada para operar el club en este horario.</p>
+            </div>
+          </div>
+
+          <button class="btn-assign-person" (click)="openAssignModal(t)">
+            <ion-icon name="person-add-outline"></ion-icon>
+            <span>Asignar Responsable Ahora</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- EMPTY STATE CUANDO NO HAY NINGÚN TURNO -->
+    <div class="empty-turnos-card" *ngIf="turnos.length === 0 && !isLoading">
+      <div class="empty-emoji">👥</div>
+      <h3>Sin Personal Asignado Hoy</h3>
+      <p>No se registra ningún encargado ni personal de staff asignado para operar el club este día.</p>
+      <button class="btn-empty-assign" (click)="openAssignModal()">
+        <ion-icon name="person-add-outline"></ion-icon>
+        <span>Asignar Encargado de Hoy</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- FLOATING BACK BUTTON (GENERAL APP PATTERN) -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="nike-back-fab">
+    <ion-fab-button (click)="goBack()" class="back-fab">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- MODAL DE ASIGNACIÓN DE TURNO (BOTTOM SHEET) -->
+  <ion-modal [isOpen]="isAssignModalOpen" 
+             (didDismiss)="closeAssignModal()"
+             [initialBreakpoint]="0.88" 
+             [breakpoints]="[0, 0.88, 1]" 
+             class="assign-turno-modal">
+    <ng-template>
+      <div class="assign-modal-content">
+        
+        <!-- HEADER FIJO -->
+        <div class="modal-fixed-header">
+          <div class="modal-handle"></div>
+          <div class="modal-header-row">
+            <div class="m-title-block">
+              <span class="m-sub">{{ selectedFecha | date:'EEEE, d MMMM':'':'es-CL' | titlecase }}</span>
+              <h3>{{ formTurno.id ? 'Reasignar Turno' : 'Asignar Turno de Personal' }}</h3>
+            </div>
+            <button class="m-close-btn" (click)="closeAssignModal()">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+
+          <!-- MODO SELECTOR: STAFF REGISTRADO VS INGRESO MANUAL -->
+          <div class="assign-mode-tabs">
+            <button class="mode-tab" 
+                    [class.active]="assignMode === 'staff'" 
+                    (click)="assignMode = 'staff'">
+              <ion-icon name="people-outline"></ion-icon>
+              <span>Staff del Club</span>
+            </button>
+            <button class="mode-tab" 
+                    [class.active]="assignMode === 'manual'" 
+                    (click)="assignMode = 'manual'">
+              <ion-icon name="create-outline"></ion-icon>
+              <span>Ingreso Manual</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- CUERPO CON SCROLL -->
+        <div class="modal-scroll-body">
+          
+          <!-- SELECCIÓN MODO 1: STAFF REGISTRADO -->
+          <div *ngIf="assignMode === 'staff'" class="staff-picker-section">
+            <label class="form-section-label">Selecciona del Personal Vinculado al Club:</label>
+
+            <div class="staff-loading-wrap" *ngIf="isLoadingStaff">
+              <ion-spinner name="crescent"></ion-spinner>
+              <span>Cargando equipo de staff...</span>
+            </div>
+
+            <div class="staff-cards-grid" *ngIf="!isLoadingStaff && staffList.length > 0">
+              <div class="staff-select-card" 
+                   *ngFor="let s of staffList"
+                   [class.selected]="formTurno.usuario_id === s.id"
+                   (click)="selectStaffMember(s)">
+                <div class="staff-avatar">
+                  <span>{{ s.nombre?.charAt(0) || 'S' }}</span>
+                </div>
+                <div class="staff-details">
+                  <strong>{{ s.nombre }}</strong>
+                  <span class="staff-sub-role">{{ s.rol || 'Staff Club' }}</span>
+                </div>
+                <div class="staff-check-icon">
+                  <ion-icon [name]="formTurno.usuario_id === s.id ? 'checkmark-circle-outline' : 'add-outline'"></ion-icon>
+                </div>
+              </div>
+            </div>
+
+            <div class="empty-staff-msg" *ngIf="!isLoadingStaff && staffList.length === 0">
+              <p>No hay personal registrado en esta sede. Puedes ingresarlo con el modo manual.</p>
+              <button class="btn-switch-manual" (click)="assignMode = 'manual'">
+                Cambiar a Ingreso Manual
+              </button>
+            </div>
+          </div>
+
+          <!-- SELECCIÓN MODO 2: INGRESO MANUAL -->
+          <div *ngIf="assignMode === 'manual'" class="manual-input-section">
+            <div class="input-field-group">
+              <label>Nombre del Responsable *</label>
+              <input type="text" 
+                     [(ngModel)]="formTurno.nombre_responsable" 
+                     placeholder="Ej: Carlos Gómez" 
+                     class="native-input" />
+            </div>
+
+            <div class="input-field-group">
+              <label>Teléfono WhatsApp (opcional)</label>
+              <input type="tel" 
+                     [(ngModel)]="formTurno.telefono" 
+                     placeholder="+56 9 1234 5678" 
+                     class="native-input" />
+            </div>
+          </div>
+
+          <!-- CONFIGURACIÓN DEL TURNO (COMÚN A AMBOS MODOS) -->
+          <div class="shift-config-section">
+            <label class="form-section-label">Configuración del Turno:</label>
+
+            <!-- TIPO DE TURNO -->
+            <div class="tipo-turno-chips">
+              <button *ngFor="let tt of tiposTurno"
+                      type="button"
+                      class="tt-chip"
+                      [class.active]="formTurno.tipo_turno === tt.tipo"
+                      (click)="formTurno.tipo_turno = tt.tipo; onTipoTurnoChange()">
+                {{ tt.label }}
+              </button>
+            </div>
+
+            <!-- ROL DEL TURNO -->
+            <div class="input-field-group">
+              <label>Rol o Función</label>
+              <select [(ngModel)]="formTurno.rol_turno" class="native-select">
+                <option *ngFor="let rol of rolesDisponibles" [value]="rol">{{ rol }}</option>
+              </select>
+            </div>
+
+            <!-- HORARIO INICIO Y FIN -->
+            <div class="hours-row">
+              <div class="input-field-group half">
+                <label>Hora Inicio</label>
+                <input type="time" [(ngModel)]="formTurno.hora_inicio" class="native-input" />
+              </div>
+              <div class="input-field-group half">
+                <label>Hora Fin</label>
+                <input type="time" [(ngModel)]="formTurno.hora_fin" class="native-input" />
+              </div>
+            </div>
+
+            <!-- MONTO DE PAGO / HONORARIO -->
+            <div class="input-field-group">
+              <label>Monto de Pago / Honorario ($)</label>
+              <input type="number" 
+                     [(ngModel)]="formTurno.monto_pago" 
+                     placeholder="Ej: 25000" 
+                     class="native-input" />
+            </div>
+          </div>
+
+        </div>
+
+        <!-- FOOTER FIJO -->
+        <div class="modal-sticky-footer">
+          <button class="btn-confirm-assign" 
+                  (click)="saveTurnoAssignment()" 
+                  [disabled]="isSavingTurno">
+            <span *ngIf="!isSavingTurno">
+              {{ formTurno.id ? 'Actualizar Asignación' : '✓ Confirmar y Asignar Turno' }}
+            </span>
+            <ion-spinner *ngIf="isSavingTurno" name="crescent"></ion-spinner>
+          </button>
+        </div>
+
+      </div>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>

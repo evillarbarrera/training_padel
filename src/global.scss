@@ -549,3 +549,9 @@ button,
     transform: scale(0.92);
   }
 }
+
+/* Multi-role profile selector bottom sheet */
+.profile-selector-bottom-sheet {
+  --border-radius: 28px 28px 0 0;
+  --background: #ffffff;
+}

@@ -1,0 +1,574 @@
+<ion-content [fullscreen]="true" class="americano-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadTorneoData($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- TOP BAR -->
+  <div class="top-nav-bar">
+    <div class="nav-left-title">
+      <span class="club-sub">{{ selectedClub?.nombre || 'Club' }}</span>
+      <h2>MESA DE CONTROL AMERICANO</h2>
+    </div>
+
+    <!-- QUICK ADD INTEGRANTE BUTTON IN HEADER -->
+    <div class="nav-actions" *ngIf="selectedTorneo">
+      <button class="btn-top-add-participant" (click)="openAddParticipantModal()">
+        <ion-icon name="person-add-outline"></ion-icon>
+        <span>+ Integrante</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TABS: ACTIVOS VS CERRADOS -->
+  <div class="torneo-tabs-bar">
+    <button class="state-tab" [class.active]="activeTab === 'activos'" (click)="setTorneoTab('activos')">
+      <span class="tab-emoji">🔥</span>
+      <span class="tab-label">Activos</span>
+      <span class="tab-badge" *ngIf="activosTorneos.length > 0">{{ activosTorneos.length }}</span>
+    </button>
+    <button class="state-tab" [class.active]="activeTab === 'cerrados'" (click)="setTorneoTab('cerrados')">
+      <span class="tab-emoji">📁</span>
+      <span class="tab-label">Cerrados</span>
+      <span class="tab-badge" *ngIf="cerradosTorneos.length > 0">{{ cerradosTorneos.length }}</span>
+    </button>
+  </div>
+
+  <!-- TORNEO SELECTOR & ACTIONS CARD -->
+  <div class="torneo-selector-card" *ngIf="currentTorneoList.length > 0">
+    <div class="torneo-card-header">
+      <div class="selector-field">
+        <label>{{ activeTab === 'activos' ? 'Americano en Curso' : 'Histórico de Americano' }}</label>
+        <select [(ngModel)]="selectedTorneo" [compareWith]="compareTorneoFn" (change)="onTorneoSelect()" class="native-torneo-select">
+          <option *ngFor="let t of currentTorneoList" [ngValue]="t">
+            {{ t.nombre }} ({{ t.categoria || 'General' }})
+          </option>
+        </select>
+      </div>
+
+      <span class="torneo-status-pill" [class.active]="!isTorneoCerrado(selectedTorneo)" [class.closed]="isTorneoCerrado(selectedTorneo)">
+        <ion-icon [name]="isTorneoCerrado(selectedTorneo) ? 'archive-outline' : 'flame-outline'"></ion-icon>
+        {{ isTorneoCerrado(selectedTorneo) ? 'CERRADO' : 'EN VIVO' }}
+      </span>
+    </div>
+
+    <!-- ACTION TO CLOSE TOURNAMENT (ONLY ACTIVE) -->
+    <div class="torneo-card-footer" *ngIf="selectedTorneo && !isTorneoCerrado(selectedTorneo)">
+      <button class="btn-close-americano" (click)="confirmCloseTorneo()" [disabled]="isClosingTorneo">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <span>{{ isClosingTorneo ? 'Cerrando Torneo...' : 'Finalizar y Cerrar Torneo' }}</span>
+      </button>
+    </div>
+
+    <!-- BANNER & ACTIONS IF CLOSED -->
+    <div class="closed-notice-card" *ngIf="selectedTorneo && isTorneoCerrado(selectedTorneo)">
+      <div class="closed-notice-banner">
+        <ion-icon name="checkmark-done-outline"></ion-icon>
+        <span>Torneo finalizado. Puedes consultar las posiciones o copiar este torneo para una nueva fecha.</span>
+      </div>
+      <button class="btn-copy-americano" (click)="confirmCopiarTorneo()" [disabled]="isCopyingTorneo">
+        <ion-icon name="copy-outline"></ion-icon>
+        <span>{{ isCopyingTorneo ? 'Copiando Torneo...' : '📋 Copiar Torneo Americano' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- EMPTY STATE IF CURRENT TAB HAS NO AMERICANOS -->
+  <div class="empty-torneos-card" *ngIf="!isLoading && currentTorneoList.length === 0">
+    <div class="empty-emoji">{{ activeTab === 'activos' ? '🏆' : '📁' }}</div>
+    <h3>{{ activeTab === 'activos' ? 'No Hay Americanos Activos' : 'No Hay Americanos Cerrados' }}</h3>
+    <p>
+      {{ activeTab === 'activos' 
+        ? 'No se encontraron torneos americanos activos en esta sede. Puedes consultar los cerrados en la otra pestaña.' 
+        : 'Aún no hay torneos americanos finalizados en esta sede.' }}
+    </p>
+  </div>
+
+  <ng-container *ngIf="selectedTorneo">
+    <!-- SUB-SEGMENTED VIEW SWITCHER: PARTIDOS VS INTEGRANTES VS POSICIONES -->
+    <div class="view-mode-bar">
+      <button class="view-mode-btn" [class.active]="viewMode === 'partidos'" (click)="setViewMode('partidos')">
+        <ion-icon name="tennisball-outline"></ion-icon>
+        <span>Partidos</span>
+      </button>
+      <button class="view-mode-btn" [class.active]="viewMode === 'integrantes'" (click)="setViewMode('integrantes')">
+        <ion-icon name="people-outline"></ion-icon>
+        <span>Integrantes ({{ participantes.length }})</span>
+      </button>
+      <button class="view-mode-btn" [class.active]="viewMode === 'posiciones'" (click)="setViewMode('posiciones')">
+        <ion-icon name="podium-outline"></ion-icon>
+        <span>Posiciones</span>
+      </button>
+    </div>
+
+    <!-- VIEW 1: PARTIDOS / RONDAS -->
+    <div *ngIf="viewMode === 'partidos'">
+      <!-- ROUND PILLS (SELECTOR DE RONDA) -->
+      <div class="rounds-scroll-row" *ngIf="rondas.length > 0">
+        <button *ngFor="let r of rondas" 
+                class="round-pill" 
+                [class.active]="selectedRonda === r"
+                (click)="selectRonda(r)">
+          Ronda {{ r }}
+        </button>
+      </div>
+
+      <!-- ROUND HEADER & SAVE ALL BUTTON -->
+      <div class="round-bar-header" *ngIf="filteredMatches.length > 0">
+        <span class="round-label">Ronda {{ selectedRonda }} · {{ filteredMatches.length }} Partidos</span>
+        <button class="btn-save-round" (click)="saveAllRoundMatches()" [disabled]="isSavingRound">
+          <ion-icon name="save-outline"></ion-icon>
+          <span>{{ isSavingRound ? 'Guardando...' : 'Guardar Ronda ' + selectedRonda }}</span>
+        </button>
+      </div>
+
+      <!-- MATCHES LIST -->
+      <div class="matches-list-container animate-up">
+        <div class="match-live-card" *ngFor="let match of filteredMatches">
+          
+          <!-- CARD HEADER: CANCHA Y ESTADO -->
+          <div class="match-card-header">
+            <div class="court-badge">
+              <span class="court-icon">🎾</span>
+              <span class="court-label">{{ match.cancha_nombre || ('Cancha ' + (match.cancha_id || '1')) }}</span>
+            </div>
+
+            <span class="status-pill" [class.played]="match.jugado == 1">
+              {{ match.jugado == 1 ? '✓ Finalizado' : '🔴 En Juego' }}
+            </span>
+          </div>
+
+          <!-- PAREJAS Y MARCADOR STEPPER + DIRECT NUMERIC INPUT -->
+          <div class="teams-score-board">
+            
+            <!-- PAREJA 1 -->
+            <div class="team-row">
+              <div class="team-info">
+                <span class="team-tag">PAREJA 1</span>
+                <strong class="player-names">{{ match.pareja1_nombres || match.jugador1_nombre || 'Equipo 1' }}</strong>
+              </div>
+
+              <div class="score-stepper">
+                <button type="button" class="step-btn minus" 
+                        (click)="adjustScore(match, 1, -1)">-</button>
+                <input type="number" 
+                       class="score-input" 
+                       [(ngModel)]="match.puntos_t1" 
+                       (input)="onScoreInput(match, 1)"
+                       min="0" 
+                       max="99" 
+                       inputmode="numeric">
+                <button type="button" class="step-btn plus" 
+                        (click)="adjustScore(match, 1, 1)">+</button>
+              </div>
+            </div>
+
+            <div class="vs-divider">
+              <span>VS</span>
+            </div>
+
+            <!-- PAREJA 2 -->
+            <div class="team-row">
+              <div class="team-info">
+                <span class="team-tag">PAREJA 2</span>
+                <strong class="player-names">{{ match.pareja2_nombres || match.jugador2_nombre || 'Equipo 2' }}</strong>
+              </div>
+
+              <div class="score-stepper">
+                <button type="button" class="step-btn minus" 
+                        (click)="adjustScore(match, 2, -1)">-</button>
+                <input type="number" 
+                       class="score-input" 
+                       [(ngModel)]="match.puntos_t2" 
+                       (input)="onScoreInput(match, 2)"
+                       min="0" 
+                       max="99" 
+                       inputmode="numeric">
+                <button type="button" class="step-btn plus" 
+                        (click)="adjustScore(match, 2, 1)">+</button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SAVE RESULT BUTTON -->
+          <button class="btn-save-match" 
+                  (click)="saveMatchScore(match)" 
+                  [disabled]="savingMatchId === match.id">
+            <span *ngIf="savingMatchId !== match.id">
+              {{ match.jugado == 1 ? 'Actualizar Marcador' : 'Guardar Resultado' }}
+            </span>
+            <ion-spinner *ngIf="savingMatchId === match.id" name="crescent"></ion-spinner>
+          </button>
+
+        </div>
+
+        <!-- EMPTY ROUND OR NO MATCHES -->
+        <div class="empty-round-matches" *ngIf="filteredMatches.length === 0 && !isLoading">
+          <p *ngIf="rondas.length > 0">No hay partidos asignados a la Ronda {{ selectedRonda }}.</p>
+          <div *ngIf="rondas.length === 0" class="no-fixture-box">
+            <div class="nf-icon">⚡</div>
+            <h4>No hay fixture de partidos generado</h4>
+            <p>Inscribe a los participantes y genera las rondas para iniciar la mesa de control.</p>
+            <div class="nf-actions">
+              <button class="btn-nf-enroll" (click)="openAddParticipantModal()">
+                <ion-icon name="person-add-outline"></ion-icon>
+                <span>Inscribir Pareja</span>
+              </button>
+              <button class="btn-nf-generate" (click)="confirmGenerateFixture()" *ngIf="participantes.length >= 2" [disabled]="isGeneratingFixture">
+                <ion-icon name="flash-outline"></ion-icon>
+                <span>{{ isGeneratingFixture ? 'Generando...' : 'Generar Fixture' }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: INTEGRANTES / PAREJAS -->
+    <div *ngIf="viewMode === 'integrantes'" class="integrantes-container animate-up">
+      <div class="integrantes-header-bar">
+        <div class="ih-title">
+          <h3>Integrantes y Parejas</h3>
+          <span class="ih-count">{{ participantes.length }} Parejas Registradas</span>
+        </div>
+        <button class="btn-add-integrante-pill" (click)="openAddParticipantModal()">
+          <ion-icon name="person-add-outline"></ion-icon>
+          <span>Inscribir</span>
+        </button>
+      </div>
+
+      <!-- FIXTURE QUICK GENERATOR BANNER -->
+      <div class="fixture-banner-card" *ngIf="participantes.length >= 2">
+        <div class="fb-info">
+          <div class="fb-badge">⚡ FIXTURE</div>
+          <strong>{{ matches.length > 0 ? 'Partidos Generados (' + matches.length + ')' : 'Fixture Pendiente' }}</strong>
+          <p>{{ matches.length > 0 ? 'Si agregaste nuevas parejas, puedes regenerar las rondas.' : 'Genera las rondas de juego con las parejas registradas.' }}</p>
+        </div>
+        <button class="btn-generate-fixture-action" (click)="confirmGenerateFixture()" [disabled]="isGeneratingFixture">
+          <ion-icon name="flash-outline"></ion-icon>
+          <span>{{ isGeneratingFixture ? 'Generando...' : (matches.length > 0 ? 'Actualizar Fixture' : 'Generar Fixture Ahora') }}</span>
+        </button>
+      </div>
+
+      <!-- PARTICIPANTS LIST -->
+      <div class="integrantes-list" *ngIf="participantes.length > 0">
+        <div class="integrante-card" *ngFor="let p of participantes; let idx = index">
+          
+          <div class="ic-header">
+            <div class="ic-pair-badge">
+              <span class="badge-num">#{{ idx + 1 }}</span>
+              <strong class="badge-title">{{ p.nombre_pareja || p.jugador1_nombre || 'Pareja ' + (idx + 1) }}</strong>
+            </div>
+            <button class="btn-trash-pair" (click)="confirmRemoveParticipante(p)" title="Eliminar Pareja">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
+
+          <div class="ic-players-grid">
+            <!-- JUGADOR 1 -->
+            <div class="player-slot-card">
+              <div class="slot-avatar">
+                <span>{{ (p.jugador1_nombre || 'J').charAt(0).toUpperCase() }}</span>
+              </div>
+              <div class="slot-meta">
+                <span class="slot-tag">JUGADOR 1</span>
+                <strong class="slot-name">{{ p.jugador1_nombre }}</strong>
+                <span class="slot-type" [class.socio]="p.jugador_id > 0" [class.guest]="!p.jugador_id">
+                  {{ p.jugador_id > 0 ? '● Socio Registrado' : '● Invitado' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- JUGADOR 2 -->
+            <div class="player-slot-card" *ngIf="p.jugador2_nombre || p.jugador2_id || p.nombre_externo_2">
+              <div class="slot-avatar partner">
+                <span>{{ (p.jugador2_nombre || 'P').charAt(0).toUpperCase() }}</span>
+              </div>
+              <div class="slot-meta">
+                <span class="slot-tag">JUGADOR 2</span>
+                <strong class="slot-name">{{ p.jugador2_nombre || 'Sin Nombre' }}</strong>
+                <span class="slot-type" [class.socio]="p.jugador2_id > 0" [class.guest]="!p.jugador2_id">
+                  {{ p.jugador2_id > 0 ? '● Socio Registrado' : '● Invitado' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- EMPTY STATE INTEGRANTES -->
+      <div class="empty-integrantes-card" *ngIf="participantes.length === 0 && !isLoadingStandings">
+        <div class="empty-emoji">👥</div>
+        <h3>No Hay Parejas Inscritas</h3>
+        <p>Aún no se han registrado integrantes en este torneo americano. Comienza agregando la primera pareja.</p>
+        <button class="btn-enroll-first-pair" (click)="openAddParticipantModal()">
+          <ion-icon name="person-add-outline"></ion-icon>
+          <span>Inscribir Primera Pareja</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- VIEW 3: TABLA DE POSICIONES -->
+    <div *ngIf="viewMode === 'posiciones'" class="standings-container animate-up">
+      <div class="standings-header-bar">
+        <div class="standings-title">
+          <h3>Clasificación General</h3>
+          <span class="standings-count">{{ participantes.length }} Parejas Participantes</span>
+        </div>
+        <button class="btn-refresh-standings" (click)="loadStandings(true)" [disabled]="isLoadingStandings">
+          <ion-icon name="refresh-outline" [class.spinning]="isLoadingStandings"></ion-icon>
+          <span>Actualizar</span>
+        </button>
+      </div>
+
+      <!-- SPINNER -->
+      <div class="standings-spinner-wrap" *ngIf="isLoadingStandings">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Calculando posiciones...</span>
+      </div>
+
+      <!-- STANDINGS LIST -->
+      <div class="standings-list" *ngIf="!isLoadingStandings && participantes.length > 0">
+        
+        <!-- COLUMN HEADERS -->
+        <div class="standings-cols-header">
+          <span class="col-rank">#</span>
+          <span class="col-pair">Pareja</span>
+          <span class="col-stat">PJ</span>
+          <span class="col-stat">PG</span>
+          <span class="col-stat">DIF</span>
+          <span class="col-stat pts">PTS</span>
+        </div>
+
+        <!-- ROWS -->
+        <div class="standing-row-card" 
+             *ngFor="let p of participantes; let idx = index"
+             [class.podium-1]="idx === 0"
+             [class.podium-2]="idx === 1"
+             [class.podium-3]="idx === 2">
+          
+          <div class="rank-badge-wrap">
+            <span class="rank-badge" *ngIf="idx === 0">🥇</span>
+            <span class="rank-badge" *ngIf="idx === 1">🥈</span>
+            <span class="rank-badge" *ngIf="idx === 2">🥉</span>
+            <span class="rank-number" *ngIf="idx > 2">{{ idx + 1 }}</span>
+          </div>
+
+          <div class="pair-names-info">
+            <span class="team-title" [title]="p.nombre_pareja || p.jugador1_nombre">
+              {{ p.nombre_pareja || p.jugador1_nombre || ('Pareja ' + (idx + 1)) }}
+            </span>
+            <span class="games-detail">
+              GF: {{ p.games_ganados ?? 0 }} · GC: {{ p.games_perdidos ?? 0 }}
+            </span>
+          </div>
+
+          <div class="stats-group">
+            <span class="stat-val">{{ p.partidos_jugados ?? p.pj ?? 0 }}</span>
+            <span class="stat-val">{{ p.partidos_ganados ?? p.pg ?? 0 }}</span>
+            <span class="stat-val dif" 
+                  [class.pos]="(p.diferencia_games ?? p.dif ?? 0) > 0" 
+                  [class.neg]="(p.diferencia_games ?? p.dif ?? 0) < 0">
+              {{ (p.diferencia_games ?? p.dif ?? 0) > 0 ? '+' : '' }}{{ p.diferencia_games ?? p.dif ?? 0 }}
+            </span>
+            <span class="stat-val pts-total">
+              {{ p.puntos_totales ?? p.partidos_ganados ?? p.puntos ?? 0 }}
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- EMPTY STANDINGS -->
+      <div class="empty-standings-card" *ngIf="!isLoadingStandings && participantes.length === 0">
+        <ion-icon name="podium-outline"></ion-icon>
+        <p>Aún no hay datos de clasificación registrados para este torneo.</p>
+      </div>
+
+    </div>
+  </ng-container>
+
+  <!-- FLOATING BACK BUTTON (GENERAL APP PATTERN) -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="nike-back-fab">
+    <ion-fab-button (click)="goBack()" class="back-fab">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- MODAL BOTTOM SHEET: INSCRIBIR INTEGRANTE / PAREJA -->
+  <ion-modal [isOpen]="isAddParticipantModalOpen" 
+             (didDismiss)="closeAddParticipantModal()"
+             [initialBreakpoint]="0.92" 
+             [breakpoints]="[0, 0.85, 0.98]"
+             class="enroll-participant-modal">
+    <ng-template>
+      <div class="modal-sheet-container">
+        
+        <!-- MODAL HEADER -->
+        <div class="sheet-header">
+          <div class="sheet-title-wrap">
+            <span class="sheet-sub">MESA DE CONTROL</span>
+            <h3>Inscribir Integrante / Pareja</h3>
+            <span class="sheet-target-torneo" *ngIf="selectedTorneo">{{ selectedTorneo.nombre }}</span>
+          </div>
+          <button class="btn-close-sheet" (click)="closeAddParticipantModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <!-- MODAL BODY -->
+        <div class="sheet-body">
+
+          <!-- JUGADOR 1 -->
+          <div class="slot-builder-section">
+            <div class="section-title-row">
+              <span class="slot-badge">JUGADOR 1</span>
+              <div class="slot-mode-switcher">
+                <button [class.active]="p1Mode === 'socio'" (click)="p1Mode = 'socio'">Buscar Socio</button>
+                <button [class.active]="p1Mode === 'manual'" (click)="p1Mode = 'manual'">Invitado / Manual</button>
+              </div>
+            </div>
+
+            <!-- J1: SOCIO SEARCH -->
+            <div *ngIf="p1Mode === 'socio'" class="socio-search-box">
+              <div *ngIf="!p1SelectedUser">
+                <div class="search-input-wrap">
+                  <ion-icon name="search-outline"></ion-icon>
+                  <input type="text" 
+                         [(ngModel)]="p1SearchQuery" 
+                         (input)="onSearchUsers(1)" 
+                         placeholder="Buscar socio por nombre, email o tel...">
+                  <ion-spinner *ngIf="p1IsSearching" name="crescent"></ion-spinner>
+                </div>
+
+                <div class="user-search-dropdown" *ngIf="p1SearchResults.length > 0">
+                  <div class="user-result-item" *ngFor="let u of p1SearchResults" (click)="selectUser(1, u)">
+                    <div class="ur-avatar">{{ u.nombre.charAt(0).toUpperCase() }}</div>
+                    <div class="ur-info">
+                      <strong>{{ u.nombre }}</strong>
+                      <span>{{ u.usuario || u.telefono || 'Socio' }}</span>
+                    </div>
+                    <button class="btn-choose-user">+ Elegir</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- J1 SELECTED CARD -->
+              <div class="selected-user-card" *ngIf="p1SelectedUser">
+                <div class="suc-avatar">{{ p1SelectedUser.nombre.charAt(0).toUpperCase() }}</div>
+                <div class="suc-info">
+                  <strong>{{ p1SelectedUser.nombre }}</strong>
+                  <span>Socio Registrado · {{ p1SelectedUser.usuario || p1SelectedUser.telefono || '' }}</span>
+                </div>
+                <button class="btn-remove-user" (click)="clearUser(1)">
+                  <ion-icon name="close-outline"></ion-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- J1: MANUAL -->
+            <div *ngIf="p1Mode === 'manual'" class="manual-input-box">
+              <div class="form-field">
+                <label>Nombre y Apellido *</label>
+                <input type="text" [(ngModel)]="p1ManualNombre" (input)="updateSuggestedNombrePareja()" placeholder="Ej. Juan Pérez">
+              </div>
+              <div class="form-field">
+                <label>Teléfono / WhatsApp</label>
+                <input type="tel" [(ngModel)]="p1ManualTelefono" placeholder="+56 9 1234 5678">
+              </div>
+            </div>
+          </div>
+
+          <!-- DOUBLES TOGGLE -->
+          <div class="doubles-toggle-row">
+            <label class="toggle-container">
+              <input type="checkbox" [(ngModel)]="isDoubles" (change)="updateSuggestedNombrePareja()">
+              <span class="custom-checkbox"></span>
+              <span class="toggle-label">Inscribir como Pareja (2 Jugadores)</span>
+            </label>
+          </div>
+
+          <!-- JUGADOR 2 (SI DOUBLES) -->
+          <div class="slot-builder-section" *ngIf="isDoubles">
+            <div class="section-title-row">
+              <span class="slot-badge partner">JUGADOR 2</span>
+              <div class="slot-mode-switcher">
+                <button [class.active]="p2Mode === 'socio'" (click)="p2Mode = 'socio'">Buscar Socio</button>
+                <button [class.active]="p2Mode === 'manual'" (click)="p2Mode = 'manual'">Invitado / Manual</button>
+              </div>
+            </div>
+
+            <!-- J2: SOCIO SEARCH -->
+            <div *ngIf="p2Mode === 'socio'" class="socio-search-box">
+              <div *ngIf="!p2SelectedUser">
+                <div class="search-input-wrap">
+                  <ion-icon name="search-outline"></ion-icon>
+                  <input type="text" 
+                         [(ngModel)]="p2SearchQuery" 
+                         (input)="onSearchUsers(2)" 
+                         placeholder="Buscar socio por nombre, email o tel...">
+                  <ion-spinner *ngIf="p2IsSearching" name="crescent"></ion-spinner>
+                </div>
+
+                <div class="user-search-dropdown" *ngIf="p2SearchResults.length > 0">
+                  <div class="user-result-item" *ngFor="let u of p2SearchResults" (click)="selectUser(2, u)">
+                    <div class="ur-avatar partner">{{ u.nombre.charAt(0).toUpperCase() }}</div>
+                    <div class="ur-info">
+                      <strong>{{ u.nombre }}</strong>
+                      <span>{{ u.usuario || u.telefono || 'Socio' }}</span>
+                    </div>
+                    <button class="btn-choose-user">+ Elegir</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- J2 SELECTED CARD -->
+              <div class="selected-user-card partner" *ngIf="p2SelectedUser">
+                <div class="suc-avatar partner">{{ p2SelectedUser.nombre.charAt(0).toUpperCase() }}</div>
+                <div class="suc-info">
+                  <strong>{{ p2SelectedUser.nombre }}</strong>
+                  <span>Socio Registrado · {{ p2SelectedUser.usuario || p2SelectedUser.telefono || '' }}</span>
+                </div>
+                <button class="btn-remove-user" (click)="clearUser(2)">
+                  <ion-icon name="close-outline"></ion-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- J2: MANUAL -->
+            <div *ngIf="p2Mode === 'manual'" class="manual-input-box">
+              <div class="form-field">
+                <label>Nombre y Apellido *</label>
+                <input type="text" [(ngModel)]="p2ManualNombre" (input)="updateSuggestedNombrePareja()" placeholder="Ej. Carlos González">
+              </div>
+              <div class="form-field">
+                <label>Teléfono / WhatsApp</label>
+                <input type="tel" [(ngModel)]="p2ManualTelefono" placeholder="+56 9 8765 4321">
+              </div>
+            </div>
+          </div>
+
+          <!-- NOMBRE DE LA PAREJA -->
+          <div class="form-field team-name-field">
+            <label>Nombre Identificador de la Pareja</label>
+            <input type="text" [(ngModel)]="customNombrePareja" placeholder="Ej. Pérez / González">
+            <span class="field-hint">Se sugerirá automáticamente a partir de los nombres de los jugadores.</span>
+          </div>
+
+        </div>
+
+        <!-- STICKY FOOTER -->
+        <div class="sheet-footer">
+          <button class="btn-submit-enroll" (click)="saveParticipant()" [disabled]="isEnrolling">
+            <span *ngIf="!isEnrolling">✓ Confirmar e Inscribir al Torneo</span>
+            <ion-spinner *ngIf="isEnrolling" name="crescent"></ion-spinner>
+          </button>
+        </div>
+
+      </div>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>

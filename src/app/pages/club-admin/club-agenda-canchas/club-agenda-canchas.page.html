@@ -1,0 +1,340 @@
+<ion-content [fullscreen]="true" class="agenda-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadReservas($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- TOP BAR -->
+  <div class="top-nav-bar">
+    <div class="nav-left-title">
+      <span class="club-sub">{{ selectedClub?.nombre || 'Club' }}</span>
+      <h2>AGENDA DE PISTAS</h2>
+    </div>
+    <div class="top-nav-actions">
+      <button type="button" class="btn-whatsapp-share" (click)="openWhatsAppModal()" title="Compartir Libres (WhatsApp)">
+        <ion-icon name="logo-whatsapp"></ion-icon>
+        <span class="btn-label">Compartir Libres</span>
+      </button>
+      <button type="button" class="nav-action-btn" (click)="openNewReservaModal('19:00')" title="Nueva Reserva">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- DATE CAROUSEL (CARRUSEL DE DÍAS) -->
+  <div class="date-scroll-row">
+    <div *ngFor="let day of weekDays" 
+         class="date-chip" 
+         [class.active]="selectedFecha === day.iso"
+         (click)="selectFecha(day.iso)">
+      <span class="day-lbl">{{ day.label }}</span>
+      <span class="day-num">{{ day.dayNum }}</span>
+      <span class="day-dot"></span>
+    </div>
+  </div>
+
+  <!-- CONTROL ERGONÓMICO DE PISTAS -->
+  <div class="canchas-hub" *ngIf="canchas.length > 0">
+    <!-- PESTAÑAS DE CATEGORÍA (COMO EN LA WEB) -->
+    <div class="resource-category-tabs">
+      <div class="cat-tabs-scroll">
+        <button type="button"
+                class="cat-tab-btn" 
+                [class.active]="activeCategoryFilter === 'all'" 
+                (click)="setCategoryFilter('all')">
+          <span>🏢 Todos</span>
+          <span class="tab-count">{{ canchas.length }}</span>
+        </button>
+        <button type="button"
+                class="cat-tab-btn" 
+                *ngIf="getCategoryCount('padel') > 0"
+                [class.active]="activeCategoryFilter === 'padel'" 
+                (click)="setCategoryFilter('padel')">
+          <span>🎾 Pádel & Pickleball</span>
+          <span class="tab-count">{{ getCategoryCount('padel') }}</span>
+        </button>
+        <button type="button"
+                class="cat-tab-btn" 
+                *ngIf="getCategoryCount('juegos') > 0"
+                [class.active]="activeCategoryFilter === 'juegos'" 
+                (click)="setCategoryFilter('juegos')">
+          <span>🎱 Mesas & Juegos</span>
+          <span class="tab-count">{{ getCategoryCount('juegos') }}</span>
+        </button>
+        <button type="button"
+                class="cat-tab-btn" 
+                *ngIf="getCategoryCount('amenities') > 0"
+                [class.active]="activeCategoryFilter === 'amenities'" 
+                (click)="setCategoryFilter('amenities')">
+          <span>🍖 Quinchos & Salones</span>
+          <span class="tab-count">{{ getCategoryCount('amenities') }}</span>
+        </button>
+        <button type="button"
+                class="cat-tab-btn" 
+                *ngIf="getCategoryCount('equipamiento') > 0"
+                [class.active]="activeCategoryFilter === 'equipamiento'" 
+                (click)="setCategoryFilter('equipamiento')">
+          <span>🤖 Equipamiento</span>
+          <span class="tab-count">{{ getCategoryCount('equipamiento') }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Pistas Selector Chips (P1, P2 compactos, y al seleccionar aparece el nombre) -->
+    <div class="canchas-scroll-row">
+      <button *ngFor="let c of filteredCanchas; let i = index"
+              type="button"
+              class="cancha-chip-btn"
+              [class.active]="selectedCanchaId === c.id"
+              (click)="selectCancha(c.id)">
+        <span class="chip-p-badge">P{{ getCanchaNumber(c, i) }}</span>
+        <span class="chip-cancha-name" *ngIf="selectedCanchaId === c.id">{{ getCanchaShortLabel(c, i) }}</span>
+      </button>
+    </div>
+
+    <!-- Active Court Header Card con espacio amplio para el nombre completo -->
+    <div class="active-cancha-hub-card" *ngIf="selectedCanchaObj">
+      <!-- FILA 1: NOMBRE COMPLETO DE LA PISTA Y BOTÓN BLOQUEAR -->
+      <div class="hub-card-top-row">
+        <div class="court-title-wrap" (click)="openCanchaPickerActionSheet()" role="button" tabindex="0">
+          <span class="court-status-dot"></span>
+          <h3 class="court-name-title">{{ formatCanchaName(selectedCanchaObj.nombre) }}</h3>
+          <ion-icon name="chevron-down-outline" class="court-dropdown-icon" *ngIf="filteredCanchas.length > 1"></ion-icon>
+        </div>
+
+        <button type="button" 
+                class="block-quick-btn" 
+                (click)="openNewReservaModal('09:00', true)" 
+                title="Bloquear Pista"
+                aria-label="Bloquear Pista">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          <span>Bloquear</span>
+        </button>
+      </div>
+
+      <!-- FILA 2: METADATA Y STEPPERS DE NAVEGACIÓN CON PULGAR -->
+      <div class="hub-card-bottom-row">
+        <div class="court-meta-group">
+          <span class="meta-type">{{ selectedCanchaObj.tipo || 'Pádel reglamentario' }}</span>
+          <span class="meta-sep">•</span>
+          <span class="meta-rate">${{ (selectedCanchaObj.precio_90 || 12000) | number }} / 90m</span>
+        </div>
+
+        <div class="court-steppers-group" *ngIf="filteredCanchas.length > 1">
+          <span class="cancha-counter-label">{{ currentCanchaIndex + 1 }} de {{ filteredCanchas.length }}</span>
+          <div class="steppers-arrows">
+            <button type="button"
+                    class="stepper-arrow-btn" 
+                    (click)="prevCancha()" 
+                    [disabled]="isFirstCancha"
+                    title="Pista anterior" 
+                    aria-label="Pista anterior">
+              <ion-icon name="chevron-back-outline"></ion-icon>
+            </button>
+            <button type="button"
+                    class="stepper-arrow-btn" 
+                    (click)="nextCancha()" 
+                    [disabled]="isLastCancha"
+                    title="Pista siguiente" 
+                    aria-label="Pista siguiente">
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMELINE BODY -->
+  <div class="timeline-container animate-up">
+
+    <!-- EMPTY STATE -->
+    <div *ngIf="!isLoading && slots.length === 0" class="empty-state animate-fade">
+      <ion-icon name="alert-circle-outline" size="large"></ion-icon>
+      <p>No hay franjas de horario para este día.</p>
+    </div>
+
+    <!-- CIRCULAR SLOTS GRID (ESTILO MENÚ ENTRENADOR) -->
+    <div class="slot-grid-circles" *ngIf="slots.length > 0">
+      <div class="time-circle" *ngFor="let slot of slots"
+           [class.ocupado]="slot.isOccupied"
+           [class.disponible]="!slot.isOccupied"
+           [class.bloqueado]="slot.isOccupied && slot.isBlocked"
+           [class.americano]="slot.isOccupied && isAmericano(slot.reserva)"
+           (click)="onSlotClick(slot)">
+        <div class="circle-content">
+          <span class="time">{{ slot.horaInicio }}</span>
+
+          <!-- Información Ocupado / Bloqueado / Americano -->
+          <div *ngIf="slot.isOccupied" class="avatar-badge-wrapper">
+            <ion-icon *ngIf="isAmericano(slot.reserva)" name="trophy" class="status-icon americano-badge"></ion-icon>
+            <ion-icon *ngIf="!isAmericano(slot.reserva) && slot.isBlocked" name="lock-closed" class="status-icon blocked-badge"></ion-icon>
+            <img *ngIf="!isAmericano(slot.reserva) && !slot.isBlocked && slot.reserva?.jugador_foto" [src]="slot.reserva.jugador_foto" class="status-avatar">
+            <ion-icon *ngIf="!isAmericano(slot.reserva) && !slot.isBlocked && !slot.reserva?.jugador_foto" name="person-circle-outline" class="status-icon"></ion-icon>
+          </div>
+
+          <!-- Label de Jugador / Estado -->
+          <div *ngIf="slot.isOccupied" class="club-mini-label" [class.americano-label]="isAmericano(slot.reserva)" [class.blocked-label]="slot.isBlocked">
+            {{ isAmericano(slot.reserva) ? 'AMERICANO' : (slot.isBlocked ? 'BLOQUEADA' : (slot.reserva?.nombre_externo || slot.reserva?.jugador_nombre || 'Cliente')) }}
+          </div>
+
+          <!-- Disponible -->
+          <ion-icon *ngIf="!slot.isOccupied" name="add-outline" class="status-icon available"></ion-icon>
+          <span *ngIf="!slot.isOccupied" class="slot-price-label">${{ (slot.precioSugerido || selectedCanchaObj?.precio_90 || 12000) | number }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL BOTTOM SHEET DE RESERVA -->
+  <app-club-reserva-modal
+    [isOpen]="isReservaModalOpen"
+    [selectedClub]="selectedClub"
+    [canchas]="canchas"
+    [initialCanchaId]="selectedCanchaId"
+    [initialFecha]="selectedFecha"
+    [initialHoraInicio]="modalInitialHora"
+    [editingReserva]="modalEditingReserva"
+    (close)="onReservaModalClose($event)">
+  </app-club-reserva-modal>
+
+  <!-- MODAL COMPARTIR LIBRES WHATSAPP (COMO EN LA WEB) -->
+  <ion-modal [isOpen]="showWhatsAppModal" 
+             (didDismiss)="showWhatsAppModal = false"
+             [initialBreakpoint]="0.92" 
+             [breakpoints]="[0, 0.7, 0.95, 1]"
+             class="nike-bottom-sheet-modal">
+    <ng-template>
+      <div class="sheet-container">
+        <div class="drag-handle-bar"></div>
+
+        <!-- HEADER -->
+        <div class="sheet-top-header">
+          <div class="header-titles">
+            <span class="badge-tag">REPORTE WHATSAPP</span>
+            <div class="header-main-title">
+              <ion-icon name="logo-whatsapp" class="wa-header-icon"></ion-icon>
+              <h2>Compartir Libres</h2>
+            </div>
+          </div>
+          <button type="button" class="sheet-close-circle" (click)="showWhatsAppModal = false">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <!-- BODY SCROLL -->
+        <div class="sheet-scrollable-body">
+          <p class="wa-helper-text">
+            Selecciona los días y pistas que deseas incluir en el reporte de disponibilidad para compartir con tus jugadores.
+          </p>
+
+          <!-- FILTROS BOX -->
+          <div class="whatsapp-filters-box">
+            <!-- Días a informar -->
+            <div class="filter-section">
+              <label class="section-label">Días a informar</label>
+              <div class="checkbox-grid-pills">
+                <button type="button" 
+                        *ngFor="let day of whatsappDays" 
+                        class="pill-checkbox" 
+                        [class.checked]="day.selected"
+                        (click)="day.selected = !day.selected">
+                  <ion-icon [name]="day.selected ? 'checkmark-circle-outline' : 'ellipse-outline'" class="pill-check-icon"></ion-icon>
+                  <span>{{ day.name }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Rango Horario -->
+            <div class="filter-section">
+              <label class="section-label">Rango Horario</label>
+              <div class="time-range-row">
+                <div class="time-select-wrap">
+                  <label>Desde</label>
+                  <select [(ngModel)]="whatsappStartHour" class="select-premium">
+                    <option *ngFor="let slot of timeSlots" [value]="slot">{{ slot }} hrs</option>
+                  </select>
+                </div>
+                <div class="time-select-wrap">
+                  <label>Hasta</label>
+                  <select [(ngModel)]="whatsappEndHour" class="select-premium">
+                    <option *ngFor="let slot of timeSlots" [value]="slot">{{ slot }} hrs</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Selector de Canchas -->
+            <div class="filter-section">
+              <label class="section-label">Pistas a incluir</label>
+              <div class="checkbox-grid-pills">
+                <button type="button" 
+                        *ngFor="let cancha of whatsappCanchas" 
+                        class="pill-checkbox" 
+                        [class.checked]="cancha.selected"
+                        (click)="cancha.selected = !cancha.selected">
+                  <ion-icon [name]="cancha.selected ? 'checkmark-circle-outline' : 'ellipse-outline'" class="pill-check-icon"></ion-icon>
+                  <span>{{ cancha.nombre }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOTÓN GENERAR REPORTE -->
+          <div class="generate-action-box">
+            <button type="button" class="btn-generate-report" (click)="generateWhatsAppMessage()" [disabled]="whatsappLoading">
+              <ion-icon name="sparkles-outline"></ion-icon>
+              <span>{{ whatsappGeneratedMessage ? 'Actualizar Reporte' : 'Generar Reporte' }}</span>
+            </button>
+          </div>
+
+          <!-- VISTA PREVIA DEL MENSAJE -->
+          <div class="whatsapp-preview-box" *ngIf="whatsappGeneratedMessage || whatsappLoading">
+            <label class="section-label">Vista Previa del Mensaje (Editable)</label>
+
+            <div class="loader-placeholder" *ngIf="whatsappLoading">
+              <ion-spinner name="crescent" color="primary"></ion-spinner>
+              <p>Consultando disponibilidad...</p>
+            </div>
+
+            <textarea *ngIf="!whatsappLoading && whatsappGeneratedMessage" 
+                      [(ngModel)]="whatsappGeneratedMessage" 
+                      class="preview-textarea" 
+                      rows="8"></textarea>
+
+            <!-- ACCIONES DIRECTAS DEBAJO DE LA VISTA PREVIA -->
+            <div class="preview-direct-actions" *ngIf="!whatsappLoading && whatsappGeneratedMessage">
+              <button type="button" class="btn-direct-copy" (click)="copyWhatsAppMessage()">
+                <ion-icon name="copy-outline"></ion-icon>
+                <span>Copiar</span>
+              </button>
+              <button type="button" class="btn-direct-send" (click)="sendWhatsAppMessage()">
+                <ion-icon name="logo-whatsapp"></ion-icon>
+                <span>Enviar a WhatsApp</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER ACTIONS -->
+        <div class="sheet-footer-bar" *ngIf="whatsappGeneratedMessage && !whatsappLoading">
+          <button type="button" class="btn-copy-wa" (click)="copyWhatsAppMessage()">
+            <ion-icon name="copy-outline"></ion-icon>
+            <span>Copiar</span>
+          </button>
+          <button type="button" class="btn-send-wa" (click)="sendWhatsAppMessage()">
+            <ion-icon name="logo-whatsapp"></ion-icon>
+            <span>Compartir en WhatsApp</span>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- FLOATING BACK BUTTON (GENERAL APP PATTERN) -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="nike-back-fab">
+    <ion-fab-button (click)="goBack()" class="back-fab">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

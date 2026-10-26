@@ -6,7 +6,8 @@ import { Router } from '@angular/router';
 
 import { MysqlService } from 'src/app/services/mysql.service';
 import { NotificationService } from 'src/app/services/notification.service';
-import { ToastController, AlertController, Platform, LoadingController } from '@ionic/angular';
+import { ToastController, AlertController, Platform, LoadingController, ModalController } from '@ionic/angular';
+import { ProfileSelectorModalComponent } from 'src/app/components/profile-selector-modal/profile-selector-modal.component';
 import { addIcons } from 'ionicons';
 import { mailOutline, lockClosedOutline, logoGoogle, logoApple } from 'ionicons/icons';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
@@ -39,6 +40,7 @@ export class LoginPage implements OnInit {
     private toastCtrl: ToastController,
     public platform: Platform,
     private loadingCtrl: LoadingController,
+    private modalCtrl: ModalController,
     private notificationService: NotificationService
   ) {
     addIcons({ mailOutline, lockClosedOutline, logoGoogle, logoApple });
@@ -100,15 +102,10 @@ export class LoginPage implements OnInit {
       this.mysql.login(this.usuario, this.password)
         .pipe(timeout(7000))
         .subscribe({
-          next: (res) => {
+          next: async (res) => {
             this.isLoading = false;
 
             if (res && res.token && res.id) {
-              localStorage.setItem('token', res.token);
-              localStorage.setItem('userId', res.id.toString());
-              localStorage.setItem('userRole', res.rol);
-              this.notificationService.updateTokenForUser();
-
               if (this.recordar) {
                 localStorage.setItem('savedUser', this.usuario);
                 localStorage.setItem('savedPass', this.password);
@@ -117,7 +114,7 @@ export class LoginPage implements OnInit {
                 localStorage.removeItem('savedPass');
               }
 
-              this.redirectBasedOnRole(res.rol);
+              await this.handleLoginSuccess(res);
             } else {
               this.showError(res.message || 'Credenciales incorrectas');
             }
@@ -172,15 +169,10 @@ export class LoginPage implements OnInit {
 
       if (googleUser && googleUser.email) {
         this.mysql.googleCheck(googleUser.email).subscribe({
-          next: (res) => {
+          next: async (res) => {
             this.isLoading = false;
             if (res.exists) {
-              // Usuario existe, loguear
-              if (res.token) localStorage.setItem('token', res.token);
-              localStorage.setItem('userId', res.id.toString());
-              localStorage.setItem('userRole', res.rol); // Store role
-              this.notificationService.updateTokenForUser();
-              this.redirectBasedOnRole(res.rol);
+              await this.handleLoginSuccess(res);
             } else {
               // Auto-registro para Google también si es necesario (Recomendado por Apple)
               this.showError('Cuenta no encontrada. Por favor regístrate primero.');
@@ -232,14 +224,10 @@ export class LoginPage implements OnInit {
 
       if (user) {
         this.mysql.appleCheck(email, user, fullName).subscribe({
-          next: (res) => {
+          next: async (res) => {
             this.isLoading = false;
             if (res.success && res.exists) {
-              if (res.token) localStorage.setItem('token', res.token);
-              localStorage.setItem('userId', res.id.toString());
-              localStorage.setItem('userRole', res.rol);
-              this.notificationService.updateTokenForUser();
-              this.redirectBasedOnRole(res.rol);
+              await this.handleLoginSuccess(res);
             } else {
               // Si success es true pero exists es false, significa que el backend no pudo crearla automáticamente
               this.showError(res.error || 'No se pudo vincular tu cuenta de Apple. Intenta con otro método.');
@@ -291,10 +279,60 @@ export class LoginPage implements OnInit {
     await toast.present();
   }
 
+  async handleLoginSuccess(res: any) {
+    if (res.token) localStorage.setItem('token', res.token);
+    if (res.id) localStorage.setItem('userId', res.id.toString());
+    if (res.nombre) localStorage.setItem('userName', res.nombre);
 
+    const perfiles: any[] = res.perfiles || [];
+    localStorage.setItem('availableProfiles', JSON.stringify(perfiles));
+
+    this.notificationService.updateTokenForUser();
+
+    // Comprobar roles únicos disponibles
+    const distinctRoles = new Set(
+      perfiles.map((p: any) => {
+        if (p.rol === 'staff_club' || p.rol === 'administrador_club' || p.rol === 'administrador') {
+          return 'administrador_club';
+        }
+        return p.rol;
+      })
+    );
+
+    // Si tiene más de un rol (ej: admin + jugador, o entrenador + jugador)
+    if (distinctRoles.size > 1) {
+      await this.openProfileSelector(perfiles, res.rol);
+    } else {
+      localStorage.setItem('userRole', res.rol);
+      this.redirectBasedOnRole(res.rol);
+    }
+  }
+
+  async openProfileSelector(perfiles: any[], defaultRole: string) {
+    const modal = await this.modalCtrl.create({
+      component: ProfileSelectorModalComponent,
+      componentProps: {
+        profiles: perfiles,
+        allowCancel: false,
+        currentRole: defaultRole
+      },
+      breakpoints: [0, 0.7, 0.95],
+      initialBreakpoint: 0.7,
+      cssClass: 'profile-selector-bottom-sheet'
+    });
+
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss();
+    if (!data && role !== 'confirm') {
+      localStorage.setItem('userRole', defaultRole);
+      this.redirectBasedOnRole(defaultRole);
+    }
+  }
 
   redirectBasedOnRole(rol: string) {
-    if (rol === 'entrenador') {
+    if (rol === 'administrador_club' || rol === 'staff_club' || rol === 'administrador') {
+      this.router.navigate(['/club-admin-home']);
+    } else if (rol === 'entrenador') {
       this.router.navigate(['/entrenador-home']);
     } else {
       this.router.navigate(['/jugador-home']);

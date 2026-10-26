@@ -14,8 +14,8 @@
           <h1 class="h-title">CAMPEONATOS</h1>
         </div>
         <div class="h-right">
-          <div class="h-avatar-mini">
-            <img [src]="userPhoto" alt="Avatar">
+          <div class="h-avatar-mini" (click)="router.navigate(['/perfil'])" style="cursor: pointer;">
+            <img [src]="userPhoto" (error)="onImgError($event)" alt="Avatar">
           </div>
         </div>
       </div>
@@ -530,7 +530,7 @@
             <div class="agente-card animate-up" *ngFor="let ag of getBuscandoParejaList(); let i = index">
               <div class="ag-top-row">
                 <div class="ag-left-profile">
-                  <img [src]="ag.avatar || 'assets/avatar.png'" alt="Avatar" class="ag-avatar">
+                  <img [src]="ag.avatar || 'assets/avatar.png'" (error)="onImgError($event)" alt="Avatar" class="ag-avatar">
                   <div class="ag-name-col">
                     <h4 class="ag-name">{{ ag.nombre }}</h4>
                     <div class="ag-tags-row">
@@ -1115,7 +1115,7 @@
             </div>
             <div class="p-results">
               <div class="p-item animate-up" *ngFor="let user of partnerResults; let i = index" [style.animation-delay]="i * 0.05 + 's'" (click)="selectPartner(user)">
-                <img [src]="user.foto_perfil || 'assets/avatar.png'">
+                <img [src]="user.foto_perfil || 'assets/avatar.png'" (error)="onImgError($event)" alt="Avatar">
                 <div class="p-info">
                   <span class="n">{{ user.nombre }}</span>
                   <span class="r">Nivel: {{ user.nivel || 'N/A' }}</span>

@@ -1,0 +1,1081 @@
+.agenda-content {
+  --background: #ffffff;
+}
+
+/* Top Nav Bar */
+.top-nav-bar {
+  padding: 50px 16px 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+
+  .top-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-whatsapp-share {
+    background: #25d366;
+    color: #ffffff;
+    border: none;
+    height: 38px;
+    padding: 0 13px;
+    border-radius: 19px;
+    font-size: 11.5px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(37, 211, 102, 0.28);
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+    transition: all 0.2s ease;
+
+    ion-icon {
+      font-size: 17px;
+    }
+
+    &:active {
+      transform: scale(0.96);
+      background: #1eb956;
+    }
+
+    @media (max-width: 375px) {
+      padding: 0 10px;
+      font-size: 11px;
+      gap: 4px;
+    }
+  }
+
+  .nav-action-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--nike-neon, #ccff00);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #000000;
+    font-weight: 900;
+    cursor: pointer;
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+
+  .nav-left-title {
+    .club-sub {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #8e8e93;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    h2 {
+      margin: 1px 0 0 0;
+      font-size: 16px;
+      font-weight: 900;
+      color: #000000;
+      letter-spacing: -0.3px;
+      text-transform: uppercase;
+    }
+  }
+}
+
+/* Date Scroll Row */
+.date-scroll-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+
+  .date-chip {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 8px 12px;
+    min-width: 54px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    .day-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+
+    .day-num {
+      font-size: 16px;
+      font-weight: 900;
+      color: #0f172a;
+      margin-top: 2px;
+    }
+
+    .day-dot {
+      width: 4px;
+      height: 4px;
+      background: transparent;
+      border-radius: 50%;
+      margin-top: 4px;
+    }
+
+    &.active {
+      background: #000000;
+      border-color: #000000;
+
+      .day-lbl {
+        color: var(--nike-neon, #ccff00);
+      }
+
+      .day-num {
+        color: #ffffff;
+      }
+
+      .day-dot {
+        background: var(--nike-neon, #ccff00);
+      }
+    }
+  }
+}
+
+/* Canchas Hub (Ergonomic, no-scroll-trap, Nike Athletic) */
+.canchas-hub {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 16px 12px 16px;
+
+  /* 0. Resource Category Tabs (Pádel, Mesas & Juegos, etc.) */
+  .resource-category-tabs {
+    padding-bottom: 10px;
+
+    .cat-tabs-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      &::-webkit-scrollbar { display: none; }
+
+      .cat-tab-btn {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 800;
+        color: #64748b;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+        &:active {
+          transform: scale(0.96);
+        }
+
+        &.active {
+          background: #0f172a;
+          border-color: #0f172a;
+          color: #ffffff;
+          box-shadow: 0 2px 10px rgba(15, 23, 42, 0.16);
+
+          .tab-count {
+            background: var(--nike-neon, #ccff00);
+            color: #000000;
+          }
+        }
+
+        .tab-count {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2px 7px;
+          background: #f1f5f9;
+          border-radius: 10px;
+          font-size: 10.5px;
+          font-weight: 900;
+          color: #0f172a;
+          transition: all 0.2s ease;
+        }
+      }
+    }
+  }
+
+  /* 1. Horizontal Scrollable Chips Row (P1, P2 compactos, y al seleccionar aparece el nombre) */
+  .canchas-scroll-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+
+    .cancha-chip-btn {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 6px 10px;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+
+      .chip-p-badge {
+        font-size: 11.5px;
+        font-weight: 900;
+        background: #f1f5f9;
+        color: #0f172a;
+        padding: 4px 8px;
+        border-radius: 8px;
+        letter-spacing: 0.3px;
+        transition: all 0.2s ease;
+      }
+
+      .chip-cancha-name {
+        font-size: 12px;
+        font-weight: 800;
+        color: #ffffff;
+        text-transform: uppercase;
+        letter-spacing: 0.2px;
+        animation: chipNameFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      &:active {
+        transform: scale(0.96);
+      }
+
+      &.active {
+        background: #000000;
+        border-color: #000000;
+        padding: 6px 13px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+
+        .chip-p-badge {
+          background: var(--nike-neon, #ccff00);
+          color: #000000;
+        }
+      }
+    }
+  }
+
+  @keyframes chipNameFadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* 2. Active Court Header Card (2 filas balanceadas con espacio completo) */
+  .active-cancha-hub-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 12px 14px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+
+    /* Fila 1: Nombre completo y botón Bloquear */
+    .hub-card-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+
+      .court-title-wrap {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        cursor: pointer;
+
+        .court-status-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: var(--nike-neon, #ccff00);
+          border: 1.5px solid #000000;
+          flex-shrink: 0;
+        }
+
+        .court-name-title {
+          margin: 0;
+          font-size: 15px;
+          font-weight: 900;
+          color: #000000;
+          letter-spacing: -0.3px;
+          text-transform: uppercase;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .court-dropdown-icon {
+          font-size: 13px;
+          color: #94a3b8;
+          flex-shrink: 0;
+        }
+      }
+
+      .block-quick-btn {
+        flex-shrink: 0;
+        background: #fee2e2;
+        color: #ef4444;
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+        padding: 6px 11px;
+        font-size: 11.5px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        ion-icon {
+          font-size: 13px;
+        }
+
+        &:active {
+          transform: scale(0.94);
+          background: #fca5a5;
+        }
+      }
+    }
+
+    /* Fila 2: Metadata y Steppers con pulgar */
+    .hub-card-bottom-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding-top: 6px;
+      border-top: 1px solid #f1f5f9;
+
+      .court-meta-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11.5px;
+        color: #64748b;
+        white-space: nowrap;
+
+        .meta-type {
+          font-weight: 600;
+        }
+
+        .meta-sep {
+          color: #cbd5e1;
+        }
+
+        .meta-rate {
+          font-weight: 800;
+          color: #0f172a;
+        }
+      }
+
+      .court-steppers-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+
+        .cancha-counter-label {
+          font-size: 11px;
+          font-weight: 700;
+          color: #94a3b8;
+        }
+
+        .steppers-arrows {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+
+          .stepper-arrow-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #0f172a;
+            transition: all 0.2s ease;
+
+            ion-icon {
+              font-size: 16px;
+            }
+
+            &:disabled {
+              opacity: 0.25;
+              cursor: not-allowed;
+            }
+
+            &:not(:disabled):active {
+              transform: scale(0.92);
+              background: #e2e8f0;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* --- TIME SLOTS (Circular Grid - Estilo Menú Entrenador) --- */
+.timeline-container {
+  padding: 16px 16px 100px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #64748b;
+
+  ion-icon {
+    font-size: 48px;
+    color: #94a3b8;
+    margin-bottom: 12px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+}
+
+.slot-grid-circles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-top: 10px;
+
+  @media (max-width: 360px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+}
+
+@keyframes pulse-neon {
+  0% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(204, 255, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0); }
+}
+
+.time-circle {
+  aspect-ratio: 1/1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  border: 1.5px solid rgba(0, 0, 0, 0.05);
+  background: #fff;
+  cursor: pointer;
+
+  &:active {
+    transform: scale(0.9);
+  }
+
+  .circle-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+
+  &.disponible {
+    border-color: rgba(204, 255, 0, 0.3);
+    animation: pulse-neon 2s infinite;
+
+    .time {
+      font-weight: 900;
+      font-size: 15px;
+      color: #000;
+      letter-spacing: -0.3px;
+    }
+
+    .slot-price-label {
+      position: absolute;
+      bottom: 14%;
+      font-size: 8.5px;
+      font-weight: 800;
+      color: #10b981;
+      letter-spacing: -0.2px;
+    }
+
+    .status-icon.available {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      font-size: 18px;
+      background: #ccff00;
+      color: #000;
+      border-radius: 50%;
+      padding: 3px;
+      border: 2px solid #fff;
+      box-shadow: 0 4px 10px rgba(204, 255, 0, 0.3);
+    }
+  }
+
+  &.ocupado {
+    background: #f8f8fb;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.08);
+
+    .time {
+      font-weight: 800;
+      font-size: 14px;
+      color: #1e293b;
+      letter-spacing: -0.3px;
+    }
+
+    .avatar-badge-wrapper {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      z-index: 5;
+
+      .status-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        object-fit: cover;
+        background: #fff;
+      }
+
+      .status-icon {
+        color: #94a3b8;
+        font-size: 24px;
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+
+        &.americano-badge {
+          color: #ffffff;
+          background: #f59e0b;
+          border: 2px solid #fff;
+          font-size: 14px;
+          padding: 4px;
+          box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+        }
+
+        &.blocked-badge {
+          color: #ef4444;
+          background: #fee2e2;
+          border: 2px solid #fff;
+          font-size: 14px;
+          padding: 4px;
+        }
+      }
+    }
+
+    .club-mini-label {
+      position: absolute;
+      bottom: 14%;
+      font-size: 8px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #64748b;
+      width: 82%;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: 0.2px;
+
+      &.americano-label {
+        color: #d97706;
+      }
+
+      &.blocked-label {
+        color: #dc2626;
+      }
+    }
+
+    &.bloqueado {
+      background: #fef2f2;
+      border-color: #fecaca;
+
+      .time {
+        color: #b91c1c;
+      }
+    }
+
+    &.americano {
+      background: #fffbeb;
+      border-color: #fde68a;
+
+      .time {
+        color: #92400e;
+      }
+    }
+  }
+}
+
+/* FLOATING BACK BUTTON (GENERAL APP PATTERN) */
+.nike-back-fab {
+  margin-bottom: 8px;
+  margin-right: 14px;
+  z-index: 999;
+
+  .back-fab {
+    --background: #ffffff;
+    --color: #000000;
+    --border-radius: 50%;
+    --box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    width: 58px;
+    height: 58px;
+
+    ion-icon {
+      font-size: 26px;
+      color: #000000;
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+/* MODAL COMPARTIR LIBRES WHATSAPP */
+.nike-bottom-sheet-modal {
+  --border-radius: 28px 28px 0 0;
+}
+
+.sheet-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.drag-handle-bar {
+  width: 40px;
+  height: 4.5px;
+  background: #cbd5e1;
+  border-radius: 4px;
+  margin: 10px auto 6px auto;
+  flex-shrink: 0;
+}
+
+.sheet-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 20px 12px 20px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #f1f5f9;
+
+  .header-titles {
+    .badge-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: #94a3b8;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      display: block;
+    }
+
+    .header-main-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 2px;
+
+      .wa-header-icon {
+        font-size: 22px;
+        color: #25d366;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 19px;
+        font-weight: 900;
+        color: #0f172a;
+        letter-spacing: -0.3px;
+      }
+    }
+  }
+
+  .sheet-close-circle {
+    background: #f1f5f9;
+    border: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    font-size: 18px;
+    cursor: pointer;
+
+    &:active {
+      transform: scale(0.92);
+      background: #e2e8f0;
+    }
+  }
+}
+
+.sheet-scrollable-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px 24px 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.wa-helper-text {
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.whatsapp-filters-box {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .filter-section {
+    .section-label {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 900;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+.checkbox-grid-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .pill-checkbox {
+    padding: 7px 14px;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+
+    .pill-check-icon {
+      font-size: 15px;
+      color: #94a3b8;
+    }
+
+    &.checked {
+      background: #0f172a;
+      color: #ccff00;
+      border-color: #0f172a;
+
+      .pill-check-icon {
+        color: #ccff00;
+      }
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+}
+
+.time-range-row {
+  display: flex;
+  gap: 12px;
+
+  .time-select-wrap {
+    flex: 1;
+
+    label {
+      display: block;
+      font-size: 10px;
+      font-weight: 800;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .select-premium {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1.5px solid #cbd5e1;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #0f172a;
+      background: #ffffff;
+      outline: none;
+      cursor: pointer;
+    }
+  }
+}
+
+.generate-action-box {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+
+  .btn-generate-report {
+    width: 100%;
+    max-width: 280px;
+    background: #000000;
+    color: #ccff00;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+    ion-icon {
+      font-size: 17px;
+    }
+
+    &:active {
+      transform: scale(0.97);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.whatsapp-preview-box {
+  margin-top: 20px;
+
+  .section-label {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 900;
+    color: #94a3b8;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .loader-placeholder {
+    padding: 30px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .preview-textarea {
+    width: 100%;
+    border-radius: 14px;
+    border: 1.5px solid #e2e8f0;
+    background: #fafafa;
+    padding: 14px;
+    font-family: inherit;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #1e293b;
+    resize: vertical;
+    outline: none;
+    min-height: 150px;
+    box-sizing: border-box;
+
+    &:focus {
+      border-color: #25d366;
+      background: #ffffff;
+    }
+  }
+
+  /* Acciones Directas inmediatamente debajo del texto */
+  .preview-direct-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    margin-bottom: 6px;
+
+    .btn-direct-copy {
+      flex: 1;
+      background: #f1f5f9;
+      color: #0f172a;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 13px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      cursor: pointer;
+
+      ion-icon {
+        font-size: 18px;
+        color: #475569;
+      }
+
+      &:active {
+        transform: scale(0.97);
+        background: #e2e8f0;
+      }
+    }
+
+    .btn-direct-send {
+      flex: 1.4;
+      background: #25d366;
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+
+      ion-icon {
+        font-size: 19px;
+      }
+
+      &:active {
+        transform: scale(0.97);
+        background: #1eb956;
+      }
+    }
+  }
+}
+
+.sheet-footer-bar {
+  display: flex;
+  gap: 10px;
+  padding: 12px 20px calc(14px + env(safe-area-inset-bottom, 0px)) 20px;
+  border-top: 1px solid #f1f5f9;
+  background: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+
+  .btn-copy-wa {
+    flex: 1;
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    border-radius: 14px;
+    padding: 13px;
+    font-size: 13px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+
+    ion-icon {
+      font-size: 18px;
+    }
+
+    &:active {
+      transform: scale(0.97);
+      background: #e2e8f0;
+    }
+  }
+
+  .btn-send-wa {
+    flex: 2;
+    background: #25d366;
+    color: #ffffff;
+    border: none;
+    border-radius: 14px;
+    padding: 13px;
+    font-size: 13px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+
+    ion-icon {
+      font-size: 19px;
+    }
+
+    &:active {
+      transform: scale(0.97);
+      background: #1eb956;
+    }
+  }
+}
+

@@ -1,0 +1,434 @@
+<ion-modal [isOpen]="isOpen" (didDismiss)="closeModal(false)" initialBreakpoint="0.92" [breakpoints]="[0, 0.7, 0.95]" class="nike-bottom-sheet-modal">
+  <ng-template>
+    <div class="sheet-container">
+      <div class="drag-handle-bar"></div>
+
+      <!-- 1. HEADER COMPACTO Y ELEGANTE -->
+      <div class="sheet-top-header">
+        <div class="header-titles">
+          <span class="badge-tag">{{ editingReserva ? 'MODIFICAR TURNO' : 'NUEVO TURNO' }}</span>
+          <h2>{{ reservaData.estado === 'Bloqueada' ? 'Bloquear Pista' : (editingReserva ? 'Detalle de Reserva' : 'Reserva de Cancha') }}</h2>
+        </div>
+        <button class="sheet-close-circle" (click)="closeModal(false)">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <!-- 2. TOGGLE DE MODO (SEGMENTADO ERGONÓMICO) -->
+      <div class="segmented-mode-bar">
+        <button class="seg-btn" [class.active]="reservaData.estado !== 'Bloqueada'" (click)="reservaData.estado = 'Confirmada'">
+          <span>🎾 Reserva Jugadores</span>
+        </button>
+        <button class="seg-btn" [class.active]="reservaData.estado === 'Bloqueada'" (click)="reservaData.estado = 'Bloqueada'">
+          <span>⛔ Bloqueo (Clima / Mant.)</span>
+        </button>
+      </div>
+
+      <!-- 3. CONTENIDO CON SCROLL FLUIDO -->
+      <div class="sheet-scrollable-body">
+        
+        <!-- SECCIÓN 1: RESERVA DE JUGADORES (MODALIDAD RESERVA) -->
+        <ng-container *ngIf="reservaData.estado !== 'Bloqueada'">
+          
+          <!-- BLOQUE PISTA, FECHA Y HORARIO -->
+          <div class="section-group-card">
+            <div class="group-title-row">
+              <span class="gt-icon">🏟️</span>
+              <h4>Pista y Horario</h4>
+            </div>
+
+            <!-- Cancha y Fecha en 2 columnas equilibradas -->
+            <div class="grid-two-cols">
+              <div class="form-field">
+                <label>Pista / Cancha</label>
+                <div class="field-control select-wrap">
+                  <select [(ngModel)]="reservaData.cancha_id" (change)="onCanchaChange()" class="native-field">
+                    <option *ngFor="let c of canchas" [value]="c.id">{{ c.nombre }}</option>
+                  </select>
+                  <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label>Fecha</label>
+                <div class="field-control">
+                  <input type="date" [(ngModel)]="reservaData.fecha" class="native-field date-field" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Horario y Duración en armonía -->
+            <div class="schedule-control-row">
+              <div class="form-field time-field-col">
+                <label>Hora Inicio</label>
+                <div class="field-control">
+                  <input type="time" [(ngModel)]="reservaData.hora_inicio" (change)="onHoraInicioChange()" class="native-field" />
+                </div>
+              </div>
+
+              <div class="form-field duration-field-col">
+                <label>Duración</label>
+                <div class="duration-pills-row">
+                  <button *ngFor="let dur of duracionesDisponibles" 
+                          class="dur-pill" 
+                          [class.active]="reservaData.duracion === dur"
+                          (click)="setDuracion(dur)">
+                    {{ dur }}m
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="slot-summary-banner">
+              <span>Franja calculada: <strong>{{ reservaData.hora_inicio }} a {{ reservaData.hora_fin }} hrs</strong> ({{ reservaData.duracion }} minutos)</span>
+            </div>
+          </div>
+          
+          <!-- BLOQUE JUGADOR TITULAR -->
+          <div class="section-group-card">
+            <div class="group-title-row">
+              <span class="gt-icon">👤</span>
+              <h4>Jugador Titular</h4>
+              <span class="gt-badge" *ngIf="reservaData.jugador_id">Socio Registrado</span>
+              <span class="gt-badge guest" *ngIf="!reservaData.jugador_id && reservaData.nombre_externo">Cliente Paso</span>
+            </div>
+
+            <!-- Cliente Seleccionado -->
+            <div class="player-contact-card" *ngIf="reservaData.nombre_externo">
+              <div class="pc-avatar">🎾</div>
+              <div class="pc-details">
+                <strong class="pc-name">{{ reservaData.nombre_externo }}</strong>
+                <span class="pc-phone" *ngIf="reservaData.telefono">📞 {{ reservaData.telefono }}</span>
+                <span class="pc-phone hint" *ngIf="!reservaData.telefono">Sin teléfono registrado</span>
+              </div>
+              <button type="button" class="pc-remove-btn" (click)="clearSelectedUser()" title="Cambiar jugador">
+                ✕
+              </button>
+            </div>
+
+            <!-- Teléfono editable si ya está asignado -->
+            <div class="form-field mt-3" *ngIf="reservaData.nombre_externo">
+              <label>Teléfono (WhatsApp)</label>
+              <div class="field-control">
+                <input type="tel" [(ngModel)]="reservaData.telefono" placeholder="+56 9 1234 5678" class="native-field" />
+              </div>
+            </div>
+
+            <!-- Búsqueda o Entrada de Jugador (Si NO hay asignado) -->
+            <div class="player-entry-box" *ngIf="!reservaData.nombre_externo">
+              <!-- Selector de Modo de Entrada: Buscar vs Manual -->
+              <div class="entry-mode-switch">
+                <button type="button" 
+                        class="mode-switch-btn" 
+                        [class.active]="playerEntryMode === 'search'"
+                        (click)="playerEntryMode = 'search'">
+                  <ion-icon name="search-outline"></ion-icon>
+                  <span>Buscar Socio</span>
+                </button>
+                <button type="button" 
+                        class="mode-switch-btn" 
+                        [class.active]="playerEntryMode === 'manual'"
+                        (click)="playerEntryMode = 'manual'">
+                  <ion-icon name="person-add-outline"></ion-icon>
+                  <span>Cliente de Paso</span>
+                </button>
+              </div>
+
+              <!-- MODO A: BUSCADOR EN VIVO DE SOCIOS -->
+              <div class="search-flow-wrap" *ngIf="playerEntryMode === 'search'">
+                <div class="full-search-bar">
+                  <ion-icon name="search-outline" class="s-icon"></ion-icon>
+                  <input type="text" 
+                         [(ngModel)]="userSearchTerm" 
+                         (input)="searchUsers()" 
+                         placeholder="Buscar por nombre, email o teléfono..."
+                         class="full-search-input" />
+                  <ion-spinner name="crescent" *ngIf="isSearchingUsers" class="s-spinner"></ion-spinner>
+                  <button type="button" class="s-clear-btn" *ngIf="userSearchTerm" (click)="userSearchTerm = ''; searchResults = []">
+                    <ion-icon name="close-circle"></ion-icon>
+                  </button>
+                </div>
+
+                <!-- Lista desplegable de socios encontrados -->
+                <div class="search-results-list" *ngIf="searchResults.length > 0">
+                  <div class="result-row" *ngFor="let u of searchResults" (click)="selectUser(u)">
+                    <div class="r-avatar">🎾</div>
+                    <div class="r-text">
+                      <strong class="r-name">{{ u.nombre }}</strong>
+                      <span class="r-sub">{{ u.email || u.telefono || 'Socio Padelblox' }}</span>
+                    </div>
+                    <span class="r-badge-select">+ Elegir</span>
+                  </div>
+                </div>
+
+                <!-- Botón rápido si no existe o se quiere asignar directo -->
+                <div class="manual-assign-box" *ngIf="userSearchTerm.trim().length >= 2 && searchResults.length === 0 && !isSearchingUsers">
+                  <p class="empty-hint">No se encontró socio con ese nombre.</p>
+                  <button type="button" class="btn-manual-assign" (click)="assignAsGuest(userSearchTerm)">
+                    + Asignar "<strong>{{ userSearchTerm }}</strong>" como Cliente de Paso
+                  </button>
+                </div>
+              </div>
+
+              <!-- MODO B: INGRESO DIRECTO DE CLIENTE DE PASO (NOMBRE + TELÉFONO) -->
+              <div class="manual-flow-wrap" *ngIf="playerEntryMode === 'manual'">
+                <div class="manual-inputs-stack">
+                  <div class="form-field">
+                    <label>Nombre y Apellido *</label>
+                    <div class="field-control">
+                      <input type="text" 
+                             [(ngModel)]="manualNombre" 
+                             placeholder="Ej: Juan Pérez" 
+                             class="native-field" />
+                    </div>
+                  </div>
+
+                  <div class="form-field">
+                    <label>Teléfono WhatsApp (Opcional)</label>
+                    <div class="field-control">
+                      <input type="tel" 
+                             [(ngModel)]="manualTelefono" 
+                             placeholder="+56 9 1234 5678" 
+                             class="native-field" />
+                    </div>
+                  </div>
+
+                  <button type="button" 
+                          class="btn-confirm-guest" 
+                          [disabled]="!manualNombre.trim()"
+                          (click)="confirmManualPlayer()">
+                    ✓ Asignar Jugador
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BLOQUE TARIFA Y COBRO -->
+          <div class="section-group-card">
+            <div class="group-title-row">
+              <span class="gt-icon">💳</span>
+              <h4>Tarifa y Estado de Pago</h4>
+            </div>
+
+            <!-- Precio Total -->
+            <div class="price-header-row">
+              <span class="ph-label">Precio Cancha:</span>
+              <div class="price-input-bubble">
+                <span class="currency-symbol">$</span>
+                <input type="number" [(ngModel)]="reservaData.precio" class="native-price-field" />
+              </div>
+            </div>
+
+            <!-- Selector de Forma de Pago: Total vs Split -->
+            <div class="payment-type-pills">
+              <button class="pt-btn" [class.active]="reservaData.metodo_pago === 'total'" (click)="reservaData.metodo_pago = 'total'">
+                Pago Completo
+              </button>
+              <button class="pt-btn" [class.active]="reservaData.metodo_pago === 'proporcional'" (click)="reservaData.metodo_pago = 'proporcional'">
+                Dividir x4 (Split)
+              </button>
+            </div>
+
+            <!-- Estado de Pago Total -->
+            <div class="payment-status-block" *ngIf="reservaData.metodo_pago === 'total'">
+              <span class="status-lbl">Estado Actual:</span>
+              <button class="status-toggle-pill" 
+                      [class.paid]="reservaData.pagado == 1" 
+                      (click)="reservaData.pagado = (reservaData.pagado == 1 ? 0 : 1)">
+                <ion-icon [name]="reservaData.pagado == 1 ? 'checkmark-circle-outline' : 'alert-circle-outline'"></ion-icon>
+                <span>{{ reservaData.pagado == 1 ? 'PAGADO COMPLETO' : 'PENDIENTE DE PAGO' }}</span>
+              </button>
+            </div>
+
+            <!-- División en 4 Jugadores -->
+            <div class="split-four-block" *ngIf="reservaData.metodo_pago === 'proporcional'">
+              <div class="split-info-header">
+                <span>Cuota por jugador:</span>
+                <strong class="cuota-amount">${{ montoPorJugador | number }}</strong>
+              </div>
+
+              <!-- P1 -->
+              <div class="split-player-line">
+                <span class="p-badge">P1</span>
+                <span class="p-name">{{ reservaData.nombre_externo || 'Titular' }}</span>
+                <button class="btn-p-pay" [class.paid]="reservaData.pago_p1 == 1" (click)="reservaData.pago_p1 = (reservaData.pago_p1 == 1 ? 0 : 1)">
+                  {{ reservaData.pago_p1 == 1 ? '✓ Pagó' : 'Cobrar' }}
+                </button>
+              </div>
+
+              <!-- P2 -->
+              <div class="split-player-line">
+                <span class="p-badge">P2</span>
+                <input type="text" [(ngModel)]="reservaData.nombre_externo2" placeholder="Jugador 2" class="p-input" />
+                <button class="btn-p-pay" [class.paid]="reservaData.pago_p2 == 1" (click)="reservaData.pago_p2 = (reservaData.pago_p2 == 1 ? 0 : 1)">
+                  {{ reservaData.pago_p2 == 1 ? '✓ Pagó' : 'Cobrar' }}
+                </button>
+              </div>
+
+              <!-- P3 -->
+              <div class="split-player-line">
+                <span class="p-badge">P3</span>
+                <input type="text" [(ngModel)]="reservaData.nombre_externo3" placeholder="Jugador 3" class="p-input" />
+                <button class="btn-p-pay" [class.paid]="reservaData.pago_p3 == 1" (click)="reservaData.pago_p3 = (reservaData.pago_p3 == 1 ? 0 : 1)">
+                  {{ reservaData.pago_p3 == 1 ? '✓ Pagó' : 'Cobrar' }}
+                </button>
+              </div>
+
+              <!-- P4 -->
+              <div class="split-player-line">
+                <span class="p-badge">P4</span>
+                <input type="text" [(ngModel)]="reservaData.nombre_externo4" placeholder="Jugador 4" class="p-input" />
+                <button class="btn-p-pay" [class.paid]="reservaData.pago_p4 == 1" (click)="reservaData.pago_p4 = (reservaData.pago_p4 == 1 ? 0 : 1)">
+                  {{ reservaData.pago_p4 == 1 ? '✓ Pagó' : 'Cobrar' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- SECCIÓN 2: BLOQUEO DE PISTA (MODALIDAD BLOQUEO / MANTENIMIENTO) -->
+        <ng-container *ngIf="reservaData.estado === 'Bloqueada'">
+          
+          <div class="section-group-card block-theme">
+            <div class="group-title-row">
+              <span class="gt-icon">⛔</span>
+              <h4>Configuración de Bloqueo</h4>
+            </div>
+
+            <!-- Cancha a Bloquear -->
+            <div class="form-field">
+              <label>Pista / Cancha a Bloquear</label>
+              <div class="field-control select-wrap">
+                <select [(ngModel)]="reservaData.cancha_id" (change)="onCanchaChange()" class="native-field">
+                  <option *ngFor="let c of canchas" [value]="c.id">{{ c.nombre }}</option>
+                </select>
+                <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
+              </div>
+            </div>
+
+            <!-- Selector de Modalidad de Bloqueo (Día Completo vs Rango) -->
+            <div class="block-mode-selector">
+              <label>Modalidad de Bloqueo</label>
+              <div class="switch-mode-container">
+                <button type="button" 
+                        class="sm-btn" 
+                        [class.active]="reservaData.tipo_bloqueo === 'dia_completo'" 
+                        (click)="reservaData.tipo_bloqueo = 'dia_completo'">
+                  <ion-icon name="sunny-outline"></ion-icon>
+                  <span>Día Completo</span>
+                </button>
+                <button type="button" 
+                        class="sm-btn" 
+                        [class.active]="reservaData.tipo_bloqueo === 'rango'" 
+                        (click)="reservaData.tipo_bloqueo = 'rango'">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span>Rango de Horarios</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Fecha de Bloqueo -->
+            <div class="form-field">
+              <label>Fecha de Bloqueo</label>
+              <div class="field-control">
+                <input type="date" [(ngModel)]="reservaData.fecha" class="native-field date-field" />
+              </div>
+            </div>
+
+            <!-- Si es Día Completo -->
+            <div class="full-day-info-row" *ngIf="reservaData.tipo_bloqueo === 'dia_completo'">
+              <span class="fdi-label">Horario Aplicado:</span>
+              <div class="full-day-badge">
+                <ion-icon name="time-outline"></ion-icon>
+                <span>07:00 a 23:59 (Todo el Día)</span>
+              </div>
+            </div>
+
+            <!-- Si es Rango de Horarios -->
+            <div class="grid-two-cols" *ngIf="reservaData.tipo_bloqueo === 'rango'">
+              <div class="form-field">
+                <label>Desde (Hora Inicio)</label>
+                <div class="field-control">
+                  <input type="time" [(ngModel)]="reservaData.hora_inicio" class="native-field" />
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label>Hasta (Hora Fin)</label>
+                <div class="field-control">
+                  <input type="time" [(ngModel)]="reservaData.hora_fin_bloqueo" class="native-field" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Motivo del Bloqueo -->
+            <div class="form-field">
+              <label>Motivo del Bloqueo</label>
+              <div class="field-control select-wrap">
+                <select [(ngModel)]="reservaData.motivo_bloqueo" class="native-field">
+                  <option value="Clima / Lluvia">🌧️ Clima / Lluvia</option>
+                  <option value="Mantenimiento">🔧 Mantenimiento / Reparación</option>
+                  <option value="Evento Privado">🎉 Evento Privado</option>
+                  <option value="Clase de Escuela">🎾 Clase de Escuela / Academia</option>
+                  <option value="Otro">Otro Motivo</option>
+                </select>
+                <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
+              </div>
+            </div>
+
+            <!-- Banner de Advertencia Administrativa (Idéntico a Web) -->
+            <div class="alert-block-card">
+              <span class="abc-icon">⚠️</span>
+              <div class="abc-content">
+                <strong>Bloqueo Administrativo de Cancha</strong>
+                <p *ngIf="reservaData.tipo_bloqueo === 'dia_completo'">
+                  Esta pista estará inhabilitada durante todo el día seleccionado (07:00 a 23:59).
+                </p>
+                <p *ngIf="reservaData.tipo_bloqueo === 'rango'">
+                  Esta pista estará inhabilitada desde las <strong>{{ reservaData.hora_inicio }}</strong> hasta las <strong>{{ reservaData.hora_fin_bloqueo || '23:59' }}</strong> hrs.
+                </p>
+              </div>
+            </div>
+
+          </div>
+
+        </ng-container>
+
+      </div>
+
+      <!-- 4. FOOTER FIJO (SIEMPRE VISIBLE, ACCESIBLE CON EL PULGAR) -->
+      <div class="sheet-sticky-footer">
+        <!-- BOTÓN PRINCIPAL VOLT -->
+        <button class="btn-primary-volt" (click)="saveReserva()" [disabled]="isSaving">
+          <span *ngIf="!isSaving">
+            {{ reservaData.id ? 'Guardar Cambios' : (reservaData.estado === 'Bloqueada' ? '⛔ Bloquear Pista' : ('Confirmar Reserva • $' + (reservaData.precio | number))) }}
+          </span>
+          <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+        </button>
+
+        <!-- ACCIONES SECUNDARIAS PARA RESERVA NORMAL -->
+        <div class="secondary-btn-row" *ngIf="reservaData.estado !== 'Bloqueada'">
+          <button class="btn-secondary-wa" (click)="sendWhatsAppConfirmation()">
+            <ion-icon name="logo-whatsapp"></ion-icon>
+            <span>Enviar WhatsApp</span>
+          </button>
+
+          <button class="btn-secondary-delete" *ngIf="reservaData.id" (click)="cancelReserva()">
+            <ion-icon name="trash-outline"></ion-icon>
+            <span>Liberar Pista</span>
+          </button>
+        </div>
+
+        <!-- ACCIONES SECUNDARIAS PARA BLOQUEO (LIBERAR CANCHA BLOQUEADA) -->
+        <div class="secondary-btn-row single-action" *ngIf="reservaData.estado === 'Bloqueada' && reservaData.id">
+          <button class="btn-secondary-delete btn-full-delete" (click)="cancelReserva()">
+            <ion-icon name="lock-open-outline"></ion-icon>
+            <span>Liberar Cancha (Eliminar Bloqueo)</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </ng-template>
+</ion-modal>

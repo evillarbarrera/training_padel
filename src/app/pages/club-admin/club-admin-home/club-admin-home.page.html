@@ -1,0 +1,246 @@
+<ion-content [fullscreen]="true" class="club-admin-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- HEADER NIKE ATHLETIC (Con foto de fondo de padel y overlay) -->
+  <div class="admin-header-hero animate-fade">
+    <div class="header-overlay"></div>
+    <div class="header-content-inner">
+      <!-- LADO IZQUIERDO: ROL, NOMBRE Y SEDE -->
+      <div class="h-text">
+        <div class="role-pill">
+          <span class="role-dot"></span>
+          <span>CLUB MANAGER</span>
+        </div>
+        
+        <div class="h-title-row">
+          <h1>{{ userName | titlecase }}</h1>
+          <span class="h-wave">👋</span>
+        </div>
+        
+        <!-- SELECTOR DE SEDE COMPACTO -->
+        <div class="club-pill-btn" (click)="openClubSelector()" [class.has-multiple]="clubes.length > 1">
+          <ion-icon name="location-outline" class="loc-icon"></ion-icon>
+          <span class="club-name-text">{{ selectedClub?.nombre || 'Seleccionar Club' }}</span>
+          <ion-icon name="chevron-forward-outline" class="chevron-icon" *ngIf="clubes.length > 1"></ion-icon>
+        </div>
+      </div>
+      
+      <!-- LADO DERECHO: AVATAR / MENÚ DE CUENTA -->
+      <div class="h-actions">
+        <div class="h-avatar-wrap" (click)="openUserMenu()" title="Mi Cuenta">
+          <img [src]="getProfileImage(userFoto)" alt="Admin" (error)="onImgError($event)" />
+          <span class="avatar-status-dot"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-body animate-up">
+    <!-- EMPTY STATE IF NO CLUBS -->
+    <div class="empty-clubes-card nike-card" *ngIf="!isLoading && clubes.length === 0">
+      <div class="empty-icon-wrap">🏢</div>
+      <h2>Sin Sedes Asignadas</h2>
+      <p>No tienes sedes asignadas a tu cuenta de administrador. Contacta al soporte de Padelblox para vincular tu club.</p>
+      <ion-button fill="solid" class="nike-btn-neon" (click)="openFabMenu()">
+        Contactar Soporte
+      </ion-button>
+    </div>
+
+    <ng-container *ngIf="selectedClub">
+      <!-- 1. LIVE HERO CARD (PULSO EN VIVO) -->
+      <div class="live-pulse-card nike-card">
+        <div class="pulse-header">
+          <div class="live-badge">
+            <span class="pulse-dot"></span>
+            <span>EN VIVO HOY</span>
+          </div>
+          <span class="date-tag">{{ selectedFecha | date:'EEEE, d MMMM':'':'es-CL' | titlecase }}</span>
+        </div>
+
+        <div class="kpi-main-row">
+          <div class="kpi-circle-block">
+            <div class="circle-metric">
+              <span class="metric-big">{{ stats.ocupacion }}</span>
+              <span class="metric-sub">Ocupación</span>
+            </div>
+          </div>
+
+          <div class="kpi-finance-block">
+            <div class="finance-item">
+              <span class="fin-label">Recaudación Hoy</span>
+              <span class="fin-value">${{ (stats.ingresos_canchas + stats.ingresos_productos) | number }}</span>
+            </div>
+            <div class="finance-breakdown">
+              <span class="bd-chip">🏟️ Canchas: ${{ stats.ingresos_canchas | number }}</span>
+              <span class="bd-chip">🛒 Tienda: ${{ stats.ingresos_productos | number }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROGRESS BAR VOLT -->
+        <div class="occupancy-track-container">
+          <div class="occupancy-track">
+            <div class="occupancy-fill" [style.width.%]="stats.ocupacion_num"></div>
+          </div>
+          <div class="occupancy-labels">
+            <span>{{ stats.total_reservas_hoy }} reservas agendadas hoy</span>
+            <span class="txt-neon" (click)="goToAgenda()">Ver agenda ➔</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. ACCIONES RÁPIDAS (GRID ERGONÓMICO 2X2) -->
+      <div class="section-title-row">
+        <h3>OPERACIÓN RÁPIDA</h3>
+        <span class="hint-touch">Acceso en 1 toque</span>
+      </div>
+
+      <div class="quick-grid">
+        <!-- Canchas & Agenda -->
+        <div class="action-card nike-card" (click)="goToAgenda()">
+          <div class="action-icon-wrap court-theme">
+            <ion-icon name="calendar-outline"></ion-icon>
+          </div>
+          <div class="action-text">
+            <h4>Agenda Pistas</h4>
+            <p>Horarios y reservas</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="card-arrow"></ion-icon>
+        </div>
+
+        <!-- POS / Ventas -->
+        <div class="action-card nike-card" (click)="goToPOS()">
+          <div class="action-icon-wrap pos-theme">
+            <ion-icon name="cart-outline"></ion-icon>
+          </div>
+          <div class="action-text">
+            <h4>Punto de Venta</h4>
+            <p>Cobro de mostrador</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="card-arrow"></ion-icon>
+        </div>
+
+        <!-- Torneos / Americanos -->
+        <div class="action-card nike-card" (click)="goToAmericanos()">
+          <div class="action-icon-wrap comp-theme">
+            <ion-icon name="trophy-outline"></ion-icon>
+            <span class="mini-count-badge" *ngIf="stats.americanos_activos > 0">{{ stats.americanos_activos }}</span>
+          </div>
+          <div class="action-text">
+            <h4>Americanos</h4>
+            <p>Scores en cancha</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="card-arrow"></ion-icon>
+        </div>
+
+        <!-- Turnos Fijos -->
+        <div class="action-card nike-card" (click)="goToTurnos()">
+          <div class="action-icon-wrap turnos-theme">
+            <ion-icon name="people-outline"></ion-icon>
+          </div>
+          <div class="action-text">
+            <h4>Turnos Fijos</h4>
+            <p>Check-in de hoy</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="card-arrow"></ion-icon>
+        </div>
+      </div>
+
+      <!-- TABS: ESTADO DE PISTAS AHORA / PRÓXIMAS LLEGADAS -->
+      <div class="segmented-status-tabs">
+        <button type="button" 
+                class="status-tab-btn" 
+                [class.active]="activeSectionTab === 'pistas'" 
+                (click)="activeSectionTab = 'pistas'">
+          <span class="tab-label">Pistas Ahora</span>
+          <span class="tab-badge" *ngIf="canchasSummary.length > 0">{{ canchasSummary.length }}</span>
+        </button>
+
+        <button type="button" 
+                class="status-tab-btn" 
+                [class.active]="activeSectionTab === 'llegadas'" 
+                (click)="activeSectionTab = 'llegadas'">
+          <span class="tab-label">Próximas Llegadas</span>
+          <span class="tab-badge" *ngIf="proximasReservas.length > 0">{{ proximasReservas.length }}</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: ESTADO DE PISTAS AHORA (RADAR EN TIEMPO REAL) -->
+      <ng-container *ngIf="activeSectionTab === 'pistas'">
+        <div class="section-title-row">
+          <h3>ESTADO DE PISTAS AHORA</h3>
+          <span class="link-more" (click)="goToAgenda()">Ver todas</span>
+        </div>
+
+        <div class="courts-radar-list">
+          <div class="court-radar-card nike-card" *ngFor="let c of canchasSummary" (click)="goToAgenda()">
+            <div class="c-info-left">
+              <div class="court-badge-pill" [ngClass]="c.estadoColor">
+                <span class="status-indicator"></span>
+                <span class="c-name">{{ c.nombre }}</span>
+              </div>
+              <span class="c-status-msg">{{ c.estadoTexto }}</span>
+              <p class="c-detail-msg" *ngIf="c.detalleReserva">{{ c.detalleReserva }}</p>
+            </div>
+
+            <div class="c-action-right">
+              <span class="reservas-count-pill">{{ c.totalHoy }} turnos hoy</span>
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+          </div>
+
+          <div class="empty-canchas" *ngIf="canchasSummary.length === 0 && !isLoading">
+            <p>No hay canchas registradas en esta sede.</p>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- TAB 2: PRÓXIMAS LLEGADAS EN RECEPCIÓN -->
+      <ng-container *ngIf="activeSectionTab === 'llegadas'">
+        <div class="section-title-row">
+          <h3>PRÓXIMAS LLEGADAS</h3>
+          <span class="link-more" (click)="goToAgenda()">Ver agenda</span>
+        </div>
+
+        <div class="upcoming-list" *ngIf="proximasReservas.length > 0">
+          <div class="upcoming-item-card nike-card" *ngFor="let r of proximasReservas" (click)="goToAgenda()">
+            <div class="up-time-box">
+              <span class="up-time">{{ r.hora_inicio.substring(0, 5) }}</span>
+              <span class="up-dur">{{ r.duracion || 90 }}m</span>
+            </div>
+
+            <div class="up-player-info">
+              <h4>{{ r.nombre_externo || r.jugador_nombre || 'Cliente' }}</h4>
+              <p class="up-meta">
+                <span>🏟️ {{ r.cancha_display || getCanchaDisplay(r.cancha_id) }}</span>
+                <ng-container *ngIf="!isAmericano(r)">
+                  <span class="dot-sep">•</span>
+                  <span class="up-pay" [class.paid]="r.pagado == 1" [class.unpaid]="r.pagado != 1">
+                    {{ r.pagado == 1 ? '✓ Pagado' : '⚠ Pago pendiente' }}
+                  </span>
+                </ng-container>
+              </p>
+            </div>
+
+            <div class="up-chevron">
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-canchas" *ngIf="proximasReservas.length === 0 && !isLoading">
+          <p>No hay próximas llegadas pendientes por ahora.</p>
+        </div>
+      </ng-container>
+    </ng-container>
+  </div>
+
+  <!-- FLOATING ACTION BUTTON (VOLT ACCENT MULTI-ACTION) -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="nike-main-fab">
+    <ion-fab-button (click)="openFabMenu()">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

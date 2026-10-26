@@ -21,9 +21,10 @@ import {
   sparklesOutline, videocamOutline, chevronDownOutline, locationOutline,
   notificationsOutline, closeOutline, ribbonOutline, lockClosedOutline,
   chevronForwardOutline, arrowForward, timeOutline, cardOutline,
-  watchOutline, walletOutline, fitnessOutline
+  watchOutline, walletOutline, fitnessOutline, swapHorizontalOutline
 } from 'ionicons/icons';
-import { ActionSheetController, LoadingController, AlertController } from '@ionic/angular/standalone';
+import { ActionSheetController, LoadingController, AlertController, ModalController } from '@ionic/angular/standalone';
+import { ProfileSelectorModalComponent } from '../../components/profile-selector-modal/profile-selector-modal.component';
 import { MysqlService } from '../../services/mysql.service';
 import { NotificationService } from '../../services/notification.service';
 import { SmartwatchService } from '../../services/smartwatch.service';
@@ -93,6 +94,7 @@ export class JugadorHomePage implements OnInit {
     private loadingCtrl: LoadingController,
     private alertCtrl: AlertController,
     private ngZone: NgZone,
+    private modalCtrl: ModalController,
     private mysqlService: MysqlService,
     private notificationService: NotificationService,
     private smartwatchService: SmartwatchService,
@@ -125,7 +127,8 @@ export class JugadorHomePage implements OnInit {
       'card-outline': cardOutline,
       'watch-outline': watchOutline,
       'wallet-outline': walletOutline,
-      'fitness-outline': fitnessOutline
+      'fitness-outline': fitnessOutline,
+      'swap-horizontal-outline': swapHorizontalOutline
     });
   }
 
@@ -367,41 +370,83 @@ export class JugadorHomePage implements OnInit {
     this.router.navigate(['/alumno-mis-packs']);
   }
 
+  get hasMultipleProfiles(): boolean {
+    try {
+      const stored = localStorage.getItem('availableProfiles');
+      if (!stored) return false;
+      const perfiles = JSON.parse(stored);
+      if (!Array.isArray(perfiles)) return false;
+      const roles = new Set(
+        perfiles.map((p: any) => {
+          if (p.rol === 'staff_club' || p.rol === 'administrador_club' || p.rol === 'administrador') {
+            return 'administrador_club';
+          }
+          return p.rol;
+        })
+      );
+      return roles.size > 1;
+    } catch (e) {
+      return false;
+    }
+  }
+
   async openSettings() {
+    const buttons: any[] = [
+      {
+        text: 'Mi Perfil',
+        icon: 'person-outline',
+        handler: () => {
+          this.router.navigate(['/perfil']);
+        }
+      }
+    ];
+
+    if (this.hasMultipleProfiles) {
+      buttons.push({
+        text: '🔄 Cambiar Perfil',
+        icon: 'swap-horizontal-outline',
+        handler: () => {
+          this.openProfileSelectorModal();
+        }
+      });
+    }
+
+    buttons.push(
+      {
+        text: 'Cerrar sesión',
+        icon: 'log-out-outline',
+        role: 'destructive',
+        handler: () => {
+          this.logout();
+        }
+      },
+      {
+        text: 'Cancelar',
+        icon: 'close',
+        role: 'cancel'
+      }
+    );
+
     const actionSheet = await this.actionSheetCtrl.create({
       header: 'Ajustes del Jugador',
-      buttons: [
-        {
-          text: 'Mi Perfil',
-          icon: 'person-outline',
-          handler: () => {
-            this.router.navigate(['/perfil']);
-          }
-        },
-        /* {
-          text: 'Tarjeta Digital',
-          icon: 'card-outline',
-          handler: () => {
-            this.router.navigate(['/tarjeta-digital']);
-          }
-        }, */
-        {
-          text: 'Cerrar sesión',
-          icon: 'log-out-outline',
-          role: 'destructive',
-          handler: () => {
-            this.logout();
-          }
-        },
-        {
-          text: 'Cancelar',
-          icon: 'close',
-          role: 'cancel'
-        }
-      ]
+      buttons
     });
 
     await actionSheet.present();
+  }
+
+  async openProfileSelectorModal() {
+    const modal = await this.modalCtrl.create({
+      component: ProfileSelectorModalComponent,
+      componentProps: {
+        allowCancel: true,
+        currentRole: 'jugador'
+      },
+      breakpoints: [0, 0.7, 0.95],
+      initialBreakpoint: 0.7,
+      cssClass: 'profile-selector-bottom-sheet'
+    });
+    await modal.present();
   }
 
   goToPerfil() {

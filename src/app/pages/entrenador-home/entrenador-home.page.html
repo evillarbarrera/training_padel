@@ -351,6 +351,12 @@
             <span>Mi Plan</span>
           </div>
 
+          <!-- Cambiar Perfil -->
+          <div *ngIf="hasMultipleProfiles" class="grid-item highlight" (click)="onControlItemClick('change_profile')">
+            <div class="icon-circle" style="background: rgba(99, 102, 241, 0.12); color: #6366f1;"><ion-icon name="swap-horizontal-outline"></ion-icon></div>
+            <span>Cambiar Perfil</span>
+          </div>
+
           <!-- Salida -->
           <div class="grid-item danger" (click)="onControlItemClick('logout')">
             <div class="icon-circle logout"><ion-icon name="log-out-outline"></ion-icon></div>

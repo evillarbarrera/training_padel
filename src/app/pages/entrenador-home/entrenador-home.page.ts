@@ -1,7 +1,8 @@
 import { Component, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ActionSheetController } from '@ionic/angular';
+import { ActionSheetController, ModalController } from '@ionic/angular';
+import { ProfileSelectorModalComponent } from 'src/app/components/profile-selector-modal/profile-selector-modal.component';
 import { MysqlService } from 'src/app/services/mysql.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { EntrenamientoService } from 'src/app/services/entrenamiento.service';
@@ -23,7 +24,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, add, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline, close, locationOutline, cardOutline, flashOutline, logoWhatsapp, timeOutline, alertCircleOutline, pricetagsOutline, statsChartOutline, informationCircleOutline, tennisballOutline, trophyOutline, chevronForward, barcodeOutline } from 'ionicons/icons';
+import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, add, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline, close, locationOutline, cardOutline, flashOutline, logoWhatsapp, timeOutline, alertCircleOutline, pricetagsOutline, statsChartOutline, informationCircleOutline, tennisballOutline, trophyOutline, chevronForward, barcodeOutline, swapHorizontalOutline } from 'ionicons/icons';
 
 import { environment } from 'src/environments/environment';
 
@@ -80,6 +81,7 @@ export class EntrenadorHomePage {
     private entrenamientoService: EntrenamientoService,
     private notificationService: NotificationService,
     private actionSheetCtrl: ActionSheetController,
+    private modalCtrl: ModalController,
     private ngZone: NgZone,
   ) {
     addIcons({
@@ -111,7 +113,8 @@ export class EntrenadorHomePage {
       tennisballOutline,
       trophyOutline,
       chevronForward,
-      barcodeOutline
+      barcodeOutline,
+      swapHorizontalOutline
     });
   }
 
@@ -478,70 +481,111 @@ export class EntrenadorHomePage {
     localStorage.setItem('hideMPReminder', 'true');
   }
 
+  get hasMultipleProfiles(): boolean {
+    try {
+      const stored = localStorage.getItem('availableProfiles');
+      if (!stored) return false;
+      const perfiles = JSON.parse(stored);
+      if (!Array.isArray(perfiles)) return false;
+      const roles = new Set(
+        perfiles.map((p: any) => {
+          if (p.rol === 'staff_club' || p.rol === 'administrador_club' || p.rol === 'administrador') {
+            return 'administrador_club';
+          }
+          return p.rol;
+        })
+      );
+      return roles.size > 1;
+    } catch (e) {
+      return false;
+    }
+  }
 
   async openSettings() {
+    const buttons: any[] = [
+      {
+        text: 'Mi Perfil',
+        icon: 'person-outline',
+        handler: () => {
+          this.router.navigate(['/perfil']);
+        }
+      },
+      {
+        text: 'Mis packs de clases',
+        icon: 'pricetags-outline',
+        handler: () => {
+          this.router.navigate(['/entrenador-packs']);
+        }
+      },
+      {
+        text: 'Mis Cupones',
+        icon: 'gift-outline',
+        handler: () => {
+          this.router.navigate(['/entrenador-cupones']);
+        }
+      },
+      {
+        text: 'Mi Plan',
+        icon: 'card-outline',
+        handler: () => {
+          this.router.navigate(['/entrenador-mi-plan']);
+        }
+      },
+      {
+        text: 'Horarios disponibles',
+        icon: 'time-outline',
+        handler: () => {
+          this.router.navigate(['/disponibilidad-entrenador']);
+        }
+      }
+    ];
+
+    if (this.hasMultipleProfiles) {
+      buttons.push({
+        text: '🔄 Cambiar Perfil',
+        icon: 'swap-horizontal-outline',
+        handler: () => {
+          this.openProfileSelectorModal();
+        }
+      });
+    }
+
+    buttons.push(
+      {
+        text: 'Cerrar sesión',
+        icon: 'log-out-outline',
+        role: 'destructive',
+        handler: () => {
+          this.logout();
+        }
+      },
+      {
+        text: 'Cancelar',
+        icon: 'close',
+        role: 'cancel'
+      }
+    );
+
     const actionSheet = await this.actionSheetCtrl.create({
       header: 'Ajustes del Entrenador',
-      buttons: [
-        {
-          text: 'Mi Perfil',
-          icon: 'person-outline',
-          handler: () => {
-            this.router.navigate(['/perfil']);
-          }
-        },
-        {
-          text: 'Tarjeta Digital',
-          icon: 'card-outline',
-          handler: () => {
-            this.router.navigate(['/tarjeta-digital']);
-          }
-        },
-        {
-          text: 'Canjear Puntos Club',
-          icon: 'barcode-outline',
-          handler: () => {
-            this.router.navigate(['/canje-club']);
-          }
-        },
-        {
-          text: 'Mis Cupones',
-          icon: 'gift-outline',
-          handler: () => {
-             this.router.navigate(['/entrenador-cupones']);
-          }
-        },
-        {
-          text: 'Mi Plan',
-          icon: 'card-outline',
-          handler: () => {
-             this.router.navigate(['/entrenador-mi-plan']);
-          }
-        },
-        {
-          text: 'Horarios disponibles',
-          icon: 'time-outline',
-          handler: () => {
-            this.router.navigate(['/disponibilidad-entrenador']);
-          }
-        },
-        {
-          text: 'Cerrar sesión',
-          icon: 'log-out-outline',
-          role: 'destructive',
-          handler: () => {
-            this.logout();
-          }
-        },
-        {
-          text: 'Cancelar',
-          icon: 'close',
-          role: 'cancel'
-        }
-      ]
+      buttons
     });
 
     await actionSheet.present();
+  }
+
+  async openProfileSelectorModal() {
+    const modal = await this.modalCtrl.create({
+      component: ProfileSelectorModalComponent,
+      componentProps: {
+        allowCancel: true,
+        currentRole: 'entrenador'
+      },
+      breakpoints: [0, 0.7, 0.95],
+      initialBreakpoint: 0.7,
+      cssClass: 'profile-selector-bottom-sheet'
+    });
+    await modal.present();
   }
 
   // --- FEATURE LOGIC ---
@@ -595,6 +639,8 @@ export class EntrenadorHomePage {
     setTimeout(() => {
       if (action === 'logout') {
         this.logout();
+      } else if (action === 'change_profile') {
+        this.openProfileSelectorModal();
       } else {
         this.router.navigateByUrl(action);
       }

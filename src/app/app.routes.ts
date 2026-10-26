@@ -125,5 +125,26 @@ export const routes: Routes = [
   {
     path: 'smartwatch-stats',
     loadComponent: () => import('./pages/smartwatch-stats/smartwatch-stats.page').then(m => m.SmartwatchStatsPage)
+  },
+  {
+    path: 'club-admin-home',
+    loadComponent: () => import('./pages/club-admin/club-admin-home/club-admin-home.page').then(m => m.ClubAdminHomePage)
+  },
+  {
+    path: 'club-agenda-canchas',
+    loadComponent: () => import('./pages/club-admin/club-agenda-canchas/club-agenda-canchas.page').then(m => m.ClubAgendaCanchasPage)
+  },
+  {
+    path: 'club-pos-ventas',
+    loadComponent: () => import('./pages/club-admin/club-pos-ventas/club-pos-ventas.page').then(m => m.ClubPosVentasPage)
+  },
+  {
+    path: 'club-americano-live',
+    loadComponent: () => import('./pages/club-admin/club-americano-live/club-americano-live.page').then(m => m.ClubAmericanoLivePage)
+  },
+  {
+    path: 'club-turnos-checkin',
+    loadComponent: () => import('./pages/club-admin/club-turnos-checkin/club-turnos-checkin.page').then(m => m.ClubTurnosCheckinPage)
   }
 ];
+
