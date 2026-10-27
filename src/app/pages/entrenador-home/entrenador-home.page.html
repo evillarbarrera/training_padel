@@ -62,9 +62,9 @@
 
       <!-- Quick Action Buttons on Court -->
       <div class="session-actions-bar">
-        <button type="button" class="tactical-btn check-btn" (click)="marcarAsistenciaLive($event)">
-          <ion-icon name="checkmark-done-circle-outline"></ion-icon>
-          <span>Pasar Asistencia</span>
+        <button type="button" class="tactical-btn cancel-btn" (click)="confirmarCancelacionAlumnoNoLlego(proximaClase, $event)">
+          <ion-icon name="close-circle-outline"></ion-icon>
+          <span>Cancelar</span>
         </button>
         <button type="button" class="tactical-btn wa-btn" (click)="contactarAlumnoClase(proximaClase, $event)">
           <ion-icon name="logo-whatsapp"></ion-icon>

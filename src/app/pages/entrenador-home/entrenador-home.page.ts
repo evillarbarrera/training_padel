@@ -9,6 +9,8 @@ import { NotificationService } from 'src/app/services/notification.service';
 import {
   ActionSheetController,
   ModalController,
+  AlertController,
+  ToastController,
   IonContent,
   IonFab,
   IonFabButton,
@@ -39,6 +41,7 @@ import {
   notificationsOutline,
   warningOutline,
   closeOutline,
+  closeCircleOutline,
   gift,
   wallet,
   notificationsOffOutline,
@@ -131,6 +134,8 @@ export class EntrenadorHomePage {
     private notificationService: NotificationService,
     private actionSheetCtrl: ActionSheetController,
     private modalCtrl: ModalController,
+    private alertCtrl: AlertController,
+    private toastCtrl: ToastController,
     private ngZone: NgZone,
   ) {
     addIcons({
@@ -150,6 +155,7 @@ export class EntrenadorHomePage {
       gift,
       close,
       closeOutline,
+      closeCircleOutline,
       locationOutline,
       cardOutline,
       flashOutline,
@@ -403,6 +409,10 @@ export class EntrenadorHomePage {
         if (res.reservas_tradicionales) {
           const proximas = res.reservas_tradicionales.filter((r: any) => r.fecha === fechaHoy || r.fecha === fechaManana);
           clases.push(...proximas.map((r: any) => ({
+            id: r.id || r.reserva_id,
+            reserva_id: r.id || r.reserva_id,
+            jugador_id: r.jugador_id,
+            telefono: r.telefono || r.jugador_telefono,
             fecha: r.fecha,
             diaLabel: r.fecha === fechaHoy ? 'Hoy' : 'Mañana',
             hora: r.hora_inicio.substring(0, 5),
@@ -417,7 +427,8 @@ export class EntrenadorHomePage {
             titulo: r.jugador_nombre || 'Clase Grupal',
             subtitulo: r.pack_nombre,
             lugar: r.club_nombre,
-            estado: r.estado
+            estado: r.estado,
+            raw: r
           })));
         }
 
@@ -433,6 +444,9 @@ export class EntrenadorHomePage {
           );
 
           clases.push(...grupHoy.map((g: any) => ({
+            id: g.id || g.pack_id,
+            reserva_id: g.id || g.pack_id,
+            pack_id: g.pack_id,
             fecha: fechaHoy,
             diaLabel: 'Hoy',
             hora: g.hora_inicio.substring(0, 5),
@@ -440,10 +454,14 @@ export class EntrenadorHomePage {
             titulo: g.pack_nombre,
             subtitulo: `${g.inscritos_confirmados || 0} inscritos`,
             lugar: g.club_nombre,
-            estado: 'activo'
+            estado: 'activo',
+            raw: g
           })));
 
           clases.push(...grupManana.map((g: any) => ({
+            id: g.id || g.pack_id,
+            reserva_id: g.id || g.pack_id,
+            pack_id: g.pack_id,
             fecha: fechaManana,
             diaLabel: 'Mañana',
             hora: g.hora_inicio.substring(0, 5),
@@ -744,9 +762,77 @@ export class EntrenadorHomePage {
     }
   }
 
-  marcarAsistenciaLive(event?: Event) {
+  async confirmarCancelacionAlumnoNoLlego(clase: any, event?: Event) {
     if (event) event.stopPropagation();
-    this.router.navigate(['/entrenador-agendar']);
+
+    const alumnoNombre = clase?.titulo || 'el alumno';
+    const hora = clase?.hora ? `de las ${clase.hora} hrs` : '';
+
+    const alert = await this.alertCtrl.create({
+      header: '¿Cancelar clase?',
+      subHeader: 'Inasistencia del alumno',
+      message: `¿Estás seguro de cancelar la sesión ${hora}? Se confirmará que ${alumnoNombre} no llegó a la clase y el horario quedará liberado.`,
+      buttons: [
+        {
+          text: 'Volver',
+          role: 'cancel'
+        },
+        {
+          text: 'Sí, cancelar clase',
+          role: 'destructive',
+          handler: () => {
+            this.ejecutarCancelacionClase(clase);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  ejecutarCancelacionClase(clase: any) {
+    const resId = clase?.reserva_id || clase?.id;
+    if (!resId) {
+      this.router.navigate(['/entrenador-entrenamientos']);
+      return;
+    }
+
+    this.mysqlService.cancelarReserva(resId).subscribe({
+      next: async () => {
+        // Enviar notificación al alumno si tiene ID
+        if (clase.jugador_id) {
+          const packNombre = clase.subtitulo || 'Entrenamiento';
+          const fecha = clase.fecha || new Date().toISOString().split('T')[0];
+          this.notificationService.sendCancelationNotification(clase.jugador_id, packNombre, fecha);
+        }
+
+        const toast = await this.toastCtrl.create({
+          message: '✅ Clase cancelada por inasistencia del alumno.',
+          duration: 3000,
+          color: 'dark',
+          position: 'bottom'
+        });
+        await toast.present();
+
+        // Limpiar clase actual si era la que se canceló
+        if (this.claseActual && (this.claseActual.id === resId || this.claseActual.reserva_id === resId)) {
+          this.claseActual = null;
+        }
+
+        // Recargar datos para refrescar la tarjeta
+        this.loadProfile();
+      },
+      error: async (err) => {
+        console.error('Error al cancelar reserva:', err);
+        const toast = await this.toastCtrl.create({
+          message: 'No se pudo cancelar la clase. Intenta desde tu agenda.',
+          duration: 2500,
+          color: 'danger',
+          position: 'bottom'
+        });
+        await toast.present();
+      }
+    });
   }
 
   getProfileImage(url: any): string {

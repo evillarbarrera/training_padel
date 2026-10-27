@@ -389,10 +389,14 @@ ion-content.entrenador-home-content {
         font-size: 15px;
       }
 
-      &.check-btn {
-        background: #ccff00;
-        color: #0b0f19;
-        box-shadow: 0 4px 12px rgba(204, 255, 0, 0.3);
+      &.cancel-btn {
+        background: #dc2626;
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+
+        ion-icon {
+          font-size: 16px;
+        }
       }
 
       &.wa-btn {
