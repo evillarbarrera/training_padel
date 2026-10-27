@@ -1112,7 +1112,7 @@ export class JugadorReservasPage implements OnInit {
     // 1. Process explicit availability from the 'disponibilidad' table
     disponibilidades.forEach(d => {
       const isBlockOcupado = d.ocupado == 1 || d.ocupado === '1' || d.ocupado === true || d.ocupado === 'true';
-      const isGrupal = d.tipo === 'grupal';
+      const isGrupal = d.tipo === 'grupal' || d.tipo_real === 'grupal' || d.tipo === 'pack_grupal' || d.tipo_real === 'pack_grupal' || (d.pack_id && Number(d.pack_id) > 0);
 
       if (isGrupal) {
         if (this.selectedClubId && Number(d.club_id) !== Number(this.selectedClubId)) return;
@@ -1122,13 +1122,19 @@ export class JugadorReservasPage implements OnInit {
         if (!inicioStr) return;
 
         const bloqueInicio = new Date(inicioStr.replace(' ', 'T'));
-        const bloqueFin = new Date(finStr.replace(' ', 'T'));
-        if (bloqueInicio >= ahora && bloqueFin <= limite) {
+        let bloqueFin = finStr ? new Date(finStr.replace(' ', 'T')) : new Date(bloqueInicio.getTime() + 60 * 60 * 1000);
+        if (isNaN(bloqueFin.getTime())) {
+          bloqueFin = new Date(bloqueInicio.getTime() + 60 * 60 * 1000);
+        }
+
+        if (bloqueFin >= ahora && bloqueInicio <= limite) {
           const fechaStr = `${bloqueInicio.getFullYear()}-${(bloqueInicio.getMonth() + 1).toString().padStart(2, '0')}-${bloqueInicio.getDate().toString().padStart(2, '0')}`;
           const horaStr = bloqueInicio.toTimeString().slice(0, 5);
           const timeKey = `${fechaStr}_${horaStr}`;
 
           slotsMap.set(timeKey, {
+            id: d.id,
+            reserva_id: d.id,
             fecha: fechaStr,
             hora_inicio: bloqueInicio,
             hora_fin: bloqueFin,
@@ -1161,7 +1167,7 @@ export class JugadorReservasPage implements OnInit {
           const bloqueFin = new Date(inicio.getTime());
           bloqueFin.setHours(bloqueFin.getHours() + 1);
 
-          if (bloqueInicio >= ahora && bloqueFin <= limite) {
+          if (bloqueFin >= ahora && bloqueInicio <= limite) {
             const fechaStr = `${bloqueInicio.getFullYear()}-${(bloqueInicio.getMonth() + 1).toString().padStart(2, '0')}-${bloqueInicio.getDate().toString().padStart(2, '0')}`;
             const horaStr = bloqueInicio.toTimeString().slice(0, 5);
             const timeKey = `${fechaStr}_${horaStr}`;
@@ -1200,7 +1206,7 @@ export class JugadorReservasPage implements OnInit {
           const end = new Date(start.getTime());
           end.setMinutes(start.getMinutes() + duration);
 
-          if (start >= ahora && start <= limite) {
+          if (end >= ahora && start <= limite) {
             const fechaStr = p.fecha;
             const horaStr = start.toTimeString().slice(0, 5);
             const timeKey = `${fechaStr}_${horaStr}`;
@@ -1251,7 +1257,7 @@ export class JugadorReservasPage implements OnInit {
               const end = new Date(start.getTime());
               end.setMinutes(start.getMinutes() + duration);
 
-              if (start >= ahora) {
+              if (end >= ahora) {
                 const fechaStr = `${start.getFullYear()}-${(start.getMonth() + 1).toString().padStart(2, '0')}-${start.getDate().toString().padStart(2, '0')}`;
                 const horaStr = start.toTimeString().slice(0, 5);
                 const timeKey = `${fechaStr}_${horaStr}`;
@@ -1283,7 +1289,14 @@ export class JugadorReservasPage implements OnInit {
     });
 
     // Clean up overlaps and build final arrays per tramo
-    const sortedSlots = Array.from(slotsMap.values()).sort((a, b) => a.hora_inicio.getTime() - b.hora_inicio.getTime());
+    // Grupal slots take precedence over generic individual availability
+    const sortedSlots = Array.from(slotsMap.values()).sort((a, b) => {
+      const diff = a.hora_inicio.getTime() - b.hora_inicio.getTime();
+      if (diff !== 0) return diff;
+      if (a.tipo === 'grupal' && b.tipo !== 'grupal') return -1;
+      if (b.tipo === 'grupal' && a.tipo !== 'grupal') return 1;
+      return 0;
+    });
     const finalSlotsMap = new Map<string, any>();
 
     sortedSlots.forEach(slot => {
@@ -1291,6 +1304,10 @@ export class JugadorReservasPage implements OnInit {
       let isCovered = false;
       finalSlotsMap.forEach(existing => {
         if (existing.fecha === slot.fecha && slot.hora_inicio >= existing.hora_inicio && slot.hora_inicio < existing.hora_fin) {
+          if (slot.tipo === 'grupal' && existing.tipo !== 'grupal') {
+            // Grupal slot is NEVER covered by an individual slot!
+            return;
+          }
           isCovered = true;
         }
       });
@@ -1423,6 +1440,7 @@ export class JugadorReservasPage implements OnInit {
                 hora_inicio: horario.hora_inicio.toTimeString().slice(0, 5),
                 hora_fin: horario.hora_fin.toTimeString().slice(0, 5),
                 jugador_id: this.jugadorId,
+                reserva_id: (horario.id || horario.reserva_id || null),
                 estado: 'reservado',
                 tipo: targetType,
                 cantidad_personas: 1,
