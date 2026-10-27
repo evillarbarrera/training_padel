@@ -1667,26 +1667,29 @@ ion-modal.control-center-pro-modal {
     }
   }
 
-  /* Segmented Category Switcher */
+  /* Segmented Category Switcher (3-Col Unified Control) */
   .sheet-tabs-bar {
-    display: flex;
-    gap: 8px;
-    padding: 0 20px 16px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    &::-webkit-scrollbar { display: none; }
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    background: #f1f5f9;
+    padding: 5px;
+    border-radius: 16px;
+    margin: 0 20px 18px;
+    box-sizing: border-box;
 
     .tab-pill {
-      background: #f1f5f9;
-      border: 1px solid transparent;
-      border-radius: 20px;
-      padding: 9px 14px;
-      font-size: 12px;
+      background: transparent;
+      border: none;
+      border-radius: 12px;
+      padding: 9px 4px;
+      font-size: 13px;
       font-weight: 800;
       color: #64748b;
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: center;
+      gap: 5px;
       white-space: nowrap;
       cursor: pointer;
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1698,8 +1701,8 @@ ion-modal.control-center-pro-modal {
       &.active {
         background: #0f172a;
         color: #ffffff;
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2);
-        border-color: #0f172a;
+        box-shadow: 0 3px 10px rgba(15, 23, 42, 0.18);
+        font-weight: 900;
 
         .tab-badge {
           background: #ef4444;
@@ -1713,9 +1716,9 @@ ion-modal.control-center-pro-modal {
         font-size: 10px;
         font-weight: 900;
         border-radius: 10px;
-        padding: 1px 6px;
+        padding: 1px 5px;
         min-width: 16px;
-        text-align: center;
+        line-height: 1.2;
       }
     }
   }
@@ -1885,15 +1888,24 @@ ion-modal.control-center-pro-modal {
       }
     }
 
-    .sheet-tabs-bar .tab-pill {
+    .sheet-tabs-bar {
       background: #1e293b;
-      color: #94a3b8;
 
-      &.active {
-        background: #ccff00;
-        color: #0b0f19;
-        border-color: #ccff00;
-        box-shadow: 0 4px 14px rgba(204, 255, 0, 0.3);
+      .tab-pill {
+        background: transparent;
+        color: #94a3b8;
+
+        &.active {
+          background: #ccff00;
+          color: #0b0f19;
+          border-color: #ccff00;
+          box-shadow: 0 4px 14px rgba(204, 255, 0, 0.3);
+
+          .tab-badge {
+            background: #ef4444;
+            color: #ffffff;
+          }
+        }
       }
     }
 

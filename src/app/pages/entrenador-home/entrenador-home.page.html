@@ -253,14 +253,14 @@
         <!-- Segmented Category Switcher -->
         <div class="sheet-tabs-bar">
           <button type="button" class="tab-pill" [class.active]="activeControlTab === 'pista'" (click)="setActiveControlTab('pista')">
-            🎾 Pista & Agenda
+            <span>🎾 Pista</span>
           </button>
           <button type="button" class="tab-pill" [class.active]="activeControlTab === 'negocio'" (click)="setActiveControlTab('negocio')">
-            💼 Alumnos & Packs
+            <span>💼 Alumnos</span>
             <span class="tab-badge" *ngIf="alumnosRecordatorioList && alumnosRecordatorioList.length > 0">{{ alumnosRecordatorioList.length }}</span>
           </button>
           <button type="button" class="tab-pill" [class.active]="activeControlTab === 'cuenta'" (click)="setActiveControlTab('cuenta')">
-            ⚙️ Mi Cuenta
+            <span>⚙️ Cuenta</span>
           </button>
         </div>
 
