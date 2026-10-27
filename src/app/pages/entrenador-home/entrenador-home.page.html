@@ -165,39 +165,47 @@
 
       <div class="command-actions-grid">
         <div class="command-tile hero" (click)="goToAgenda()">
-          <div class="tile-icon bg-volt"><ion-icon name="calendar-outline"></ion-icon></div>
+          <div class="tile-top-row">
+            <div class="tile-icon bg-volt"><ion-icon name="calendar-outline"></ion-icon></div>
+            <ion-icon name="chevron-forward-outline" class="tile-arrow"></ion-icon>
+          </div>
           <div class="tile-meta">
             <h5>Mi Agenda</h5>
             <p>Calendario y clases</p>
           </div>
-          <ion-icon name="chevron-forward-outline" class="tile-arrow"></ion-icon>
         </div>
 
         <div class="command-tile" (click)="goToAgendar()">
-          <div class="tile-icon bg-blue"><ion-icon name="add-circle-outline"></ion-icon></div>
+          <div class="tile-top-row">
+            <div class="tile-icon bg-blue"><ion-icon name="add-circle-outline"></ion-icon></div>
+            <ion-icon name="chevron-forward-outline" class="tile-arrow"></ion-icon>
+          </div>
           <div class="tile-meta">
             <h5>Agendar</h5>
             <p>Nueva clase o grupo</p>
           </div>
-          <ion-icon name="chevron-forward-outline" class="tile-arrow"></ion-icon>
         </div>
 
         <div class="command-tile" (click)="goToAlumnos()">
-          <div class="tile-icon bg-emerald"><ion-icon name="person-outline"></ion-icon></div>
+          <div class="tile-top-row">
+            <div class="tile-icon bg-emerald"><ion-icon name="person-outline"></ion-icon></div>
+            <ion-icon name="chevron-forward-outline" class="tile-arrow"></ion-icon>
+          </div>
           <div class="tile-meta">
             <h5>Alumnos</h5>
             <p>Fichas y progreso</p>
           </div>
-          <ion-icon name="chevron-forward-outline" class="tile-arrow"></ion-icon>
         </div>
 
         <div class="command-tile" (click)="onControlItemClick('/disponibilidad-entrenador')">
-          <div class="tile-icon bg-purple"><ion-icon name="time-outline"></ion-icon></div>
-          <div class="tile-meta">
-            <h5>Horarios</h5>
-            <p>Bloques de atención</p>
+          <div class="tile-top-row">
+            <div class="tile-icon bg-purple"><ion-icon name="time-outline"></ion-icon></div>
+            <ion-icon name="chevron-forward-outline" class="tile-arrow"></ion-icon>
           </div>
-          <ion-icon name="chevron-forward-outline" class="tile-arrow"></ion-icon>
+          <div class="tile-meta">
+            <h5>Disponibilidad</h5>
+            <p>Horarios y bloques</p>
+          </div>
         </div>
       </div>
     </section>
@@ -212,7 +220,7 @@
     </section>
 
     <!-- Spacer for floating action button -->
-    <div style="height: 90px;"></div>
+    <div style="height: 140px;"></div>
 
   </div>
 
