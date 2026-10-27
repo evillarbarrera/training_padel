@@ -1,13 +1,14 @@
 import { Component, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ActionSheetController, ModalController } from '@ionic/angular';
 import { ProfileSelectorModalComponent } from 'src/app/components/profile-selector-modal/profile-selector-modal.component';
 import { MysqlService } from 'src/app/services/mysql.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { EntrenamientoService } from 'src/app/services/entrenamiento.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import {
+  ActionSheetController,
+  ModalController,
   IonContent,
   IonFab,
   IonFabButton,
