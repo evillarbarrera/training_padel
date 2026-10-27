@@ -24,20 +24,64 @@ import {
   IonButtons
 } from '@ionic/angular/standalone';
 
+import {
+  settingsOutline,
+  homeOutline,
+  calendarOutline,
+  logOutOutline,
+  personOutline,
+  addCircleOutline,
+  add,
+  checkmarkDoneCircleOutline,
+  chevronDownOutline,
+  chevronUpOutline,
+  giftOutline,
+  notificationsOutline,
+  warningOutline,
+  closeOutline,
+  gift,
+  wallet,
+  notificationsOffOutline,
+  close,
+  locationOutline,
+  cardOutline,
+  flashOutline,
+  logoWhatsapp,
+  timeOutline,
+  alertCircleOutline,
+  pricetagsOutline,
+  statsChartOutline,
+  informationCircleOutline,
+  tennisballOutline,
+  trophyOutline,
+  chevronForward,
+  barcodeOutline,
+  swapHorizontalOutline,
+  arrowForward,
+  checkmarkCircle,
+  sparklesOutline,
+  chatbubbleEllipsesOutline,
+  peopleOutline,
+  cashOutline,
+  chevronForwardOutline
+} from 'ionicons/icons';
 import { addIcons } from 'ionicons';
-import { settingsOutline, homeOutline, calendarOutline, logOutOutline, personOutline, addCircleOutline, add, checkmarkDoneCircleOutline, chevronDownOutline, chevronUpOutline, giftOutline, notificationsOutline, warningOutline, closeOutline, gift, wallet, notificationsOffOutline, close, locationOutline, cardOutline, flashOutline, logoWhatsapp, timeOutline, alertCircleOutline, pricetagsOutline, statsChartOutline, informationCircleOutline, tennisballOutline, trophyOutline, chevronForward, barcodeOutline, swapHorizontalOutline } from 'ionicons/icons';
 
 import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-entrenador-home',
   standalone: true,
-  imports: [CommonModule, IonContent,
+  imports: [
+    CommonModule,
+    IonContent,
     IonFab,
     IonFabButton,
     IonIcon,
     IonButton,
     IonBadge,
+    IonRefresher,
+    IonRefresherContent,
     IonModal
   ],
   templateUrl: './entrenador-home.page.html',
@@ -64,6 +108,11 @@ export class EntrenadorHomePage {
   planTrialDays: number = 0;
   planTrialActivo: boolean = false;
 
+  // UX Enhancements
+  activeControlTab: 'pista' | 'negocio' | 'cuenta' = 'pista';
+  saludoDinamico: string = '¡Buen entrenamiento!';
+  fechaHoyLegible: string = '';
+
   // New Features
   claseActual: any = null;
   alumnosRecordatorioList: any[] = [];
@@ -73,7 +122,6 @@ export class EntrenadorHomePage {
   ingresosRecaudados: number = 0;
   iaTip: string = 'Cargando consejo del día...';
   isFinanceOpen: boolean = false;
-
 
   constructor(
     public router: Router,
@@ -115,7 +163,14 @@ export class EntrenadorHomePage {
       trophyOutline,
       chevronForward,
       barcodeOutline,
-      swapHorizontalOutline
+      swapHorizontalOutline,
+      arrowForward,
+      checkmarkCircle,
+      sparklesOutline,
+      chatbubbleEllipsesOutline,
+      peopleOutline,
+      cashOutline,
+      chevronForwardOutline
     });
   }
 
@@ -158,6 +213,20 @@ export class EntrenadorHomePage {
   loadProfile() {
     const userId = Number(localStorage.getItem('userId'));
     if (!userId) return;
+
+    // Calcular saludo dinámico y fecha amigable
+    const h = new Date().getHours();
+    if (h < 12) this.saludoDinamico = '¡Buenos días!';
+    else if (h < 19) this.saludoDinamico = '¡Buenas tardes!';
+    else this.saludoDinamico = '¡Buenas noches!';
+
+    try {
+      const opt: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long' };
+      const rawDate = new Date().toLocaleDateString('es-ES', opt);
+      this.fechaHoyLegible = rawDate.charAt(0).toUpperCase() + rawDate.slice(1);
+    } catch {
+      this.fechaHoyLegible = 'Hoy';
+    }
 
     // Check subscription plan validity first
     const token = localStorage.getItem('token');
@@ -648,15 +717,36 @@ export class EntrenadorHomePage {
     }, 150);
   }
 
-  sendWhatsAppReminder(alumno: any) {
+  setActiveControlTab(tab: 'pista' | 'negocio' | 'cuenta') {
+    this.activeControlTab = tab;
+  }
+
+  get proximaClase(): any {
+    return this.claseActual || (this.clasesHoyList.length > 0 ? this.clasesHoyList[0] : null);
+  }
+
+  sendWhatsAppReminder(alumno: any, event?: Event) {
+    if (event) event.stopPropagation();
     const msg = `Hola ${alumno.nombre}, te escribo de Padel Academy. Notamos que te quedan ${alumno.clases_disponibles} clases en tu pack. ¡No olvides renovar para asegurar tu horario! 🎾`;
     window.open(`https://wa.me/${alumno.telefono}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 
-  marcarAsistenciaLive() {
-    if (this.claseActual) {
-      console.log("Marcar asistencia para:", this.claseActual.titulo);
+  contactarAlumnoClase(clase: any, event?: Event) {
+    if (event) event.stopPropagation();
+    const tel = clase?.telefono || clase?.jugador_telefono || '';
+    const alumnoNombre = clase?.titulo || 'Alumno';
+    const hora = clase?.hora || '';
+    const msg = `Hola ${alumnoNombre}, te contacto de Padelblox respecto a nuestra clase programada para hoy a las ${hora} hrs. 🎾`;
+    if (tel) {
+      window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+    } else {
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     }
+  }
+
+  marcarAsistenciaLive(event?: Event) {
+    if (event) event.stopPropagation();
+    this.router.navigate(['/entrenador-agendar']);
   }
 
   getProfileImage(url: any): string {

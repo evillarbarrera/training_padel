@@ -1,367 +1,415 @@
-<ion-content>
+<ion-content [fullscreen]="true" class="entrenador-home-content">
 
-  <!-- Hero Header -->
-  <ng-container *ngIf="!isDev">
-    <div class="header-nike">
-      <div class="header-overlay"></div>
-      <div class="header-content">
-        <div class="coach-profile-brief">
-          <div class="profile-img-container" *ngIf="coachFoto">
-            <img [src]="coachFoto" class="coach-img" />
-          </div>
-          <div class="title-details">
-            <p class="welcome-pre">BIENVENIDO,</p>
-            <h1 class="header-title">{{ coachNombre }}</h1>
-          </div>
+  <!-- Pull to Refresh -->
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content pullingIcon="chevron-down-outline" refreshingSpinner="crescent"></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- 1. HEADER PRO (Coach & Quick Status) -->
+  <div class="pro-header-wrap animate-fade">
+    <div class="header-top-bar">
+      <div class="coach-meta">
+        <span class="greeting-kicker">{{ saludoDinamico }}</span>
+        <div class="coach-title-row">
+          <h1 class="coach-name">{{ coachNombre }}</h1>
+          <span class="pro-badge">PRO</span>
         </div>
-        <!-- Notifications Button -->
-        <div class="notifications-btn" (click)="openNotificaciones()" *ngIf="getNotificacionesCount() > 0">
+        <p class="current-date-txt" *ngIf="fechaHoyLegible">
+          <ion-icon name="calendar-outline"></ion-icon> {{ fechaHoyLegible }}
+        </p>
+      </div>
+
+      <div class="header-actions-group">
+        <!-- Notificaciones -->
+        <button type="button" class="icon-action-btn" (click)="openNotificaciones()" title="Notificaciones">
           <ion-icon name="notifications-outline"></ion-icon>
-          <ion-badge color="danger" class="notif-badge">{{ getNotificacionesCount() }}</ion-badge>
+          <span class="badge-dot" *ngIf="getNotificacionesCount() > 0">{{ getNotificacionesCount() }}</span>
+        </button>
+
+        <!-- Avatar -->
+        <div class="coach-avatar-btn" (click)="goToPerfil()" title="Ver Mi Perfil">
+          <img [src]="coachFoto || 'assets/avatar.png'" (error)="onImgError($event)" alt="Coach Avatar" />
+          <div class="active-indicator"></div>
         </div>
       </div>
     </div>
-  </ng-container>
+  </div>
 
-  <!-- V2 Header (Minimalist) -->
-  <ng-container *ngIf="isDev">
-    <div class="header-v2 animate-fade">
-      <div class="h-text">
-        <p>¡Buen entrenamiento hoy!</p>
-        <div class="h-title-row">
-          <h1>{{ coachNombre }}</h1>
-          <span class="h-wave">👋</span>
+  <div class="dashboard-body-container">
+
+    <!-- 2. TARJETA TÁCTICA DE PISTA (SESIÓN ACTUAL O PRÓXIMA) -->
+    <section class="tactical-session-card animate-up" *ngIf="proximaClase">
+      <div class="card-status-badge" [class.live]="claseActual">
+        <span class="status-dot"></span>
+        <span>{{ claseActual ? 'CLASE EN CURSO AHORA' : 'PRÓXIMA SESIÓN PROGRAMADA' }}</span>
+      </div>
+
+      <div class="session-main-info" (click)="goToAgenda()">
+        <div class="time-block">
+          <span class="time-hour">{{ proximaClase.hora }}</span>
+          <span class="time-label">{{ proximaClase.diaLabel === 'Hoy' ? 'HOY' : (proximaClase.diaLabel | uppercase) }}</span>
+        </div>
+        <div class="info-block">
+          <div class="session-type-pill">{{ proximaClase.tipo || 'Individual' }}</div>
+          <h3 class="student-name">{{ proximaClase.titulo }}</h3>
+          <p class="pack-name" *ngIf="proximaClase.subtitulo">{{ proximaClase.subtitulo }}</p>
+          <p class="venue-info">
+            <ion-icon name="location-outline"></ion-icon>
+            <span>{{ proximaClase.lugar || 'Club de Pádel' }}</span>
+          </p>
         </div>
       </div>
-      
-      <div class="h-actions">
-        <div class="h-notif" (click)="openNotificaciones()">
-          <ion-icon name="notifications-outline"></ion-icon>
-          <div class="h-dot" *ngIf="getNotificacionesCount() > 0"></div>
-        </div>
-        <div class="h-avatar" (click)="goToPerfil()">
-          <img [src]="coachFoto || 'assets/avatar.png'" alt="Coach" />
+
+      <!-- Quick Action Buttons on Court -->
+      <div class="session-actions-bar">
+        <button type="button" class="tactical-btn check-btn" (click)="marcarAsistenciaLive($event)">
+          <ion-icon name="checkmark-done-circle-outline"></ion-icon>
+          <span>Pasar Asistencia</span>
+        </button>
+        <button type="button" class="tactical-btn wa-btn" (click)="contactarAlumnoClase(proximaClase, $event)">
+          <ion-icon name="logo-whatsapp"></ion-icon>
+          <span>WhatsApp</span>
+        </button>
+        <button type="button" class="tactical-btn agenda-btn" (click)="goToAgenda()">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>Agenda</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Empty Session State if no class today -->
+    <section class="tactical-empty-card animate-up" *ngIf="!proximaClase">
+      <div class="empty-icon-circle">
+        <ion-icon name="tennisball-outline"></ion-icon>
+      </div>
+      <div class="empty-text">
+        <h4>Sin clases programadas para hoy</h4>
+        <p>Aprovecha de abrir horarios o agendar nuevos alumnos en tu disponibilidad.</p>
+      </div>
+      <button type="button" class="btn-create-class-quick" (click)="goToAgendar()">
+        <ion-icon name="add-circle-outline"></ion-icon>
+        <span>Agendar Nueva Clase</span>
+      </button>
+    </section>
+
+    <!-- 3. PULSO DEL ENTRENADOR (Métricas Clave) -->
+    <section class="metrics-pulse-section animate-up">
+      <div class="metric-card primary" (click)="goToAgenda()">
+        <div class="m-icon-wrap"><ion-icon name="calendar-outline"></ion-icon></div>
+        <div class="m-data">
+          <span class="m-number">{{ stats.clases_hoy || clasesHoyList.length || 0 }}</span>
+          <span class="m-label">Clases Hoy</span>
         </div>
       </div>
-    </div>
-  </ng-container>
 
-  <!-- Content V1 -->
-  <ng-container *ngIf="!isDev">
-    <div class="dashboard-container">
-
-      <!-- LIVE CLASS BANNER (Feature 2) -->
-      <div class="live-class-banner animate-up" *ngIf="claseActual" (click)="goToAgenda()">
-        <div class="live-status">
-          <span class="pulse-dot"></span>
-          LIVE: CLASE EN CURSO
+      <div class="metric-card" (click)="goToAlumnos()">
+        <div class="m-icon-wrap"><ion-icon name="people-outline"></ion-icon></div>
+        <div class="m-data">
+          <span class="m-number">{{ stats.total_alumnos || 0 }}</span>
+          <span class="m-label">Alumnos</span>
         </div>
-        <div class="live-body">
-          <div class="live-info">
-            <h3>{{ claseActual.titulo }}</h3>
-            <p>{{ claseActual.subtitulo }} ({{ claseActual.hora }})</p>
+      </div>
+
+      <div class="metric-card" (click)="goToAgenda()">
+        <div class="m-icon-wrap"><ion-icon name="time-outline"></ion-icon></div>
+        <div class="m-data">
+          <span class="m-number">{{ stats.clases_mes || 0 }}</span>
+          <span class="m-label">Clases Mes</span>
+        </div>
+      </div>
+
+      <div class="metric-card highlight-income" (click)="openFinance()">
+        <div class="m-icon-wrap"><ion-icon name="cash-outline"></ion-icon></div>
+        <div class="m-data">
+          <span class="m-number">{{ (ingresosRecaudados || 0) | currency:'CLP':'$':'1.0-0' }}</span>
+          <span class="m-label">Recaudado</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. ATENCIÓN REQUERIDA (RENOVACIÓN DE PACKS CON 1 TAP) -->
+    <section class="alerts-priority-section animate-up" *ngIf="alumnosRecordatorioList && alumnosRecordatorioList.length > 0">
+      <div class="section-title-row">
+        <div class="title-left">
+          <span class="alert-icon-wrap"><ion-icon name="alert-circle-outline"></ion-icon></span>
+          <h4>Renovaciones Prioritarias</h4>
+        </div>
+        <span class="pill-counter">{{ alumnosRecordatorioList.length }} pendientes</span>
+      </div>
+
+      <div class="reminders-horizontal-scroll">
+        <div class="reminder-card-item" *ngFor="let a of alumnosRecordatorioList">
+          <div class="r-avatar">
+            <span>{{ a.nombre?.charAt(0) || 'A' }}</span>
           </div>
-          <div class="live-actions">
-             <ion-button fill="clear" color="dark" class="action-circle" (click)="marcarAsistenciaLive(); $event.stopPropagation()">
-               <ion-icon name="checkmark-done-circle-outline"></ion-icon>
-             </ion-button>
+          <div class="r-info">
+            <h5>{{ a.nombre }}</h5>
+            <span class="r-badge" [class.zero]="a.clases_disponibles == 0">
+              {{ a.clases_disponibles == 0 ? 'Pack agotado' : 'Queda 1 clase' }}
+            </span>
           </div>
+          <button type="button" class="btn-wa-ping" (click)="sendWhatsAppReminder(a, $event)" title="Enviar WhatsApp de renovación">
+            <ion-icon name="logo-whatsapp"></ion-icon>
+            <span>Recordar</span>
+          </button>
         </div>
       </div>
+    </section>
 
-      <!-- Performance Summary -->
-      <div class="metrics-dashboard animate-up">
-        <div class="metric-item highlight animate-pulse clickable-metric" (click)="goToAgenda()">
-          <div class="metric-top">
-            <span class="metric-value">{{ stats.clases_pendientes || 0 }}</span>
+    <!-- 5. CENTRO DE MANDO (ACCESOS TÁCTICOS PRINCIPALES) -->
+    <section class="command-center-section animate-up">
+      <div class="section-title-row">
+        <h4>Centro de Mando</h4>
+        <span class="badge-status-pro"><span class="dot"></span> Activo</span>
+      </div>
+
+      <div class="command-actions-grid">
+        <div class="command-tile hero" (click)="goToAgenda()">
+          <div class="tile-icon bg-volt"><ion-icon name="calendar-outline"></ion-icon></div>
+          <div class="tile-meta">
+            <h5>Mi Agenda</h5>
+            <p>Calendario y clases</p>
           </div>
-          <span class="metric-label">CLASES<br>PENDIENTES</span>
+          <ion-icon name="chevron-forward-outline" class="tile-arrow"></ion-icon>
         </div>
-        <div class="metric-divider"></div>
-        <div class="metric-item">
-          <span class="metric-value">{{ stats.total_alumnos }}</span>
-          <span class="metric-label">Alumnos<br>Activos</span>
-        </div>
-        <div class="metric-divider"></div>
-        <div class="metric-item">
-          <span class="metric-value">{{ stats.clases_mes }}</span>
-          <span class="metric-label">Clases<br>del Mes</span>
-        </div>
-      </div>
 
-      <!-- PAYMENT REMINDERS (Feature 3) -->
-      <div class="payment-reminders-section animate-up" style="animation-delay: 0.1s;" *ngIf="alumnosRecordatorioList.length > 0">
-        <div class="section-header-compact">
-          <h4 class="mini-title">RENOVAR PACKS</h4>
-          <ion-badge color="danger" class="mini-badge">{{ alumnosRecordatorioList.length }}</ion-badge>
-        </div>
-        <div class="reminders-scroll">
-          <div class="reminder-chip" *ngFor="let a of alumnosRecordatorioList" (click)="sendWhatsAppReminder(a)">
-             <div class="chip-left">
-               <ion-icon name="alert-circle-outline" class="alert-icon"></ion-icon>
-               <span class="name">{{ a.nombre }}</span>
-             </div>
-             <div class="chip-right">
-               <span class="count">{{ a.clases_disponibles }}</span>
-               <ion-icon name="logo-whatsapp" class="wa-icon"></ion-icon>
-             </div>
+        <div class="command-tile" (click)="goToAgendar()">
+          <div class="tile-icon bg-blue"><ion-icon name="add-circle-outline"></ion-icon></div>
+          <div class="tile-meta">
+            <h5>Agendar</h5>
+            <p>Nueva clase o grupo</p>
           </div>
+          <ion-icon name="chevron-forward-outline" class="tile-arrow"></ion-icon>
         </div>
-      </div>
 
-      <!-- Próximas Clases Section -->
-      <div class="next-classes-section animate-up" style="animation-delay: 0.1s;">
-        <div class="section-header" (click)="isClassesExpanded = !isClassesExpanded">
-          <div class="header-left">
-            <h3 class="section-title">Próximas Clases</h3>
-            <ion-badge color="dark" *ngIf="clasesHoyList.length > 0">{{ clasesHoyList.length }}</ion-badge>
+        <div class="command-tile" (click)="goToAlumnos()">
+          <div class="tile-icon bg-emerald"><ion-icon name="person-outline"></ion-icon></div>
+          <div class="tile-meta">
+            <h5>Alumnos</h5>
+            <p>Fichas y progreso</p>
           </div>
-          <ion-button fill="clear" color="dark" class="toggle-btn">
-            <ion-icon [name]="isClassesExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
-          </ion-button>
+          <ion-icon name="chevron-forward-outline" class="tile-arrow"></ion-icon>
         </div>
 
-        <div class="classes-container" *ngIf="clasesHoyList.length > 0 && isClassesExpanded">
-          <div class="class-card-mini" *ngFor="let clase of clasesHoyList">
-            <div class="time-col">
-              <span class="day-label" [class.tomorrow]="clase.diaLabel === 'Mañana'">{{ clase.diaLabel }}</span>
-              <span class="hour">{{ clase.hora }}</span>
-            </div>
-            <div class="info-col">
-              <span class="title">{{ clase.titulo }}</span>
-              <span class="subtitle">{{ clase.subtitulo }}</span>
-            </div>
+        <div class="command-tile" (click)="onControlItemClick('/disponibilidad-entrenador')">
+          <div class="tile-icon bg-purple"><ion-icon name="time-outline"></ion-icon></div>
+          <div class="tile-meta">
+            <h5>Horarios</h5>
+            <p>Bloques de atención</p>
           </div>
+          <ion-icon name="chevron-forward-outline" class="tile-arrow"></ion-icon>
         </div>
       </div>
+    </section>
 
-      <!-- IA Tip -->
-      <div class="ia-tip-banner animate-up">
-        <p>"{{ iaTip }}"</p>
+    <!-- 6. COACHING IA INSIGHT -->
+    <section class="ai-insight-banner animate-up" *ngIf="iaTip">
+      <div class="ai-badge-header">
+        <ion-icon name="sparkles-outline"></ion-icon>
+        <span>COACHING IA • CONSEJO DEL DÍA</span>
       </div>
+      <p class="ai-quote">{{ iaTip }}</p>
+    </section>
 
-      <!-- Modules Grid -->
-      <div class="modules-column animate-up" style="animation-delay: 0.2s;">
-        <div class="nike-card module-card" (click)="goToAgenda()">
-          <img src="/assets/reserva-bg.jpg" class="module-img" />
-          <div class="module-body">
-            <h3>Mi Agenda</h3>
-            <ion-icon name="chevron-forward-outline"></ion-icon>
-          </div>
-        </div>
-      </div>
-    </div>
-  </ng-container>
+    <!-- Spacer for floating action button -->
+    <div style="height: 90px;"></div>
 
-  <!-- Content V2 (Nike Minimalist Style) -->
-  <ng-container *ngIf="isDev">
-    <div class="dashboard-v2 animate-up">
-      
-      <!-- PRÓXIMA CLASE V2 (Sleek Card) -->
-      <div class="next-class-v2" *ngIf="claseActual || clasesHoyList.length > 0" (click)="goToAgenda()">
-        <div class="nc-icon-badge">
-          <ion-icon [name]="claseActual ? 'flash-outline' : 'calendar-outline'"></ion-icon>
-        </div>
-        <div class="nc-content">
-          <div class="nc-tag">{{ claseActual ? 'CLASE EN CURSO' : 'PRÓXIMA SESIÓN' }}</div>
-          <div class="nc-date">
-             {{ (claseActual ? claseActual.hora : clasesHoyList[0].hora) }} HRS • 
-             {{ (claseActual ? claseActual.titulo : clasesHoyList[0].titulo) }}
-          </div>
-          <div class="nc-coach">
-            <ion-icon name="location-outline"></ion-icon> 
-            {{ (claseActual ? claseActual.lugar : clasesHoyList[0].lugar) || 'Club de Pádel' }}
-          </div>
-        </div>
-        <ion-icon name="chevron-forward" class="nc-arrow"></ion-icon>
-      </div>
+  </div>
 
-      <!-- 1. RESUMEN MENSUAL V2 (EL REY PARA EL PRO) -->
-      <div class="progress-v2 delay-1">
-        <div class="p-header">
-           <h3 class="v2-title">Resumen Mensual</h3>
-           <div class="p-pts" (click)="openFinance()">Ingresos <ion-icon name="chevron-forward"></ion-icon></div>
-        </div>
-        
-        <div class="p-metrics">
-           <div class="p-metric-item highlight" (click)="goToAgenda()">
-             <div class="m-val">{{ stats.clases_pendientes || 0 }}</div>
-             <div class="m-lbl">Pendientes</div>
-           </div>
-           <div class="p-metric-item" (click)="goToAlumnos()">
-             <div class="m-val">{{ stats.total_alumnos }}</div>
-             <div class="m-lbl">Alumnos</div>
-           </div>
-           <div class="p-metric-item" (click)="goToAgenda()">
-             <div class="m-val">{{ stats.clases_mes || 0 }}</div>
-             <div class="m-lbl">Clases Mes</div>
-           </div>
-        </div>
-
-        <div class="p-divider"></div>
-
-        <div class="p-recaudado-section" (click)="openFinance()">
-           <div class="p-l-header">
-             <span>TOTAL RECAUDADO</span>
-           </div>
-           <div class="p-total-value">
-             {{ ingresosRecaudados | currency:'CLP':'$':'1.0-0' }}
-           </div>
-        </div>
-      </div>
-
-      <!-- 2. IA COACHING TIP V2 (INSIGHTS) -->
-      <!-- UI Sync ID: 88721-V2 -->
-      <div class="daily-tip-v2 delay-1" id="trainer-tip-v2" *ngIf="iaTip">
-         <div class="t-icon"><ion-icon name="flash-outline"></ion-icon></div>
-         <div class="t-content">
-            <span class="t-badge">TIP DEL COACHING IA</span>
-            <h4>{{ iaTip.split(':')[0] }}</h4>
-            <p>{{ iaTip.split(':')[1] || iaTip }}</p>
-         </div>
-      </div>
-
-      <!-- 3. CENTRO DE MANDO V2 (ENMARCADO EXPERTO) -->
-      <div class="actions-v2-card delay-2" id="trainer-menu-v2">
-         <div class="v2-card-header">
-            <h4 class="v2-subtitle">Centro de Mando</h4>
-            <span class="v2-status-dot pulse"></span>
-         </div>
-         
-         <div class="actions-grid-v2">
-            <!-- HERO ACTION (MI AGENDA) -->
-            <div class="action-btn-v2 hero-action" (click)="goToAgenda()">
-               <div class="a-icon bg-hero"><ion-icon name="calendar-outline"></ion-icon></div>
-               <span>Mi Agenda</span>
-            </div>
-            
-            <div class="action-btn-v2" (click)="goToAlumnos()">
-               <div class="a-icon bg-soft"><ion-icon name="person-outline"></ion-icon></div>
-               <span>Alumnos</span>
-            </div>
-            
-            <div class="action-btn-v2" (click)="goToAgendar()">
-               <div class="a-icon bg-soft"><ion-icon name="add-circle-outline"></ion-icon></div>
-               <span>Agendar</span>
-            </div>
-         </div>
-
-         <!-- HERO BUTTONS GRID (Player Style) -->
-         <div class="hero-actions-grid">
-            <!-- HERO 1: RESERVAR CANCHA -->
-            <div class="hero-booking-action animate-pulse" (click)="goToReservas()">
-               <div class="hero-btn-content">
-                 <div class="hero-icon-wrap">🎾</div>
-                 <div class="hero-text-wrap">
-                   <h3>Reserva</h3>
-                   <p>Clubes y Disponibilidad</p>
-                 </div>
-               </div>
-               <ion-icon name="arrow-forward"></ion-icon>
-            </div>
-
-            <!-- HERO 2: MIS TORNEOS -->
-            <div class="hero-booking-action tournament-hero animate-pop delay-1" (click)="goToTorneos()">
-               <div class="hero-btn-content">
-                 <div class="hero-icon-wrap trophy">🏆</div>
-                 <div class="hero-text-wrap">
-                   <h3>Mis Torneos</h3>
-                   <p>Torneos y Americanos</p>
-                 </div>
-               </div>
-               <ion-icon name="arrow-forward"></ion-icon>
-            </div>
-         </div>
-      </div>
-
-    </div>
-  </ng-container>
-
-
-  <!-- Settings FAB -->
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button class="nike-fab" (click)="isControlCenterOpen = true">
+  <!-- FLOATING BUTTON (+) -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="fab-pro-container">
+    <ion-fab-button class="pro-fab-btn" (click)="isControlCenterOpen = true" title="Abrir Menú de Gestión">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>
 
-  <!-- Control Center Modal (Feature Improvement) -->
+  <!-- ============================================================ -->
+  <!-- MODAL: CENTRO DE CONTROL CLASIFICADO (REDESIGN SUBMENÚ)      -->
+  <!-- ============================================================ -->
   <ion-modal [isOpen]="isControlCenterOpen" (didDismiss)="isControlCenterOpen = false" 
-    initialBreakpoint="0.85" [breakpoints]="[0, 0.85, 1]" class="control-center-modal">
+    initialBreakpoint="0.82" [breakpoints]="[0, 0.82, 0.95]" class="control-center-pro-modal">
     <ng-template>
-      <ion-content class="control-center-content">
-        <div class="drag-handle"></div>
-        <div class="modal-header-nike">
-          <h2>CENTRO DE CONTROL</h2>
-          <p>GESTIÓN DEL ENTRENADOR</p>
+      <ion-content class="control-center-pro-content">
+        <div class="sheet-drag-handle"></div>
+        
+        <div class="sheet-header">
+          <div class="sh-title-box">
+            <h2>CENTRO DE CONTROL</h2>
+            <p>GESTIÓN TÁCTICA Y DE NEGOCIO</p>
+          </div>
+          <button type="button" class="btn-close-sheet" (click)="isControlCenterOpen = false">
+            <ion-icon name="close"></ion-icon>
+          </button>
         </div>
 
-        <div class="control-grid">
-          <!-- Perfil e Información -->
-          <div class="grid-item" (click)="onControlItemClick('/perfil')">
-            <div class="icon-circle profile"><ion-icon name="person-outline"></ion-icon></div>
-            <span>Mi Perfil</span>
+        <!-- Segmented Category Switcher -->
+        <div class="sheet-tabs-bar">
+          <button type="button" class="tab-pill" [class.active]="activeControlTab === 'pista'" (click)="setActiveControlTab('pista')">
+            🎾 Pista & Agenda
+          </button>
+          <button type="button" class="tab-pill" [class.active]="activeControlTab === 'negocio'" (click)="setActiveControlTab('negocio')">
+            💼 Alumnos & Packs
+            <span class="tab-badge" *ngIf="alumnosRecordatorioList && alumnosRecordatorioList.length > 0">{{ alumnosRecordatorioList.length }}</span>
+          </button>
+          <button type="button" class="tab-pill" [class.active]="activeControlTab === 'cuenta'" (click)="setActiveControlTab('cuenta')">
+            ⚙️ Mi Cuenta
+          </button>
+        </div>
+
+        <div class="sheet-items-container">
+          
+          <!-- TAB 1: PISTA & AGENDA -->
+          <div class="tab-pane animate-fade" *ngIf="activeControlTab === 'pista'">
+            <div class="menu-list-card">
+              <div class="menu-row" (click)="onControlItemClick('/entrenador-entrenamientos')">
+                <div class="row-icon-wrap bg-volt"><ion-icon name="calendar-outline"></ion-icon></div>
+                <div class="row-meta">
+                  <h4>Mi Agenda Semanal</h4>
+                  <p>Revisa clases, horarios y pistas asignadas</p>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="row-chevron"></ion-icon>
+              </div>
+
+              <div class="menu-row" (click)="onControlItemClick('/entrenador-agendar')">
+                <div class="row-icon-wrap bg-blue"><ion-icon name="add-circle-outline"></ion-icon></div>
+                <div class="row-meta">
+                  <h4>Agendar Nueva Clase</h4>
+                  <p>Sesión individual o entrenamiento grupal</p>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="row-chevron"></ion-icon>
+              </div>
+
+              <div class="menu-row" (click)="onControlItemClick('/disponibilidad-entrenador')">
+                <div class="row-icon-wrap bg-purple"><ion-icon name="time-outline"></ion-icon></div>
+                <div class="row-meta">
+                  <h4>Mi Disponibilidad</h4>
+                  <p>Configura tus franjas horarias y días libres</p>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="row-chevron"></ion-icon>
+              </div>
+
+              <div class="menu-row" (click)="onControlItemClick('/clubes-reservar')">
+                <div class="row-icon-wrap bg-emerald"><ion-icon name="tennisball-outline"></ion-icon></div>
+                <div class="row-meta">
+                  <h4>Reservar Cancha</h4>
+                  <p>Busca pistas disponibles en clubes asociados</p>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="row-chevron"></ion-icon>
+              </div>
+
+              <div class="menu-row" (click)="onControlItemClick('/jugador-campeonatos')">
+                <div class="row-icon-wrap bg-amber"><ion-icon name="trophy-outline"></ion-icon></div>
+                <div class="row-meta">
+                  <h4>Mis Torneos & Ligas</h4>
+                  <p>Torneos americanos y competiciones de pádel</p>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="row-chevron"></ion-icon>
+              </div>
+            </div>
           </div>
 
-          <div class="grid-item highlights" (click)="onControlItemClick('/entrenador-agendar')">
-            <div class="icon-circle calendar"><ion-icon name="calendar-outline"></ion-icon></div>
-            <span>Agendar Clase</span>
+          <!-- TAB 2: ALUMNOS & NEGOCIO -->
+          <div class="tab-pane animate-fade" *ngIf="activeControlTab === 'negocio'">
+            <div class="menu-list-card">
+              <div class="menu-row" (click)="onControlItemClick('/alumnos')">
+                <div class="row-icon-wrap bg-blue"><ion-icon name="person-outline"></ion-icon></div>
+                <div class="row-meta">
+                  <h4>Directorio de Alumnos</h4>
+                  <p>Fichas, historial y asistencias</p>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="row-chevron"></ion-icon>
+              </div>
+
+              <div class="menu-row highlight-row" (click)="onControlItemClick('/alumnos?filter=renovacion')">
+                <div class="row-icon-wrap bg-amber"><ion-icon name="alert-circle-outline"></ion-icon></div>
+                <div class="row-meta">
+                  <h4>Renovaciones Pendientes</h4>
+                  <p>Alumnos con pack agotado o por vencer</p>
+                </div>
+                <span class="row-badge warning" *ngIf="alumnosRecordatorioList && alumnosRecordatorioList.length > 0">{{ alumnosRecordatorioList.length }}</span>
+                <ion-icon name="chevron-forward-outline" class="row-chevron"></ion-icon>
+              </div>
+
+              <div class="menu-row" (click)="onControlItemClick('/entrenador-packs')">
+                <div class="row-icon-wrap bg-volt"><ion-icon name="pricetags-outline"></ion-icon></div>
+                <div class="row-meta">
+                  <h4>Mis Packs & Tarifas</h4>
+                  <p>Configura precios, sesiones y tipos de pack</p>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="row-chevron"></ion-icon>
+              </div>
+
+              <div class="menu-row" (click)="onControlItemClick('/entrenador-cupones')">
+                <div class="row-icon-wrap bg-purple"><ion-icon name="gift-outline"></ion-icon></div>
+                <div class="row-meta">
+                  <h4>Cupones de Descuento</h4>
+                  <p>Crea promociones para fidelizar alumnos</p>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="row-chevron"></ion-icon>
+              </div>
+
+              <div class="menu-row" (click)="openFinance()">
+                <div class="row-icon-wrap bg-emerald"><ion-icon name="cash-outline"></ion-icon></div>
+                <div class="row-meta">
+                  <h4>Resumen Financiero</h4>
+                  <p>Desglose de ingresos recaudados y proyecciones</p>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="row-chevron"></ion-icon>
+              </div>
+
+              <div class="menu-row" (click)="onControlItemClick('/canje-club')">
+                <div class="row-icon-wrap bg-slate"><ion-icon name="barcode-outline"></ion-icon></div>
+                <div class="row-meta">
+                  <h4>Canjear Puntos Club</h4>
+                  <p>Valida beneficios y puntos de fidelidad</p>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="row-chevron"></ion-icon>
+              </div>
+            </div>
           </div>
 
-          <div class="grid-item" (click)="onControlItemClick('/disponibilidad-entrenador')">
-            <div class="icon-circle time"><ion-icon name="time-outline"></ion-icon></div>
-            <span>Mi Disponibilidad</span>
+          <!-- TAB 3: MI CUENTA -->
+          <div class="tab-pane animate-fade" *ngIf="activeControlTab === 'cuenta'">
+            <div class="menu-list-card">
+              <div class="menu-row" (click)="onControlItemClick('/perfil')">
+                <div class="row-icon-wrap bg-blue"><ion-icon name="person-outline"></ion-icon></div>
+                <div class="row-meta">
+                  <h4>Mi Perfil Profesional</h4>
+                  <p>Foto, bio, clubes y datos de contacto</p>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="row-chevron"></ion-icon>
+              </div>
+
+              <div class="menu-row" (click)="onControlItemClick('/entrenador-mi-plan')">
+                <div class="row-icon-wrap bg-volt"><ion-icon name="card-outline"></ion-icon></div>
+                <div class="row-meta">
+                  <h4>Mi Plan PadelBlox</h4>
+                  <p>Gestiona tu suscripción y periodo de prueba</p>
+                </div>
+                <span class="row-badge pro" *ngIf="planTrialActivo">{{ planTrialDays }}d prueba</span>
+                <ion-icon name="chevron-forward-outline" class="row-chevron"></ion-icon>
+              </div>
+
+              <div class="menu-row" *ngIf="hasMultipleProfiles" (click)="onControlItemClick('change_profile')">
+                <div class="row-icon-wrap bg-purple"><ion-icon name="swap-horizontal-outline"></ion-icon></div>
+                <div class="row-meta">
+                  <h4>Cambiar Perfil</h4>
+                  <p>Alterna a perfil de Jugador o Administrador</p>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="row-chevron"></ion-icon>
+              </div>
+
+              <div class="menu-row danger-row" (click)="onControlItemClick('logout')">
+                <div class="row-icon-wrap bg-danger"><ion-icon name="log-out-outline"></ion-icon></div>
+                <div class="row-meta">
+                  <h4>Cerrar Sesión</h4>
+                  <p>Finalizar sesión de forma segura</p>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="row-chevron"></ion-icon>
+              </div>
+            </div>
           </div>
 
-          <div class="grid-item" (click)="onControlItemClick('/clubes-reservar')">
-            <div class="icon-circle calendar"><ion-icon name="tennisball-outline"></ion-icon></div>
-            <span>Reservar Cancha</span>
-          </div>
-
-          <div class="grid-item" (click)="onControlItemClick('/jugador-campeonatos')">
-            <div class="icon-circle profile"><ion-icon name="trophy-outline"></ion-icon></div>
-            <span>Mis Torneos</span>
-          </div>
-
-          <!-- Ventas y Packs (Feature Request) -->
-          <div class="grid-item highlights" (click)="onControlItemClick('/alumnos?filter=renovacion')">
-            <div class="icon-circle renovaciones"><ion-icon name="alert-circle-outline"></ion-icon></div>
-            <span>Renovaciones</span>
-          </div>
-
-
-
-          <div class="grid-item" (click)="onControlItemClick('/entrenador-packs')">
-            <div class="icon-circle coupon"><ion-icon name="pricetags-outline"></ion-icon></div>
-            <span>Mis Packs</span>
-          </div>
-
-          <div class="grid-item" (click)="onControlItemClick('/entrenador-cupones')">
-            <div class="icon-circle coupon"><ion-icon name="gift-outline"></ion-icon></div>
-            <span>Cupones</span>
-          </div>
-
-          <div class="grid-item highlights" (click)="onControlItemClick('/canje-club')">
-            <div class="icon-circle renovaciones" style="background: rgba(0, 255, 127, 0.1); color: #00b050;"><ion-icon name="barcode-outline"></ion-icon></div>
-            <span>Canjear Puntos</span>
-          </div>
-
-          <div class="grid-item" (click)="onControlItemClick('/entrenador-mi-plan')">
-            <div class="icon-circle plan"><ion-icon name="card-outline"></ion-icon></div>
-            <span>Mi Plan</span>
-          </div>
-
-          <!-- Cambiar Perfil -->
-          <div *ngIf="hasMultipleProfiles" class="grid-item highlight" (click)="onControlItemClick('change_profile')">
-            <div class="icon-circle" style="background: rgba(99, 102, 241, 0.12); color: #6366f1;"><ion-icon name="swap-horizontal-outline"></ion-icon></div>
-            <span>Cambiar Perfil</span>
-          </div>
-
-          <!-- Salida -->
-          <div class="grid-item danger" (click)="onControlItemClick('logout')">
-            <div class="icon-circle logout"><ion-icon name="log-out-outline"></ion-icon></div>
-            <span>Cerrar Sesión</span>
-          </div>
         </div>
       </ion-content>
     </ng-template>
