@@ -288,7 +288,7 @@
 
                         <div class="ps-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
                             <div class="participant-item animate-pop" *ngFor="let p of participantesGrupo" style="display: flex; align-items: center; gap: 6px; background: white; padding: 4px 10px; border-radius: 20px; border: 1px solid #cbd5e1;">
-                                <img [src]="getFotoUrl(p)" class="p-avatar" style="width: 20px; height: 20px; border-radius: 50%;">
+                                <img [src]="getFotoUrl(p)" (error)="onImgError($event, p)" class="p-avatar" style="width: 20px; height: 20px; border-radius: 50%;">
                                 <span style="font-size: 11px; font-weight: 700; color: #334155;">{{ p.nombre || p.jugador_nombre }}</span>
                                 <ion-icon name="close-circle" style="color: #ef4444; font-size: 14px; margin-left: 2px;" (click)="quitarJugador(p); $event.stopPropagation()"></ion-icon>
                             </div>

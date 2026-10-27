@@ -867,9 +867,9 @@ export class EntrenadorAgendarPage implements OnInit {
     getFotoUrl(data: any): string {
         if (!data) return '';
         let foto = data.jugador_foto || data.foto_perfil || data.foto || data.foto_jugador || (data.inscritos && data.inscritos[0] ? data.inscritos[0].foto : null) || data.jugador_imagen;
+        const nombre = data.jugador_nombre || data.nombre_jugador || data.nombre || 'Alumno';
         
-        if (!foto || foto.includes('placeholder') || foto.includes('imagen_defecto') || String(foto).includes('null')) {
-            const nombre = data.jugador_nombre || data.nombre_jugador || data.nombre || 'U';
+        if (!foto || foto.includes('placeholder') || foto.includes('imagen_defecto') || String(foto).includes('null') || String(foto).trim() === '') {
             return `https://ui-avatars.com/api/?name=${encodeURIComponent(nombre)}&background=ccff00&color=000&length=2&rounded=true&bold=true&size=128`;
         }
         
@@ -877,6 +877,22 @@ export class EntrenadorAgendarPage implements OnInit {
             return foto;
         }
         
-        return `https://api.padelmanager.cl/prd/${foto}`;
+        let cleanPath = foto.startsWith('/') ? foto.substring(1) : foto;
+        cleanPath = cleanPath.replace(/^prd\//, '').replace(/^dev\//, '');
+        if (!cleanPath.includes('/')) {
+            cleanPath = `uploads/perfiles/${cleanPath}`;
+        }
+        const base = (environment.apiUrl || 'https://api.padelmanager.cl/prd').replace(/\/$/, '');
+        return `${base}/${cleanPath}`;
+    }
+
+    onImgError(event: any, data?: any): void {
+        if (event && event.target) {
+            const nombre = data ? (data.jugador_nombre || data.nombre_jugador || data.nombre || 'Alumno') : 'Alumno';
+            const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(nombre)}&background=ccff00&color=000&length=2&rounded=true&bold=true&size=128`;
+            if (event.target.src !== avatarUrl && !event.target.src.includes('ui-avatars.com')) {
+                event.target.src = avatarUrl;
+            }
+        }
     }
 }
