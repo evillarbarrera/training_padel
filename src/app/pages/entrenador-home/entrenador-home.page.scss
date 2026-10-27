@@ -479,80 +479,163 @@ ion-content.entrenador-home-content {
    3. PULSO DEL ENTRENADOR (Métricas Clave)
    -------------------------------------------------------------------------- */
 .metrics-pulse-section {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   margin-bottom: 24px;
   width: 100%;
   box-sizing: border-box;
 
-  .metric-card {
-    background: #ffffff;
-    border-radius: 18px;
-    padding: 12px 6px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-    cursor: pointer;
-    transition: all 0.2s ease;
+  .metrics-counters-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
 
-    &:active {
-      transform: scale(0.95);
-      background: #f8fafc;
-    }
-
-    .m-icon-wrap {
-      width: 32px;
-      height: 32px;
-      border-radius: 10px;
-      background: #f1f5f9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #0f172a;
-      font-size: 16px;
-      margin-bottom: 6px;
-    }
-
-    .m-data {
+    .metric-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 14px 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      text-align: center;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      cursor: pointer;
+      box-sizing: border-box;
+      min-width: 0;
+      transition: all 0.2s ease;
 
-      .m-number {
-        font-size: 16px;
-        font-weight: 950;
-        color: #0f172a;
-        letter-spacing: -0.5px;
-        line-height: 1.1;
+      &:active {
+        transform: scale(0.96);
+        background: #f8fafc;
       }
 
-      .m-label {
-        margin-top: 3px;
-        font-size: 9.5px;
-        font-weight: 800;
-        color: #94a3b8;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-      }
-    }
-
-    &.primary .m-icon-wrap {
-      background: rgba(204, 255, 0, 0.25);
-      color: #0b0f19;
-    }
-
-    &.highlight-income {
       .m-icon-wrap {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0f172a;
+        font-size: 18px;
+        margin-bottom: 8px;
+      }
+
+      .m-data {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+
+        .m-number {
+          font-size: 20px;
+          font-weight: 950;
+          color: #0f172a;
+          letter-spacing: -0.6px;
+          line-height: 1.1;
+        }
+
+        .m-label {
+          margin-top: 4px;
+          font-size: 10.5px;
+          font-weight: 800;
+          color: #94a3b8;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+        }
+      }
+
+      &.primary .m-icon-wrap {
+        background: rgba(204, 255, 0, 0.3);
+        color: #0b0f19;
+      }
+    }
+  }
+
+  /* Tarjeta de Recaudación Financiera */
+  .metric-finance-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+    cursor: pointer;
+    box-sizing: border-box;
+    width: 100%;
+    transition: all 0.2s ease;
+
+    &:active {
+      transform: scale(0.98);
+      background: #f8fafc;
+    }
+
+    .mf-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+
+      .mf-icon-wrap {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
         background: rgba(34, 197, 94, 0.12);
         color: #16a34a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
       }
-      .m-number {
+
+      .mf-info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+
+        .mf-label {
+          font-size: 13.5px;
+          font-weight: 900;
+          color: #0f172a;
+          letter-spacing: -0.2px;
+        }
+
+        .mf-sub {
+          margin-top: 2px;
+          font-size: 10.5px;
+          font-weight: 500;
+          color: #64748b;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+
+    .mf-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+
+      .mf-value {
+        font-size: 18px;
+        font-weight: 950;
         color: #16a34a;
-        font-size: 13.5px;
+        letter-spacing: -0.4px;
+      }
+
+      .mf-arrow {
+        color: #cbd5e1;
+        font-size: 16px;
       }
     }
   }
@@ -1864,6 +1947,48 @@ ion-modal.control-center-pro-modal {
 
 /* Dark Mode Overrides */
 @media (prefers-color-scheme: dark) {
+  .dashboard-body-container {
+    background: #0b0f19;
+
+    .metrics-pulse-section {
+      .metric-card {
+        background: #1e293b;
+        border-color: #334155;
+        .m-icon-wrap { background: #0f172a; color: #ffffff; }
+        .m-data .m-number { color: #ffffff; }
+        .m-data .m-label { color: #94a3b8; }
+      }
+      .metric-finance-card {
+        background: #1e293b;
+        border-color: #334155;
+        .mf-left .mf-info .mf-label { color: #ffffff; }
+        .mf-left .mf-info .mf-sub { color: #94a3b8; }
+        .mf-right .mf-value { color: #4ade80; }
+        .mf-right .mf-arrow { color: #64748b; }
+      }
+    }
+
+    .command-center-section {
+      .section-title-row h4 { color: #ffffff; }
+      .command-tile {
+        background: #1e293b;
+        border-color: #334155;
+        .tile-meta h5 { color: #ffffff; }
+        .tile-meta p { color: #94a3b8; }
+        .tile-arrow { color: #64748b; }
+      }
+    }
+
+    .alerts-priority-section {
+      .section-title-row h4 { color: #ffffff; }
+      .reminder-card-item {
+        background: #1e293b;
+        border-color: #78350f;
+        .r-info h5 { color: #ffffff; }
+      }
+    }
+  }
+
   ion-modal.control-center-pro-modal {
     &::part(content) {
       background: #0f172a;

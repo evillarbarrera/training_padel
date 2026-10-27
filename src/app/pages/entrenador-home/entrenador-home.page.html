@@ -94,35 +94,44 @@
 
     <!-- 3. PULSO DEL ENTRENADOR (Métricas Clave) -->
     <section class="metrics-pulse-section animate-up">
-      <div class="metric-card primary" (click)="goToAgenda()">
-        <div class="m-icon-wrap"><ion-icon name="calendar-outline"></ion-icon></div>
-        <div class="m-data">
-          <span class="m-number">{{ stats.clases_hoy || clasesHoyList.length || 0 }}</span>
-          <span class="m-label">Clases Hoy</span>
+      <div class="metrics-counters-row">
+        <div class="metric-card primary" (click)="goToAgenda()">
+          <div class="m-icon-wrap"><ion-icon name="calendar-outline"></ion-icon></div>
+          <div class="m-data">
+            <span class="m-number">{{ stats.clases_hoy || clasesHoyList.length || 0 }}</span>
+            <span class="m-label">Clases Hoy</span>
+          </div>
+        </div>
+
+        <div class="metric-card" (click)="goToAlumnos()">
+          <div class="m-icon-wrap"><ion-icon name="people-outline"></ion-icon></div>
+          <div class="m-data">
+            <span class="m-number">{{ stats.total_alumnos || 0 }}</span>
+            <span class="m-label">Alumnos</span>
+          </div>
+        </div>
+
+        <div class="metric-card" (click)="goToAgenda()">
+          <div class="m-icon-wrap"><ion-icon name="time-outline"></ion-icon></div>
+          <div class="m-data">
+            <span class="m-number">{{ stats.clases_mes || 0 }}</span>
+            <span class="m-label">Clases Mes</span>
+          </div>
         </div>
       </div>
 
-      <div class="metric-card" (click)="goToAlumnos()">
-        <div class="m-icon-wrap"><ion-icon name="people-outline"></ion-icon></div>
-        <div class="m-data">
-          <span class="m-number">{{ stats.total_alumnos || 0 }}</span>
-          <span class="m-label">Alumnos</span>
+      <!-- Recaudado Bar / Card Prominente -->
+      <div class="metric-finance-card" (click)="openFinance()">
+        <div class="mf-left">
+          <div class="mf-icon-wrap"><ion-icon name="cash-outline"></ion-icon></div>
+          <div class="mf-info">
+            <span class="mf-label">Recaudado este mes</span>
+            <span class="mf-sub">Ingresos confirmados por packs</span>
+          </div>
         </div>
-      </div>
-
-      <div class="metric-card" (click)="goToAgenda()">
-        <div class="m-icon-wrap"><ion-icon name="time-outline"></ion-icon></div>
-        <div class="m-data">
-          <span class="m-number">{{ stats.clases_mes || 0 }}</span>
-          <span class="m-label">Clases Mes</span>
-        </div>
-      </div>
-
-      <div class="metric-card highlight-income" (click)="openFinance()">
-        <div class="m-icon-wrap"><ion-icon name="cash-outline"></ion-icon></div>
-        <div class="m-data">
-          <span class="m-number">{{ (ingresosRecaudados || 0) | currency:'CLP':'$':'1.0-0' }}</span>
-          <span class="m-label">Recaudado</span>
+        <div class="mf-right">
+          <span class="mf-value">{{ (ingresosRecaudados || 0) | currency:'CLP':'$':'1.0-0' }}</span>
+          <ion-icon name="chevron-forward-outline" class="mf-arrow"></ion-icon>
         </div>
       </div>
     </section>
