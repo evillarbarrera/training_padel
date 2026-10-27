@@ -426,7 +426,8 @@ export class EntrenadorHomePage {
               ) ? 'Multijugador' : 'Individual',
             titulo: r.jugador_nombre || 'Clase Grupal',
             subtitulo: r.pack_nombre,
-            lugar: r.club_nombre,
+            lugar: r.cancha_nombre ? `${r.club_nombre || 'Club'} · ${r.cancha_nombre}` : (r.club_nombre || 'Club de Pádel'),
+            cancha_nombre: r.cancha_nombre,
             estado: r.estado,
             raw: r
           })));
@@ -766,19 +767,20 @@ export class EntrenadorHomePage {
     if (event) event.stopPropagation();
 
     const alumnoNombre = clase?.titulo || 'el alumno';
-    const hora = clase?.hora ? `de las ${clase.hora} hrs` : '';
+    const hora = clase?.hora ? `de las ${clase.hora} hrs` : 'programada';
 
     const alert = await this.alertCtrl.create({
-      header: '¿Cancelar clase?',
-      subHeader: 'Inasistencia del alumno',
-      message: `¿Estás seguro de cancelar la sesión ${hora}? Se confirmará que ${alumnoNombre} no llegó a la clase y el horario quedará liberado.`,
+      header: '¿Registrar inasistencia?',
+      subHeader: `Sesión ${hora}`,
+      message: `Confirmarás que ${alumnoNombre} no asistió a su clase. La sesión se marcará como no presentada y la pista quedará liberada.`,
+      cssClass: 'tactical-confirm-alert',
       buttons: [
         {
-          text: 'Volver',
+          text: 'Mantener clase',
           role: 'cancel'
         },
         {
-          text: 'Sí, cancelar clase',
+          text: 'Confirmar inasistencia',
           role: 'destructive',
           handler: () => {
             this.ejecutarCancelacionClase(clase);
