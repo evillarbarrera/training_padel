@@ -1,6 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 import {
   IonContent,
   IonHeader,
@@ -147,7 +149,10 @@ export class PerfilPage implements OnInit {
     private mysqlService: MysqlService,
     private navCtrl: NavController,
     private toastCtrl: ToastController,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private router: Router,
+    private ngZone: NgZone,
+    private authService: AuthService
   ) {
     addIcons({
       personOutline,
@@ -353,18 +358,41 @@ export class PerfilPage implements OnInit {
     const alert = await this.alertCtrl.create({
       header: 'Cerrar Sesión',
       message: '¿Estás seguro que deseas salir?',
+      cssClass: 'tactical-confirm-alert',
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
           text: 'Salir',
+          role: 'destructive',
           handler: () => {
-            localStorage.clear();
-            this.navCtrl.navigateRoot('/login');
+            this.executeLogout();
           }
         }
       ]
     });
     await alert.present();
+  }
+
+  private executeLogout() {
+    console.log('Logging out from Perfil...');
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {
+      console.warn('Storage clear error:', e);
+    }
+
+    this.authService.logout().catch(err => console.warn('AuthService logout error:', err));
+
+    this.ngZone.run(() => {
+      this.router.navigate(['/login'], { replaceUrl: true }).then((navigated) => {
+        if (!navigated) {
+          this.navCtrl.navigateRoot('/login');
+        }
+      }).catch(() => {
+        this.navCtrl.navigateRoot('/login');
+      });
+    });
   }
 
   openPrivacy() {

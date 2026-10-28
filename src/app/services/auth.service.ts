@@ -36,6 +36,12 @@ export class AuthService {
   }
 
   async logout() {
-    await this.auth.signOut();
+    try {
+      if (this.auth && this.auth.currentUser) {
+        await this.auth.signOut();
+      }
+    } catch (e) {
+      console.warn('Error en auth.signOut():', e);
+    }
   }
 }

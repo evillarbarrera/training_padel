@@ -629,14 +629,22 @@ export class ClubAdminHomePage implements OnInit {
   async logout() {
     console.log('Logging out Club Admin...');
     try {
-      await this.authService.logout().catch(err => console.warn('Auth logout error:', err));
-    } catch (e) {}
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {
+      console.warn('Storage clear error:', e);
+    }
 
-    localStorage.clear();
-    sessionStorage.clear();
+    this.authService.logout().catch(err => console.warn('Auth logout error:', err));
 
     this.ngZone.run(() => {
-      this.navCtrl.navigateRoot('/login');
+      this.router.navigate(['/login'], { replaceUrl: true }).then((navigated) => {
+        if (!navigated) {
+          this.navCtrl.navigateRoot('/login');
+        }
+      }).catch(() => {
+        this.navCtrl.navigateRoot('/login');
+      });
     });
   }
 
