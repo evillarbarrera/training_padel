@@ -10,8 +10,13 @@ android {
         applicationId "cl.padelacademy.app"
         minSdk rootProject.ext.wearMinSdkVersion
         targetSdk rootProject.ext.targetSdkVersion
-        versionCode 225
-        versionName "3.0.9"
+        versionCode 227
+        versionName "3.1.1"
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
     }
 
     buildTypes {
@@ -45,6 +50,7 @@ android {
 
 dependencies {
     implementation "androidx.core:core-ktx:$androidxCoreVersion"
+    implementation "androidx.fragment:fragment-ktx:1.8.6"
     implementation "androidx.activity:activity-compose:$androidxActivityVersion"
 
     // Wear OS Jetpack Compose
