@@ -27,7 +27,7 @@ import { addIcons } from 'ionicons';
 import {
   searchOutline, peopleOutline, statsChartOutline, analyticsOutline,
   chevronBackOutline, chevronForwardOutline, calendarOutline, addCircleOutline, timeOutline, checkmarkCircleOutline, closeOutline, videocamOutline, personAddOutline, mailOutline,
-  alertCircleOutline, pricetagsOutline
+  alertCircleOutline, pricetagsOutline, callOutline, logoWhatsapp, createOutline, addOutline
 } from 'ionicons/icons';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular/standalone';
 import { EvaluacionService } from '../../services/evaluacion.service';
@@ -81,6 +81,7 @@ export class AlumnosPage implements OnInit {
   alumnos: {
     id: number;
     nombre: string;
+    telefono?: string;
     pack: string | null;
     pagadas: number;
     pendientes: number;
@@ -109,7 +110,7 @@ export class AlumnosPage implements OnInit {
       searchOutline, peopleOutline, statsChartOutline, analyticsOutline, videocamOutline,
       chevronBackOutline, chevronForwardOutline, calendarOutline, addCircleOutline, timeOutline,
       checkmarkCircleOutline, closeOutline, personAddOutline, mailOutline,
-      alertCircleOutline, pricetagsOutline
+      alertCircleOutline, pricetagsOutline, callOutline, logoWhatsapp, createOutline, addOutline
     });
   }
 
@@ -127,7 +128,7 @@ export class AlumnosPage implements OnInit {
 
   // Creación de Alumno Modal State
   isCreatingAlumno: boolean = false;
-  nuevoAlumno = { nombre: '', email: '' };
+  nuevoAlumno = { nombre: '', email: '', telefono: '' };
 
   // Pagination
   paginaActual: number = 1;
@@ -202,6 +203,7 @@ export class AlumnosPage implements OnInit {
           return {
             id: a.jugador_id,
             nombre: a.jugador_nombre,
+            telefono: (a.jugador_telefono || a.telefono || '').trim(),
             pack: a.pack_nombres,
             pagadas: Number(a.sesiones_pagadas),
             pendientes: Number(a.sesiones_pendientes || 0),
@@ -212,9 +214,9 @@ export class AlumnosPage implements OnInit {
           };
         });
 
-        // Fetch detailed profile for missing photos
+        // Fetch detailed profile for missing photos or phones
         this.alumnos.forEach((alumno, index) => {
-          if (alumno.foto.includes('ui-avatars')) {
+          if (alumno.foto.includes('ui-avatars') || !alumno.telefono) {
             this.mysqlService.getPerfil(alumno.id).subscribe({
               next: (profile: any) => {
                 const p = profile.user || profile;
@@ -227,8 +229,12 @@ export class AlumnosPage implements OnInit {
                   }
                   this.alumnos[index].foto = updatedFoto;
                 }
+
+                if (!this.alumnos[index].telefono && p.telefono) {
+                  this.alumnos[index].telefono = p.telefono.trim();
+                }
               },
-              error: (err) => console.warn(`Error fetching photo for ${alumno.nombre}`, err)
+              error: (err) => console.warn(`Error fetching photo/profile for ${alumno.nombre}`, err)
             });
           }
         });
@@ -328,7 +334,8 @@ export class AlumnosPage implements OnInit {
 
     return this.alumnos.filter(alumno => {
       const cleanNombre = (alumno.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      const coincideNombre = cleanNombre.includes(cleanFilter);
+      const cleanTelefono = (alumno.telefono || '').replace(/[^0-9]/g, "");
+      const coincideNombre = cleanNombre.includes(cleanFilter) || (cleanTelefono && cleanTelefono.includes(cleanFilter));
       const coincideActivo = this.mostrarSoloActivos ? alumno.activo === 1 : true;
       const coincideRenovacion = this.mostrarSoloRenovaciones ? alumno.pendientes <= 1 : true;
       return coincideNombre && coincideActivo && coincideRenovacion;
@@ -468,7 +475,7 @@ export class AlumnosPage implements OnInit {
   // --- REGISTRO DE ALUMNO ---
   mostrarModalCrear() {
     this.isCreatingAlumno = true;
-    this.nuevoAlumno = { nombre: '', email: '' };
+    this.nuevoAlumno = { nombre: '', email: '', telefono: '' };
   }
 
   cerrarModalCrear() {
@@ -477,7 +484,7 @@ export class AlumnosPage implements OnInit {
 
   async crearAlumno() {
     if (!this.nuevoAlumno.nombre || !this.nuevoAlumno.email) {
-      this.mostrarToast('Por favor completa todos los campos');
+      this.mostrarToast('Por favor completa los campos requeridos');
       return;
     }
 
@@ -505,6 +512,83 @@ export class AlumnosPage implements OnInit {
         this.mostrarToast(`❌ ${msg}`);
       }
     });
+  }
+
+  // --- GESTIÓN DE TELÉFONO / WHATSAPP ---
+  async editarTelefono(alumno: any, event?: Event) {
+    if (event) event.stopPropagation();
+
+    const alert = await this.alertCtrl.create({
+      header: alumno.telefono ? 'Modificar Teléfono' : 'Agregar Teléfono',
+      subHeader: alumno.nombre,
+      message: 'Ingresa el número de WhatsApp o celular para contactarlo:',
+      inputs: [
+        {
+          name: 'telefono',
+          type: 'tel',
+          placeholder: 'Ej: +56 9 1234 5678 o 912345678',
+          value: alumno.telefono || ''
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Guardar',
+          handler: (data) => {
+            const nuevoTel = (data.telefono || '').trim();
+            this.guardarTelefonoAlumno(alumno, nuevoTel);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async guardarTelefonoAlumno(alumno: any, nuevoTelefono: string) {
+    const loading = await this.loadingCtrl.create({ message: 'Guardando teléfono...' });
+    await loading.present();
+
+    this.mysqlService.updatePerfil({
+      user_id: alumno.id,
+      telefono: nuevoTelefono
+    }).subscribe({
+      next: () => {
+        loading.dismiss();
+        alumno.telefono = nuevoTelefono;
+        this.mostrarToast('✅ Teléfono actualizado correctamente');
+      },
+      error: (err: any) => {
+        loading.dismiss();
+        if (err.status === 200) {
+          alumno.telefono = nuevoTelefono;
+          this.mostrarToast('✅ Teléfono actualizado correctamente');
+          return;
+        }
+        console.error('Error al actualizar teléfono:', err);
+        this.mostrarToast('❌ No se pudo guardar el teléfono');
+      }
+    });
+  }
+
+  abrirWhatsApp(alumno: any, event?: Event) {
+    if (event) event.stopPropagation();
+    if (!alumno.telefono) {
+      this.editarTelefono(alumno, event);
+      return;
+    }
+    const cleanTel = alumno.telefono.replace(/[^0-9]/g, '');
+    let finalPhone = cleanTel;
+    if (finalPhone.length === 9 && finalPhone.startsWith('9')) {
+      finalPhone = '56' + finalPhone;
+    } else if (finalPhone.length === 8) {
+      finalPhone = '569' + finalPhone;
+    }
+    const msg = `Hola ${alumno.nombre}, te contacto de Padelblox respecto a tus entrenamientos. 🎾`;
+    window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 
   goToHome() {

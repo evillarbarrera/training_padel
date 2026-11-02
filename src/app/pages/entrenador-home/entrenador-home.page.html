@@ -37,53 +37,82 @@
 
   <div class="dashboard-body-container">
 
-    <!-- 2. TARJETA TÁCTICA DE PISTA (SESIÓN ACTUAL O PRÓXIMA) -->
-    <section class="tactical-session-card animate-up" *ngIf="proximaClase">
-      <div class="card-status-badge" [class.live]="claseActual">
-        <span class="status-dot"></span>
-        <span>{{ claseActual ? 'CLASE EN CURSO AHORA' : 'PRÓXIMA SESIÓN PROGRAMADA' }}</span>
+    <!-- 2. TARJETA TÁCTICA DE PISTA (SESIONES PROGRAMADAS EN CARRUSEL / SWIPEABLE HASTA 10) -->
+    <section class="tactical-carousel-wrapper animate-up" *ngIf="proximasClasesList && proximasClasesList.length > 0">
+      
+      <!-- Carrusel horizontal con scroll snap nativo -->
+      <div class="tactical-cards-slider" #cardsSlider (scroll)="onCardsScroll($event)">
+        <div class="tactical-slide-item" *ngFor="let clase of proximasClasesList; let i = index">
+          <div class="tactical-session-card">
+            
+            <div class="card-status-badge" [class.live]="clase.isLive">
+              <span class="status-dot"></span>
+              <span *ngIf="clase.isLive">CLASE EN CURSO AHORA</span>
+              <span *ngIf="!clase.isLive && i === 0 && !tieneClaseEnCurso">PRÓXIMA SESIÓN PROGRAMADA</span>
+              <span *ngIf="!clase.isLive && (i > 0 || tieneClaseEnCurso)">SESIÓN {{ i + 1 }} DE {{ proximasClasesList.length }}</span>
+            </div>
+
+            <div class="session-main-info" (click)="goToAgenda()">
+              <div class="time-block">
+                <span class="time-hour">{{ clase.hora }}</span>
+                <span class="time-label">{{ clase.diaLabel === 'Hoy' ? 'HOY' : (clase.diaLabel | uppercase) }}</span>
+              </div>
+              <div class="info-block">
+                <div class="session-type-pill">{{ clase.tipo || 'Individual' }}</div>
+                <h3 class="student-name">{{ clase.titulo }}</h3>
+                <p class="pack-name" *ngIf="clase.subtitulo">{{ clase.subtitulo }}</p>
+                <p class="venue-info">
+                  <ion-icon name="location-outline"></ion-icon>
+                  <span>{{ clase.lugar || 'Club de Pádel' }}</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Quick Action Buttons on Court -->
+            <div class="session-actions-bar">
+              <button type="button" class="tactical-btn cancel-btn" (click)="confirmarCancelacionAlumnoNoLlego(clase, $event)">
+                <ion-icon name="close-circle-outline"></ion-icon>
+                <span>Cancelar</span>
+              </button>
+              <button type="button" class="tactical-btn wa-btn" (click)="contactarAlumnoClase(clase, $event)">
+                <ion-icon name="logo-whatsapp"></ion-icon>
+                <span>WhatsApp</span>
+              </button>
+              <button type="button" class="tactical-btn agenda-btn" (click)="goToAgenda()">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <span>Agenda</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
       </div>
 
-      <div class="session-main-info" (click)="goToAgenda()">
-        <div class="time-block">
-          <span class="time-hour">{{ proximaClase.hora }}</span>
-          <span class="time-label">{{ proximaClase.diaLabel === 'Hoy' ? 'HOY' : (proximaClase.diaLabel | uppercase) }}</span>
+      <!-- Barra de indicadores y ayuda de swipe -->
+      <div class="carousel-indicators-bar" *ngIf="proximasClasesList.length > 1">
+        <div class="indicators-track">
+          <span 
+            *ngFor="let c of proximasClasesList; let idx = index" 
+            class="indicator-dot" 
+            [class.active]="currentCardIndex === idx"
+            (click)="scrollToCard(idx)">
+          </span>
         </div>
-        <div class="info-block">
-          <div class="session-type-pill">{{ proximaClase.tipo || 'Individual' }}</div>
-          <h3 class="student-name">{{ proximaClase.titulo }}</h3>
-          <p class="pack-name" *ngIf="proximaClase.subtitulo">{{ proximaClase.subtitulo }}</p>
-          <p class="venue-info">
-            <ion-icon name="location-outline"></ion-icon>
-            <span>{{ proximaClase.lugar || 'Club de Pádel' }}</span>
-          </p>
-        </div>
+        <span class="swipe-hint-txt">
+          <ion-icon name="swap-horizontal-outline"></ion-icon>
+          Desliza para ver más ({{ currentCardIndex + 1 }}/{{ proximasClasesList.length }})
+        </span>
       </div>
 
-      <!-- Quick Action Buttons on Court -->
-      <div class="session-actions-bar">
-        <button type="button" class="tactical-btn cancel-btn" (click)="confirmarCancelacionAlumnoNoLlego(proximaClase, $event)">
-          <ion-icon name="close-circle-outline"></ion-icon>
-          <span>Cancelar</span>
-        </button>
-        <button type="button" class="tactical-btn wa-btn" (click)="contactarAlumnoClase(proximaClase, $event)">
-          <ion-icon name="logo-whatsapp"></ion-icon>
-          <span>WhatsApp</span>
-        </button>
-        <button type="button" class="tactical-btn agenda-btn" (click)="goToAgenda()">
-          <ion-icon name="calendar-outline"></ion-icon>
-          <span>Agenda</span>
-        </button>
-      </div>
     </section>
 
-    <!-- Empty Session State if no class today -->
-    <section class="tactical-empty-card animate-up" *ngIf="!proximaClase">
+    <!-- Empty Session State if no upcoming classes -->
+    <section class="tactical-empty-card animate-up" *ngIf="!proximasClasesList || proximasClasesList.length === 0">
       <div class="empty-icon-circle">
         <ion-icon name="tennisball-outline"></ion-icon>
       </div>
       <div class="empty-text">
-        <h4>Sin clases programadas para hoy</h4>
+        <h4>Sin clases programadas próximamente</h4>
         <p>Aprovecha de abrir horarios o agendar nuevos alumnos en tu disponibilidad.</p>
       </div>
       <button type="button" class="btn-create-class-quick" (click)="goToAgendar()">

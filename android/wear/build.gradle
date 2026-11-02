@@ -10,8 +10,8 @@ android {
         applicationId "cl.padelacademy.app"
         minSdk rootProject.ext.wearMinSdkVersion
         targetSdk rootProject.ext.targetSdkVersion
-        versionCode 227
-        versionName "3.1.1"
+        versionCode 228
+        versionName "3.1.2"
     }
 
     lint {

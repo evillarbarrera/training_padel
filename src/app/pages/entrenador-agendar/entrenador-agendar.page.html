@@ -1,365 +1,865 @@
-<ion-content>
-    <div class="header-v2 animate-fade">
-        <div class="h-text">
-            <p>GESTIÓN DE EQUIPO</p>
-            <div class="h-title-row">
-                <h1>Agenda Trainer</h1>
+<ion-content [fullscreen]="true" class="page-content-wrapper">
+    <!-- HERO HEADER -->
+    <div class="trainer-header animate-fade">
+        <div class="header-top">
+            <button class="btn-icon-back" (click)="goBack()" aria-label="Volver">
+                <ion-icon name="chevron-back-outline"></ion-icon>
+            </button>
+            <div class="header-title-box">
+                <span class="eyebrow">GESTIÓN DE CANCHAS Y ALUMNOS</span>
+                <h1 class="main-title">Agenda Trainer</h1>
+            </div>
+            <button class="btn-today" (click)="irAHoy()">
+                <span>HOY</span>
+            </button>
+        </div>
+
+        <!-- FECHA SELECCIONADA Y RESUMEN -->
+        <div class="header-date-strip">
+            <div class="date-navigator">
+                <button class="nav-arrow" (click)="cambiarDia(-1)" aria-label="Día anterior">
+                    <ion-icon name="chevron-back-outline"></ion-icon>
+                </button>
+                <div class="current-date-info">
+                    <span class="day-full-name">{{ getFechaSeleccionadaDate() | date:'EEEE':'':'es-ES' | uppercase }}</span>
+                    <span class="date-full-number">{{ getFechaSeleccionadaDate() | date:'d MMMM, yyyy':'':'es-ES' }}</span>
+                </div>
+                <button class="nav-arrow" (click)="cambiarDia(1)" aria-label="Día siguiente">
+                    <ion-icon name="chevron-forward-outline"></ion-icon>
+                </button>
             </div>
         </div>
-        <div class="h-actions">
-            <!-- Posibilidad de avatar o icono de calendario -->
-            <div class="h-avatar">
-                <ion-icon name="calendar-outline" style="font-size: 24px; color: #ccff00;"></ion-icon>
+
+        <!-- CAROUSEL HORIZONTAL DE DÍAS -->
+        <div class="days-carousel-wrap">
+            <div class="days-carousel">
+                <div *ngFor="let d of diasAgenda" 
+                     class="day-pill"
+                     [class.active]="diaSeleccionado === formatDate(d)"
+                     [class.is-today]="isToday(formatDate(d))"
+                     (click)="onDiaChange(formatDate(d))">
+                    <span class="dp-name">{{ d | date:'EEE':'':'es-ES' | uppercase }}</span>
+                    <span class="dp-num">{{ d | date:'dd' }}</span>
+                    <div class="dp-indicator" *ngIf="getReservasCount(formatDate(d)) > 0">
+                        <span class="count-dot">{{ getReservasCount(formatDate(d)) }}</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="dashboard-container">
-        <!-- Día Selector -->
-        <h3 class="section-title legible">Calendario (Siguientes 14 Días)</h3>
-        <div class="day-selector-nike">
-            <ion-segment [(ngModel)]="diaSeleccionado" (ionChange)="onDiaChange($event)" scrollable mode="md" class="nike-segment-days">
-                <ion-segment-button *ngFor="let d of diasAgenda" [value]="formatDate(d)">
-                    <ion-label>
-                        <span class="day-label">{{ d | date:'EEE':'':'es-ES' | uppercase }}</span>
-                        <span class="date-label">{{ d | date:'dd' }}</span>
-                    </ion-label>
-                </ion-segment-button>
-            </ion-segment>
+    <!-- MAIN DASHBOARD CONTAINER -->
+    <div class="dashboard-body">
+
+        <!-- SELECTOR DE CLUB / UBICACIÓN (DESTACADO Y VISIBLE) -->
+        <div class="location-bar-container animate-fade" *ngIf="clubesDisponibles.length > 0">
+            <div class="location-icon-badge">
+                <ion-icon name="location-outline"></ion-icon>
+            </div>
+            <div class="location-content">
+                <span class="location-label">UBICACIÓN / CLUB SELECCIONADO</span>
+                <ion-select [(ngModel)]="selectedClubId" 
+                            (ionChange)="onClubFilterChange(selectedClubId)" 
+                            interface="action-sheet" 
+                            mode="ios" 
+                            class="location-select"
+                            placeholder="Todos los Clubes"
+                            cancelText="Cancelar">
+                    <ion-select-option [value]="null">Todos los Clubes</ion-select-option>
+                    <ion-select-option *ngFor="let c of clubesDisponibles" [value]="c.id">
+                        📍 {{ c.nombre }}
+                    </ion-select-option>
+                </ion-select>
+            </div>
+            <ion-icon name="chevron-down-outline" class="location-dropdown-arrow"></ion-icon>
         </div>
 
-        <!-- Clubes Selector (Toggles Nike Style) -->
-        <div *ngIf="clubesDisponibles.length > 1" class="club-toggle-container">
-            <div class="nike-toggle-track">
-                <div class="nike-toggle-item" *ngFor="let club of clubesDisponibles"
-                     [class.active]="selectedClubId === club.id"
-                     (click)="selectedClubId = club.id; onClubChange()">
-                     {{ club.nombre }}
-                </div>
-            </div>
+        <!-- FILTROS DE PERIODO DEL DÍA (ANCHO COMPLETO) -->
+        <div class="period-pills-row animate-fade">
+            <button class="p-pill" [class.active]="filtroPeriodo === 'todos'" (click)="setFiltroPeriodo('todos')">
+                Todos
+            </button>
+            <button class="p-pill" [class.active]="filtroPeriodo === 'manana'" (click)="setFiltroPeriodo('manana')">
+                🌅 Mañana
+            </button>
+            <button class="p-pill" [class.active]="filtroPeriodo === 'tarde'" (click)="setFiltroPeriodo('tarde')">
+                ☀️ Tarde
+            </button>
+            <button class="p-pill" [class.active]="filtroPeriodo === 'noche'" (click)="setFiltroPeriodo('noche')">
+                🌙 Noche
+            </button>
         </div>
 
-        <!-- Slots List -->
-        <div class="slots-container mt-4">
-            <div class="loading-state" *ngIf="cargandoHorarios">
-                <ion-spinner name="crescent"></ion-spinner>
-                <p>Buscando disponibilidad...</p>
-            </div>
-            
-            <ng-container *ngIf="!cargandoHorarios">
-                <div *ngIf="slotsDisponibles.length === 0" class="empty-state animate-fade">
-                    <ion-icon name="alert-circle-outline" size="large" style="color: #64748b;"></ion-icon>
-                    <p>No hay bloques de horario para este día.</p>
-                    <ion-button fill="clear" color="primary" size="small" (click)="router.navigate(['/disponibilidad-entrenador'])">
-                        Abrir disponibilidad
-                    </ion-button>
-                </div>
+        <!-- INFO BANNER EXPLICATIVO -->
+        <div class="info-guide-banner animate-fade">
+            <ion-icon name="sparkles-outline"></ion-icon>
+            <p>
+                Turnos cada <strong>30 minutos</strong>. Toca cualquier bloque libre para agendar un alumno o vender un pack sin restricciones.
+            </p>
+        </div>
 
-                <div class="slot-grid-circles">
-                    <div class="time-circle" *ngFor="let slot of slotsDisponibles"
-                         [class.ocupado]="slot.ocupado" 
-                         [class.disponible]="!slot.ocupado" 
-                         [class.otro-club]="slot.ocupado && selectedClubId && slot.club_id != selectedClubId"
-                         (click)="seleccionarSlot(slot)">
-                        <div class="circle-content">
-                            <span class="time">{{ slot.time }}</span>
-                            
-                            <!-- Information -->
-                            <div *ngIf="slot.ocupado" class="avatar-badge-wrapper">
-                                <img *ngIf="slot.jugador_foto" [src]="slot.jugador_foto" class="status-avatar">
-                                <ion-icon *ngIf="!slot.jugador_foto" name="person-circle-outline" class="status-icon"></ion-icon>
-                            </div>
-                            
-                            <!-- Label for Other Club -->
-                            <div *ngIf="slot.ocupado && selectedClubId && slot.club_id != selectedClubId" class="club-mini-label">
-                                {{ slot.club_nombre || 'Otro Club' }}
+        <!-- LOADING STATE -->
+        <div class="loading-box" *ngIf="cargandoHorarios">
+            <ion-spinner name="crescent" color="dark"></ion-spinner>
+            <span>Sincronizando agenda y horarios...</span>
+        </div>
+
+        <!-- TIMELINE STREAM DE HORARIOS (30 MINUTOS) -->
+        <div class="timeline-container animate-fade" *ngIf="!cargandoHorarios">
+
+            <ng-container *ngFor="let slot of slotsDisponibles">
+
+                <!-- CASO A: SLOT OCUPADO (RESERVA EXISTENTE) -->
+                <div *ngIf="slot.ocupado" 
+                     class="timeline-slot-row slot-booked"
+                     [class.is-continuation]="slot.is_reserva_continuation"
+                     (click)="seleccionarSlot(slot)">
+
+                    <!-- Columna Izquierda: Hora -->
+                    <div class="time-col">
+                        <span class="slot-time">{{ slot.time }}</span>
+                        <div class="timeline-line">
+                            <span class="timeline-dot booked"></span>
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha: Tarjeta de Clase -->
+                    <div class="slot-card-col">
+
+                        <!-- Si es el inicio de la clase (o bloque único) -->
+                        <div *ngIf="!slot.is_reserva_continuation" class="booked-class-card">
+                            <div class="card-top-bar">
+                                <div class="modality-badge" [ngClass]="'mod-' + (slot.tipo || 'individual')">
+                                    <span *ngIf="slot.tipo === 'grupal' || (slot.reserva_tipo || '').toLowerCase().includes('grupal')">🏆 GRUPAL</span>
+                                    <span *ngIf="slot.tipo === 'multijugador'">👥 MULTI</span>
+                                    <span *ngIf="slot.tipo === 'individual' || (!slot.tipo && !(slot.reserva_tipo || '').toLowerCase().includes('grupal'))">🎾 INDIVIDUAL</span>
+                                </div>
+                                <span class="duration-pill">
+                                    ⏱️ {{ slot.hora_inicio_reserva }} - {{ slot.hora_fin_reserva }}
+                                </span>
                             </div>
 
-                            <ion-icon *ngIf="!slot.ocupado" name="add-outline" class="status-icon available"></ion-icon>
+                            <div class="card-main-info">
+                                <img [src]="slot.jugador_foto" (error)="onImgError($event, slot)" class="player-avatar">
+                                <div class="player-meta">
+                                    <h3 class="player-name">{{ slot.jugador_nombre }}</h3>
+                                    <span class="pack-badge">{{ slot.reserva_tipo || 'Clase Agendada' }}</span>
+                                </div>
+                                <ion-icon name="chevron-forward-outline" class="card-arrow"></ion-icon>
+                            </div>
+
+                            <div class="card-footer-info">
+                                <!-- Club y Cancha -->
+                                <div class="club-court-pill" [class.unassigned]="slot.requiere_cancha || (!slot.cancha_nombre && slot.club_nombre)">
+                                    <ion-icon name="location-outline"></ion-icon>
+                                    <span *ngIf="slot.cancha_nombre">{{ slot.club_nombre || 'Club' }} · {{ slot.cancha_nombre }}</span>
+                                    <span *ngIf="!slot.cancha_nombre && slot.club_nombre">{{ slot.club_nombre }} · <em style="color:#ef4444; font-weight:800;">Sin Cancha</em></span>
+                                    <span *ngIf="!slot.club_nombre && !slot.cancha_nombre">Cancha por asignar</span>
+                                </div>
+
+                                <!-- Dossier / Planificación si existe -->
+                                <div class="topic-pill" *ngIf="slot.clase_titulo">
+                                    <ion-icon name="school-outline"></ion-icon>
+                                    <span>{{ slot.clase_titulo }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Si es la continuación de la reserva (bloque secundario de 30 min) -->
+                        <div *ngIf="slot.is_reserva_continuation" class="continuation-class-card">
+                            <div class="continuation-content">
+                                <span class="c-indicator">↳ Continuación de clase:</span>
+                                <span class="c-name">{{ slot.jugador_nombre }}</span>
+                                <span class="c-time">hasta las {{ slot.hora_fin_reserva }}</span>
+                            </div>
+                            <span class="c-link">Ver ›</span>
                         </div>
                     </div>
                 </div>
+
+                <!-- CASO B: SLOT LIBRE (CADA 30 MINUTOS) -->
+                <div *ngIf="!slot.ocupado" 
+                     class="timeline-slot-row slot-available"
+                     (click)="seleccionarSlot(slot)">
+
+                    <!-- Columna Izquierda: Hora -->
+                    <div class="time-col">
+                        <span class="slot-time">{{ slot.time }}</span>
+                        <div class="timeline-line">
+                            <span class="timeline-dot available"></span>
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha: Tarjeta Disponible -->
+                    <div class="slot-card-col">
+                        <div class="available-slot-card">
+                            <div class="avail-action">
+                                <div class="btn-add-circle">
+                                    <ion-icon name="add-outline"></ion-icon>
+                                </div>
+                                <div class="avail-text">
+                                    <span class="action-title">Agendar Horario {{ slot.time }}</span>
+                                    <span class="action-sub">Toca para asignar alumno o pack</span>
+                                </div>
+                            </div>
+                            <div class="avail-status-tag" *ngIf="slot.is_publico">
+                                <ion-icon name="eye-outline"></ion-icon>
+                                <span>Abierto online</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </ng-container>
+
         </div>
     </div>
 
-    <!-- Booking Modal -->
+    <!-- MODAL DE AGENDAMIENTO (BOTTOM SHEET) -->
     <ion-modal #bookingModal [isOpen]="isBookingModalOpen" (didDismiss)="cerrarModal()" class="custom-bottom-modal">
         <ng-template>
-            <ion-header class="ion-no-border">
+            <ion-header class="ion-no-border modal-header-styled">
                 <ion-toolbar>
-                    <ion-title>Agendar {{ selectedSlot?.hour }}</ion-title>
-                    <ion-buttons slot="end">
-                        <ion-button (click)="cerrarModal()" mode="ios">
-                            <ion-icon name="close-outline" size="large" slot="icon-only"></ion-icon>
-                        </ion-button>
-                    </ion-buttons>
+                    <div class="modal-top-bar">
+                        <div class="drag-handle"></div>
+                        <div class="modal-title-row">
+                            <div>
+                                <span class="modal-badge-time">⏰ {{ selectedSlot?.hour }} - {{ getHoraFin(selectedSlot?.hour, duracionMinutos) }} ({{ duracionMinutos }} min)</span>
+                                <h2 class="modal-main-title">Nueva Reserva</h2>
+                                <span class="modal-date-sub">📅 {{ getFechaSeleccionadaDate() | date:'EEEE d MMMM, yyyy':'':'es-ES' }}</span>
+                            </div>
+                            <button class="btn-modal-close" (click)="cerrarModal()">
+                                <ion-icon name="close-outline"></ion-icon>
+                            </button>
+                        </div>
+                    </div>
                 </ion-toolbar>
             </ion-header>
 
-            <ion-content class="modal-content-nike">
-                <div class="modal-body pb-safe">
-                    <ion-segment [(ngModel)]="tipoClaseSeleccionado" (ionChange)="onTipoClaseChange()" mode="ios" class="nike-segment-periods mt-2">
-                        <ion-segment-button value="individual"><ion-label>Individual</ion-label></ion-segment-button>
-                        <ion-segment-button value="multijugador"><ion-label>Multi</ion-label></ion-segment-button>
-                        <ion-segment-button value="grupal"><ion-label>Grupal</ion-label></ion-segment-button>
-                    </ion-segment>
+            <ion-content class="modal-scroll-content">
+                <div class="modal-inner-padding">
 
-                    <!-- Group Pack Selector (The Product Template) -->
-                    <div class="nike-select-wrapper light-wrapper animate-fade mt-3" *ngIf="tipoClaseSeleccionado === 'grupal'">
-                        <ion-icon name="cube-outline" slot="start" style="color: #6366f1; font-size: 20px; margin-right: 12px;"></ion-icon>
-                        <ion-item lines="none" style="--background: transparent; width: 100%; --padding-start: 0;">
-                            <ion-label position="stacked" style="color: #64748b; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">Seleccionar Pack (Producto):</ion-label>
-                            <ion-select [(ngModel)]="packGrupalSeleccionado" interface="action-sheet" mode="ios" placeholder="Elige el pack grupal..." (ionChange)="onPackGrupalChange()">
-                                <ion-select-option *ngFor="let p of packsGrupalesDisponibles" [value]="p">
-                                    {{ p.nombre }} ({{ p.categoria }})
-                                </ion-select-option>
-                            </ion-select>
-                        </ion-item>
-                    </div>
-
-                    <!-- Student Selection -->
-                    <div class="mt-2">
-                        <div class="flex justify-between items-center mb-1">
-                            <h3 class="section-title legible m-0">Seleccionar Alumnos</h3>
-                            <span class="text-xs font-bold text-gray-400">({{ alumnosSeleccionados.length }}/{{ maxAlumnos }})</span>
-                        </div>
-                        <ion-searchbar animated="true" placeholder="Buscar jugador..." mode="ios" class="nike-search-v2" [(ngModel)]="filtroAlumnos"></ion-searchbar>
-                        
-                        <div class="horizontal-scroll-list flex mt-0">
-                            <div class="alumno-chip" *ngFor="let a of alumnosFiltrados" 
-                                 [class.selected]="isAlumnoSelected(a)" 
-                                 (click)="toggleAlumnoSeleccion(a)">
-                                <img [src]="a.jugador_foto" class="chip-avatar">
-                                <span class="chip-name">{{ a.jugador_nombre.split(' ')[0] }}</span>
+                    <!-- SECCIÓN 1: MODALIDAD DE CLASE -->
+                    <div class="form-section-card animate-fade">
+                        <label class="form-label">
+                            <ion-icon name="sparkles-outline"></ion-icon> Tipo de Clase
+                        </label>
+                        <div class="modality-grid">
+                            <div class="mod-card" 
+                                 [class.selected]="tipoClaseSeleccionado === 'individual'" 
+                                 (click)="tipoClaseSeleccionado = 'individual'; onTipoClaseChange()">
+                                <span class="m-icon">🎾</span>
+                                <span class="m-title">Individual</span>
+                                <span class="m-desc">1 Alumno</span>
+                            </div>
+                            <div class="mod-card" 
+                                 [class.selected]="tipoClaseSeleccionado === 'multijugador'" 
+                                 (click)="tipoClaseSeleccionado = 'multijugador'; onTipoClaseChange()">
+                                <span class="m-icon">👥</span>
+                                <span class="m-title">Multi</span>
+                                <span class="m-desc">2 a 4 Alumnos</span>
+                            </div>
+                            <div class="mod-card" 
+                                 [class.selected]="tipoClaseSeleccionado === 'grupal'" 
+                                 (click)="tipoClaseSeleccionado = 'grupal'; onTipoClaseChange()">
+                                <span class="m-icon">🏆</span>
+                                <span class="m-title">Grupal</span>
+                                <span class="m-desc">4 a 6 Cupos</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Pack Assignment / Gestión de Cobro -->
-                    <div class="nike-card minimal-light animate-fade mt-4" *ngIf="alumnoSeleccionado">
-                        <div class="card-header-v3">
-                            <ion-icon name="card-outline" slot="start" color="primary"></ion-icon>
-                            <h4 style="color: #333;">Gestión de Cobro</h4>
+                    <!-- SECCIÓN 2: DURACIÓN DEL ENTRENAMIENTO (BASE 1 HORA) -->
+                    <div class="form-section-card animate-fade">
+                        <div class="section-card-header">
+                            <label class="form-label m-0">
+                                <ion-icon name="time-outline"></ion-icon> Duración de la Sesión
+                            </label>
+                            <span class="duration-active-badge">Hasta las {{ getHoraFin(selectedSlot?.hour, duracionMinutos) }}</span>
                         </div>
-                        
-                        <!-- NEW: Pack Selector for Existing Packs (Functional Parity with Web) -->
-                        <div class="nike-select-wrapper light-wrapper animate-fade mb-2" *ngIf="alumnosPacksConCredito.length >= 1">
-                            <ion-icon name="ticket-outline" slot="start" style="color: #10b981; font-size: 20px; margin-right: 12px;"></ion-icon>
-                            <ion-item lines="none" style="--background: transparent; width: 100%; --padding-start: 0;">
-                                <ion-label position="stacked" style="color: #64748b; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">Usar Pack del Alumno:</ion-label>
-                                <ion-select [(ngModel)]="alumnoSeleccionado.pack_jugador_id" interface="popover" mode="ios" (ionChange)="onPackAlumnoToggle()" style="margin-top: 5px;">
-                                    <ion-select-option *ngFor="let p of alumnosPacksConCredito" [value]="p.id || p.pack_jugador_id">
-                                        {{ p.pack_nombre }} ({{ p.sesiones_restantes }} créd.)
-                                    </ion-select-option>
-                                </ion-select>
-                            </ion-item>
+                        <div class="duration-grid">
+                            <div *ngFor="let d of duracionesDisponibles" 
+                                 class="duration-pill-card"
+                                 [class.selected]="duracionMinutos === d.value"
+                                 (click)="onDuracionChange(d.value)">
+                                <span class="d-val">{{ d.label }}</span>
+                                <span class="d-sub">{{ d.desc }}</span>
+                            </div>
                         </div>
+                    </div>
 
-                        <!-- Info del pack seleccionado actualmente (Solo si NO hay selector o ya se eligió uno) -->
-                        <div class="current-credits-info animate-fade" *ngIf="alumnosPacksConCredito.length === 0 && (alumnoSeleccionado.sesiones_restantes || 0) > 0 && !mostrarSelectorPackManual">
-                            <span class="pack-name-badge">{{ alumnoSeleccionado.pack_nombre || 'Pack Activo' }}</span>
-                            <p class="credits-count">
-                                Saldo disponible: <strong>{{ alumnoSeleccionado.sesiones_restantes }} clases</strong>
-                            </p>
-                        </div>
+                    <!-- SECCIÓN 3: SEDE Y PISTA -->
+                    <div class="form-section-card animate-fade">
+                        <label class="form-label">
+                            <ion-icon name="location-outline"></ion-icon> Sede y Pista
+                        </label>
                         
-                        <!-- Alerta de Agotado: Solo si el saldo real después de calcular disponibles es 0 -->
-                        <div class="exhausted-pack-card" style="background:#fee2e2; padding: 10px; border-radius:8px; margin-bottom: 12px; border: 1px solid #fca5a5;" 
-                             *ngIf="alumnosPacksConCredito.length === 0 && (alumnoSeleccionado.sesiones_restantes || 0) <= 0">
-                            <p class="m-0" style="color:#b91c1c; font-size:14px; font-weight: 500;">
-                                <ion-icon name="alert-circle-outline" style="vertical-align: middle;"></ion-icon> El alumno se quedó sin créditos.
-                            </p>
-                        </div>
-                        
-                        <!-- Checkbox para vender pack nuevo (Visible si tiene créditos) -->
-                        <div class="premium-checkbox-card mt-2" [class.active]="mostrarSelectorPackManual" (click)="togglePackManual()" 
-                             *ngIf="alumnosPacksConCredito.length > 0 || (alumnoSeleccionado.sesiones_restantes || 0) > 0">
-                            <div class="chk-content">
-                                <ion-checkbox [checked]="mostrarSelectorPackManual" mode="ios" style="--size: 20px; --checkbox-background-checked: #10b981; pointer-events: none; margin: 0;"></ion-checkbox>
-                                <div class="chk-text">
-                                    <span class="main-label">Asignar un pack NUEVO</span>
-                                    <span class="sub-label">Venta manual de sesión</span>
+                        <!-- FILA DE SELECCIÓN DE CLUB ELEGANTE -->
+                        <div class="club-selection-row" *ngIf="clubesDisponibles.length > 0">
+                            <div class="csr-left">
+                                <div class="csr-icon">
+                                    <ion-icon name="business-outline"></ion-icon>
+                                </div>
+                                <div class="csr-info">
+                                    <span class="csr-caption">CLUB / COMPLEJO</span>
+                                    <h4 class="csr-name">{{ getSelectedClubNombre() }}</h4>
                                 </div>
                             </div>
-                            <ion-icon [name]="mostrarSelectorPackManual ? 'checkmark-circle' : 'add-circle-outline'" 
-                                      [color]="mostrarSelectorPackManual ? 'success' : 'medium'"></ion-icon>
-                        </div>
-                        
-                        <!-- Selector de Pack Manual (Visible si se activó el check o si NO tiene créditos en absoluto) -->
-                        <div class="nike-select-wrapper light-wrapper animate-fade mt-3" 
-                             *ngIf="mostrarSelectorPackManual || (alumnosPacksConCredito.length === 0 && (alumnoSeleccionado.sesiones_restantes || 0) <= 0)">
-                            <ion-icon name="wallet-outline" slot="start" style="color: #0ea5e9; font-size: 20px; margin-right: 12px;"></ion-icon>
-                            <ion-select [(ngModel)]="packAAsignar" interface="action-sheet" placeholder="Seleccionar nuevo pack" mode="ios" cancelText="Cancelar">
-                                <ion-select-option *ngFor="let p of packsParaTipo" [value]="p" class="ion-text-wrap">{{ p.nombre }} - ${{ p.precio | number:'1.0-0' }}</ion-select-option>
-                            </ion-select>
+                            <div class="csr-right">
+                                <span class="csr-change-pill">Cambiar ▾</span>
+                                <ion-select [(ngModel)]="selectedClubId" 
+                                            (ionChange)="onClubChangeModal()" 
+                                            interface="action-sheet" 
+                                            mode="ios" 
+                                            class="csr-native-select"
+                                            cancelText="Cancelar">
+                                    <ion-select-option *ngFor="let c of clubesDisponibles" [value]="c.id">
+                                        📍 {{ c.nombre }}
+                                    </ion-select-option>
+                                </ion-select>
+                            </div>
                         </div>
 
-                        <!-- NEW: Multi-student pack status display (Functional Parity with Web) -->
-                        <div class="mt-3" *ngIf="tipoClaseSeleccionado !== 'individual' && alumnosSeleccionados.length > 0">
-                            <div *ngFor="let s of alumnosSeleccionados" class="flex justify-between items-center bg-gray-50 p-2 rounded-lg mb-1">
-                                <span class="text-xs font-bold text-gray-700">{{ s.jugador_nombre }}</span>
-                                <span class="text-xs px-2 py-1 rounded" [ngClass]="(s.sesiones_restantes > 0) ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-                                    {{ (s.sesiones_restantes > 0) ? s.pack_nombre : 'Sin saldo' }}
+                        <!-- SELECTOR DE PISTAS / CANCHAS EN FORMATO TILES -->
+                        <div class="court-selection-block mt-3">
+                            <div class="csb-header">
+                                <span class="csb-title">PISTA O CANCHA</span>
+                                <span class="csb-count" *ngIf="!cargandoCanchas && canchasDisponibles.length > 0">
+                                    {{ getCanchasLibresCount() }} libres
+                                </span>
+                            </div>
+
+                            <!-- Estado de carga -->
+                            <div class="court-loading-skeleton" *ngIf="cargandoCanchas">
+                                <ion-spinner name="crescent" color="dark"></ion-spinner>
+                                <span>Verificando pistas libres...</span>
+                            </div>
+
+                            <!-- Grid de Pistas Moderno -->
+                            <div class="court-tiles-grid" *ngIf="!cargandoCanchas">
+                                <!-- Opción Sin Cancha Asignada -->
+                                <div class="court-tile" 
+                                     [class.active]="selectedCanchaId === 0 || !selectedCanchaId"
+                                     (click)="selectedCanchaId = 0">
+                                    <div class="ct-top">
+                                        <ion-icon name="help-circle-outline" class="ct-icon-neutral"></ion-icon>
+                                        <span class="ct-status-badge neutral">Opcional</span>
+                                    </div>
+                                    <span class="ct-name">Por Definir</span>
+                                    <span class="ct-sub">Sin cancha fija</span>
+                                </div>
+
+                                <!-- Lista de Canchas del Club -->
+                                <div *ngFor="let ca of canchasDisponibles" 
+                                     class="court-tile"
+                                     [class.active]="selectedCanchaId === ca.id"
+                                     [class.occupied]="!ca.disponible"
+                                     (click)="onSelectCancha(ca)">
+                                    <div class="ct-top">
+                                        <span class="ct-court-icon">🎾</span>
+                                        <span class="ct-status-badge" [class.free]="ca.disponible" [class.busy]="!ca.disponible">
+                                            {{ ca.disponible ? 'Libre' : 'Ocupada' }}
+                                        </span>
+                                    </div>
+                                    <span class="ct-name">{{ ca.nombre }}</span>
+                                    <span class="ct-sub">{{ ca.tipo || (ca.disponible ? 'Disponible' : 'En uso') }}</span>
+                                </div>
+                            </div>
+
+                            <div class="empty-courts-notice" *ngIf="!cargandoCanchas && canchasDisponibles.length === 0">
+                                <ion-icon name="information-circle-outline"></ion-icon>
+                                <span>No hay canchas registradas en este club. La reserva se agendará como "Por Definir".</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CASO GRUPAL: PACK PRODUCTO TEMPLATE -->
+                    <div class="form-section-card animate-fade" *ngIf="tipoClaseSeleccionado === 'grupal'">
+                        <label class="form-label">
+                            <ion-icon name="cube-outline"></ion-icon> Pack Grupal (Producto)
+                        </label>
+                        <div class="select-field-box">
+                            <ion-select [(ngModel)]="packGrupalSeleccionado" 
+                                        (ionChange)="onPackGrupalChange()"
+                                        interface="action-sheet" 
+                                        mode="ios" 
+                                        placeholder="Elige el pack grupal...">
+                                <ion-select-option *ngFor="let p of packsGrupalesDisponibles" [value]="p">
+                                    {{ p.nombre }} ({{ p.categoria }}) - ${{ p.precio | number:'1.0-0' }}
+                                </ion-select-option>
+                            </ion-select>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 3: SELECCIONAR ALUMNO(S) -->
+                    <div class="form-section-card animate-fade">
+                        <div class="section-card-header">
+                            <label class="form-label m-0">
+                                <ion-icon name="person-circle-outline"></ion-icon> Alumnos
+                            </label>
+                            <span class="counter-badge">({{ alumnosSeleccionados.length }}/{{ maxAlumnos }})</span>
+                        </div>
+
+                        <!-- Barra de Búsqueda -->
+                        <ion-searchbar [(ngModel)]="filtroAlumnos" 
+                                       placeholder="Buscar alumno por nombre..." 
+                                       mode="ios" 
+                                       class="student-searchbar">
+                        </ion-searchbar>
+
+                        <!-- Alumnos Seleccionados Pills -->
+                        <div class="selected-players-strip" *ngIf="alumnosSeleccionados.length > 0">
+                            <div class="selected-player-pill" *ngFor="let a of alumnosSeleccionados">
+                                <img [src]="a.jugador_foto" (error)="onImgError($event, a)" class="pill-avatar">
+                                <span class="pill-name">{{ a.jugador_nombre.split(' ')[0] }}</span>
+                                <button class="btn-remove-player" (click)="toggleAlumnoSeleccion(a)">
+                                    <ion-icon name="close-circle"></ion-icon>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Lista Horizontal de Alumnos -->
+                        <div class="students-scroll-list">
+                            <div *ngFor="let a of alumnosFiltrados" 
+                                 class="student-card-item"
+                                 [class.selected]="isAlumnoSelected(a)"
+                                 (click)="toggleAlumnoSeleccion(a)">
+                                <div class="avatar-wrap">
+                                    <img [src]="a.jugador_foto" (error)="onImgError($event, a)" class="s-avatar">
+                                    <div class="check-overlay" *ngIf="isAlumnoSelected(a)">
+                                        <ion-icon name="checkmark-outline"></ion-icon>
+                                    </div>
+                                </div>
+                                <span class="s-name">{{ a.jugador_nombre.split(' ')[0] }}</span>
+                                <span class="s-credits" [class.no-credit]="(a.creditos_reales || a.sesiones_restantes) <= 0">
+                                    {{ (a.creditos_reales || a.sesiones_restantes) > 0 ? (a.creditos_reales || a.sesiones_restantes) + ' ses.' : 'Sin saldo' }}
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Malla / Syllabus -->
-                    <div class="nike-card minimal-light animate-fade mt-5">
-                        <div class="card-header-v3 mb-3">
-                            <ion-icon name="school-outline" slot="start" color="primary"></ion-icon>
-                            <h4 style="color: #333; margin: 0;">Planificación Técnica</h4>
+                    <!-- SECCIÓN 4: GESTIÓN DE COBRO Y PACKS (PARIDAD TOTAL CON WEB) -->
+                    <div class="form-section-card animate-fade" *ngIf="alumnoSeleccionado">
+                        <label class="form-label">
+                            <ion-icon name="card-outline"></ion-icon> Gestión de Cobro & Pack
+                        </label>
+
+                        <!-- Si el alumno TIENE packs con saldo activo para esta modalidad -->
+                        <div class="active-pack-display" *ngIf="alumnosPacksConCredito.length > 0">
+                            <div class="pack-info-row">
+                                <div class="pack-icon-circle">
+                                    <ion-icon name="ticket-outline"></ion-icon>
+                                </div>
+                                <div class="pack-text-details">
+                                    <span class="pack-header-tag">PACK ACTIVO DISPONIBLE</span>
+                                    <h4 class="pack-active-title">{{ alumnoSeleccionado.pack_nombre || 'Pack con Crédito' }}</h4>
+                                    <p class="pack-active-balance">
+                                        Saldo restante: <strong>{{ alumnoSeleccionado.sesiones_restantes }} clases</strong>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Selector si tiene más de 1 pack disponible -->
+                            <div class="select-field-box mt-2" *ngIf="alumnosPacksConCredito.length > 1">
+                                <span class="field-label-mini">CAMBIAR PACK DEL ALUMNO:</span>
+                                <ion-select [(ngModel)]="alumnoSeleccionado.pack_jugador_id" 
+                                            (ionChange)="onPackAlumnoToggle()" 
+                                            interface="popover" 
+                                            mode="ios">
+                                    <ion-select-option *ngFor="let p of alumnosPacksConCredito" [value]="p.id || p.pack_jugador_id">
+                                        {{ p.pack_nombre }} ({{ p.sesiones_restantes }} créditos)
+                                    </ion-select-option>
+                                </ion-select>
+                            </div>
                         </div>
-                        <div class="nike-select-wrapper light-wrapper mb-2">
-                            <ion-select [(ngModel)]="categoriaFiltro" (ionChange)="onCategoriaChange()" interface="popover" mode="ios">
-                                <ion-select-option value="todos">Todas las categorías</ion-select-option>
-                                <ion-select-option value="adulto">Malla Adultos</ion-select-option>
-                                <ion-select-option value="menor">Malla Menores</ion-select-option>
-                            </ion-select>
+
+                        <!-- ALERTA SI NO TIENE SALDO ACTIVO -->
+                        <div class="alert-no-balance" *ngIf="alumnosPacksConCredito.length === 0 && (alumnoSeleccionado.creditos_reales || 0) <= 0">
+                            <div class="alert-icon-wrap">
+                                <ion-icon name="alert-circle-outline"></ion-icon>
+                            </div>
+                            <div class="alert-text-wrap">
+                                <strong>Sin crédito disponible</strong>
+                                <p>El alumno no tiene sesiones para la modalidad {{ getTipoLabel(tipoClaseSeleccionado) }}. Elige un pack nuevo abajo para asignarle.</p>
+                            </div>
                         </div>
-                        <div class="nike-select-wrapper light-wrapper mb-2">
-                            <ion-select [(ngModel)]="planificacionId" (ionChange)="onMallaChange()" interface="popover" placeholder="Selecciona la Malla" mode="ios">
-                                <ion-select-option *ngFor="let m of mallasFiltradas" [value]="m.id">{{ m.nombre }}</ion-select-option>
-                            </ion-select>
+
+                        <!-- TOGGLE PARA VENTA / ASIGNACIÓN DE PACK NUEVO -->
+                        <div class="new-pack-toggle-card" 
+                             [class.active]="mostrarSelectorPackManual" 
+                             (click)="togglePackManual()">
+                            <div class="toggle-left">
+                                <ion-checkbox [checked]="mostrarSelectorPackManual" mode="ios" style="pointer-events: none;"></ion-checkbox>
+                                <div class="toggle-text">
+                                    <span class="t-main">Asignar Pack Nuevo</span>
+                                    <span class="t-sub">Venta manual de sesión o pack completo</span>
+                                </div>
+                            </div>
+                            <ion-icon [name]="mostrarSelectorPackManual ? 'checkmark-circle' : 'add-circle-outline'" 
+                                      class="toggle-action-icon"></ion-icon>
                         </div>
-                        <div class="nike-select-wrapper light-wrapper" *ngIf="planificacionId">
-                            <ion-select [(ngModel)]="claseMallaId" (ionChange)="onClaseChange()" interface="action-sheet" placeholder="Número de sesión" mode="ios">
-                                <ion-select-option *ngFor="let c of clasesDisponibles" [value]="c.id" class="ion-text-wrap">Sesión {{ c.sesion_numero }}: {{ c.titulo }}</ion-select-option>
+
+                        <!-- SELECTOR DE PACK NUEVO (DEL CATÁLOGO) -->
+                        <div class="select-field-box animate-fade mt-2" *ngIf="mostrarSelectorPackManual || (alumnosPacksConCredito.length === 0 && (alumnoSeleccionado.creditos_reales || 0) <= 0)">
+                            <span class="field-label-mini">CATÁLOGO DE PACKS ({{ getTipoLabel(tipoClaseSeleccionado) }}):</span>
+                            <ion-select [(ngModel)]="packAAsignar" 
+                                        interface="action-sheet" 
+                                        mode="ios" 
+                                        placeholder="Seleccionar pack a asignar..." 
+                                        cancelText="Cancelar">
+                                <ion-select-option *ngFor="let p of packsParaTipoList" [value]="p">
+                                    {{ p.nombre }} · ${{ p.precio | number:'1.0-0' }} ({{ p.cantidad_sesiones || p.sesiones || 1 }} ses.)
+                                </ion-select-option>
                             </ion-select>
                         </div>
                     </div>
 
-                    <!-- Repetir -->
-                    <div class="nike-card minimal-light animate-fade mt-5 mb-5">
-                        <div class="card-header-v3 mb-3" style="margin-bottom: 12px !important">
-                            <ion-icon name="calendar-outline" slot="start" color="primary"></ion-icon>
-                            <h4 style="color: #333; margin: 0;">Recurrencia</h4>
+                    <!-- SECCIÓN 5: PLANIFICACIÓN TÉCNICA (MALLAS) -->
+                    <div class="form-section-card animate-fade">
+                        <label class="form-label">
+                            <ion-icon name="school-outline"></ion-icon> Dossier Técnico & Mallas
+                        </label>
+                        
+                        <!-- FILTRO RÁPIDO DE CATEGORÍA (CHIPS MODERNOS) -->
+                        <div class="category-segment-row mb-3">
+                            <button type="button" class="cat-pill" [class.active]="categoriaFiltro === 'todos'" (click)="setCategoriaFiltro('todos')">
+                                Todas
+                            </button>
+                            <button type="button" class="cat-pill" [class.active]="categoriaFiltro === 'adulto'" (click)="setCategoriaFiltro('adulto')">
+                                👨 Adultos
+                            </button>
+                            <button type="button" class="cat-pill" [class.active]="categoriaFiltro === 'menor'" (click)="setCategoriaFiltro('menor')">
+                                👦 Menores
+                            </button>
                         </div>
-                        <div class="nike-select-wrapper light-wrapper" style="margin-bottom: 0;">
-                            <ion-icon name="repeat-outline" slot="start" style="color: #64748b; margin-right: 10px;"></ion-icon>
-                            <ion-select [(ngModel)]="recurrencia" interface="popover" mode="ios">
-                                <ion-select-option [value]="1">Sin recurrencia (Hoy)</ion-select-option>
-                                <ion-select-option [value]="2">2 Reservas semanales</ion-select-option>
-                                <ion-select-option [value]="4">4 Reservas mensuales</ion-select-option>
-                            </ion-select>
+
+                        <!-- SELECTOR DE MALLA CURRICULAR (TARJETA ELEGANTE) -->
+                        <div class="malla-card-selector" [class.has-selection]="planificacionId">
+                            <div class="mcs-left">
+                                <div class="mcs-icon">
+                                    <ion-icon name="book-outline"></ion-icon>
+                                </div>
+                                <div class="mcs-info">
+                                    <span class="mcs-label">MALLA CURRICULAR</span>
+                                    <h4 class="mcs-title">{{ getSelectedMallaNombre() }}</h4>
+                                </div>
+                            </div>
+                            <div class="mcs-right">
+                                <span class="mcs-action-badge">{{ planificacionId ? 'Cambiar ▾' : 'Elegir ▾' }}</span>
+                                <ion-select [(ngModel)]="planificacionId" 
+                                            (ionChange)="onMallaChange()" 
+                                            interface="action-sheet" 
+                                            mode="ios" 
+                                            class="mcs-native-select"
+                                            placeholder="Selecciona la Malla"
+                                            cancelText="Cancelar">
+                                    <ion-select-option [value]="null">Sin Malla (Libre)</ion-select-option>
+                                    <ion-select-option *ngFor="let m of mallasFiltradas" [value]="m.id">
+                                        📚 {{ m.nombre }}
+                                    </ion-select-option>
+                                </ion-select>
+                            </div>
+                        </div>
+
+                        <!-- SELECTOR DE SESIÓN / DRILLS SI HAY MALLA ELEGIDA -->
+                        <div class="session-card-selector mt-2 animate-fade" *ngIf="planificacionId">
+                            <div class="scs-left">
+                                <div class="scs-icon">
+                                    <ion-icon name="tennisball-outline"></ion-icon>
+                                </div>
+                                <div class="scs-info">
+                                    <span class="scs-label">SESIÓN / DRILLS TÉCNICOS</span>
+                                    <h4 class="scs-title">{{ getSelectedClaseNombre() }}</h4>
+                                    <p class="scs-drills-preview" *ngIf="selectedClaseToPreview?.objetivo">
+                                        🎯 {{ selectedClaseToPreview.objetivo }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="scs-right">
+                                <span class="scs-action-badge">{{ claseMallaId ? 'Cambiar ▾' : 'Elegir ▾' }}</span>
+                                <ion-select [(ngModel)]="claseMallaId" 
+                                            (ionChange)="onClaseChange()" 
+                                            interface="action-sheet" 
+                                            mode="ios" 
+                                            class="mcs-native-select"
+                                            placeholder="Elige la sesión"
+                                            cancelText="Cancelar">
+                                    <ion-select-option [value]="null">Sin sesión fija</ion-select-option>
+                                    <ion-select-option *ngFor="let c of clasesDisponibles" [value]="c.id">
+                                        Sesión {{ c.sesion_numero }}: {{ c.titulo }}
+                                    </ion-select-option>
+                                </ion-select>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="mt-4 mb-4" style="text-align: center;">
-                        <ion-button expand="block" class="nike-btn outline-success" shape="round" 
-                                    (click)="confirmarAgendamiento()">
-                            Agendar
+                    <!-- SECCIÓN 6: RECURRENCIA -->
+                    <div class="form-section-card animate-fade">
+                        <label class="form-label">
+                            <ion-icon name="repeat-outline"></ion-icon> Recurrencia
+                        </label>
+                        <div class="recurrence-grid">
+                            <div class="recurrence-tile" 
+                                 [class.active]="recurrencia === 1" 
+                                 (click)="recurrencia = 1">
+                                <span class="rt-tag">ÚNICA</span>
+                                <span class="rt-title">1 Sesión</span>
+                                <span class="rt-sub">Solo este día</span>
+                            </div>
+                            <div class="recurrence-tile" 
+                                 [class.active]="recurrencia === 2" 
+                                 (click)="recurrencia = 2">
+                                <span class="rt-tag">QUINCENAL</span>
+                                <span class="rt-title">2 Semanas</span>
+                                <span class="rt-sub">2 reservas</span>
+                            </div>
+                            <div class="recurrence-tile" 
+                                 [class.active]="recurrencia === 4" 
+                                 (click)="recurrencia = 4">
+                                <span class="rt-tag">MENSUAL</span>
+                                <span class="rt-title">4 Semanas</span>
+                                <span class="rt-sub">Mes completo</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BOTÓN PRINCIPAL DE AGENDAR -->
+                    <div class="cta-container">
+                        <ion-button expand="block" shape="round" class="btn-confirm-booking" (click)="confirmarAgendamiento()">
+                            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+                            Confirmar Reserva ({{ selectedSlot?.hour }} - {{ getHoraFin(selectedSlot?.hour, duracionMinutos) }})
                         </ion-button>
                     </div>
+
                 </div>
             </ion-content>
         </ng-template>
     </ion-modal>
 
-    <!-- Details Modal -->
+    <!-- MODAL DE DETALLES DE RESERVA (BOTTOM SHEET) -->
     <ion-modal #detailModal [isOpen]="isDetailModalOpen" (didDismiss)="cerrarModal()" class="custom-bottom-modal">
         <ng-template>
-            <ion-header class="ion-no-border">
+            <ion-header class="ion-no-border modal-header-styled">
                 <ion-toolbar>
-                    <ion-title>Detalles {{ selectedSlot?.hour }}</ion-title>
-                    <ion-buttons slot="end">
-                        <ion-button (click)="cerrarModal()" mode="ios">
-                            <ion-icon name="close-outline" size="large" slot="icon-only"></ion-icon>
-                        </ion-button>
-                    </ion-buttons>
+                    <div class="modal-top-bar">
+                        <div class="drag-handle"></div>
+                        <div class="modal-title-row">
+                            <div>
+                                <span class="modal-badge-time">⏰ {{ selectedSlot?.slot?.hora_inicio_reserva || selectedSlot?.hour }} - {{ selectedSlot?.slot?.hora_fin_reserva }}</span>
+                                <h2 class="modal-main-title">Detalles de la Clase</h2>
+                            </div>
+                            <button class="btn-modal-close" (click)="cerrarModal()">
+                                <ion-icon name="close-outline"></ion-icon>
+                            </button>
+                        </div>
+                    </div>
                 </ion-toolbar>
             </ion-header>
-            <ion-content class="modal-content-nike">
-                <div class="modal-body pb-safe" *ngIf="selectedSlot">
-                    <div class="student-header text-center">
-                        <h2 *ngIf="participantesGrupo.length <= 1">{{ selectedSlot.slot.jugador_nombre || 'Alumno' }}</h2>
-                        <h2 *ngIf="participantesGrupo.length > 1">Clase Grupal ({{ participantesGrupo.length }} Alumnos)</h2>
-                        <p>{{ selectedSlot.slot.reserva_tipo }}</p>
+
+            <ion-content class="modal-scroll-content">
+                <div class="modal-inner-padding" *ngIf="selectedSlot?.slot">
+
+                    <!-- CABECERA DEL ALUMNO O GRUPO -->
+                    <div class="detail-student-card animate-fade">
+                        <img [src]="selectedSlot.slot.jugador_foto" (error)="onImgError($event, selectedSlot.slot)" class="detail-avatar">
+                        <div class="detail-text">
+                            <span class="detail-modality-badge">{{ selectedSlot.slot.reserva_tipo || 'Clase Agendada' }}</span>
+                            <h3 class="detail-name">{{ selectedSlot.slot.jugador_nombre || 'Alumno' }}</h3>
+                            <span class="detail-time-tag">
+                                📅 {{ selectedSlot.slot.fecha || selectedSlot.dateStr }} · {{ selectedSlot.slot.duracion_total_min || 60 }} min
+                            </span>
+                        </div>
                     </div>
 
-                    <!-- SECCIÓN: Participantes (Solo Grupal) -->
-                    <div class="participants-section animate-up" *ngIf="(selectedSlot.slot.tipo || '').toLowerCase().includes('grupal') || (selectedSlot.slot.reserva_tipo || '').toLowerCase().includes('grupal') || (selectedSlot.slot.pack_id && selectedSlot.slot.pack_id != '0')" style="background: #f8fafc; border-radius: 16px; padding: 15px; margin: 15px 0; border: 1px solid #e2e8f0;">
-                        <div class="ps-header" style="margin-bottom: 12px;">
-                            <ion-icon name="people-outline" style="vertical-align: middle; margin-right: 5px; color: #64748b;"></ion-icon>
-                            <b style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase;">Participantes ({{ participantesGrupo.length }}/{{ selectedSlot.slot.capacidad_maxima || 6 }})</b>
+                    <!-- PISTA / CANCHA ASIGNADA CON CAMBIO INLINE -->
+                    <div class="form-section-card animate-fade">
+                        <div class="section-card-header">
+                            <label class="form-label m-0">
+                                <ion-icon name="location-outline"></ion-icon> Cancha
+                            </label>
+                            <button class="btn-inline-action" (click)="showAssignCourtInline = !showAssignCourtInline">
+                                {{ showAssignCourtInline ? 'Ocultar' : 'Cambiar Cancha' }}
+                            </button>
                         </div>
 
-                        <div class="ps-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
-                            <div class="participant-item animate-pop" *ngFor="let p of participantesGrupo" style="display: flex; align-items: center; gap: 6px; background: white; padding: 4px 10px; border-radius: 20px; border: 1px solid #cbd5e1;">
-                                <img [src]="getFotoUrl(p)" (error)="onImgError($event, p)" class="p-avatar" style="width: 20px; height: 20px; border-radius: 50%;">
-                                <span style="font-size: 11px; font-weight: 700; color: #334155;">{{ p.nombre || p.jugador_nombre }}</span>
-                                <ion-icon name="close-circle" style="color: #ef4444; font-size: 14px; margin-left: 2px;" (click)="quitarJugador(p); $event.stopPropagation()"></ion-icon>
+                        <div class="court-current-status" *ngIf="!showAssignCourtInline">
+                            <div class="ccs-left">
+                                <span class="ccs-club">{{ selectedSlot.slot.club_nombre || 'Club' }}</span>
+                                <span class="ccs-court" *ngIf="selectedSlot.slot.cancha_nombre">{{ selectedSlot.slot.cancha_nombre }}</span>
+                                <span class="ccs-warning" *ngIf="!selectedSlot.slot.cancha_nombre">⚠️ Sin cancha asignada</span>
                             </div>
-                            <div class="no-participants" *ngIf="participantesGrupo.length === 0" style="font-size: 12px; color: #94a3b8; font-style: italic; padding: 5px 0;">
+                        </div>
+
+                        <!-- Selector Inline de Canchas -->
+                        <div class="inline-court-picker mt-3 animate-fade" *ngIf="showAssignCourtInline">
+                            <span class="field-label-mini mb-2">SELECCIONA PISTA DISPONIBLE:</span>
+                            <div class="court-tiles-grid">
+                                <div class="court-tile" 
+                                     [class.active]="!selectedSlot.slot.cancha_id"
+                                     (click)="asignarCanchaAReserva(0)">
+                                    <div class="ct-top">
+                                        <ion-icon name="help-circle-outline" class="ct-icon-neutral"></ion-icon>
+                                        <span class="ct-status-badge neutral">Sin Cancha</span>
+                                    </div>
+                                    <span class="ct-name">Liberar Cancha</span>
+                                    <span class="ct-sub">Por definir</span>
+                                </div>
+                                <div *ngFor="let ca of canchasDisponibles" 
+                                     class="court-tile"
+                                     [class.active]="selectedSlot.slot.cancha_id == ca.id"
+                                     [class.occupied]="!ca.disponible && selectedSlot.slot.cancha_id != ca.id"
+                                     (click)="asignarCanchaAReserva(ca.id)">
+                                    <div class="ct-top">
+                                        <span class="ct-court-icon">🎾</span>
+                                        <span class="ct-status-badge" [class.free]="ca.disponible || selectedSlot.slot.cancha_id == ca.id" [class.busy]="!ca.disponible && selectedSlot.slot.cancha_id != ca.id">
+                                            {{ (ca.disponible || selectedSlot.slot.cancha_id == ca.id) ? 'Libre' : 'Ocupada' }}
+                                        </span>
+                                    </div>
+                                    <span class="ct-name">{{ ca.nombre }}</span>
+                                    <span class="ct-sub">{{ ca.tipo || 'Cancha' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GESTIÓN DE PARTICIPANTES (GRUPAL / MULTI) -->
+                    <div class="form-section-card animate-fade" *ngIf="(selectedSlot.slot.tipo || '').toLowerCase().includes('grupal') || (selectedSlot.slot.reserva_tipo || '').toLowerCase().includes('grupal') || participantesGrupo.length > 0">
+                        <div class="section-card-header">
+                            <label class="form-label m-0">
+                                <ion-icon name="people-outline"></ion-icon> Participantes
+                            </label>
+                            <span class="counter-badge">({{ participantesGrupo.length }}/{{ selectedSlot.slot.capacidad_maxima || 6 }})</span>
+                        </div>
+
+                        <div class="participants-chips-wrap">
+                            <div class="participant-chip animate-pop" *ngFor="let p of participantesGrupo">
+                                <img [src]="getFotoUrl(p)" (error)="onImgError($event, p)" class="p-avatar">
+                                <span class="p-name">{{ p.nombre || p.jugador_nombre }}</span>
+                                <button class="btn-remove-p" (click)="quitarJugador(p)">
+                                    <ion-icon name="close-circle"></ion-icon>
+                                </button>
+                            </div>
+                            <div class="empty-participants" *ngIf="participantesGrupo.length === 0">
                                 Sin alumnos inscritos aún.
                             </div>
                         </div>
 
-                        <div class="add-player-box" style="border-top: 1px solid #e2e8f0; padding-top: 12px;">
-                            <label style="font-size: 9px; font-weight: 900; color: #94a3b8; display: block; margin-bottom: 8px;">AGREGAR ALUMNO MANUALMENTE</label>
-                            <div class="search-input-wrap" style="position: relative;">
-                                <ion-searchbar 
-                                    [(ngModel)]="searchQueryMini" 
-                                    (ionInput)="searchPlayersMini()"
-                                    placeholder="Buscar..."
-                                    class="mini-search"
-                                    mode="ios"
-                                    style="--border-radius: 10px; --background: white; --box-shadow: none; border: 1px solid #e2e8f0; height: 36px; padding: 0;">
+                        <!-- Agregar Alumno Manual -->
+                        <div class="add-player-manual-box mt-3">
+                            <span class="field-label-mini">AGREGAR ALUMNO A ESTA SESIÓN:</span>
+                            <div class="search-mini-wrap">
+                                <ion-searchbar [(ngModel)]="searchQueryMini" 
+                                               (ionInput)="searchPlayersMini()" 
+                                               placeholder="Buscar jugador..." 
+                                               class="mini-searchbar" 
+                                               mode="ios">
                                 </ion-searchbar>
-                                
-                                <div class="search-results-mini" *ngIf="searchResultsMini.length > 0" style="position: absolute; top: 40px; left: 0; right: 0; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; z-index: 100; max-height: 150px; overflow-y: auto;">
-                                    <div class="res-item" *ngFor="let res of searchResultsMini" (click)="addJugadorManual(res)" style="padding: 10px 15px; font-size: 12px; font-weight: 700; color: #1e293b; border-bottom: 1px solid #f1f5f9;">
-                                        {{ res.nombre }}
+                                <div class="mini-results-dropdown" *ngIf="searchResultsMini.length > 0">
+                                    <div class="mini-result-item" *ngFor="let res of searchResultsMini" (click)="addJugadorManual(res)">
+                                        <ion-icon name="person-circle-outline"></ion-icon>
+                                        <span>{{ res.nombre }}</span>
+                                        <ion-icon name="add-circle-outline" class="add-icon"></ion-icon>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="nike-card dark animate-fade" *ngIf="!isEditingDetail">
-                        <h4>Planificación</h4>
-                        <p *ngIf="selectedSlot.slot.malla_nombre" style="color: #00f2ff">{{ selectedSlot.slot.malla_nombre }} - {{ selectedSlot.slot.clase_titulo }}</p>
-                        <p *ngIf="!selectedSlot.slot.malla_nombre">Sin planificación técnica asignada.</p>
-                        
-                        <ion-button fill="clear" (click)="enableDetailEdit()">
-                            <ion-icon name="create-outline" slot="start"></ion-icon>
-                            Editar Planificación
-                        </ion-button>
+                    <!-- PLANIFICACIÓN TÉCNICA -->
+                    <div class="form-section-card animate-fade">
+                        <div class="section-card-header">
+                            <label class="form-label m-0">
+                                <ion-icon name="school-outline"></ion-icon> Planificación Técnica
+                            </label>
+                            <button class="btn-inline-action" (click)="enableDetailEdit()" *ngIf="!isEditingDetail">
+                                Editar Plan
+                            </button>
+                        </div>
+
+                        <div *ngIf="!isEditingDetail" class="plan-display-box">
+                            <h4 class="plan-malla-title" *ngIf="selectedSlot.slot.malla_nombre">
+                                {{ selectedSlot.slot.malla_nombre }}
+                            </h4>
+                            <p class="plan-class-title" *ngIf="selectedSlot.slot.clase_titulo">
+                                🎯 {{ selectedSlot.slot.clase_titulo }}
+                            </p>
+                            <p class="plan-empty-note" *ngIf="!selectedSlot.slot.malla_nombre && !selectedSlot.slot.clase_titulo">
+                                No se ha asignado una malla técnica a esta reserva.
+                            </p>
+                        </div>
+
+                        <div *ngIf="isEditingDetail" class="plan-edit-box mt-2">
+                            <div class="malla-card-selector mb-2" [class.has-selection]="planificacionId">
+                                <div class="mcs-left">
+                                    <div class="mcs-icon">
+                                        <ion-icon name="book-outline"></ion-icon>
+                                    </div>
+                                    <div class="mcs-info">
+                                        <span class="mcs-label">MALLA CURRICULAR</span>
+                                        <h4 class="mcs-title">{{ getSelectedMallaNombre() }}</h4>
+                                    </div>
+                                </div>
+                                <div class="mcs-right">
+                                    <span class="mcs-action-badge">{{ planificacionId ? 'Cambiar ▾' : 'Elegir ▾' }}</span>
+                                    <ion-select [(ngModel)]="planificacionId" 
+                                                (ionChange)="onMallaChange()" 
+                                                interface="action-sheet" 
+                                                mode="ios" 
+                                                class="mcs-native-select"
+                                                cancelText="Cancelar">
+                                        <ion-select-option [value]="null">Sin Malla</ion-select-option>
+                                        <ion-select-option *ngFor="let m of mallas" [value]="m.id">📚 {{ m.nombre }}</ion-select-option>
+                                    </ion-select>
+                                </div>
+                            </div>
+
+                            <div class="session-card-selector mb-3" *ngIf="planificacionId">
+                                <div class="scs-left">
+                                    <div class="scs-icon">
+                                        <ion-icon name="tennisball-outline"></ion-icon>
+                                    </div>
+                                    <div class="scs-info">
+                                        <span class="scs-label">SESIÓN / DRILLS</span>
+                                        <h4 class="scs-title">{{ getSelectedClaseNombre() }}</h4>
+                                    </div>
+                                </div>
+                                <div class="scs-right">
+                                    <span class="mcs-action-badge">{{ claseMallaId ? 'Cambiar ▾' : 'Elegir ▾' }}</span>
+                                    <ion-select [(ngModel)]="claseMallaId" 
+                                                (ionChange)="onClaseChange()" 
+                                                interface="action-sheet" 
+                                                mode="ios" 
+                                                class="mcs-native-select"
+                                                cancelText="Cancelar">
+                                        <ion-select-option [value]="null">Sin sesión fija</ion-select-option>
+                                        <ion-select-option *ngFor="let c of clasesDisponibles" [value]="c.id">Sesión {{ c.sesion_numero }}: {{ c.titulo }}</ion-select-option>
+                                    </ion-select>
+                                </div>
+                            </div>
+                            <ion-button expand="block" shape="round" class="btn-save-plan" (click)="saveTechnicalDetail()">
+                                Guardar Planificación
+                            </ion-button>
+                        </div>
                     </div>
 
-                    <div class="nike-card dark animate-fade" *ngIf="isEditingDetail">
-                        <h4 style="color: white; padding-left: 0;">Editar Planificación</h4>
-                        <ion-item lines="none" style="--background: transparent; --padding-start: 0;">
-                            <ion-select [(ngModel)]="planificacionId" (ionChange)="onMallaChange()" interface="popover" placeholder="Elige la Malla" mode="ios" style="color: white; width: 100%;">
-                                <ion-select-option *ngFor="let m of mallas" [value]="m.id">{{ m.nombre }}</ion-select-option>
-                            </ion-select>
-                        </ion-item>
-                        <ion-item lines="none" style="--background: transparent; --padding-start: 0;" *ngIf="planificacionId">
-                            <ion-select [(ngModel)]="claseMallaId" (ionChange)="onClaseChange()" interface="popover" placeholder="Elige qué clase dar" mode="ios" style="color: #00f2ff; width: 100%;">
-                                <ion-select-option *ngFor="let c of clasesDisponibles" [value]="c.id">({{ c.sesion_numero }}) {{ c.titulo }}</ion-select-option>
-                            </ion-select>
-                        </ion-item>
-                        
-                        <ion-button expand="block" shape="round" class="nike-btn outline-success mt-4" (click)="saveTechnicalDetail()">Guardar Plan</ion-button>
-                    </div>
-
-                    <div class="mt-4 mb-4 text-center">
-                        <ion-button expand="block" fill="solid" class="btn-cancelar-nike" (click)="confirmarCancelacion()">
+                    <!-- BOTÓN CANCELAR CLASE -->
+                    <div class="danger-zone-container mt-4 mb-4">
+                        <ion-button expand="block" fill="solid" class="btn-cancel-reservation" (click)="confirmarCancelacion()">
                             <ion-icon name="trash-outline" slot="start"></ion-icon>
-                            Cancelar Reserva
+                            Cancelar y Liberar Horario
                         </ion-button>
                     </div>
+
                 </div>
             </ion-content>
         </ng-template>
     </ion-modal>
 
-    <!-- Back FAB -->
+    <!-- FAB VOLVER ATRÁS -->
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button class="nike-fab back-fab" (click)="goBack()">
+        <ion-fab-button class="fab-back" (click)="goBack()">
             <ion-icon name="chevron-back-outline"></ion-icon>
         </ion-fab-button>
     </ion-fab>
+
 </ion-content>

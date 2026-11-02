@@ -45,6 +45,18 @@
             <h3>{{ alumno.nombre }}</h3>
           </div>
 
+          <!-- Phone & WhatsApp Row -->
+          <div class="student-phone-row">
+            <button type="button" class="phone-chip" [class.has-phone]="alumno.telefono" (click)="editarTelefono(alumno, $event)">
+              <ion-icon [name]="alumno.telefono ? 'call-outline' : 'add-circle-outline'"></ion-icon>
+              <span>{{ alumno.telefono || '+ Agregar celular' }}</span>
+              <ion-icon name="create-outline" class="edit-icon" *ngIf="alumno.telefono"></ion-icon>
+            </button>
+            <button type="button" class="btn-wa-ping" *ngIf="alumno.telefono" (click)="abrirWhatsApp(alumno, $event)" title="Enviar WhatsApp">
+              <ion-icon name="logo-whatsapp"></ion-icon>
+            </button>
+          </div>
+
           <!-- Stats Row -->
           <div class="stats-row">
             <div class="stat-item">
@@ -206,9 +218,14 @@
             <ion-input type="text" [(ngModel)]="nuevoAlumno.nombre" placeholder="Ej: Juan Pérez" style="font-weight: 700; color: #000;"></ion-input>
           </ion-item>
 
-          <ion-item class="nike-input-item" lines="none" style="--background: #f8f8fa; --border-radius: 16px; margin-bottom: 25px;">
+          <ion-item class="nike-input-item" lines="none" style="--background: #f8f8fa; --border-radius: 16px; margin-bottom: 15px;">
             <ion-label position="stacked" style="font-weight: 800; color: #111; margin-bottom: 5px;">Correo Electrónico (Será su Usuario)</ion-label>
             <ion-input type="email" [(ngModel)]="nuevoAlumno.email" placeholder="alumno@correo.com" style="font-weight: 700; color: #000;"></ion-input>
+          </ion-item>
+
+          <ion-item class="nike-input-item" lines="none" style="--background: #f8f8fa; --border-radius: 16px; margin-bottom: 25px;">
+            <ion-label position="stacked" style="font-weight: 800; color: #111; margin-bottom: 5px;">Teléfono / WhatsApp (Opcional)</ion-label>
+            <ion-input type="tel" [(ngModel)]="nuevoAlumno.telefono" placeholder="Ej: +56 9 1234 5678" style="font-weight: 700; color: #000;"></ion-input>
           </ion-item>
 
           <div class="info-box-sm" style="display: flex; gap: 12px; background: rgba(204, 255, 0, 0.15); padding: 15px; border-radius: 16px;">

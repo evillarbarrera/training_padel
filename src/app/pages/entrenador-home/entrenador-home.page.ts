@@ -1,4 +1,4 @@
-import { Component, NgZone } from '@angular/core';
+import { Component, NgZone, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ProfileSelectorModalComponent } from 'src/app/components/profile-selector-modal/profile-selector-modal.component';
@@ -117,6 +117,12 @@ export class EntrenadorHomePage {
   fechaHoyLegible: string = '';
 
   // New Features
+  @ViewChild('cardsSlider') cardsSlider?: ElementRef;
+  proximasClasesList: any[] = [];
+  currentCardIndex: number = 0;
+  alumnosMap: { [key: string]: any } = {};
+  alumnosNombreMap: { [key: string]: any } = {};
+
   claseActual: any = null;
   alumnosRecordatorioList: any[] = [];
   
@@ -380,6 +386,23 @@ export class EntrenadorHomePage {
     });
   }
 
+  formatDiaLabel(fechaStr: string, fechaHoy: string, fechaManana: string): string {
+    if (fechaStr === fechaHoy) return 'Hoy';
+    if (fechaStr === fechaManana) return 'Mañana';
+    try {
+      const parts = fechaStr.split('-');
+      if (parts.length === 3) {
+        const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+        const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        return `${diasSemana[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;
+      }
+    } catch {
+      // Fallback
+    }
+    return fechaStr;
+  }
+
   loadAgenda() {
     const userId = Number(localStorage.getItem('userId'));
     if (!userId) return;
@@ -401,30 +424,44 @@ export class EntrenadorHomePage {
         const fechaManana = formatDate(tomorrow);
 
         const diaSemanaHoy = today.getDay() === 0 ? 7 : today.getDay();
-        const diaSemanaManana = tomorrow.getDay() === 0 ? 7 : tomorrow.getDay();
 
-        let clases = [];
+        let clases: any[] = [];
 
-        // 1. Tradicionales
+        // 1. Tradicionales (desde hoy en adelante)
         if (res.reservas_tradicionales) {
-          const proximas = res.reservas_tradicionales.filter((r: any) => r.fecha === fechaHoy || r.fecha === fechaManana);
+          const proximas = res.reservas_tradicionales.filter((r: any) => {
+            if (!r.fecha) return false;
+            if (r.fecha < fechaHoy) return false;
+            // Si es hoy, no incluir si terminó hace más de 55 minutos
+            if (r.fecha === fechaHoy) {
+              const hStr = (r.hora_inicio || '00:00').substring(0, 5);
+              const [h, m] = hStr.split(':').map(Number);
+              const classDate = new Date();
+              classDate.setHours(h, m, 0, 0);
+              const diffMins = (today.getTime() - classDate.getTime()) / 60000;
+              return diffMins <= 55; // Sigue visible si no ha terminado
+            }
+            return true;
+          });
+
           clases.push(...proximas.map((r: any) => ({
             id: r.id || r.reserva_id,
             reserva_id: r.id || r.reserva_id,
             jugador_id: r.jugador_id,
-            telefono: r.telefono || r.jugador_telefono,
+            telefono: r.telefono || r.jugador_telefono || '',
+            inscritos: r.inscritos || [],
             fecha: r.fecha,
-            diaLabel: r.fecha === fechaHoy ? 'Hoy' : 'Mañana',
-            hora: r.hora_inicio.substring(0, 5),
+            diaLabel: this.formatDiaLabel(r.fecha, fechaHoy, fechaManana),
+            hora: (r.hora_inicio || '').substring(0, 5),
             tipo: (r.tipo === 'pack_grupal' || r.tipo === 'grupal') ? 'Grupal' :
               (
                 r.tipo?.toLowerCase() === 'multijugador' ||
-                (r.cantidad_personas && r.cantidad_personas > 1) ||
+                (r.cupos_ocupados && r.cupos_ocupados > 1) ||
                 (r.pack_nombre?.toLowerCase()?.includes('duo')) ||
                 (r.pack_nombre?.toLowerCase()?.includes('dupla')) ||
                 (r.pack_nombre?.toLowerCase()?.includes('pareja'))
               ) ? 'Multijugador' : 'Individual',
-            titulo: r.jugador_nombre || 'Clase Grupal',
+            titulo: r.jugador_nombre || 'Clase Agendada',
             subtitulo: r.pack_nombre,
             lugar: r.cancha_nombre ? `${r.club_nombre || 'Club'} · ${r.cancha_nombre}` : (r.club_nombre || 'Club de Pádel'),
             cancha_nombre: r.cancha_nombre,
@@ -435,61 +472,96 @@ export class EntrenadorHomePage {
 
         // 2. Packs Grupales
         if (res.packs_grupales) {
-          const grupHoy = res.packs_grupales.filter((g: any) =>
-            Number(g.dia_semana) === diaSemanaHoy &&
-            !clases.some(c => c.fecha === fechaHoy && c.hora === g.hora_inicio.substring(0, 5))
-          );
-          const grupManana = res.packs_grupales.filter((g: any) =>
-            Number(g.dia_semana) === diaSemanaManana &&
-            !clases.some(c => c.fecha === fechaManana && c.hora === g.hora_inicio.substring(0, 5))
-          );
-
-          clases.push(...grupHoy.map((g: any) => ({
-            id: g.id || g.pack_id,
-            reserva_id: g.id || g.pack_id,
-            pack_id: g.pack_id,
-            fecha: fechaHoy,
-            diaLabel: 'Hoy',
-            hora: g.hora_inicio.substring(0, 5),
-            tipo: 'Grupal',
-            titulo: g.pack_nombre,
-            subtitulo: `${g.inscritos_confirmados || 0} inscritos`,
-            lugar: g.club_nombre,
-            estado: 'activo',
-            raw: g
-          })));
-
-          clases.push(...grupManana.map((g: any) => ({
-            id: g.id || g.pack_id,
-            reserva_id: g.id || g.pack_id,
-            pack_id: g.pack_id,
-            fecha: fechaManana,
-            diaLabel: 'Mañana',
-            hora: g.hora_inicio.substring(0, 5),
-            tipo: 'Grupal',
-            titulo: g.pack_nombre,
-            subtitulo: `${g.inscritos_confirmados || 0} inscritos`,
-            lugar: g.club_nombre,
-            estado: 'activo'
-          })));
+          res.packs_grupales.forEach((g: any) => {
+            if (g.fecha && g.fecha >= fechaHoy) {
+              // Pack grupal con fecha asignada
+              const yaExiste = clases.some(c => c.fecha === g.fecha && c.hora === (g.hora_inicio || '').substring(0, 5));
+              if (!yaExiste) {
+                clases.push({
+                  id: g.id || g.pack_id,
+                  reserva_id: g.id || g.pack_id,
+                  pack_id: g.pack_id,
+                  fecha: g.fecha,
+                  diaLabel: this.formatDiaLabel(g.fecha, fechaHoy, fechaManana),
+                  hora: (g.hora_inicio || '').substring(0, 5),
+                  tipo: 'Grupal',
+                  titulo: g.pack_nombre,
+                  subtitulo: `${g.cupos_ocupados || g.inscritos_confirmados || 0} inscritos`,
+                  lugar: g.club_nombre,
+                  estado: 'activo',
+                  inscritos: g.inscritos || [],
+                  telefono: g.telefono || g.jugador_telefono || '',
+                  raw: g
+                });
+              }
+            } else if (g.dia_semana) {
+              // Template recurrente: proyectar próximas ocurrencias en los próximos 14 días
+              const targetDay = Number(g.dia_semana);
+              for (let offset = 0; offset <= 14; offset++) {
+                const targetDate = new Date();
+                targetDate.setDate(today.getDate() + offset);
+                const dayNum = targetDate.getDay() === 0 ? 7 : targetDate.getDay();
+                if (dayNum === targetDay) {
+                  const targetFechaStr = formatDate(targetDate);
+                  const horaStr = (g.hora_inicio || '').substring(0, 5);
+                  const yaExiste = clases.some(c => c.fecha === targetFechaStr && c.hora === horaStr);
+                  if (!yaExiste) {
+                    clases.push({
+                      id: g.id || g.pack_id,
+                      reserva_id: g.id || g.pack_id,
+                      pack_id: g.pack_id,
+                      fecha: targetFechaStr,
+                      diaLabel: this.formatDiaLabel(targetFechaStr, fechaHoy, fechaManana),
+                      hora: horaStr,
+                      tipo: 'Grupal',
+                      titulo: g.pack_nombre,
+                      subtitulo: `${g.cupos_ocupados || g.inscritos_confirmados || 0} inscritos`,
+                      lugar: g.club_nombre,
+                      estado: 'activo',
+                      inscritos: g.inscritos || [],
+                      telefono: g.telefono || g.jugador_telefono || '',
+                      raw: g
+                    });
+                  }
+                }
+              }
+            }
+          });
         }
 
-        // Sort
+        // Ordenar cronológicamente (por fecha y luego por hora)
         clases.sort((a, b) => {
           if (a.fecha !== b.fecha) return a.fecha.localeCompare(b.fecha);
           return a.hora.localeCompare(b.hora);
         });
 
-        // Filter past classes for Today
+        // Detectar si hay una clase en curso ahora mismo
         const now = new Date();
-        const currentHHmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        
-        this.clasesHoyList = clases.filter(c => {
-          if (c.diaLabel === 'Hoy') {
-             return c.hora >= currentHHmm;
+        this.claseActual = null;
+        for (const c of clases) {
+          if (c.fecha === fechaHoy) {
+            const [cHour, cMin] = c.hora.split(':').map(Number);
+            const cDate = new Date();
+            cDate.setHours(cHour, cMin, 0, 0);
+            const diffMins = (now.getTime() - cDate.getTime()) / 60000;
+            if (diffMins >= -5 && diffMins <= 55) {
+              c.isLive = true;
+              this.claseActual = c;
+              break;
+            }
           }
-          return true; // Keep all tomorrow classes
-        });
+        }
+
+        // Clases de hoy para los contadores y métricas
+        this.clasesHoyList = clases.filter(c => c.fecha === fechaHoy);
+
+        // Próximas clases máximo 10
+        this.proximasClasesList = clases.slice(0, 10);
+
+        if (this.currentCardIndex >= this.proximasClasesList.length) {
+          this.currentCardIndex = 0;
+        }
+
         this.isLoading = false;
       },
       error: (err) => {
@@ -708,10 +780,26 @@ export class EntrenadorHomePage {
   }
 
   loadPaymentAlerts(userId: number) {
-    // Fetch students with low pack balance
+    // Fetch students with low pack balance & build lookup cache for phones
     this.mysqlService.getAlumnos(userId).subscribe({
       next: (res: any) => {
         if (res && Array.isArray(res)) {
+          this.alumnosMap = {};
+          this.alumnosNombreMap = {};
+          for (const a of res) {
+            const id = a.jugador_id || a.id;
+            const tel = a.jugador_telefono || a.telefono || '';
+            if (id) {
+              this.alumnosMap[id] = { ...a, telefono: tel };
+            }
+            if (a.jugador_nombre) {
+              this.alumnosNombreMap[a.jugador_nombre.toLowerCase().trim()] = { ...a, telefono: tel };
+            }
+            if (a.nombre) {
+              this.alumnosNombreMap[a.nombre.toLowerCase().trim()] = { ...a, telefono: tel };
+            }
+          }
+
           // Filter students with 0 or 1 classes remaining
           this.alumnosRecordatorioList = res.filter((a: any) => 
             a.tiene_pack == 1 && Number(a.clases_disponibles) <= 1
@@ -741,26 +829,154 @@ export class EntrenadorHomePage {
   }
 
   get proximaClase(): any {
-    return this.claseActual || (this.clasesHoyList.length > 0 ? this.clasesHoyList[0] : null);
+    return this.claseActual || (this.proximasClasesList.length > 0 ? this.proximasClasesList[0] : null);
+  }
+
+  get tieneClaseEnCurso(): boolean {
+    return !!this.claseActual;
+  }
+
+  scrollToCard(index: number) {
+    if (this.cardsSlider?.nativeElement) {
+      const slider = this.cardsSlider.nativeElement;
+      const child = slider.children[index];
+      if (child) {
+        child.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+      this.currentCardIndex = index;
+    }
+  }
+
+  onCardsScroll(event: any) {
+    const el = event.target;
+    if (!el) return;
+    const scrollLeft = el.scrollLeft;
+    const width = el.offsetWidth || 1;
+    const newIndex = Math.round(scrollLeft / width);
+    if (newIndex >= 0 && newIndex < this.proximasClasesList.length) {
+      this.currentCardIndex = newIndex;
+    }
+  }
+
+  resolverTelefono(jugadorId: any, nombre: string, telRaw: string): string {
+    let tel = (telRaw || '').toString().trim();
+    if (!tel && jugadorId && this.alumnosMap[jugadorId]) {
+      tel = (this.alumnosMap[jugadorId].telefono || '').toString().trim();
+    }
+    if (!tel && nombre) {
+      const cleanNombre = nombre.toLowerCase().trim();
+      if (this.alumnosNombreMap[cleanNombre]) {
+        tel = (this.alumnosNombreMap[cleanNombre].telefono || '').toString().trim();
+      }
+    }
+    return tel;
   }
 
   sendWhatsAppReminder(alumno: any, event?: Event) {
     if (event) event.stopPropagation();
+    const tel = this.resolverTelefono(alumno.id, alumno.nombre, alumno.telefono);
+    const cleanTel = (tel || '').replace(/[^0-9]/g, '');
+    if (!cleanTel) {
+      this.mostrarAlertaSinTelefono(alumno.nombre);
+      return;
+    }
+    let finalPhone = cleanTel;
+    if (finalPhone.length === 9 && finalPhone.startsWith('9')) {
+      finalPhone = '56' + finalPhone;
+    } else if (finalPhone.length === 8) {
+      finalPhone = '569' + finalPhone;
+    }
     const msg = `Hola ${alumno.nombre}, te escribo de Padel Academy. Notamos que te quedan ${alumno.clases_disponibles} clases en tu pack. ¡No olvides renovar para asegurar tu horario! 🎾`;
-    window.open(`https://wa.me/${alumno.telefono}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 
-  contactarAlumnoClase(clase: any, event?: Event) {
+  async contactarAlumnoClase(clase: any, event?: Event) {
     if (event) event.stopPropagation();
-    const tel = clase?.telefono || clase?.jugador_telefono || '';
-    const alumnoNombre = clase?.titulo || 'Alumno';
-    const hora = clase?.hora || '';
-    const msg = `Hola ${alumnoNombre}, te contacto de Padelblox respecto a nuestra clase programada para hoy a las ${hora} hrs. 🎾`;
-    if (tel) {
-      window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank');
-    } else {
-      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+
+    const inscritos = (clase?.inscritos && Array.isArray(clase.inscritos)) ? clase.inscritos : [];
+
+    // Si es un grupo con múltiples inscritos, permitir elegir a cuál contactar
+    if (inscritos.length > 1) {
+      const buttons: any[] = inscritos.map((ins: any) => {
+        const tel = this.resolverTelefono(ins.id, ins.nombre, ins.telefono);
+        return {
+          text: `${ins.nombre} ${tel ? '(' + tel + ')' : '(Sin celular)'}`,
+          icon: 'logo-whatsapp',
+          handler: () => {
+            this.abrirWhatsAppAlumno(ins.nombre, tel, clase);
+          }
+        };
+      });
+
+      buttons.push({
+        text: 'Cancelar',
+        icon: 'close',
+        role: 'cancel'
+      });
+
+      const actionSheet = await this.actionSheetCtrl.create({
+        header: 'Contactar por WhatsApp',
+        subHeader: 'Selecciona al alumno que deseas contactar:',
+        buttons
+      });
+
+      await actionSheet.present();
+      return;
     }
+
+    // Caso de sesión individual o único alumno
+    const primerInscrito = inscritos.length === 1 ? inscritos[0] : null;
+    const alumnoNombre = primerInscrito?.nombre || clase?.titulo || 'Alumno';
+    const telRaw = primerInscrito?.telefono || clase?.telefono || clase?.jugador_telefono || '';
+    const alumnoId = primerInscrito?.id || clase?.jugador_id;
+    const tel = this.resolverTelefono(alumnoId, alumnoNombre, telRaw);
+
+    this.abrirWhatsAppAlumno(alumnoNombre, tel, clase);
+  }
+
+  abrirWhatsAppAlumno(alumnoNombre: string, tel: string, clase: any) {
+    const cleanTel = (tel || '').replace(/[^0-9]/g, '');
+
+    if (!cleanTel) {
+      this.mostrarAlertaSinTelefono(alumnoNombre);
+      return;
+    }
+
+    // Normalizar a formato internacional (especialmente para Chile)
+    let finalPhone = cleanTel;
+    if (finalPhone.length === 9 && finalPhone.startsWith('9')) {
+      finalPhone = '56' + finalPhone; // Prefijo móvil Chile
+    } else if (finalPhone.length === 8) {
+      finalPhone = '569' + finalPhone;
+    }
+
+    const hora = clase?.hora || '';
+    const diaLabel = clase?.diaLabel ? clase.diaLabel.toLowerCase() : 'hoy';
+    const diaTexto = diaLabel === 'hoy' ? 'hoy' : (diaLabel === 'mañana' ? 'mañana' : `el día ${clase?.diaLabel || ''}`);
+
+    const msg = `Hola ${alumnoNombre}, te contacto de Padelblox respecto a nuestra clase programada para ${diaTexto} a las ${hora} hrs. 🎾`;
+    window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
+  async mostrarAlertaSinTelefono(alumnoNombre: string) {
+    const alert = await this.alertCtrl.create({
+      header: 'Sin celular registrado',
+      subHeader: alumnoNombre,
+      message: `El alumno ${alumnoNombre} aún no tiene un número de celular o WhatsApp registrado en su cuenta de Padelblox. Puedes agregarlo en la sección Alumnos.`,
+      buttons: [
+        {
+          text: 'Cerrar',
+          role: 'cancel'
+        },
+        {
+          text: 'Ir a Alumnos',
+          handler: () => {
+            this.router.navigate(['/alumnos']);
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   async confirmarCancelacionAlumnoNoLlego(clase: any, event?: Event) {

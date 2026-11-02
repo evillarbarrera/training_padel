@@ -221,8 +221,86 @@ ion-content.entrenador-home-content {
 }
 
 /* --------------------------------------------------------------------------
-   2. TARJETA TÁCTICA DE PISTA (SESIÓN ACTUAL / PRÓXIMA)
+   2. CARRUSEL TÁCTICO DE PISTA (SESIONES HASTA 10 CON SWIPE)
    -------------------------------------------------------------------------- */
+.tactical-carousel-wrapper {
+  position: relative;
+  margin-bottom: 22px;
+  width: 100%;
+
+  .tactical-cards-slider {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    gap: 12px;
+    padding: 2px 2px 4px;
+    margin: 0;
+  }
+
+  .tactical-slide-item {
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    box-sizing: border-box;
+
+    .tactical-session-card {
+      margin-bottom: 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+  }
+
+  .carousel-indicators-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 4px 0;
+
+    .indicators-track {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .indicator-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 4px;
+        background: #cbd5e1;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+
+        &.active {
+          width: 22px;
+          background: #0f172a;
+          box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+        }
+      }
+    }
+
+    .swipe-hint-txt {
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+
+      ion-icon {
+        font-size: 14px;
+        color: #64748b;
+      }
+    }
+  }
+}
+
 .tactical-session-card {
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   border-radius: 24px;

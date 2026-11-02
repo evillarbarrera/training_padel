@@ -133,6 +133,20 @@ export class EntrenamientoService {
     return this.http.get<any[]>(`${this.api}/clubes/get_clubes.php`, { headers: this.getHeaders() });
   }
 
+  getCanchasDisponibles(clubId: number, fecha?: string, horaInicio?: string, horaFin?: string): Observable<any[]> {
+    let url = `${this.api}/clubes/get_canchas_disponibles.php?club_id=${clubId}`;
+    if (fecha) url += `&fecha=${encodeURIComponent(fecha)}`;
+    if (horaInicio) url += `&hora_inicio=${encodeURIComponent(horaInicio)}`;
+    if (horaFin) url += `&hora_fin=${encodeURIComponent(horaFin)}`;
+    return this.http.get<any[]>(url, { headers: this.getHeaders() });
+  }
+
+  asignarCancha(payload: { reserva_id: number; cancha_id: number }): Observable<any> {
+    return this.http.post(`${this.api}/entrenador/asignar_cancha.php`, payload, {
+      headers: this.getHeaders()
+    });
+  }
+
   addClub(payload: any): Observable<any> {
     return this.http.post<any>(`${this.api}/clubes/add_club.php`, payload, { headers: this.getHeaders() });
   }
