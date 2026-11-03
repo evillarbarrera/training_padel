@@ -18,7 +18,7 @@ import {
     locationOutline, alertCircleOutline, cubeOutline, schoolOutline, repeatOutline, cardOutline,
     ticketOutline, walletOutline, searchOutline, peopleOutline, closeCircle, swapHorizontalOutline,
     checkmarkDoneOutline, informationCircleOutline, sparklesOutline, chevronDownOutline, eyeOutline,
-    businessOutline, helpCircleOutline
+    businessOutline, helpCircleOutline, logoWhatsapp
 } from 'ionicons/icons';
 import { environment } from 'src/environments/environment';
 import { NotificationService } from '../../services/notification.service';
@@ -138,7 +138,7 @@ export class EntrenadorAgendarPage implements OnInit {
             locationOutline, alertCircleOutline, cubeOutline, schoolOutline, repeatOutline, cardOutline,
             ticketOutline, walletOutline, searchOutline, peopleOutline, closeCircle, swapHorizontalOutline,
             checkmarkDoneOutline, informationCircleOutline, sparklesOutline, chevronDownOutline, eyeOutline,
-            businessOutline, helpCircleOutline
+            businessOutline, helpCircleOutline, logoWhatsapp
         });
     }
 
@@ -1150,6 +1150,38 @@ export class EntrenadorAgendarPage implements OnInit {
     }
 
     // --- ACCIONES EN MODAL DE DETALLE ---
+    contactarPorWhatsApp(slot: any) {
+        if (!slot) return;
+        const nombre = slot.jugador_nombre || 'Alumno';
+        const rawTel = slot.jugador_telefono || slot.telefono || '';
+        const cleanTel = (rawTel || '').replace(/[^0-9]/g, '');
+
+        if (!cleanTel) {
+            this.mostrarToast(`El alumno ${nombre} no tiene número de teléfono registrado`);
+            return;
+        }
+
+        let finalPhone = cleanTel;
+        if (finalPhone.length === 9 && finalPhone.startsWith('9')) {
+            finalPhone = '56' + finalPhone;
+        } else if (finalPhone.length === 8) {
+            finalPhone = '569' + finalPhone;
+        }
+
+        const hora = slot.hora_inicio_reserva || slot.hora_inicio || '';
+        const fecha = slot.fecha || this.selectedSlot?.dateStr || 'hoy';
+        const clubTexto = slot.club_nombre ? ` en ${slot.club_nombre}` : '';
+        const canchaTexto = slot.cancha_nombre ? ` (${slot.cancha_nombre})` : '';
+
+        const msg = `Hola ${nombre} 👋, te escribe tu entrenador de la Academia de Pádel.
+
+Te contacto para coordinar y confirmar nuestra clase programada para el *${fecha} a las ${hora} hrs*${clubTexto}${canchaTexto}. 🎾
+
+📲 Recuerda que el seguimiento de tus entrenamientos, asistencias y mallas técnicas se realiza mediante la app *PadelBlox*. ¡Te espero en la pista!`;
+
+        window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
     async confirmarCancelacion() {
         const resId = this.selectedSlot?.slot?.reserva_id || this.selectedSlot?.slot?.id;
         if (!resId) return;

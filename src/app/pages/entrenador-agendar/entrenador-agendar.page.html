@@ -669,6 +669,9 @@
                                 📅 {{ selectedSlot.slot.fecha || selectedSlot.dateStr }} · {{ selectedSlot.slot.duracion_total_min || 60 }} min
                             </span>
                         </div>
+                        <button type="button" class="btn-wa-detail-icon" (click)="contactarPorWhatsApp(selectedSlot.slot)" title="Contactar por WhatsApp">
+                            <ion-icon name="logo-whatsapp"></ion-icon>
+                        </button>
                     </div>
 
                     <!-- PISTA / CANCHA ASIGNADA CON CAMBIO INLINE -->

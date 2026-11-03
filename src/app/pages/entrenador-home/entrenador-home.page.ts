@@ -886,7 +886,12 @@ export class EntrenadorHomePage {
     } else if (finalPhone.length === 8) {
       finalPhone = '569' + finalPhone;
     }
-    const msg = `Hola ${alumno.nombre}, te escribo de Padel Academy. Notamos que te quedan ${alumno.clases_disponibles} clases en tu pack. ¡No olvides renovar para asegurar tu horario! 🎾`;
+    const coachStr = this.coachNombre ? `tu entrenador ${this.coachNombre}` : 'tu entrenador';
+    const msg = `Hola ${alumno.nombre} 👋, te escribe ${coachStr} de la Academia de Pádel.
+
+Te recordamos que te quedan *${alumno.clases_disponibles} clases* en tu pack activo. Te sugerimos renovar con tiempo para asegurar tus horarios y mantener la continuidad en tu entrenamiento. 🎾
+
+📲 Recuerda que la gestión de tus clases, renovaciones de packs y seguimiento técnico se realiza a través de la app *PadelBlox*. ¡Nos vemos en la pista!`;
     window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 
@@ -953,8 +958,14 @@ export class EntrenadorHomePage {
     const hora = clase?.hora || '';
     const diaLabel = clase?.diaLabel ? clase.diaLabel.toLowerCase() : 'hoy';
     const diaTexto = diaLabel === 'hoy' ? 'hoy' : (diaLabel === 'mañana' ? 'mañana' : `el día ${clase?.diaLabel || ''}`);
+    const coachStr = this.coachNombre ? `tu entrenador ${this.coachNombre}` : 'tu entrenador';
+    const lugarTexto = clase?.cancha_nombre ? ` (${clase?.club_nombre ? clase.club_nombre + ' · ' : ''}${clase.cancha_nombre})` : (clase?.club_nombre ? ` en ${clase.club_nombre}` : '');
 
-    const msg = `Hola ${alumnoNombre}, te contacto de Padelblox respecto a nuestra clase programada para ${diaTexto} a las ${hora} hrs. 🎾`;
+    const msg = `Hola ${alumnoNombre} 👋, te escribe ${coachStr} de la Academia de Pádel.
+
+Te contacto para coordinar y confirmar nuestra clase programada para *${diaTexto} a las ${hora} hrs*${lugarTexto}. 🎾
+
+📲 Recuerda que la asistencia, mallas de entrenamiento y avances de la academia se gestionan directamente a través de *PadelBlox*. ¡Te espero en la pista!`;
     window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 

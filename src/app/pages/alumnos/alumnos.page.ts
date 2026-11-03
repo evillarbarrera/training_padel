@@ -587,7 +587,9 @@ export class AlumnosPage implements OnInit {
     } else if (finalPhone.length === 8) {
       finalPhone = '569' + finalPhone;
     }
-    const msg = `Hola ${alumno.nombre}, te contacto de Padelblox respecto a tus entrenamientos. 🎾`;
+    const msg = `Hola ${alumno.nombre} 👋, te contacto desde la Academia de Pádel respecto a tus entrenamientos y clases. 🎾
+
+📲 Te recordamos que la gestión de tus sesiones, mallas técnicas y packs se realiza mediante *PadelBlox*. Si necesitas coordinar un horario o tienes consultas sobre tus clases, avísame por aquí.`;
     window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 

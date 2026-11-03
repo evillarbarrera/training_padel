@@ -129,8 +129,20 @@ export class EntrenadorPacksPage implements OnInit {
   }
 
   sendWhatsAppReminder(alumno: any) {
-    const msg = `Hola ${alumno.nombre}, te escribo de Padel Academy. Notamos que te quedan ${alumno.clases_disponibles} clases en tu pack. ¡No olvides renovar para asegurar tu horario! 🎾`;
-    window.open(`https://wa.me/${alumno.telefono}?text=${encodeURIComponent(msg)}`, '_blank');
+    const rawTel = (alumno.telefono || '').replace(/[^0-9]/g, '');
+    let finalPhone = rawTel;
+    if (finalPhone.length === 9 && finalPhone.startsWith('9')) {
+      finalPhone = '56' + finalPhone;
+    } else if (finalPhone.length === 8) {
+      finalPhone = '569' + finalPhone;
+    }
+
+    const msg = `Hola ${alumno.nombre} 👋, te escribo de la Academia de Pádel.
+
+Te recordamos que te quedan *${alumno.clases_disponibles} clases* en tu pack activo. Te sugerimos renovar con tiempo para asegurar tus horarios y mantener la continuidad en tu entrenamiento. 🎾
+
+📲 Recuerda que la gestión de tus clases, renovaciones de packs y seguimiento técnico se realiza a través de la app *PadelBlox*. ¡Nos vemos en la pista!`;
+    window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 
   cargarPacks() {
