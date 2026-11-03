@@ -137,9 +137,11 @@ export class EntrenadorPacksPage implements OnInit {
       finalPhone = '569' + finalPhone;
     }
 
-    const msg = `Hola ${alumno.nombre} 👋, te escribo de la Academia de Pádel.
+    const coach = localStorage.getItem('userName') || localStorage.getItem('userNombre') || localStorage.getItem('nombre') || '';
+    const coachStr = coach ? `tu entrenador ${coach}` : 'tu entrenador';
+    const msg = `Hola ${alumno.nombre} 👋, te escribe ${coachStr}.
 
-Te recordamos que te quedan *${alumno.clases_disponibles} clases* en tu pack activo. Te sugerimos renovar con tiempo para asegurar tus horarios y mantener la continuidad en tu entrenamiento. 🎾
+Te recuerdo que te quedan *${alumno.clases_disponibles} clases* en tu pack activo. Te sugiero renovar con tiempo para asegurar tus horarios y mantener la continuidad en tus entrenamientos. 🎾
 
 📲 Recuerda que la gestión de tus clases, renovaciones de packs y seguimiento técnico se realiza a través de la app *PadelBlox*. ¡Nos vemos en la pista!`;
     window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(msg)}`, '_blank');

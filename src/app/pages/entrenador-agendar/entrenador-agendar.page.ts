@@ -1173,7 +1173,9 @@ export class EntrenadorAgendarPage implements OnInit {
         const clubTexto = slot.club_nombre ? ` en ${slot.club_nombre}` : '';
         const canchaTexto = slot.cancha_nombre ? ` (${slot.cancha_nombre})` : '';
 
-        const msg = `Hola ${nombre} 👋, te escribe tu entrenador de la Academia de Pádel.
+        const coach = localStorage.getItem('userName') || localStorage.getItem('userNombre') || localStorage.getItem('nombre') || '';
+        const coachStr = coach ? `tu entrenador ${coach}` : 'tu entrenador';
+        const msg = `Hola ${nombre} 👋, te escribe ${coachStr}.
 
 Te contacto para coordinar y confirmar nuestra clase programada para el *${fecha} a las ${hora} hrs*${clubTexto}${canchaTexto}. 🎾
 

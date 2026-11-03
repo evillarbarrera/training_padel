@@ -886,8 +886,9 @@ export class EntrenadorHomePage {
     } else if (finalPhone.length === 8) {
       finalPhone = '569' + finalPhone;
     }
-    const coachStr = this.coachNombre ? `tu entrenador ${this.coachNombre}` : 'tu entrenador';
-    const msg = `Hola ${alumno.nombre} 👋, te escribe ${coachStr} de la Academia de Pádel.
+    const coach = this.coachNombre || localStorage.getItem('userName') || localStorage.getItem('userNombre') || localStorage.getItem('nombre') || '';
+    const coachStr = coach ? `tu entrenador ${coach}` : 'tu entrenador';
+    const msg = `Hola ${alumno.nombre} 👋, te escribe ${coachStr}.
 
 Te recordamos que te quedan *${alumno.clases_disponibles} clases* en tu pack activo. Te sugerimos renovar con tiempo para asegurar tus horarios y mantener la continuidad en tu entrenamiento. 🎾
 
@@ -958,14 +959,15 @@ Te recordamos que te quedan *${alumno.clases_disponibles} clases* en tu pack act
     const hora = clase?.hora || '';
     const diaLabel = clase?.diaLabel ? clase.diaLabel.toLowerCase() : 'hoy';
     const diaTexto = diaLabel === 'hoy' ? 'hoy' : (diaLabel === 'mañana' ? 'mañana' : `el día ${clase?.diaLabel || ''}`);
-    const coachStr = this.coachNombre ? `tu entrenador ${this.coachNombre}` : 'tu entrenador';
+    const coach = this.coachNombre || localStorage.getItem('userName') || localStorage.getItem('userNombre') || localStorage.getItem('nombre') || '';
+    const coachStr = coach ? `tu entrenador ${coach}` : 'tu entrenador';
     const lugarTexto = clase?.cancha_nombre ? ` (${clase?.club_nombre ? clase.club_nombre + ' · ' : ''}${clase.cancha_nombre})` : (clase?.club_nombre ? ` en ${clase.club_nombre}` : '');
 
-    const msg = `Hola ${alumnoNombre} 👋, te escribe ${coachStr} de la Academia de Pádel.
+    const msg = `Hola ${alumnoNombre} 👋, te escribe ${coachStr}.
 
 Te contacto para coordinar y confirmar nuestra clase programada para *${diaTexto} a las ${hora} hrs*${lugarTexto}. 🎾
 
-📲 Recuerda que la asistencia, mallas de entrenamiento y avances de la academia se gestionan directamente a través de *PadelBlox*. ¡Te espero en la pista!`;
+📲 Recuerda que la asistencia, mallas de entrenamiento y avances de tus clases se gestionan directamente a través de *PadelBlox*. ¡Te espero en la pista!`;
     window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 
