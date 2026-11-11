@@ -1012,12 +1012,12 @@ export class JugadorReservasPage implements OnInit {
         };
 
         this.entrenamientoService.crearReserva(payload).subscribe({
-          next: () => {
+          next: (res: any) => {
             loader.dismiss();
-            // Notifications
+            // Notificaciones: El backend ya envía push inmediato 'clase_agendada' y correo.
             this.notificationService.notificarPackContratado(this.jugadorId, pack.nombre);
-            this.notificationService.notificarReservaCreada(this.jugadorId, pack.nombre, payload.fecha, payload.hora_inicio);
-            this.notificationService.programarRecordatorio(this.jugadorId, pack.nombre, payload.fecha, payload.hora_inicio);
+            const resId = res?.reserva_id || (res?.reservas && res.reservas[0]) || 0;
+            this.notificationService.programarRecordatorio(this.jugadorId, pack.nombre, payload.fecha, payload.hora_inicio, resId);
 
             const fechaFmt = new Date(payload.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'long' });
             this.alertCtrl.create({
@@ -1448,13 +1448,11 @@ export class JugadorReservasPage implements OnInit {
               };
 
               this.entrenamientoService.crearReserva(payload).subscribe({
-                next: () => {
+                next: (res: any) => {
                   loader.dismiss();
-                  this.notificationService.notificarReservaCreada(this.jugadorId, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
-                  if (this.selectedEntrenador) {
-                    this.notificationService.notificarReservaACoach(this.selectedEntrenador, this.jugadorNombre || 'Un alumno', payload.fecha, payload.hora_inicio);
-                  }
-                  this.notificationService.programarRecordatorio(this.jugadorId, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
+                  // El backend se encarga de enviar push de confirmación a alumno y entrenador.
+                  const resId = res?.reserva_id || (res?.reservas && res.reservas[0]) || 0;
+                  this.notificationService.programarRecordatorio(this.jugadorId, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio, resId);
                   this.mostrarToast('✅ Reserva guardada correctamente');
                   this.onEntrenadorChange();
                 },

@@ -1127,15 +1127,10 @@ export class EntrenadorAgendarPage implements OnInit {
 
             targets.forEach((jId: number) => {
                 if (jId > 0) {
-                    this.notificationService.notificarReservaCreada(jId, packNombre, fecha, hora);
+                    // El backend ya envía push inmediato. Solo programar recordatorio futuro:
                     this.notificationService.programarRecordatorio(jId, packNombre, fecha, hora);
                 }
             });
-
-            if (coachId > 0) {
-                const alumnoNombreStr = payloadReserva.jugador_nombre || 'Alumno';
-                this.notificationService.notificarReservaACoach(coachId, alumnoNombreStr, fecha, hora);
-            }
         } catch (e) {
             console.error('Error enviando notificaciones:', e);
         }

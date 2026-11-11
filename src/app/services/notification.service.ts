@@ -52,13 +52,7 @@ export class NotificationService {
             let finalToken = token.value;
 
             if (Capacitor.getPlatform() === 'ios') {
-              // Si es un token APNs nativo de 64 caracteres hex, esperar el de Firebase
-              if (finalToken.length <= 64 && /^[0-9A-Fa-f]+$/.test(finalToken)) {
-                console.log('Token APNs (64 chars) detectado, ignorando y esperando el FCM...');
-                return;
-              }
-
-              // De-hexificar ÚNICAMENTE si viene codificado en hexadecimal puro (Data convertida por Capacitor)
+              // De-hexificar ÚNICAMENTE si viene codificado en hexadecimal puro largo (Data convertida por Capacitor)
               if (finalToken.length > 100 && /^[0-9A-Fa-f]+$/.test(finalToken)) {
                 try {
                   let str = '';
@@ -334,12 +328,13 @@ export class NotificationService {
   /**
    * Programar recordatorio para el día anterior al entrenamiento
    */
-  programarRecordatorio(alumnoId: number, packNombre: string, fechaEntrenamiento: string, horaInicio: string): void {
+  programarRecordatorio(alumnoId: number, packNombre: string, fechaEntrenamiento: string, horaInicio: string, reservaId?: number): void {
     this.mysqlService.programarRecordatorio({
       user_id: alumnoId,
       pack_nombre: packNombre,
       fecha_entrenamiento: fechaEntrenamiento,
       hora_inicio: horaInicio,
+      reserva_id: reservaId || 0,
       tipo: 'recordatorio_dia_anterior'
     }).subscribe({
       next: () => { },
