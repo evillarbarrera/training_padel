@@ -254,7 +254,154 @@ ion-content {
 
   .date-selector-row { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; .calendar-btn { width: 55px; height: 75px; border: 1px solid var(--nike-border); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--nike-navy); } .dates-strip-v6 { display: flex; gap: 10px; overflow-x: auto; padding: 5px 0; &::-webkit-scrollbar { display: none; } .date-v6 { flex: 0 0 50px; height: 75px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; .d-name { font-size: 10px; font-weight: 800; color: var(--nike-text-gray); text-transform: uppercase; } .d-num { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; } &.active { .d-name { color: var(--nike-navy); } .d-num { background: var(--nike-navy); color: #fff; } } } } }
   .filter-toggle-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; span { font-size: 14px; font-weight: 700; color: var(--nike-text-gray); } ion-toggle { --handle-background: #fff; --handle-background-checked: #fff; --track-background-checked: var(--nike-navy); } }
-  .time-grid-v6 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 35px; .time-item-v6 { aspect-ratio: 1; border: 1px solid var(--nike-border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; color: var(--nike-navy); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); &.active { background: var(--nike-navy); color: #fff; border-color: var(--nike-navy); transform: scale(1.1); box-shadow: 0 5px 15px rgba(15,23,42,0.2); } } }
+  // TIME BANDS SELECTOR (PLAYTOMIC STYLE)
+  .time-bands-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    &::-webkit-scrollbar { display: none; }
+
+    .time-band-pill {
+      border: 1px solid var(--nike-border);
+      background: var(--nike-gray);
+      color: var(--nike-navy);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 800;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+      &:active {
+        transform: scale(0.96);
+      }
+
+      &.active {
+        background: var(--nike-navy);
+        color: #ffffff;
+        border-color: var(--nike-navy);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+      }
+    }
+  }
+
+  // MODERN TIME GRID (WITH AVAILABILITY BADGES)
+  .time-grid-v6 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 28px;
+
+    @media (max-width: 360px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .time-item-v6 {
+      min-height: 52px;
+      border: 1.5px solid var(--nike-border);
+      border-radius: 14px;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 4px;
+      gap: 3px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+      .t-hour {
+        font-size: 13.5px;
+        font-weight: 900;
+        color: var(--nike-navy);
+        letter-spacing: -0.3px;
+      }
+
+      .t-badge {
+        font-size: 9px;
+        font-weight: 800;
+        color: #059669;
+        background: #ecfdf5;
+        padding: 1.5px 6px;
+        border-radius: 6px;
+        letter-spacing: -0.2px;
+
+        &.urgent {
+          color: #dc2626;
+          background: #fef2f2;
+          font-weight: 900;
+          animation: pulse 1.8s infinite;
+        }
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      &.active {
+        background: var(--nike-navy);
+        color: #fff;
+        border-color: var(--nike-navy);
+        transform: scale(1.04);
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.22);
+
+        .t-hour {
+          color: #ffffff;
+        }
+
+        .t-badge {
+          background: rgba(204, 255, 0, 0.22);
+          color: var(--nike-neon);
+          &.urgent {
+            background: rgba(239, 68, 68, 0.25);
+            color: #fca5a5;
+          }
+        }
+      }
+    }
+
+    .no-slots-notice {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 22px 10px;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 700;
+      background: #f8fafc;
+      border-radius: 14px;
+      border: 1px dashed #e2e8f0;
+
+      ion-icon {
+        font-size: 18px;
+      }
+    }
+
+    &.skeleton-grid {
+      .time-skeleton-chip {
+        height: 52px;
+        border-radius: 14px;
+        background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.4s infinite;
+      }
+    }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.65; }
+  }
   .section-title-v6 { font-size: 19px; font-weight: 950; color: var(--nike-navy); margin-bottom: 4px; }
   .section-desc-v6 { font-size: 12.5px; color: var(--nike-text-gray); font-weight: 600; margin-bottom: 12px; }
 

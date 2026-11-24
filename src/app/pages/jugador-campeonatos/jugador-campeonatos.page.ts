@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { 
   IonContent, IonIcon, IonButton, IonSpinner,
   AlertController, LoadingController, ToastController, IonModal,
@@ -80,6 +82,71 @@ export class JugadorCampeonatosPage implements OnInit {
   // HEAD TO HEAD (H2H) MODAL
   showH2HModal: boolean = false;
   selectedH2HData: any = null;
+
+  // RECENT PARTNERS & GUEST ENROLLMENT
+  recentPartners: any[] = [];
+  partnerMode: 'app_user' | 'invitado' = 'app_user';
+  guestPartnerName: string = '';
+  guestPartnerPhone: string = '';
+
+  loadRecentPartners() {
+    try {
+      const stored = localStorage.getItem('padelblox_recent_partners');
+      if (stored) {
+        this.recentPartners = JSON.parse(stored);
+      }
+    } catch (e) {}
+  }
+
+  saveRecentPartner(partner: any) {
+    if (!partner || !partner.nombre) return;
+    try {
+      const list = this.recentPartners.filter(p => p.nombre !== partner.nombre);
+      list.unshift({
+        id: partner.id || 0,
+        nombre: partner.nombre,
+        foto_perfil: partner.foto_perfil || 'assets/avatar.png',
+        nivel: partner.nivel || 'N/A'
+      });
+      this.recentPartners = list.slice(0, 5);
+      localStorage.setItem('padelblox_recent_partners', JSON.stringify(this.recentPartners));
+    } catch (e) {}
+  }
+
+  getRemainingSpots(comp: any): number {
+    const max = this.getMaxParejas(comp);
+    if (max <= 0) return 999;
+    const count = this.getInscritosCount(comp);
+    return Math.max(0, max - count);
+  }
+
+  isUrgentSpots(comp: any): boolean {
+    const rem = this.getRemainingSpots(comp);
+    return rem > 0 && rem <= 2;
+  }
+
+  getEnrollmentPercentage(comp: any): number {
+    const max = this.getMaxParejas(comp);
+    if (max <= 0) return 0;
+    const count = this.getInscritosCount(comp);
+    return Math.min(100, Math.round((count / max) * 100));
+  }
+
+  trackByClub(index: number, club: any): any {
+    return club.id || index;
+  }
+
+  trackByTorneo(index: number, t: any): any {
+    return (t.table_source || '') + '_' + (t.id || index);
+  }
+
+  trackByCat(index: number, cat: any): any {
+    return cat.id || index;
+  }
+
+  trackByPartner(index: number, p: any): any {
+    return p.id || p.nombre || index;
+  }
 
   // Time Restrictions for League
   restriccionesLiga: { dia: string; hora_inicio: string; hora_fin: string }[] = [];
@@ -260,12 +327,286 @@ export class JugadorCampeonatosPage implements OnInit {
     return (this.misTorneos || []).filter(t => !this.isTorneoActivo(t));
   }
 
-  // Competition Detail View state (Inscritos, Fixture Semanal, Posiciones)
+  // Competition Detail View state (Inscritos, Fixture Semanal, Posiciones, Fase Final)
   selectedCompeticionDetail: any = null;
   loadingCompDetail: boolean = false;
-  compDetailTab: 'inscritos' | 'fixture' | 'posiciones' = 'inscritos';
+  compDetailTab: 'inscritos' | 'fixture' | 'posiciones' | 'playoffs' = 'inscritos';
   selectedCategoryIdx: number = 0;
   selectedJornadaIdx: number = 0;
+  selectedPlayoffRoundKey: 'dieciseisavos' | 'octavos' | 'cuartos' | 'semifinales' | 'final' = 'octavos';
+
+  get isPlayoffsOfficial(): boolean {
+    const cat = this.currentDetailCategory;
+    return !!(cat?.playoffs && Array.isArray(cat.playoffs) && cat.playoffs.length > 0);
+  }
+
+  get mobilePlayoffsMatches(): any[] {
+    const cat = this.currentDetailCategory;
+    if (!cat) return [];
+    if (cat.playoffs && Array.isArray(cat.playoffs) && cat.playoffs.length > 0) {
+      return cat.playoffs;
+    }
+    // Proyección en Vivo con el Ranking Actual (Estándar Oficial FIP)
+    const standings = (cat.tabla_posiciones && cat.tabla_posiciones.length > 0)
+      ? cat.tabla_posiciones
+      : (cat.inscritos || cat.parejas || []);
+    return this.buildFipSimulatedPlayoffs(standings, cat.parejas_clasifican_playoff || standings.length);
+  }
+
+  buildFipSimulatedPlayoffs(list: any[], maxClasifican?: number): any[] {
+    const total = list.length;
+    if (total < 2) return [];
+    const n = (maxClasifican && maxClasifican > 1 && maxClasifican < total) ? maxClasifican : total;
+    const directos = n <= 8 ? 0 : (n >= 16 ? 0 : 16 - n);
+
+    const clasificados = list.slice(0, n).map((p: any, idx: number) => {
+      const rawName = this.getStandingPairName(p) || this.getInscritoPairName(p) || p.nombre_pareja || `Pareja ${idx + 1}`;
+      return {
+        id: Number(p.pareja_id || p.id || (idx + 1)),
+        seed: idx + 1,
+        rawName,
+        nombre: `${idx + 1}º ${rawName}`,
+        puntos: p.puntos,
+        jugador1_id: p.jugador1_id,
+        jugador2_id: p.jugador2_id
+      };
+    });
+
+    const matches: any[] = [];
+    if (n > 8) {
+      const qOpenSlots = 8 - directos;
+      const octavosCapacity = qOpenSlots * 2;
+      const remainingCount = n - directos;
+      const numPlayIn = Math.max(0, remainingCount - octavosCapacity);
+      const directToOctavosCount = octavosCapacity - numPlayIn;
+
+      const octavosEntries: any[] = [];
+      for (let i = 0; i < directToOctavosCount; i++) {
+        const t = clasificados[directos + i];
+        if (t) octavosEntries.push({ ...t, isPlayIn: false });
+      }
+
+      const playInStartIdx = directos + directToOctavosCount;
+      const playInTeams = clasificados.slice(playInStartIdx);
+      const playInCreated: any[] = [];
+
+      for (let pIdx = 0; pIdx < numPlayIn; pIdx++) {
+        const tA = playInTeams[pIdx];
+        const tB = playInTeams[playInTeams.length - 1 - pIdx];
+        const piCode = `PI${pIdx + 1}`;
+        octavosEntries.push({
+          id: null,
+          seed: tA?.seed || (playInStartIdx + pIdx + 1),
+          nombre: `Ganador 16avos #${pIdx + 1} (${tA?.seed}º vs ${tB?.seed}º)`,
+          isPlayIn: true,
+          piCode,
+          piLabel: `${tA?.seed}º/${tB?.seed}º`
+        });
+        playInCreated.push({
+          es_simulacion: true,
+          ronda_playoff: 'Dieciseisavos de Final',
+          pareja1_id: tA?.id,
+          pareja2_id: tB?.id,
+          pareja1_nombre: tA?.nombre,
+          pareja2_nombre: tB?.nombre,
+          estado: 'Proyectado',
+          meta_playoff: { bracket_code: piCode, next_bracket: 'PREV1', seed1_label: tA?.nombre, seed2_label: tB?.nombre }
+        });
+      }
+
+      const directOct = octavosEntries.filter(e => !e.isPlayIn);
+      const playInOct = octavosEntries.filter(e => e.isPlayIn).reverse();
+      const orderedOctavos = [...directOct, ...playInOct];
+
+      const quarterSlotForTop8: { [s: number]: { q: 'Q1' | 'Q2' | 'Q3' | 'Q4'; slot: 1 | 2 } } = {
+        1: { q: 'Q1', slot: 1 },
+        2: { q: 'Q4', slot: 1 },
+        3: { q: 'Q3', slot: 1 },
+        4: { q: 'Q2', slot: 1 },
+        5: { q: 'Q2', slot: 2 },
+        6: { q: 'Q3', slot: 2 },
+        7: { q: 'Q4', slot: 2 },
+        8: { q: 'Q1', slot: 2 }
+      };
+
+      const quartersMap: any = {
+        Q1: { p1_id: null, p1_nombre: 'Por definir', p1_bye: false, p2_id: null, p2_nombre: 'Por definir', p2_bye: false, next: 'S1' },
+        Q2: { p1_id: null, p1_nombre: 'Por definir', p1_bye: false, p2_id: null, p2_nombre: 'Por definir', p2_bye: false, next: 'S1' },
+        Q3: { p1_id: null, p1_nombre: 'Por definir', p1_bye: false, p2_id: null, p2_nombre: 'Por definir', p2_bye: false, next: 'S2' },
+        Q4: { p1_id: null, p1_nombre: 'Por definir', p1_bye: false, p2_id: null, p2_nombre: 'Por definir', p2_bye: false, next: 'S2' }
+      };
+
+      for (let s = 1; s <= directos; s++) {
+        const team = clasificados[s - 1];
+        const target = quarterSlotForTop8[s];
+        if (team && target) {
+          if (target.slot === 1) {
+            quartersMap[target.q].p1_id = team.id;
+            quartersMap[target.q].p1_nombre = team.nombre;
+            quartersMap[target.q].p1_bye = true;
+          } else {
+            quartersMap[target.q].p2_id = team.id;
+            quartersMap[target.q].p2_nombre = team.nombre;
+            quartersMap[target.q].p2_bye = true;
+          }
+        }
+      }
+
+      const octavosTemp: any[] = [];
+      for (let k = 0; k < qOpenSlots; k++) {
+        const top8Slot = directos + 1 + k;
+        const e1 = orderedOctavos[k];
+        const e2 = orderedOctavos[orderedOctavos.length - 1 - k];
+        const target = quarterSlotForTop8[top8Slot] || { q: 'Q1', slot: 2 };
+        const prevNum = k + 1;
+        const code = `PREV${prevNum}`;
+
+        octavosTemp.push({
+          es_simulacion: true,
+          ronda_playoff: 'Octavos de Final',
+          pareja1_id: e1?.id || null,
+          pareja2_id: e2?.id || null,
+          pareja1_nombre: e1?.nombre || 'Por definir',
+          pareja2_nombre: e2?.nombre || 'Por definir',
+          estado: 'Proyectado',
+          meta_playoff: { bracket_code: code, next_bracket: target.q, seed1_label: e1?.nombre, seed2_label: e2?.nombre }
+        });
+
+        const s1Short = e1?.isPlayIn ? `16avos (${e1.piLabel})` : `${e1?.seed}º`;
+        const s2Short = e2?.isPlayIn ? `16avos (${e2.piLabel})` : `${e2?.seed}º`;
+        const wLabel = `Ganador Octavos #${prevNum} (${s1Short} vs ${s2Short})`;
+        if (target.slot === 1) quartersMap[target.q].p1_nombre = wLabel;
+        else quartersMap[target.q].p2_nombre = wLabel;
+      }
+
+      matches.push(...playInCreated, ...octavosTemp);
+
+      (['Q1', 'Q2', 'Q3', 'Q4'] as const).forEach((qCode) => {
+        const q = quartersMap[qCode];
+        matches.push({
+          es_simulacion: true,
+          ronda_playoff: 'Cuartos de Final',
+          pareja1_id: q.p1_id,
+          pareja2_id: q.p2_id,
+          pareja1_nombre: q.p1_nombre,
+          pareja2_nombre: q.p2_nombre,
+          estado: 'Proyectado',
+          meta_playoff: {
+            bracket_code: qCode,
+            next_bracket: q.next,
+            seed1_label: q.p1_bye ? q.p1_nombre : '',
+            seed2_label: q.p2_bye ? q.p2_nombre : ''
+          }
+        });
+      });
+
+      matches.push(
+        { es_simulacion: true, ronda_playoff: 'Semifinales', pareja1_nombre: 'Ganador Cuartos 1 (Q1)', pareja2_nombre: 'Ganador Cuartos 2 (Q2)', estado: 'Proyectado', meta_playoff: { bracket_code: 'S1', next_bracket: 'F1' } },
+        { es_simulacion: true, ronda_playoff: 'Semifinales', pareja1_nombre: 'Ganador Cuartos 3 (Q3)', pareja2_nombre: 'Ganador Cuartos 4 (Q4)', estado: 'Proyectado', meta_playoff: { bracket_code: 'S2', next_bracket: 'F1' } },
+        { es_simulacion: true, ronda_playoff: 'Final', pareja1_nombre: 'Ganador Semifinal 1', pareja2_nombre: 'Ganador Semifinal 2', estado: 'Proyectado', meta_playoff: { bracket_code: 'F1' } }
+      );
+    } else if (n >= 8) {
+      matches.push(
+        { es_simulacion: true, ronda_playoff: 'Cuartos de Final', pareja1_id: clasificados[0]?.id, pareja2_id: clasificados[7]?.id, pareja1_nombre: clasificados[0]?.nombre, pareja2_nombre: clasificados[7]?.nombre, estado: 'Proyectado', meta_playoff: { bracket_code: 'Q1', next_bracket: 'S1' } },
+        { es_simulacion: true, ronda_playoff: 'Cuartos de Final', pareja1_id: clasificados[3]?.id, pareja2_id: clasificados[4]?.id, pareja1_nombre: clasificados[3]?.nombre, pareja2_nombre: clasificados[4]?.nombre, estado: 'Proyectado', meta_playoff: { bracket_code: 'Q2', next_bracket: 'S1' } },
+        { es_simulacion: true, ronda_playoff: 'Cuartos de Final', pareja1_id: clasificados[2]?.id, pareja2_id: clasificados[5]?.id, pareja1_nombre: clasificados[2]?.nombre, pareja2_nombre: clasificados[5]?.nombre, estado: 'Proyectado', meta_playoff: { bracket_code: 'Q3', next_bracket: 'S2' } },
+        { es_simulacion: true, ronda_playoff: 'Cuartos de Final', pareja1_id: clasificados[1]?.id, pareja2_id: clasificados[6]?.id, pareja1_nombre: clasificados[1]?.nombre, pareja2_nombre: clasificados[6]?.nombre, estado: 'Proyectado', meta_playoff: { bracket_code: 'Q4', next_bracket: 'S2' } },
+        { es_simulacion: true, ronda_playoff: 'Semifinales', pareja1_nombre: 'Ganador Cuartos 1 (Q1)', pareja2_nombre: 'Ganador Cuartos 2 (Q2)', estado: 'Proyectado', meta_playoff: { bracket_code: 'S1', next_bracket: 'F1' } },
+        { es_simulacion: true, ronda_playoff: 'Semifinales', pareja1_nombre: 'Ganador Cuartos 3 (Q3)', pareja2_nombre: 'Ganador Cuartos 4 (Q4)', estado: 'Proyectado', meta_playoff: { bracket_code: 'S2', next_bracket: 'F1' } },
+        { es_simulacion: true, ronda_playoff: 'Final', pareja1_nombre: 'Ganador Semifinal 1', pareja2_nombre: 'Ganador Semifinal 2', estado: 'Proyectado', meta_playoff: { bracket_code: 'F1' } }
+      );
+    } else if (n >= 4) {
+      matches.push(
+        { es_simulacion: true, ronda_playoff: 'Semifinales', pareja1_id: clasificados[0]?.id, pareja2_id: clasificados[3]?.id, pareja1_nombre: clasificados[0]?.nombre, pareja2_nombre: clasificados[3]?.nombre, estado: 'Proyectado', meta_playoff: { bracket_code: 'S1', next_bracket: 'F1' } },
+        { es_simulacion: true, ronda_playoff: 'Semifinales', pareja1_id: clasificados[1]?.id, pareja2_id: clasificados[2]?.id, pareja1_nombre: clasificados[1]?.nombre, pareja2_nombre: clasificados[2]?.nombre, estado: 'Proyectado', meta_playoff: { bracket_code: 'S2', next_bracket: 'F1' } },
+        { es_simulacion: true, ronda_playoff: 'Final', pareja1_nombre: 'Ganador Semifinal 1', pareja2_nombre: 'Ganador Semifinal 2', estado: 'Proyectado', meta_playoff: { bracket_code: 'F1' } }
+      );
+    } else {
+      matches.push({
+        es_simulacion: true,
+        ronda_playoff: 'Final',
+        pareja1_id: clasificados[0]?.id,
+        pareja2_id: clasificados[1]?.id,
+        pareja1_nombre: clasificados[0]?.nombre,
+        pareja2_nombre: clasificados[1]?.nombre,
+        estado: 'Proyectado',
+        meta_playoff: { bracket_code: 'F1' }
+      });
+    }
+    return matches;
+  }
+
+  get availablePlayoffRoundsMobile(): { key: 'dieciseisavos' | 'octavos' | 'cuartos' | 'semifinales' | 'final'; label: string; shortLabel: string; icon: string; count: number; matches: any[] }[] {
+    const all = this.mobilePlayoffsMatches;
+    const r16 = all.filter(m => m.ronda_playoff === 'Dieciseisavos de Final' || m.ronda_playoff === 'Repechaje (Play-In)');
+    const r8 = all.filter(m => m.ronda_playoff === 'Octavos de Final' || m.ronda_playoff === 'Ronda Previa');
+    const r4 = all.filter(m => m.ronda_playoff === 'Cuartos de Final');
+    const r2 = all.filter(m => m.ronda_playoff === 'Semifinales');
+    const rf = all.filter(m => m.ronda_playoff === 'Final');
+
+    const tabs: { key: 'dieciseisavos' | 'octavos' | 'cuartos' | 'semifinales' | 'final'; label: string; shortLabel: string; icon: string; count: number; matches: any[] }[] = [];
+    if (r16.length > 0) tabs.push({ key: 'dieciseisavos', label: 'Dieciseisavos de Final', shortLabel: '16avos', icon: '🔥', count: r16.length, matches: r16 });
+    if (r8.length > 0) tabs.push({ key: 'octavos', label: 'Octavos de Final', shortLabel: 'Octavos', icon: '⚡', count: r8.length, matches: r8 });
+    if (r4.length > 0) tabs.push({ key: 'cuartos', label: 'Cuartos de Final', shortLabel: 'Cuartos', icon: '👑', count: r4.length, matches: r4 });
+    if (r2.length > 0) tabs.push({ key: 'semifinales', label: 'Semifinales', shortLabel: 'Semis', icon: '⚔️', count: r2.length, matches: r2 });
+    if (rf.length > 0) tabs.push({ key: 'final', label: 'Gran Final', shortLabel: 'Final', icon: '🏆', count: rf.length, matches: rf });
+    return tabs;
+  }
+
+  get currentPlayoffRoundMobile(): { key: string; label: string; shortLabel: string; icon: string; count: number; matches: any[] } | null {
+    const rounds = this.availablePlayoffRoundsMobile;
+    if (rounds.length === 0) return null;
+    return rounds.find(r => r.key === this.selectedPlayoffRoundKey) || rounds[0];
+  }
+
+  get myPlayoffStatusSummary(): { rank: number; teamName: string; statusTitle: string; rivalText: string; badgeText: string; isDirectBye: boolean } | null {
+    if (!this.isEnrolledInSelectedComp) return null;
+    const cat = this.currentDetailCategory;
+    if (!cat) return null;
+    const standings = cat.tabla_posiciones || [];
+    const uId = this.getStoredUserId();
+    const myPairName = (this.getEnrolledPartnerName() || '').toLowerCase().trim();
+
+    const myStanding = standings.find((p: any) => {
+      if (uId && (Number(p.jugador1_id) === uId || Number(p.jugador2_id) === uId)) return true;
+      const pName = (this.getStandingPairName(p) || '').toLowerCase().trim();
+      return myPairName && pName && (pName.includes(myPairName) || myPairName.includes(pName));
+    });
+
+    const allMatches = this.mobilePlayoffsMatches;
+    const myMatch = allMatches.find(m => this.isUserInMatch(m));
+    if (!myStanding && !myMatch) return null;
+
+    const rank = myStanding?.posicion || 0;
+    const teamName = myStanding ? this.getStandingPairName(myStanding) : (this.getEnrolledPartnerName() || 'Tu Pareja');
+    const isDirectBye = !!(myMatch && myMatch.ronda_playoff === 'Cuartos de Final' && allMatches.some(x => x.ronda_playoff === 'Octavos de Final'));
+
+    let rivalText = 'Por definir';
+    let roundLabel = myMatch?.ronda_playoff || 'Fase Final';
+    if (myMatch) {
+      const isT2 = this.isUserInTeam2(myMatch);
+      rivalText = isT2 ? (myMatch.pareja1_nombre || 'Por definir') : (myMatch.pareja2_nombre || 'Por definir');
+    }
+
+    return {
+      rank,
+      teamName,
+      statusTitle: isDirectBye ? '👑 Pase Directo a Cuartos (BYE)' : `⚡ Clasificado a ${roundLabel}`,
+      rivalText: `Rival proyectado: ${rivalText}`,
+      badgeText: rank > 0 ? `#${rank} del Ranking` : 'Clasificado',
+      isDirectBye
+    };
+  }
+
+  openPlayoffsTab(): void {
+    this.compDetailTab = 'playoffs';
+    const rounds = this.availablePlayoffRoundsMobile;
+    if (rounds.length > 0) {
+      // Si el jugador tiene un partido en alguna ronda inicial, abrir esa ronda; si no, la primera disponible
+      const myRound = rounds.find(r => r.matches.some(m => this.isUserInMatch(m)));
+      this.selectedPlayoffRoundKey = myRound ? myRound.key : rounds[0].key;
+    }
+  }
 
   ionViewWillEnter() {
     this.loadUserProfile();
@@ -1174,6 +1515,7 @@ export class JugadorCampeonatosPage implements OnInit {
 
   ngOnInit() {
     this.loadUserProfile();
+    this.loadRecentPartners();
     this.loadMisTorneos();
     this.loadClubesConTorneos();
   }
@@ -1650,110 +1992,109 @@ export class JugadorCampeonatosPage implements OnInit {
     this.loading = true;
     const today = new Date().toISOString().split('T')[0];
     
-    this.mysql.getTorneosPublicos().subscribe((allTorneos: any[]) => {
-      const rawList = Array.isArray(allTorneos) ? allTorneos : [];
-      const activeTorneos = rawList.filter(t => {
-        const estado = (t.estado || '').toLowerCase().trim();
-        if (estado === 'cerrado' || estado === 'finalizado' || estado === 'cancelado' || estado === 'oculto') {
-          return false;
-        }
-        if (t.table_source === 'americanos') {
-          return t.fecha >= today;
-        }
-        return true; 
-      });
-
-      // Deduplicar americanos duplicados (mismo club, mismo nombre y misma fecha)
-      const americanosMap = new Map<string, any>();
-      const otrosTorneos: any[] = [];
-
-      for (const t of activeTorneos) {
-        if (t.table_source === 'americanos') {
-          const key = `${t.club_id || ''}_${(t.nombre || '').toLowerCase().trim()}_${t.fecha}`;
-          const existing = americanosMap.get(key);
-          if (!existing) {
-            americanosMap.set(key, t);
-          } else {
-            const currentIsAbierto = (t.estado || '').toLowerCase() === 'abierto';
-            const existingIsAbierto = (existing.estado || '').toLowerCase() === 'abierto';
-            if (currentIsAbierto && !existingIsAbierto) {
-              americanosMap.set(key, t);
-            } else if (currentIsAbierto === existingIsAbierto && Number(t.id) > Number(existing.id)) {
-              americanosMap.set(key, t);
-            }
+    // Carga paralela de Torneos, Ligas y Clubes (Optimización de velocidad con forkJoin)
+    forkJoin({
+      allTorneos: this.mysql.getTorneosPublicos().pipe(catchError(() => of([]))),
+      resLigas: this.mysql.getLigas().pipe(catchError(() => of([]))),
+      resClubes: this.mysql.getClubes().pipe(catchError(() => of([])))
+    }).subscribe({
+      next: ({ allTorneos, resLigas, resClubes }) => {
+        const rawList = Array.isArray(allTorneos) ? allTorneos : [];
+        const activeTorneos = rawList.filter(t => {
+          const estado = (t.estado || '').toLowerCase().trim();
+          if (estado === 'cerrado' || estado === 'finalizado' || estado === 'cancelado' || estado === 'oculto') {
+            return false;
           }
-        } else {
-          otrosTorneos.push(t);
-        }
-      }
+          if (t.table_source === 'americanos') {
+            return t.fecha >= today;
+          }
+          return true; 
+        });
 
-      this.torneos = [...Array.from(americanosMap.values()), ...otrosTorneos];
+        // Deduplicar americanos duplicados (mismo club, mismo nombre y misma fecha)
+        const americanosMap = new Map<string, any>();
+        const otrosTorneos: any[] = [];
 
-      // Always fetch direct ligas to ensure ligas are included even if get_torneos_public didn't include them
-      this.mysql.getLigas().subscribe({
-        next: (resLigas: any) => {
-          const ligasArr = resLigas?.ligas || (Array.isArray(resLigas) ? resLigas : []);
-          if (Array.isArray(ligasArr) && ligasArr.length > 0) {
-            const existingIds = new Set(this.torneos.filter(t => t.table_source === 'liga').map(t => Number(t.id)));
-            for (const l of ligasArr) {
-              if (!existingIds.has(Number(l.id))) {
-                this.torneos.push({
-                  ...l,
-                  table_source: 'liga',
-                  tipo: 'Liga',
-                  club_id: Number(l.club_id) > 0 ? Number(l.club_id) : 21,
-                  imagen: l.imagen_url || '',
-                  imagen_display: l.imagen_url || '',
-                  fecha_display: l.fecha_inicio || '',
-                  fecha: l.fecha_inicio || '',
-                  inscritos: l.total_parejas || 0
-                });
+        for (const t of activeTorneos) {
+          if (t.table_source === 'americanos') {
+            const key = `${t.club_id || ''}_${(t.nombre || '').toLowerCase().trim()}_${t.fecha}`;
+            const existing = americanosMap.get(key);
+            if (!existing) {
+              americanosMap.set(key, t);
+            } else {
+              const currentIsAbierto = (t.estado || '').toLowerCase() === 'abierto';
+              const existingIsAbierto = (existing.estado || '').toLowerCase() === 'abierto';
+              if (currentIsAbierto && !existingIsAbierto) {
+                americanosMap.set(key, t);
+              } else if (currentIsAbierto === existingIsAbierto && Number(t.id) > Number(existing.id)) {
+                americanosMap.set(key, t);
               }
             }
+          } else {
+            otrosTorneos.push(t);
           }
-          this.processClubesList();
-        },
-        error: () => {
-          this.processClubesList();
         }
-      });
+
+        this.torneos = [...Array.from(americanosMap.values()), ...otrosTorneos];
+
+        // Procesar ligas
+        const ligasArr = (resLigas as any)?.ligas || (Array.isArray(resLigas) ? resLigas : []);
+        if (Array.isArray(ligasArr) && ligasArr.length > 0) {
+          const existingIds = new Set(this.torneos.filter(t => t.table_source === 'liga').map(t => Number(t.id)));
+          for (const l of ligasArr) {
+            if (!existingIds.has(Number(l.id))) {
+              this.torneos.push({
+                ...l,
+                table_source: 'liga',
+                tipo: 'Liga',
+                club_id: Number(l.club_id) > 0 ? Number(l.club_id) : 21,
+                imagen: l.imagen_url || '',
+                imagen_display: l.imagen_url || '',
+                fecha_display: l.fecha_inicio || '',
+                fecha: l.fecha_inicio || '',
+                inscritos: l.total_parejas || 0
+              });
+            }
+          }
+        }
+
+        // Procesar clubes inmediatamente sin llamada HTTP adicional
+        const allClubs = Array.isArray(resClubes) ? resClubes : [];
+        this.clubes = allClubs
+          .map((c) => {
+            const clubId = Number(c.id);
+            const clubTorneos = this.torneos.filter(t => Number(t.club_id) === clubId);
+
+            c.numAmericanos = clubTorneos.filter(t => t.table_source === 'americanos').length;
+            c.numTorneos = clubTorneos.filter(t => t.table_source === 'v2').length;
+            c.numLigas = clubTorneos.filter(t => t.table_source === 'liga').length;
+            c.totalCompeticiones = c.numAmericanos + c.numTorneos + c.numLigas;
+
+            if (c.logo && c.logo.trim() !== '' && c.logo !== 'null') {
+              const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
+              c.logoUrl = c.logo.startsWith('http') ? c.logo : `${cleanApiUrl}/prd/${c.logo}`;
+            } else {
+              c.logoUrl = this.defaultClubImage;
+            }
+            return c;
+          })
+          .filter(c => c.totalCompeticiones > 0);
+
+        this.regiones = [...new Set(this.clubes.map(c => c.region).filter(r => r))].sort();
+        this.allComunas = [...new Set(this.clubes.map(c => c.comuna).filter(c => c))].sort();
+        this.comunas = [...this.allComunas];
+
+        this.sortClubes();
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+      }
     });
   }
 
   processClubesList() {
-    this.mysql.getClubes().subscribe((res: any[]) => {
-      const allClubs = Array.isArray(res) ? res : [];
-      this.clubes = allClubs
-        .map((c) => {
-          const clubId = Number(c.id);
-          const cNom = (c.nombre || '').toLowerCase();
-          const clubTorneos = this.torneos.filter(t => {
-            const tClubId = Number(t.club_id);
-            return tClubId === clubId;
-          });
-
-          c.numAmericanos = clubTorneos.filter(t => t.table_source === 'americanos').length;
-          c.numTorneos = clubTorneos.filter(t => t.table_source === 'v2').length;
-          c.numLigas = clubTorneos.filter(t => t.table_source === 'liga').length;
-          c.totalCompeticiones = c.numAmericanos + c.numTorneos + c.numLigas;
-
-          if (c.logo && c.logo.trim() !== '' && c.logo !== 'null') {
-            const cleanApiUrl = environment.apiUrl.replace('/dev','').replace('/prd','').replace('/torneos','');
-            c.logoUrl = c.logo.startsWith('http') ? c.logo : `${cleanApiUrl}/prd/${c.logo}`;
-          } else {
-            c.logoUrl = this.defaultClubImage;
-          }
-          return c;
-        })
-        .filter(c => c.totalCompeticiones > 0);
-
-      this.regiones = [...new Set(this.clubes.map(c => c.region).filter(r => r))].sort();
-      this.allComunas = [...new Set(this.clubes.map(c => c.comuna).filter(c => c))].sort();
-      this.comunas = [...this.allComunas];
-
-      this.sortClubes();
-      this.loading = false;
-    });
+    this.loadClubesConTorneos();
   }
 
   sortClubes() {
@@ -1989,6 +2330,20 @@ export class JugadorCampeonatosPage implements OnInit {
     });
   }
 
+  confirmGuestPartner() {
+    const cleanName = (this.guestPartnerName || '').trim();
+    if (!cleanName || cleanName.length < 2) {
+      this.presentAlert('Nombre Requerido', 'Por favor ingresa el nombre de tu compañero.');
+      return;
+    }
+    this.selectPartner({
+      id: null,
+      nombre: cleanName,
+      isGuest: true,
+      telefono: (this.guestPartnerPhone || '').trim()
+    });
+  }
+
   selectPartner(partner: any) {
     this.selectedPartner = partner;
     if (this.selectedTournament?.table_source === 'liga') {
@@ -2019,21 +2374,29 @@ export class JugadorCampeonatosPage implements OnInit {
     await loader.present();
 
     const myId = this.getStoredUserId();
+    const myName = localStorage.getItem('userNombre') || 'Jugador';
+    const isGuest = !this.selectedPartner.id || this.selectedPartner.isGuest;
+    const partnerId = isGuest ? null : Number(this.selectedPartner.id);
+    const partnerName = this.selectedPartner.nombre;
 
     if (this.selectedTournament.table_source === 'v2') {
-      const myName = localStorage.getItem('userNombre') || 'Jugador';
       const dataV2 = {
         torneo_id: Number(this.selectedTournament.id),
         categoria_id: this.selectedCategoriaId,
         jugador1_id: myId,
-        jugador2_id: Number(this.selectedPartner.id),
-        nombre_pareja: `${myName} / ${this.selectedPartner.nombre}`
+        jugador2_id: partnerId,
+        jugador2_nombre_manual: isGuest ? partnerName : '',
+        nombre_pareja: `${myName} / ${partnerName}`
       };
 
       this.mysql.enrollInTournamentV2(dataV2).subscribe({
         next: (res) => {
           loader.dismiss();
           if (res.success) {
+            this.saveRecentPartner(this.selectedPartner);
+            this.guestPartnerName = '';
+            this.guestPartnerPhone = '';
+            this.partnerMode = 'app_user';
             this.toastCtrl.create({
               message: res.mensaje || '¡Inscripción realizada con éxito!',
               duration: 3000,
@@ -2058,12 +2421,12 @@ export class JugadorCampeonatosPage implements OnInit {
         }
       });
     } else if (this.selectedTournament.table_source === 'liga') {
-      const myName = localStorage.getItem('userNombre') || 'Jugador';
       const dataLiga = {
         categoria_id: this.selectedCategoriaId,
         jugador1_id: myId,
-        jugador2_id: Number(this.selectedPartner.id),
-        nombre_pareja: `${myName} / ${this.selectedPartner.nombre}`,
+        jugador2_id: partnerId,
+        jugador2_nombre_manual: isGuest ? partnerName : '',
+        nombre_pareja: `${myName} / ${partnerName}`,
         restricciones_horarias: this.restriccionesLiga
       };
 
@@ -2071,6 +2434,10 @@ export class JugadorCampeonatosPage implements OnInit {
         next: (res) => {
           loader.dismiss();
           if (res.success) {
+            this.saveRecentPartner(this.selectedPartner);
+            this.guestPartnerName = '';
+            this.guestPartnerPhone = '';
+            this.partnerMode = 'app_user';
             this.toastCtrl.create({
               message: res.mensaje || '¡Inscripción a la Liga realizada con éxito!',
               duration: 3000,
@@ -2098,13 +2465,20 @@ export class JugadorCampeonatosPage implements OnInit {
       const data = {
         torneo_id: Number(this.selectedTournament.id),
         jugador1_id: myId,
-        jugador2_id: Number(this.selectedPartner.id)
+        jugador2_id: partnerId,
+        nombre_pareja2: isGuest ? partnerName : null,
+        nombre_2: isGuest ? partnerName : null,
+        nombre_pareja: `${myName} / ${partnerName}`
       };
 
       this.mysql.enrollInTournament(data).subscribe({
         next: (res) => {
           loader.dismiss();
           if (res.success) {
+            this.saveRecentPartner(this.selectedPartner);
+            this.guestPartnerName = '';
+            this.guestPartnerPhone = '';
+            this.partnerMode = 'app_user';
             this.toastCtrl.create({
               message: '¡Inscripción realizada con éxito!',
               duration: 3000,

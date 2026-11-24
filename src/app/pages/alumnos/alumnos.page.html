@@ -169,6 +169,16 @@
           </ion-segment>
         </div>
 
+        <!-- Checkbox de Notificación y Correo -->
+        <div style="display: flex; align-items: center; gap: 10px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; cursor: pointer;"
+             (click)="enviarNotificacion = !enviarNotificacion">
+          <ion-checkbox [(ngModel)]="enviarNotificacion" mode="ios" (click)="$event.stopPropagation()"></ion-checkbox>
+          <div style="flex: 1;">
+            <div style="font-size: 13px; font-weight: 800; color: #0f172a;">Enviar notificación y correo del entrenamiento</div>
+            <div style="font-size: 11px; color: #64748b; font-weight: 600;">Desmarca si estás ordenando clases pendientes y no deseas notificar.</div>
+          </div>
+        </div>
+
         <!-- Slots Grid -->
         <div class="slots-container" *ngIf="diaSeleccionado && !cargandoHorarios">
           <div class="horarios-grid" *ngIf="horariosPorDia[diaSeleccionado]?.[tramoSeleccionado]?.length > 0">

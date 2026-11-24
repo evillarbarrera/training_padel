@@ -15,7 +15,8 @@ import {
   IonSegment,
   IonSegmentButton,
   IonRefresher,
-  IonRefresherContent
+  IonRefresherContent,
+  IonCheckbox
 } from '@ionic/angular/standalone';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -63,7 +64,8 @@ interface AlumnoApi {
     IonSegmentButton,
     IonRefresher,
     IonRefresherContent,
-    IonSpinner
+    IonSpinner,
+    IonCheckbox
   ],
 })
 export class AlumnosPage implements OnInit {
@@ -358,8 +360,11 @@ export class AlumnosPage implements OnInit {
     }
   }
 
+  enviarNotificacion: boolean = true;
+
   agendar(alumno: any) {
     this.selectedAlumno = alumno;
+    this.enviarNotificacion = true;
     this.showBookingModal = true;
     this.cargarDisponibilidadCoach();
   }
@@ -442,15 +447,18 @@ export class AlumnosPage implements OnInit {
           jugador_id: this.selectedAlumno.id,
           estado: 'reservado',
           tipo: 'individual',
-          cantidad_personas: 1
+          cantidad_personas: 1,
+          enviar_notificacion: this.enviarNotificacion
         };
 
         this.entrenamientoService.crearReserva(payload).subscribe({
           next: () => {
             loading.dismiss();
-            this.notificationService.notificarReservaCreada(this.selectedAlumno.id, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
+            if (this.enviarNotificacion) {
+              this.notificationService.notificarReservaCreada(this.selectedAlumno.id, packActivo.pack_nombre || 'Entrenamiento', payload.fecha, payload.hora_inicio);
+            }
             this.showBookingModal = false;
-            this.mostrarToast('✅ Clase agendada exitosamente');
+            this.mostrarToast(this.enviarNotificacion ? '✅ Clase agendada y notificada exitosamente' : '✅ Clase agendada sin enviar notificaciones');
             this.cargarAlumnos();
           },
           error: (err) => {

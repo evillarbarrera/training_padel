@@ -83,8 +83,138 @@ export class ClubesReservarPage implements OnInit {
   // RESOURCE CATEGORIES & FILTERS
   activeCategoryFilter: string = 'all';
 
+  // TIME BANDS (FRANJAS HORARIAS) & PRE-PROCESSED SLOTS
+  selectedTimeBand: 'todas' | 'manana' | 'tarde' | 'noche' = 'todas';
+  countManana: number = 0;
+  countTarde: number = 0;
+  countNoche: number = 0;
+  processedHorarios: any[] = [];
+  activeCourtsForSelectedSlot: any[] = [];
+
+  setTimeBand(band: 'todas' | 'manana' | 'tarde' | 'noche') {
+    if (this.selectedTimeBand === band) return;
+    this.haptics.light();
+    this.selectedTimeBand = band;
+    this.recalculateProcessedHorarios(false);
+  }
+
+  recalculateProcessedHorarios(resetSlot: boolean = true) {
+    if (!this.horarios || this.horarios.length === 0) {
+      this.processedHorarios = [];
+      this.countManana = 0;
+      this.countTarde = 0;
+      this.countNoche = 0;
+      this.selectedSlot = null;
+      this.activeCourtsForSelectedSlot = [];
+      return;
+    }
+
+    let mCount = 0;
+    let tCount = 0;
+    let nCount = 0;
+
+    const validSlots: any[] = [];
+
+    for (const slot of this.horarios) {
+      const courts = slot.canchas || [];
+      let availableCount = 0;
+      let minPrice = Infinity;
+
+      for (const c of courts) {
+        const p = this.getCourtPrice(c);
+        if (c.disponible && p > 0) {
+          if (this.activeCategoryFilter === 'all' || this.getCategoryMeta(c).grupo === this.activeCategoryFilter) {
+            availableCount++;
+            if (p < minPrice) minPrice = p;
+          }
+        }
+      }
+
+      if (availableCount > 0) {
+        const horaStr = slot.hora ? slot.hora.slice(0, 5) : '';
+        let band: 'manana' | 'tarde' | 'noche' = 'manana';
+        if (slot.hora < '13:00:00') {
+          band = 'manana';
+          mCount++;
+        } else if (slot.hora < '18:30:00') {
+          band = 'tarde';
+          tCount++;
+        } else {
+          band = 'noche';
+          nCount++;
+        }
+
+        validSlots.push({
+          ...slot,
+          formattedHora: horaStr,
+          availableCount,
+          minPrice: minPrice === Infinity ? 0 : minPrice,
+          timeBand: band
+        });
+      }
+    }
+
+    this.countManana = mCount;
+    this.countTarde = tCount;
+    this.countNoche = nCount;
+
+    if (this.selectedTimeBand === 'todas') {
+      this.processedHorarios = validSlots;
+    } else {
+      this.processedHorarios = validSlots.filter(s => s.timeBand === this.selectedTimeBand);
+    }
+
+    // Auto-select or preserve slot
+    if (resetSlot || !this.selectedSlot) {
+      this.autoSelectFirstSlot();
+    } else {
+      const existing = this.processedHorarios.find(s => s.hora === this.selectedSlot?.hora);
+      if (existing) {
+        this.selectedSlot = existing;
+      } else {
+        this.autoSelectFirstSlot();
+      }
+    }
+
+    this.updateActiveCourts();
+  }
+
+  updateActiveCourts() {
+    if (!this.selectedSlot || !this.selectedSlot.canchas) {
+      this.activeCourtsForSelectedSlot = [];
+      return;
+    }
+    const courts = this.selectedSlot.canchas.filter((c: any) => this.getCourtPrice(c) > 0);
+    if (this.activeCategoryFilter === 'all') {
+      this.activeCourtsForSelectedSlot = courts;
+    } else {
+      this.activeCourtsForSelectedSlot = courts.filter((c: any) => {
+        const meta = this.getCategoryMeta(c);
+        return meta.grupo === this.activeCategoryFilter;
+      });
+    }
+  }
+
+  trackBySlot(index: number, slot: any): string {
+    return slot.hora || index;
+  }
+
+  trackByCourt(index: number, court: any): any {
+    return court.cancha_id || court.id || index;
+  }
+
+  trackByDay(index: number, day: any): string {
+    return day.fullDate || index;
+  }
+
+  trackByClub(index: number, club: any): any {
+    return club.id || index;
+  }
+
   setCategoryFilter(filter: string) {
+    if (this.activeCategoryFilter === filter) return;
     this.activeCategoryFilter = filter;
+    this.recalculateProcessedHorarios(false);
   }
 
   getCategoryMeta(cancha: any): { id: string; nombre: string; icono: string; badgeLabel: string; actionLabel: string; grupo: string; colorHex: string; bgHex: string; isCourt: boolean } {
@@ -238,7 +368,7 @@ export class ClubesReservarPage implements OnInit {
     if (this.selectedDuration === dur) return;
     this.haptics.light();
     this.selectedDuration = dur;
-    this.autoSelectFirstSlot();
+    this.recalculateProcessedHorarios(false);
   }
 
   defaultClubImage: string = 'assets/fondo-cancha.png';
@@ -603,7 +733,7 @@ export class ClubesReservarPage implements OnInit {
   async onSelectSlot(slot: any) {
     this.haptics.light();
     this.selectedSlot = slot;
-    this.showCourtModal = true;
+    this.updateActiveCourts();
   }
 
   get filteredCourtsForModal() {
@@ -668,10 +798,11 @@ export class ClubesReservarPage implements OnInit {
   prefetchUpcomingDays() {
     if (!this.selectedClub || !this.weekDays || this.weekDays.length === 0) return;
     const clubId = this.selectedClub.id;
+    // Solo precargamos los 2 días más cercanos para no congestionar la red ni la batería
     const daysToPrefetch = this.weekDays
       .map(d => d.fullDate)
       .filter(f => f !== this.selectedFecha)
-      .slice(0, 4);
+      .slice(0, 2);
 
     daysToPrefetch.forEach((fecha, idx) => {
       const key = `${clubId}_${fecha}`;
@@ -686,7 +817,7 @@ export class ClubesReservarPage implements OnInit {
               }
             });
           }
-        }, (idx + 1) * 350);
+        }, (idx + 1) * 600);
       }
     });
   }
@@ -704,18 +835,19 @@ export class ClubesReservarPage implements OnInit {
 
     if (cached) {
       this.horarios = this.filterPastHoursIfToday(cached);
-      this.autoSelectFirstSlot();
+      this.recalculateProcessedHorarios();
       this.loading = false;
       this.cdr.detectChanges();
       this.fetchAvailabilitySilent(cacheKey);
     } else {
       this.loading = true;
       this.selectedSlot = null;
+      this.activeCourtsForSelectedSlot = [];
       this.mysql.getDisponibilidadClub(this.selectedClub.id, this.selectedFecha).subscribe({
         next: (res: any[]) => {
           this.setCachedDisponibilidad(cacheKey, res);
           this.horarios = this.filterPastHoursIfToday(res);
-          this.autoSelectFirstSlot();
+          this.recalculateProcessedHorarios();
           this.loading = false;
           this.cdr.detectChanges();
         },
@@ -738,7 +870,7 @@ export class ClubesReservarPage implements OnInit {
           this.setCachedDisponibilidad(cacheKey, res);
           if (this.selectedClub?.id === clubId && this.selectedFecha === fecha) {
             this.horarios = this.filterPastHoursIfToday(res);
-            this.autoSelectFirstSlot();
+            this.recalculateProcessedHorarios(false);
             this.cdr.detectChanges();
           }
         }
@@ -747,8 +879,8 @@ export class ClubesReservarPage implements OnInit {
   }
 
   private autoSelectFirstSlot() {
-    const slots = this.filteredHorarios;
-    if (slots.length > 0) {
+    const slots = this.processedHorarios;
+    if (slots && slots.length > 0) {
       const currentHora = this.selectedSlot?.hora;
       const sameSlot = slots.find(h => h.hora === currentHora);
       
@@ -760,6 +892,7 @@ export class ClubesReservarPage implements OnInit {
     } else {
       this.selectedSlot = null;
     }
+    this.updateActiveCourts();
   }
 
   onSelectDate(date: string) {
@@ -971,8 +1104,7 @@ export class ClubesReservarPage implements OnInit {
   }
 
   get filteredHorarios(): any[] {
-    if (!this.horarios) return [];
-    return this.horarios.filter(slot => this.hasAvailableInSlot(slot));
+    return this.processedHorarios;
   }
 
   splitCount: number = 4;

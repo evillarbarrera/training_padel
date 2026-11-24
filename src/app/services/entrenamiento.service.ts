@@ -219,8 +219,13 @@ export class EntrenamientoService {
     return this.http.post(`${this.api}/alumno/insert_pack.php`, data, { headers: this.getHeaders() });
   }
 
-  cancelarReserva(reservaId: number, jugadorId?: number): Observable<any> {
-    const payload: any = { id: reservaId };
+  cancelarReserva(reservaId: number, jugadorId?: number, enviarNotificacion: boolean = true): Observable<any> {
+    const payload: any = {
+      id: reservaId,
+      enviar_notificacion: enviarNotificacion,
+      notificar: enviarNotificacion,
+      action: enviarNotificacion ? 'notify' : 'silent'
+    };
     if (jugadorId) payload.jugador_id = jugadorId;
     return this.http.post(`${this.api}/disponibilidad/cancelar_reserva.php`, payload, { headers: this.getHeaders() });
   }
@@ -245,14 +250,22 @@ export class EntrenamientoService {
     return this.http.get<any>(url, { headers: this.getHeaders() });
   }
 
-  addJugadorAPack(packId: number, jugadorId: number): Observable<any> {
-    return this.http.post(`${this.api}/entrenador/add_jugador_pack.php`, { pack_id: packId, jugador_id: jugadorId }, {
+  addJugadorAPack(packId: number, jugadorId: number, enviarNotificacion: boolean = true): Observable<any> {
+    return this.http.post(`${this.api}/entrenador/add_jugador_pack.php`, {
+      pack_id: packId,
+      jugador_id: jugadorId,
+      enviar_notificacion: enviarNotificacion
+    }, {
       headers: this.getHeaders()
     });
   }
 
-  addJugadorAReserva(reservaId: number, jugadorId: number): Observable<any> {
-    return this.http.post(`${this.api}/entrenador/add_jugador_reserva.php`, { reserva_id: reservaId, jugador_id: jugadorId }, {
+  addJugadorAReserva(reservaId: number, jugadorId: number, enviarNotificacion: boolean = true): Observable<any> {
+    return this.http.post(`${this.api}/entrenador/add_jugador_reserva.php`, {
+      reserva_id: reservaId,
+      jugador_id: jugadorId,
+      enviar_notificacion: enviarNotificacion
+    }, {
       headers: this.getHeaders()
     });
   }

@@ -1005,15 +1005,21 @@ Te contacto para coordinar y confirmar nuestra clase programada para *${diaTexto
       cssClass: 'tactical-confirm-alert',
       buttons: [
         {
-          text: 'Mantener clase',
-          role: 'cancel'
-        },
-        {
-          text: 'Confirmar inasistencia',
+          text: 'Confirmar y Notificar',
           role: 'destructive',
           handler: () => {
-            this.ejecutarCancelacionClase(clase);
+            this.ejecutarCancelacionClase(clase, true);
           }
+        },
+        {
+          text: 'Confirmar sin Notificar',
+          handler: () => {
+            this.ejecutarCancelacionClase(clase, false);
+          }
+        },
+        {
+          text: 'Mantener clase',
+          role: 'cancel'
         }
       ]
     });
@@ -1021,24 +1027,26 @@ Te contacto para coordinar y confirmar nuestra clase programada para *${diaTexto
     await alert.present();
   }
 
-  ejecutarCancelacionClase(clase: any) {
+  ejecutarCancelacionClase(clase: any, enviarNotificacion: boolean = true) {
     const resId = clase?.reserva_id || clase?.id;
     if (!resId) {
       this.router.navigate(['/entrenador-entrenamientos']);
       return;
     }
 
-    this.mysqlService.cancelarReserva(resId).subscribe({
+    this.mysqlService.cancelarReserva(resId, enviarNotificacion).subscribe({
       next: async () => {
-        // Enviar notificación al alumno si tiene ID
-        if (clase.jugador_id) {
+        // Enviar notificación al alumno solo si enviarNotificacion es true
+        if (enviarNotificacion && clase.jugador_id) {
           const packNombre = clase.subtitulo || 'Entrenamiento';
           const fecha = clase.fecha || new Date().toISOString().split('T')[0];
           this.notificationService.sendCancelationNotification(clase.jugador_id, packNombre, fecha);
         }
 
         const toast = await this.toastCtrl.create({
-          message: '✅ Clase cancelada por inasistencia del alumno.',
+          message: enviarNotificacion
+            ? '✅ Clase cancelada y alumno notificado.'
+            : '✅ Clase cancelada sin enviar notificaciones.',
           duration: 3000,
           color: 'dark',
           position: 'bottom'

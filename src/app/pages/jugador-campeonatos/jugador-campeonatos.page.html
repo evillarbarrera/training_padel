@@ -256,7 +256,7 @@
             <p style="margin-top: 8px; color: #888;">No hay clubes con competiciones activas en esta selección</p>
           </div>
 
-          <div class="club-card-v5 animate-up" *ngFor="let club of filteredClubes" (click)="onSelectClub(club)" style="margin-bottom: 16px;">
+          <div class="club-card-v5 animate-up" *ngFor="let club of filteredClubes; trackBy: trackByClub" (click)="onSelectClub(club)" style="margin-bottom: 16px;">
             <div class="card-image-v5" [style.background-image]="'url(' + club.logoUrl + ')'">
               <div class="card-overlay-v5"></div>
               <div class="club-badges-v5">
@@ -416,12 +416,11 @@
         </div>
       </div>
 
-      <!-- MAIN DETAIL TABS: INSCRITOS | FIXTURE SEMANAL | POSICIONES -->
-      <div class="comp-detail-tabs">
+      <!-- MAIN DETAIL TABS: INSCRITOS | FIXTURE SEMANAL | POSICIONES | FASE FINAL -->
+      <div class="comp-detail-tabs four-tabs">
         <div class="cd-tab" [class.active]="compDetailTab === 'inscritos'" (click)="compDetailTab = 'inscritos'">
           <ion-icon name="people-outline"></ion-icon>
           <span>INSCRITOS</span>
-          <span class="cd-badge" *ngIf="currentDetailCategory?.inscritos">{{ currentDetailCategory.inscritos.length }}</span>
         </div>
         <div class="cd-tab" [class.active]="compDetailTab === 'fixture'" (click)="compDetailTab = 'fixture'">
           <ion-icon name="calendar-outline"></ion-icon>
@@ -429,7 +428,11 @@
         </div>
         <div class="cd-tab" [class.active]="compDetailTab === 'posiciones'" (click)="compDetailTab = 'posiciones'">
           <ion-icon name="podium-outline"></ion-icon>
-          <span>POSICIONES</span>
+          <span>RANKING</span>
+        </div>
+        <div class="cd-tab playoffs-tab" [class.active]="compDetailTab === 'playoffs'" (click)="openPlayoffsTab()">
+          <ion-icon name="trophy-outline"></ion-icon>
+          <span>FASE FINAL</span>
         </div>
       </div>
 
@@ -668,6 +671,143 @@
         </div>
       </div>
 
+      <!-- ==================== TAB 4: FASE FINAL / PLAYOFFS ==================== -->
+      <div *ngIf="compDetailTab === 'playoffs'" class="tab-pane animate-up">
+        <!-- HEADER BANNER DE LA FASE FINAL -->
+        <div class="mobile-playoffs-hero">
+          <div class="mph-top-row">
+            <span class="mph-pill" [class.official]="isPlayoffsOfficial" [class.projected]="!isPlayoffsOfficial">
+              {{ isPlayoffsOfficial ? '🏆 CUADRO OFICIAL EN VIVO' : '🔮 PROYECCIÓN CON RANKING ACTUAL' }}
+            </span>
+            <span class="mph-cat-badge">🏷️ {{ currentDetailCategory?.nombre || 'General' }}</span>
+          </div>
+          <h3 class="mph-title">Cuadro Eliminatorio — Fase Final</h3>
+          <p class="mph-desc">
+            {{ isPlayoffsOfficial ? 'Llaves oficiales de eliminación directa rumbo al título.' : 'Así quedarían los cruces hoy según la Tabla de Posiciones (Formato Oficial FIP).' }}
+          </p>
+
+          <!-- TARJETA DESTACADA DEL JUGADOR INSCRITO ("TU CAMINO AL TÍTULO") -->
+          <div class="my-playoff-path-box" *ngIf="myPlayoffStatusSummary as myPo">
+            <div class="mppb-left">
+              <span class="mppb-rank-pill">{{ myPo.badgeText }}</span>
+              <h4 class="mppb-status">{{ myPo.statusTitle }}</h4>
+              <p class="mppb-rival">{{ myPo.rivalText }}</p>
+            </div>
+            <div class="mppb-icon">
+              {{ myPo.isDirectBye ? '👑' : '🎾' }}
+            </div>
+          </div>
+        </div>
+
+        <!-- SELECTOR HORIZONTAL DE RONDAS (STEPPER MOBILE) -->
+        <div class="playoff-rounds-stepper" *ngIf="availablePlayoffRoundsMobile.length > 0">
+          <button
+            type="button"
+            class="prs-pill"
+            *ngFor="let r of availablePlayoffRoundsMobile"
+            [class.active]="currentPlayoffRoundMobile?.key === r.key"
+            (click)="selectedPlayoffRoundKey = r.key">
+            <span class="prs-icon">{{ r.icon }}</span>
+            <div class="prs-text">
+              <span class="prs-name">{{ r.shortLabel }}</span>
+              <small class="prs-count">{{ r.count }} {{ r.count === 1 ? 'llave' : 'llaves' }}</small>
+            </div>
+          </button>
+        </div>
+
+        <!-- LISTA DE LLAVES DE LA RONDA SELECCIONADA -->
+        <div *ngIf="currentPlayoffRoundMobile as currRound" class="playoff-matches-mobile-stack animate-up">
+          <div class="pmm-round-banner">
+            <div class="pmm-rb-left">
+              <span class="pmm-rb-icon">{{ currRound.icon }}</span>
+              <div>
+                <h4>{{ currRound.label }}</h4>
+                <small>{{ currRound.count }} {{ currRound.count === 1 ? 'enfrentamiento' : 'enfrentamientos' }} de eliminación directa</small>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="playoff-match-card-mobile"
+            *ngFor="let m of currRound.matches; let mIdx = index"
+            [class.my-match-highlight]="isUserInMatch(m)"
+            [class.final-match-card]="currRound.key === 'final'"
+            (click)="openH2HModal(m, 'match')">
+            
+            <!-- Cabecera de la llave -->
+            <div class="pmcm-header">
+              <div class="pmcm-badges">
+                <span class="pmcm-code-pill">
+                  {{ m.meta_playoff?.bracket_code || (currRound.shortLabel + ' #' + (mIdx + 1)) }}
+                </span>
+                <span class="pmcm-my-tag" *ngIf="isUserInMatch(m)">⭐ TU LLAVE</span>
+                <span class="pmcm-bye-tag" *ngIf="m.meta_playoff?.seed1_label?.includes('1º') || m.meta_playoff?.seed1_label?.includes('2º') || m.meta_playoff?.seed1_label?.includes('3º') || m.meta_playoff?.seed1_label?.includes('4º')">
+                  👑 Cabeza de Serie
+                </span>
+              </div>
+              <span class="pmcm-next-tag" *ngIf="m.meta_playoff?.next_bracket">
+                Avanza a {{ m.meta_playoff.next_bracket }} ➔
+              </span>
+            </div>
+
+            <!-- Pareja 1 -->
+            <div class="pmcm-team-row" [class.winner]="m.pareja_ganadora_id && m.pareja_ganadora_id === m.pareja1_id">
+              <div class="pmcm-team-info">
+                <span class="pmcm-team-dot" [class.win]="m.pareja_ganadora_id && m.pareja_ganadora_id === m.pareja1_id"></span>
+                <span class="pmcm-team-name">{{ m.pareja1_nombre || 'Por definir' }}</span>
+              </div>
+              <div class="pmcm-team-right">
+                <span class="pmcm-bye-chip" *ngIf="currRound.key === 'cuartos' && (m.meta_playoff?.seed1_label?.includes('1º') || m.meta_playoff?.seed1_label?.includes('2º') || m.meta_playoff?.seed1_label?.includes('3º') || m.meta_playoff?.seed1_label?.includes('4º'))">
+                  BYE
+                </span>
+                <span class="pmcm-score-box" *ngIf="m.estado === 'Jugado'">
+                  {{ m.set1_p1 }}-{{ m.set1_p2 }} {{ m.set2_p1 !== null ? ('| ' + m.set2_p1 + '-' + m.set2_p2) : '' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="pmcm-vs-divider">
+              <span class="line"></span>
+              <span class="vs-badge">VS</span>
+              <span class="line"></span>
+            </div>
+
+            <!-- Pareja 2 -->
+            <div class="pmcm-team-row" [class.winner]="m.pareja_ganadora_id && m.pareja_ganadora_id === m.pareja2_id">
+              <div class="pmcm-team-info">
+                <span class="pmcm-team-dot" [class.win]="m.pareja_ganadora_id && m.pareja_ganadora_id === m.pareja2_id"></span>
+                <span class="pmcm-team-name" [class.tbd]="!m.pareja2_id && (m.pareja2_nombre?.includes('Ganador') || m.pareja2_nombre?.includes('Por definir'))">
+                  {{ m.pareja2_nombre || 'Por definir' }}
+                </span>
+              </div>
+              <div class="pmcm-team-right">
+                <span class="pmcm-win-chip" *ngIf="m.estado === 'Jugado' && m.pareja_ganadora_id">
+                  FIN
+                </span>
+              </div>
+            </div>
+
+            <!-- Pie con Fecha, Hora, Cancha y Botón H2H -->
+            <div class="pmcm-footer">
+              <div class="pmcm-meta-items">
+                <span *ngIf="m.cancha_nombre">📍 {{ getMatchCanchaDisplay(m) }}</span>
+                <span *ngIf="m.fecha_hora && !m.fecha_hora.startsWith('0000')">📅 {{ getMatchFechaDisplay(m) }} • ⏰ {{ getMatchHoraDisplay(m) }}</span>
+                <span *ngIf="!m.cancha_nombre && (!m.fecha_hora || m.fecha_hora.startsWith('0000'))" class="pending-schedule">
+                  ⏳ Horario y cancha por confirmar
+                </span>
+              </div>
+              <span class="pmcm-h2h-link">⚔️ H2H</span>
+            </div>
+
+          </div>
+        </div>
+
+        <div *ngIf="availablePlayoffRoundsMobile.length === 0" class="empty-matches">
+          <ion-icon name="trophy-outline" style="font-size: 36px; color: #94a3b8; margin-bottom: 8px;"></ion-icon>
+          <p>Aún no hay suficientes parejas registradas para proyectar la Fase Final.</p>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -713,22 +853,35 @@
         </div>
 
         <div class="tournament-list-v6">
-          <div class="t-card-v6 animate-up" *ngFor="let t of americanosList" style="margin-bottom: 16px;">
+          <div class="t-card-v6 animate-up" *ngFor="let t of americanosList; trackBy: trackByTorneo" style="margin-bottom: 16px;">
             <div class="t-body">
               <div class="t-header-row">
                 <span class="comp-badge americano">AMERICANO</span>
-                <span class="p-amount-pill" *ngIf="formatPrecio(t.precio)">{{ formatPrecio(t.precio) }}</span>
+                <span class="urgent-cupo-badge animate-pulse" *ngIf="isUrgentSpots(t)">🔥 ¡Últimos {{ getRemainingSpots(t) }} cupos!</span>
+                <span class="p-amount-pill" *ngIf="formatPrecio(t.precio)">
+                  {{ formatPrecio(t.precio) }}
+                  <small *ngIf="t.precio > 0">({{ formatPrecio(t.precio / 2) }}/jug)</small>
+                </span>
               </div>
 
               <h4 class="comp-title">{{ t.nombre }}</h4>
-              <div class="t-cat-row" style="margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+              <div class="t-cat-row" style="margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
                 <span *ngIf="t.categoria || t.categoria_nombre" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 8px;">🏷️ {{ t.categoria || t.categoria_nombre }}</span>
-                <span class="t-capacity-pill" [class.full]="isCompFull(t)">
+                <span class="t-capacity-pill" [class.full]="isCompFull(t)" [class.urgent]="isUrgentSpots(t)">
                   👥 {{ getInscritosDisplay(t) }}
                 </span>
               </div>
 
-              <div class="t-footer-row">
+              <!-- BARRA VISUAL DE CUPOS -->
+              <div class="cupos-progress-track" *ngIf="getMaxParejas(t) > 0">
+                <div class="cupos-progress-fill" 
+                     [style.width.%]="getEnrollmentPercentage(t)" 
+                     [class.urgent]="isUrgentSpots(t)" 
+                     [class.full]="isCompFull(t)">
+                </div>
+              </div>
+
+              <div class="t-footer-row" style="margin-top: 10px;">
                 <div class="t-meta">
                   <ion-icon name="calendar-outline"></ion-icon>
                   <span>{{ t.fecha | date:'dd MMM, yyyy' }} • {{ (t.hora_inicio || '00:00').slice(0,5) }} HRS</span>
@@ -736,7 +889,7 @@
                 <div class="btn-group-row">
                   <button class="view-detail-btn-v6" (click)="openCompeticionDetail(t)">DETALLES</button>
                   <button class="join-btn-v6" (click)="openEnrollment(t)" [disabled]="isEnrolledInComp(t) || isCompFull(t)" [style.opacity]="(isEnrolledInComp(t) || isCompFull(t)) ? '0.5' : '1'" [style.cursor]="(isEnrolledInComp(t) || isCompFull(t)) ? 'not-allowed' : 'pointer'">
-                    {{ isEnrolledInComp(t) ? 'INSCRITO' : (isCompFull(t) ? 'LLENO' : 'INSCRIPCIÓN') }}
+                    {{ isEnrolledInComp(t) ? 'INSCRITO' : (isCompFull(t) ? 'LLENO' : 'INSCRIBIRSE ➔') }}
                   </button>
                 </div>
               </div>
@@ -756,21 +909,35 @@
         </div>
 
         <div class="tournament-list-v6">
-          <div class="t-card-v6 animate-up" *ngFor="let t of torneosList" style="margin-bottom: 16px;">
+          <div class="t-card-v6 animate-up" *ngFor="let t of torneosList; trackBy: trackByTorneo" style="margin-bottom: 16px;">
              <div class="t-poster" *ngIf="t.poster_url || t.imagen_url" [style.background-image]="'url(' + (t.poster_url || t.imagen_url) + ')'"></div>
              <div class="t-body">
                 <div class="t-header-row">
                   <span class="comp-badge oficial">TORNEO</span>
-                  <span class="p-amount-pill" *ngIf="formatPrecio(t.precio)">{{ formatPrecio(t.precio) }}</span>
+                  <span class="urgent-cupo-badge animate-pulse" *ngIf="isUrgentSpots(t)">🔥 ¡Últimos {{ getRemainingSpots(t) }} cupos!</span>
+                  <span class="p-amount-pill" *ngIf="formatPrecio(t.precio)">
+                    {{ formatPrecio(t.precio) }}
+                    <small *ngIf="t.precio > 0">({{ formatPrecio(t.precio / 2) }}/jug)</small>
+                  </span>
                 </div>
                 <h4 class="comp-title">{{ t.nombre }}</h4>
-                <div class="t-cat-row" style="margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                <div class="t-cat-row" style="margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
                   <span *ngIf="t.categoria_nombre || t.categoria" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 8px;">🏷️ {{ t.categoria_nombre || t.categoria }}</span>
-                  <span class="t-capacity-pill" [class.full]="isCompFull(t)">
+                  <span class="t-capacity-pill" [class.full]="isCompFull(t)" [class.urgent]="isUrgentSpots(t)">
                     👥 {{ getInscritosDisplay(t) }}
                   </span>
                 </div>
-                <div class="t-footer-row">
+
+                <!-- BARRA VISUAL DE CUPOS -->
+                <div class="cupos-progress-track" *ngIf="getMaxParejas(t) > 0">
+                  <div class="cupos-progress-fill" 
+                       [style.width.%]="getEnrollmentPercentage(t)" 
+                       [class.urgent]="isUrgentSpots(t)" 
+                       [class.full]="isCompFull(t)">
+                  </div>
+                </div>
+
+                <div class="t-footer-row" style="margin-top: 10px;">
                   <div class="t-meta">
                     <ion-icon name="calendar-outline"></ion-icon>
                     <span>{{ t.fecha_display || ((t.fecha_inicio | date:'dd MMM') + ' - ' + (t.fecha_fin | date:'dd MMM')) }}</span>
@@ -778,7 +945,7 @@
                   <div class="btn-group-row">
                     <button class="view-detail-btn-v6" (click)="openCompeticionDetail(t)">DETALLES</button>
                     <button class="join-btn-v6" (click)="openEnrollment(t)" [disabled]="isEnrolledInComp(t) || isCompFull(t)" [style.opacity]="(isEnrolledInComp(t) || isCompFull(t)) ? '0.5' : '1'" [style.cursor]="(isEnrolledInComp(t) || isCompFull(t)) ? 'not-allowed' : 'pointer'">
-                      {{ isEnrolledInComp(t) ? 'INSCRITO' : (isCompFull(t) ? 'LLENO' : 'INSCRIPCIÓN') }}
+                      {{ isEnrolledInComp(t) ? 'INSCRITO' : (isCompFull(t) ? 'LLENO' : 'INSCRIBIRSE ➔') }}
                     </button>
                   </div>
                 </div>
@@ -798,21 +965,35 @@
         </div>
 
         <div class="tournament-list-v6">
-          <div class="t-card-v6 animate-up" *ngFor="let l of ligasClubList" style="margin-bottom: 16px;">
+          <div class="t-card-v6 animate-up" *ngFor="let l of ligasClubList; trackBy: trackByTorneo" style="margin-bottom: 16px;">
              <div class="t-poster" *ngIf="l.imagen_url || l.imagen || l.poster_url" [style.background-image]="'url(' + (l.imagen_url || l.imagen || l.poster_url) + ')'"></div>
              <div class="t-body">
                 <div class="t-header-row">
                   <span class="comp-badge liga">LIGA</span>
-                  <span class="p-amount-pill" *ngIf="formatPrecio(l.precio)">{{ formatPrecio(l.precio) }}</span>
+                  <span class="urgent-cupo-badge animate-pulse" *ngIf="isUrgentSpots(l)">🔥 ¡Últimos {{ getRemainingSpots(l) }} cupos!</span>
+                  <span class="p-amount-pill" *ngIf="formatPrecio(l.precio)">
+                    {{ formatPrecio(l.precio) }}
+                    <small *ngIf="l.precio > 0">({{ formatPrecio(l.precio / 2) }}/jug)</small>
+                  </span>
                 </div>
                 <h4 class="comp-title">{{ l.nombre }}</h4>
-                <div class="t-cat-row" style="margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                <div class="t-cat-row" style="margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
                   <span *ngIf="l.categoria_nombre || l.categoria" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 8px;">🏷️ {{ l.categoria_nombre || l.categoria }}</span>
-                  <span class="t-capacity-pill" [class.full]="isCompFull(l)">
+                  <span class="t-capacity-pill" [class.full]="isCompFull(l)" [class.urgent]="isUrgentSpots(l)">
                     👥 {{ getInscritosDisplay(l) }}
                   </span>
                 </div>
-                <div class="t-footer-row">
+
+                <!-- BARRA VISUAL DE CUPOS -->
+                <div class="cupos-progress-track" *ngIf="getMaxParejas(l) > 0">
+                  <div class="cupos-progress-fill" 
+                       [style.width.%]="getEnrollmentPercentage(l)" 
+                       [class.urgent]="isUrgentSpots(l)" 
+                       [class.full]="isCompFull(l)">
+                  </div>
+                </div>
+
+                <div class="t-footer-row" style="margin-top: 10px;">
                   <div class="t-meta">
                     <ion-icon name="calendar-outline"></ion-icon>
                     <span>{{ l.fecha_display || ((l.fecha_inicio | date:'dd MMM') + ' - ' + (l.fecha_fin | date:'dd MMM')) }}</span>
@@ -820,7 +1001,7 @@
                   <div class="btn-group-row">
                     <button class="view-detail-btn-v6" (click)="openCompeticionDetail(l)">DETALLES</button>
                     <button class="join-btn-v6" (click)="openEnrollment(l)" [disabled]="isEnrolledInComp(l) || isCompFull(l)" [style.opacity]="(isEnrolledInComp(l) || isCompFull(l)) ? '0.5' : '1'" [style.cursor]="(isEnrolledInComp(l) || isCompFull(l)) ? 'not-allowed' : 'pointer'">
-                      {{ isEnrolledInComp(l) ? 'INSCRITO' : (isCompFull(l) ? 'LLENO' : 'INSCRIPCIÓN') }}
+                      {{ isEnrolledInComp(l) ? 'INSCRITO' : (isCompFull(l) ? 'LLENO' : 'INSCRIBIRSE ➔') }}
                     </button>
                   </div>
                 </div>
@@ -1101,7 +1282,7 @@
             </div>
 
             <!-- OPINION BUSCO PAREJA DENTRO DEL MODAL -->
-            <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 10px 14px; margin: 10px 16px 14px; display: flex; align-items: center; justify-content: space-between;" (click)="showPartnerModal = false; inscribirComoAgenteLibre()">
+            <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 10px 14px; margin: 10px 16px 10px; display: flex; align-items: center; justify-content: space-between;" (click)="showPartnerModal = false; inscribirComoAgenteLibre()">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 18px;">🙋‍♂️</span>
                 <span style="font-size: 12px; font-weight: 800; color: #047857;">¿No tienes pareja? Anótate como Agente Libre</span>
@@ -1109,22 +1290,62 @@
               <ion-icon name="chevron-forward-outline" style="color: #059669; font-size: 16px;"></ion-icon>
             </div>
 
-            <div class="p-search">
-              <ion-icon name="search-outline"></ion-icon>
-              <input type="text" [(ngModel)]="partnerSearchTerm" (input)="onPartnerSearch()" placeholder="Nombre de tu compañero...">
+            <!-- MODO DE PAREJA: JUGADOR REGISTRADO VS INVITADO EXTERNO -->
+            <div class="partner-mode-switch">
+              <button type="button" class="pm-btn" [class.active]="partnerMode === 'app_user'" (click)="partnerMode = 'app_user'">
+                👥 Jugador Padelblox
+              </button>
+              <button type="button" class="pm-btn" [class.active]="partnerMode === 'invitado'" (click)="partnerMode = 'invitado'">
+                📝 Compañero Invitado
+              </button>
             </div>
-            <div class="p-results">
-              <div class="p-item animate-up" *ngFor="let user of partnerResults; let i = index" [style.animation-delay]="i * 0.05 + 's'" (click)="selectPartner(user)">
-                <img [src]="user.foto_perfil || 'assets/avatar.png'" (error)="onImgError($event)" alt="Avatar">
-                <div class="p-info">
-                  <span class="n">{{ user.nombre }}</span>
-                  <span class="r">Nivel: {{ user.nivel || 'N/A' }}</span>
+
+            <!-- CASO A: JUGADOR REGISTRADO (CON COMPAÑEROS RECIENTES) -->
+            <div *ngIf="partnerMode === 'app_user'">
+              <!-- COMPAÑEROS RECIENTES -->
+              <div class="recent-partners-box" *ngIf="recentPartners.length > 0">
+                <span class="rp-title">Compañeros Recientes</span>
+                <div class="rp-chips-row">
+                  <div class="rp-chip" *ngFor="let rp of recentPartners; trackBy: trackByPartner" (click)="selectPartner(rp)">
+                    <img [src]="rp.foto_perfil || 'assets/avatar.png'" (error)="onImgError($event)" alt="Avatar">
+                    <span class="rp-name">{{ rp.nombre }}</span>
+                  </div>
                 </div>
-                <ion-icon name="person-add-outline"></ion-icon>
               </div>
-              <div *ngIf="partnerSearchTerm.length >= 3 && partnerResults.length === 0" class="empty-res">
-                No se encontraron jugadores
+
+              <div class="p-search">
+                <ion-icon name="search-outline"></ion-icon>
+                <input type="text" [(ngModel)]="partnerSearchTerm" (input)="onPartnerSearch()" placeholder="Nombre de tu compañero...">
               </div>
+              <div class="p-results">
+                <div class="p-item animate-up" *ngFor="let user of partnerResults; let i = index; trackBy: trackByPartner" [style.animation-delay]="i * 0.05 + 's'" (click)="selectPartner(user)">
+                  <img [src]="user.foto_perfil || 'assets/avatar.png'" (error)="onImgError($event)" alt="Avatar">
+                  <div class="p-info">
+                    <span class="n">{{ user.nombre }}</span>
+                    <span class="r">Nivel: {{ user.nivel || 'N/A' }}</span>
+                  </div>
+                  <ion-icon name="person-add-outline"></ion-icon>
+                </div>
+                <div *ngIf="partnerSearchTerm.length >= 3 && partnerResults.length === 0" class="empty-res">
+                  No se encontraron jugadores registrados
+                </div>
+              </div>
+            </div>
+
+            <!-- CASO B: JUGADOR INVITADO / EXTERNO (SIN APP AÚN) -->
+            <div *ngIf="partnerMode === 'invitado'" class="guest-partner-form animate-up">
+              <p class="gp-desc">Inscribe a tu compañero aunque aún no tenga cuenta en Padelblox:</p>
+              <div class="gp-input-wrap">
+                <label>Nombre y Apellido</label>
+                <input type="text" [(ngModel)]="guestPartnerName" placeholder="Ej: Lucas González">
+              </div>
+              <div class="gp-input-wrap">
+                <label>WhatsApp (Opcional, para coordinación)</label>
+                <input type="tel" [(ngModel)]="guestPartnerPhone" placeholder="+56 9 1234 5678">
+              </div>
+              <button type="button" class="btn-confirm-guest" (click)="confirmGuestPartner()">
+                Continuar con Compañero Invitado ➔
+              </button>
             </div>
           </ng-container>
 

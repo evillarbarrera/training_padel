@@ -1699,6 +1699,103 @@
     }
 }
 
+// --- NOTIFICATION TOGGLE CARD ---
+.notification-section-card {
+    border: 1.5px solid #bbf7d0;
+    background: #f0fdf4;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &.is-silent {
+        border-color: #fde68a;
+        background: #fffbeb;
+    }
+
+    .notif-toggle-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+
+        ion-checkbox {
+            --size: 22px;
+            --checkbox-background-checked: #0f172a;
+            --border-color-checked: #0f172a;
+            --checkmark-color: #ccff00;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .notif-icon-box {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: #0f172a;
+            color: #ccff00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .notif-text-wrap {
+            flex: 1;
+            min-width: 0;
+
+            .notif-header-line {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 6px;
+                margin-bottom: 3px;
+
+                .notif-main-title {
+                    font-size: 13px;
+                    font-weight: 900;
+                    color: #0f172a;
+                }
+
+                .notif-badge {
+                    font-size: 9px;
+                    font-weight: 900;
+                    padding: 2px 7px;
+                    border-radius: 6px;
+                    letter-spacing: 0.4px;
+                    flex-shrink: 0;
+
+                    &.active {
+                        background: #16a34a;
+                        color: #ffffff;
+                    }
+
+                    &.silent {
+                        background: #d97706;
+                        color: #ffffff;
+                    }
+                }
+            }
+
+            .notif-sub-desc {
+                margin: 0;
+                font-size: 11px;
+                font-weight: 600;
+                color: #334155;
+                line-height: 1.35;
+
+                &.silent {
+                    color: #92400e;
+                }
+            }
+        }
+    }
+
+    &.is-silent .notif-toggle-row .notif-icon-box {
+        background: #fef3c7;
+        color: #b45309;
+        border: 1px solid #fde68a;
+    }
+}
+
 // --- ACTION BUTTON ---
 .cta-container {
     margin-top: 10px;

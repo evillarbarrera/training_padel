@@ -47,7 +47,7 @@
 
     <div class="club-discovery-list">
       <div class="club-card-v5 animate-up" 
-           *ngFor="let club of filteredClubes" 
+           *ngFor="let club of filteredClubes; trackBy: trackByClub" 
            (click)="onSelectClub(club)">
         <div class="club-banner-wrap" [style.background-image]="'url(' + club.logoUrl + '), url(assets/fondo-cancha.png)'">
           <div class="banner-overlay"></div>
@@ -98,7 +98,7 @@
             </div>
             <div class="dates-strip-v6">
                 <div class="date-v6" 
-                     *ngFor="let day of weekDays" 
+                     *ngFor="let day of weekDays; trackBy: trackByDay" 
                      [class.active]="selectedFecha === day.fullDate"
                      (click)="onSelectDate(day.fullDate)">
                     <span class="d-name">{{ day.nombre.slice(0,3) }}</span>
@@ -159,17 +159,44 @@
             <ion-toggle [checked]="true" mode="ios"></ion-toggle>
         </div>
 
-        <!-- CIRCULAR HOURS (SMALLER) -->
-        <div class="time-grid-v6" *ngIf="!loading">
-            <div class="time-item-v6" 
-                 *ngFor="let slot of filteredHorarios"
-                 [class.active]="selectedSlot === slot"
-                 (click)="onSelectSlot(slot)">
-                {{ formatTime(slot.hora) }}
-            </div>
+        <!-- TIME BANDS SELECTOR (PLAYTOMIC STYLE) -->
+        <div class="time-bands-row" *ngIf="!loading && (countManana > 0 || countTarde > 0 || countNoche > 0)">
+            <button type="button" class="time-band-pill" [class.active]="selectedTimeBand === 'todas'" (click)="setTimeBand('todas')">
+                Todas ({{ countManana + countTarde + countNoche }})
+            </button>
+            <button type="button" class="time-band-pill" *ngIf="countManana > 0" [class.active]="selectedTimeBand === 'manana'" (click)="setTimeBand('manana')">
+                ☀️ Mañana ({{ countManana }})
+            </button>
+            <button type="button" class="time-band-pill" *ngIf="countTarde > 0" [class.active]="selectedTimeBand === 'tarde'" (click)="setTimeBand('tarde')">
+                🌤️ Tarde ({{ countTarde }})
+            </button>
+            <button type="button" class="time-band-pill" *ngIf="countNoche > 0" [class.active]="selectedTimeBand === 'noche'" (click)="setTimeBand('noche')">
+                🌙 Noche ({{ countNoche }})
+            </button>
         </div>
 
-        <app-padel-loader *ngIf="loading"></app-padel-loader>
+        <!-- SKELETON TIME GRID (SHIMMER EFFECT WHILE LOADING) -->
+        <div class="time-grid-v6 skeleton-grid" *ngIf="loading">
+            <div class="time-skeleton-chip" *ngFor="let i of [1,2,3,4,5,6,7,8]"></div>
+        </div>
+
+        <!-- MODERN TIME GRID (WITH AVAILABILITY BADGES & TRACKBY) -->
+        <div class="time-grid-v6" *ngIf="!loading">
+            <div class="time-item-v6" 
+                 *ngFor="let slot of processedHorarios; trackBy: trackBySlot"
+                 [class.active]="selectedSlot?.hora === slot.hora"
+                 (click)="onSelectSlot(slot)">
+                <span class="t-hour">{{ slot.formattedHora || formatTime(slot.hora) }}</span>
+                <span class="t-badge" [class.urgent]="slot.availableCount === 1">
+                    {{ slot.availableCount === 1 ? '¡Última!' : slot.availableCount + ' libres' }}
+                </span>
+            </div>
+            
+            <div class="no-slots-notice" *ngIf="processedHorarios.length === 0">
+                <ion-icon name="time-outline"></ion-icon>
+                <span>No hay horarios libres en esta franja</span>
+            </div>
+        </div>
 
         <!-- COURT & AMENITY LIST -->
         <div *ngIf="!loading && selectedSlot">
@@ -196,7 +223,7 @@
             </div>
 
             <div class="court-list-v6">
-                <ng-container *ngFor="let c of getFilteredCourtsForSlot(selectedSlot)">
+                <ng-container *ngFor="let c of activeCourtsForSelectedSlot; trackBy: trackByCourt">
                     
                     <!-- CASO 1: PISTAS DE PÁDEL / PICKLEBALL (Ultra-Compact Line Item) -->
                     <div class="court-card-v7 animate-up is-court" 
@@ -297,7 +324,7 @@
 
                 </ng-container>
 
-                <div *ngIf="getFilteredCourtsForSlot(selectedSlot).length === 0" style="text-align: center; padding: 25px; color: #8e8e93; font-size: 13px; font-weight: 700;">
+                <div *ngIf="activeCourtsForSelectedSlot.length === 0" style="text-align: center; padding: 25px; color: #8e8e93; font-size: 13px; font-weight: 700;">
                     No hay espacios disponibles en esta categoría para la duración seleccionada.
                 </div>
             </div>

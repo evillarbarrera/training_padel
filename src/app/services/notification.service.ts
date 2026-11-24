@@ -381,7 +381,7 @@ export class NotificationService {
   }
 
   /**
-   * Programar recordatorios automáticos de 2 horas antes para una lista de partidos/entrenamientos
+   * Programar recordatorios automáticos de 2 horas antes para una lista de partidos/entrenamientos (solo 1 por partido y solo no cancelados)
    */
   scheduleMatchReminders(partidos: any[]): void {
     if (!partidos || !Array.isArray(partidos) || partidos.length === 0) return;
@@ -390,21 +390,26 @@ export class NotificationService {
     if (!currentUserId) return;
 
     partidos.forEach(match => {
-      // Identifier for cache to prevent repetitive calls in the same session
-      const matchKey = match.id || `${match.fecha}_${match.hora_inicio}_${match.cancha_id || match.reserva_id || match.liga_partido_id}`;
-      if (this.scheduledRemindersCache.has(matchKey)) return;
+      // 1. Omitir estrictamente partidos cancelados
+      const estado = String(match.estado || '').toLowerCase().trim();
+      if (estado.includes('cancel') || ['anulada', 'anulado', 'rechazada', 'eliminada', 'bloqueado', 'bloqueada'].includes(estado)) {
+        return;
+      }
 
-      // Only schedule for future / upcoming matches
       const fecha = match.fecha;
       const hora = match.hora_inicio ? match.hora_inicio.substring(0, 5) : '19:00';
-      
       if (!fecha) return;
+
+      // 2. Identificador unificado para evitar duplicados en la misma sesión
+      const rawEventId = match.reserva_id || match.liga_partido_id || match.id;
+      const matchKey = `${currentUserId}_${fecha}_${hora}_${rawEventId}`;
+      if (this.scheduledRemindersCache.has(matchKey)) return;
 
       const matchDate = new Date(`${fecha}T${hora}:00`);
       const now = new Date();
 
-      // If match is in the future
-      if (matchDate.getTime() > now.getTime()) {
+      // Solo programar si el partido es futuro (con al menos 30 min de antelación)
+      if (matchDate.getTime() > (now.getTime() + 30 * 60 * 1000)) {
         this.scheduledRemindersCache.add(matchKey);
 
         const tipoEvento = match.tipo_origen || (match.pack_nombre ? 'clase' : (match.liga_partido_id ? 'liga' : 'reserva'));
@@ -413,7 +418,7 @@ export class NotificationService {
 
         this.mysqlService.programarRecordatorioPartido2H({
           user_id: currentUserId,
-          match_id: match.id || match.reserva_id || match.liga_partido_id,
+          match_id: rawEventId,
           tipo_evento: tipoEvento,
           fecha: fecha,
           hora_inicio: hora,
@@ -428,15 +433,18 @@ export class NotificationService {
   }
 
   /**
-   * Determina si un partido tiene el recordatorio de 2 horas activo
+   * Determina si un partido tiene el recordatorio de 2 horas activo (solo si no está cancelado)
    */
   isMatchReminderActive(match: any): boolean {
     if (!match || !match.fecha) return false;
+    const estado = String(match.estado || '').toLowerCase().trim();
+    if (estado.includes('cancel') || ['anulada', 'anulado', 'rechazada', 'eliminada', 'bloqueado', 'bloqueada'].includes(estado)) {
+      return false;
+    }
     const hora = match.hora_inicio ? match.hora_inicio.substring(0, 5) : '19:00';
     const matchDate = new Date(`${match.fecha}T${hora}:00`);
     const now = new Date();
-    // Return true if future match and not cancelled
-    return matchDate.getTime() > now.getTime() && match.estado !== 'Cancelada' && match.estado !== 'Cancelado';
+    return matchDate.getTime() > now.getTime();
   }
 }
 

@@ -89,8 +89,17 @@ export class MysqlService {
     return this.http.get<any[]>(`${this.api}/entrenador/get_packs_grupales.php?entrenador_id=${entrenadorId}`, { headers: this.getHeaders() });
   }
 
-  cancelarReserva(reservaId: number): Observable<any> {
-    return this.http.post<any>(`${this.api}/entrenador/cancelar_reserva.php`, { reserva_id: reservaId }, { headers: this.getHeaders() });
+  cancelarReserva(reservaId: number, enviarNotificacion: boolean = true): Observable<any> {
+    return this.http.post<any>(
+      `${this.api}/entrenador/cancelar_reserva.php`,
+      {
+        reserva_id: reservaId,
+        enviar_notificacion: enviarNotificacion,
+        notificar: enviarNotificacion,
+        action: enviarNotificacion ? 'notify' : 'silent'
+      },
+      { headers: this.getHeaders() }
+    );
   }
 
   cancelarReservaClub(reservaId: number): Observable<any> {
@@ -275,7 +284,7 @@ export class MysqlService {
     return this.http.get<any[]>(url, { headers: this.getHeaders() });
   }
 
-  enrollInTournament(data: { torneo_id: number, jugador1_id: number, jugador2_id: number }): Observable<any> {
+  enrollInTournament(data: any): Observable<any> {
     return this.http.post<any>(`${this.api}/torneos/join_torneo.php`, data, { headers: this.getHeaders() });
   }
 

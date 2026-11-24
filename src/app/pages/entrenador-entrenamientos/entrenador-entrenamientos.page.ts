@@ -233,18 +233,24 @@ export class EntrenadorEntrenamientosPage implements OnInit {
   async confirmarCancelacion(item: any) {
     const alert = await this.alertCtrl.create({
       header: 'Cancelar Entrenamiento',
-      message: '¿Estás seguro de que deseas cancelar este entrenamiento? Esta acción liberará el horario.',
+      message: '¿Cómo deseas cancelar este entrenamiento y liberar el horario?',
       buttons: [
+        {
+          text: 'Cancelar y Notificar',
+          role: 'destructive',
+          handler: () => {
+            this.ejecutarCancelacion(item, true);
+          }
+        },
+        {
+          text: 'Solo Cancelar (Sin Notificar)',
+          handler: () => {
+            this.ejecutarCancelacion(item, false);
+          }
+        },
         {
           text: 'No, mantener',
           role: 'cancel'
-        },
-        {
-          text: 'Sí, cancelar',
-          role: 'destructive',
-          handler: () => {
-            this.ejecutarCancelacion(item);
-          }
         }
       ]
     });
@@ -252,26 +258,30 @@ export class EntrenadorEntrenamientosPage implements OnInit {
     await alert.present();
   }
 
-  ejecutarCancelacion(item: any) {
-    this.mysqlService.cancelarReserva(item.reserva_id).subscribe({
+  ejecutarCancelacion(item: any, enviarNotificacion: boolean = true) {
+    this.mysqlService.cancelarReserva(item.reserva_id, enviarNotificacion).subscribe({
       next: async () => {
-        // Enviar notificación al alumno
-        const packNombre = item.pack_nombre || item.nombre_pack || 'Entrenamiento';
-        const fecha = item.fecha || new Date().toISOString().split('T')[0];
+        if (enviarNotificacion) {
+          // Enviar notificación al alumno
+          const packNombre = item.pack_nombre || item.nombre_pack || 'Entrenamiento';
+          const fecha = item.fecha || new Date().toISOString().split('T')[0];
 
-        if (item.jugador_id) {
-          this.notificationService.sendCancelationNotification(item.jugador_id, packNombre, fecha);
-        } else if (item.jugadores && item.jugadores.length > 0) {
-          // If multiple players (e.g. group or multiplayer)
-          item.jugadores.forEach((j: any) => {
-            if (j.id || j.jugador_id) {
-              this.notificationService.sendCancelationNotification(j.id || j.jugador_id, packNombre, fecha);
-            }
-          });
+          if (item.jugador_id) {
+            this.notificationService.sendCancelationNotification(item.jugador_id, packNombre, fecha);
+          } else if (item.jugadores && item.jugadores.length > 0) {
+            // If multiple players (e.g. group or multiplayer)
+            item.jugadores.forEach((j: any) => {
+              if (j.id || j.jugador_id) {
+                this.notificationService.sendCancelationNotification(j.id || j.jugador_id, packNombre, fecha);
+              }
+            });
+          }
         }
 
         const toast = await this.toastCtrl.create({
-          message: '✅ Entrenamiento cancelado y horario liberado',
+          message: enviarNotificacion
+            ? '✅ Entrenamiento cancelado y alumno notificado'
+            : '✅ Entrenamiento cancelado sin enviar notificaciones',
           duration: 2000,
           color: 'dark'
         });

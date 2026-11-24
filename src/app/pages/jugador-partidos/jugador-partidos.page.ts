@@ -184,7 +184,10 @@ export class JugadorPartidosPage implements OnInit {
     this.loading = true;
     this.mysqlService.getMisPartidos().subscribe({
       next: (res: any[]) => {
-        this.partidos = (res || []).filter(p => p.estado !== 'Cancelada' && p.estado !== 'Cancelado');
+        this.partidos = (res || []).filter(p => {
+          const est = String(p.estado || '').toLowerCase().trim();
+          return !est || (!est.includes('cancel') && !['anulada', 'anulado', 'rechazada', 'eliminada', 'bloqueado', 'bloqueada'].includes(est));
+        });
         this.partidos.forEach(p => {
           if (p.smartwatch_data && typeof p.smartwatch_data === 'string') {
             try {

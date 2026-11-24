@@ -18,7 +18,7 @@ import {
     locationOutline, alertCircleOutline, cubeOutline, schoolOutline, repeatOutline, cardOutline,
     ticketOutline, walletOutline, searchOutline, peopleOutline, closeCircle, swapHorizontalOutline,
     checkmarkDoneOutline, informationCircleOutline, sparklesOutline, chevronDownOutline, eyeOutline,
-    businessOutline, helpCircleOutline, logoWhatsapp
+    businessOutline, helpCircleOutline, logoWhatsapp, notificationsOutline, notificationsOffOutline, mailOutline
 } from 'ionicons/icons';
 import { environment } from 'src/environments/environment';
 import { NotificationService } from '../../services/notification.service';
@@ -78,6 +78,7 @@ export class EntrenadorAgendarPage implements OnInit {
     isBookingModalOpen = false;
     selectedSlot: any = null;
     recurrencia: number = 1;
+    enviarNotificacion: boolean = true;
     duracionMinutos: number = 60; // Base: 1 hora
     duracionesDisponibles: { label: string; value: number; desc: string }[] = [
         { label: '30 min', value: 30, desc: 'Media hora' },
@@ -138,7 +139,7 @@ export class EntrenadorAgendarPage implements OnInit {
             locationOutline, alertCircleOutline, cubeOutline, schoolOutline, repeatOutline, cardOutline,
             ticketOutline, walletOutline, searchOutline, peopleOutline, closeCircle, swapHorizontalOutline,
             checkmarkDoneOutline, informationCircleOutline, sparklesOutline, chevronDownOutline, eyeOutline,
-            businessOutline, helpCircleOutline, logoWhatsapp
+            businessOutline, helpCircleOutline, logoWhatsapp, notificationsOutline, notificationsOffOutline, mailOutline
         });
     }
 
@@ -904,6 +905,7 @@ export class EntrenadorAgendarPage implements OnInit {
         this.packAAsignar = null;
         this.mostrarSelectorPackManual = false;
         this.recurrencia = 1;
+        this.enviarNotificacion = true;
         this.filtroAlumnos = '';
         this.alumnosPacks = [];
         this.actualizarPacksParaTipo();
@@ -1029,7 +1031,8 @@ export class EntrenadorAgendarPage implements OnInit {
                     cancha_id: Number(this.selectedCanchaId || 0),
                     malla_id: Number(this.planificacionId || 0),
                     clase_id: Number(this.claseMallaId || 0),
-                    clase_titulo: this.selectedClaseToPreview?.titulo || ''
+                    clase_titulo: this.selectedClaseToPreview?.titulo || '',
+                    enviar_notificacion: this.enviarNotificacion
                 };
 
                 if (this.tipoClaseSeleccionado !== 'individual' && jugadorIds.length > 1) {
@@ -1039,7 +1042,9 @@ export class EntrenadorAgendarPage implements OnInit {
 
                 this.entrenamientoService.crearReserva(payloadReserva).subscribe({
                     next: () => {
-                        this.notificarReserva(payloadReserva, fId);
+                        if (this.enviarNotificacion) {
+                            this.notificarReserva(payloadReserva, fId);
+                        }
 
                         if (this.planificacionId && this.claseMallaId) {
                             this.entrenamientoService.asignarMalla({
@@ -1093,7 +1098,8 @@ export class EntrenadorAgendarPage implements OnInit {
             cancha_id: Number(this.selectedCanchaId || 0),
             malla_id: Number(this.planificacionId || 0),
             clase_id: Number(this.claseMallaId || 0),
-            clase_titulo: this.selectedClaseToPreview?.titulo || ''
+            clase_titulo: this.selectedClaseToPreview?.titulo || '',
+            enviar_notificacion: this.enviarNotificacion
         };
 
         if (this.alumnosSeleccionados.length > 0) {
@@ -1104,7 +1110,9 @@ export class EntrenadorAgendarPage implements OnInit {
 
         this.entrenamientoService.crearReserva(payloadReserva).subscribe({
             next: () => {
-                this.notificarReserva(payloadReserva, packIdFinal);
+                if (this.enviarNotificacion) {
+                    this.notificarReserva(payloadReserva, packIdFinal);
+                }
                 this.postAgendamiento(loading);
             },
             error: (err) => {
@@ -1138,7 +1146,10 @@ export class EntrenadorAgendarPage implements OnInit {
 
     private postAgendamiento(loading: any) {
         loading.dismiss();
-        this.mostrarToast('✅ ¡Clase agendada exitosamente!');
+        const msg = this.enviarNotificacion
+            ? '✅ ¡Clase agendada y notificada exitosamente!'
+            : '✅ ¡Clase agendada sin enviar notificaciones!';
+        this.mostrarToast(msg);
         this.cerrarModal();
         this.loadDisponibilidad();
         this.loadBasics();
@@ -1185,23 +1196,36 @@ Te contacto para coordinar y confirmar nuestra clase programada para el *${fecha
 
         const alert = await this.alertCtrl.create({
             header: 'Cancelar Clase',
-            message: '¿Deseas cancelar TODA la clase y liberar el horario?',
+            message: '¿Cómo deseas cancelar TODA la clase y liberar el horario?',
             buttons: [
-                { text: 'Atrás', role: 'cancel' },
                 {
-                    text: 'Confirmar Cancelación',
+                    text: 'Cancelar y Notificar',
                     role: 'destructive',
                     handler: () => {
-                        this.entrenamientoService.cancelarReserva(resId).subscribe({
+                        this.entrenamientoService.cancelarReserva(resId, undefined, true).subscribe({
                             next: () => {
-                                this.mostrarToast('Clase cancelada exitosamente');
+                                this.mostrarToast('Clase cancelada y alumno notificado');
                                 this.cerrarModal();
                                 this.loadDisponibilidad();
                             },
                             error: () => this.mostrarToast('Error al cancelar la clase')
                         });
                     }
-                }
+                },
+                {
+                    text: 'Solo Cancelar (Sin Notificar)',
+                    handler: () => {
+                        this.entrenamientoService.cancelarReserva(resId, undefined, false).subscribe({
+                            next: () => {
+                                this.mostrarToast('Clase cancelada sin enviar notificaciones');
+                                this.cerrarModal();
+                                this.loadDisponibilidad();
+                            },
+                            error: () => this.mostrarToast('Error al cancelar la clase')
+                        });
+                    }
+                },
+                { text: 'Atrás', role: 'cancel' }
             ]
         });
         await alert.present();
@@ -1213,16 +1237,15 @@ Te contacto para coordinar y confirmar nuestra clase programada para el *${fecha
 
         const alert = await this.alertCtrl.create({
             header: 'Quitar Alumno',
-            message: `¿Deseas quitar a ${p.nombre || p.jugador_nombre} de esta clase?`,
+            message: `¿Cómo deseas quitar a ${p.nombre || p.jugador_nombre} de esta clase?`,
             buttons: [
-                { text: 'Cancelar', role: 'cancel' },
                 {
-                    text: 'Quitar',
+                    text: 'Quitar y Notificar',
                     role: 'destructive',
                     handler: () => {
-                        this.entrenamientoService.cancelarReserva(resId, p.id || p.jugador_id).subscribe({
+                        this.entrenamientoService.cancelarReserva(resId, p.id || p.jugador_id, true).subscribe({
                             next: () => {
-                                this.mostrarToast('Alumno removido de la sesión');
+                                this.mostrarToast('Alumno removido y notificado');
                                 this.participantesGrupo = this.participantesGrupo.filter(x => (x.id || x.jugador_id) !== (p.id || p.jugador_id));
                                 if (this.participantesGrupo.length === 0) {
                                     this.cerrarModal();
@@ -1232,7 +1255,24 @@ Te contacto para coordinar y confirmar nuestra clase programada para el *${fecha
                             error: () => this.mostrarToast('Error al remover alumno')
                         });
                     }
-                }
+                },
+                {
+                    text: 'Solo Quitar (Sin Notificar)',
+                    handler: () => {
+                        this.entrenamientoService.cancelarReserva(resId, p.id || p.jugador_id, false).subscribe({
+                            next: () => {
+                                this.mostrarToast('Alumno removido sin enviar notificaciones');
+                                this.participantesGrupo = this.participantesGrupo.filter(x => (x.id || x.jugador_id) !== (p.id || p.jugador_id));
+                                if (this.participantesGrupo.length === 0) {
+                                    this.cerrarModal();
+                                    this.loadDisponibilidad();
+                                }
+                            },
+                            error: () => this.mostrarToast('Error al remover alumno')
+                        });
+                    }
+                },
+                { text: 'Cancelar', role: 'cancel' }
             ]
         });
         await alert.present();
@@ -1260,7 +1300,7 @@ Te contacto para coordinar y confirmar nuestra clase programada para el *${fecha
         const loading = await this.loadingCtrl.create({ message: 'Agregando jugador...' });
         await loading.present();
 
-        this.entrenamientoService.addJugadorAReserva(resId, player.id).subscribe({
+        this.entrenamientoService.addJugadorAReserva(resId, player.id, this.enviarNotificacion).subscribe({
             next: (res: any) => {
                 loading.dismiss();
                 if (res.success || res.status) {

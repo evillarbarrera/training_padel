@@ -623,11 +623,41 @@
                         </div>
                     </div>
 
+                    <!-- SECCIÓN 7: NOTIFICACIÓN Y CORREO AL ALUMNO -->
+                    <div class="form-section-card notification-section-card animate-fade"
+                         [class.is-checked]="enviarNotificacion"
+                         [class.is-silent]="!enviarNotificacion"
+                         (click)="enviarNotificacion = !enviarNotificacion">
+                        <div class="notif-toggle-row">
+                            <ion-checkbox [(ngModel)]="enviarNotificacion"
+                                          mode="ios"
+                                          (click)="$event.stopPropagation()">
+                            </ion-checkbox>
+                            <div class="notif-icon-box">
+                                <ion-icon [name]="enviarNotificacion ? 'notifications-outline' : 'notifications-off-outline'"></ion-icon>
+                            </div>
+                            <div class="notif-text-wrap">
+                                <div class="notif-header-line">
+                                    <span class="notif-main-title">Enviar notificación y correo</span>
+                                    <span class="notif-badge" [class.active]="enviarNotificacion" [class.silent]="!enviarNotificacion">
+                                        {{ enviarNotificacion ? 'ACTIVO' : 'SILENCIOSO' }}
+                                    </span>
+                                </div>
+                                <p class="notif-sub-desc" *ngIf="enviarNotificacion">
+                                    Informa al alumno sobre el entrenamiento por correo y notificación. Quita el ticket para ordenar clases pendientes sin notificar.
+                                </p>
+                                <p class="notif-sub-desc silent" *ngIf="!enviarNotificacion">
+                                    Modo orden de clases pendientes: no se enviarán notificaciones ni correo al confirmar.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- BOTÓN PRINCIPAL DE AGENDAR -->
                     <div class="cta-container">
                         <ion-button expand="block" shape="round" class="btn-confirm-booking" (click)="confirmarAgendamiento()">
-                            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-                            Confirmar Reserva ({{ selectedSlot?.hour }} - {{ getHoraFin(selectedSlot?.hour, duracionMinutos) }})
+                            <ion-icon [name]="enviarNotificacion ? 'checkmark-circle-outline' : 'notifications-off-outline'" slot="start"></ion-icon>
+                            {{ enviarNotificacion ? 'Confirmar y Notificar' : 'Confirmar sin Notificar' }} ({{ selectedSlot?.hour }} - {{ getHoraFin(selectedSlot?.hour, duracionMinutos) }})
                         </ion-button>
                     </div>
 
