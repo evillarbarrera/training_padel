@@ -334,7 +334,7 @@
       <div class="cat-selector-container" *ngIf="displayCategorias && displayCategorias.length > 1">
         <span class="cat-selector-label">Categorías:</span>
         <div class="cat-pill" *ngFor="let cat of displayCategorias; let idx = index"
-             [class.active]="selectedCategoryIdx === idx" (click)="selectedCategoryIdx = idx; selectedJornadaIdx = 0;">
+             [class.active]="selectedCategoryIdx === idx" (click)="selectDetailCategory(idx)">
           {{ cat.nombre || cat.categoria || ('Cat ' + (idx + 1)) }}
         </div>
       </div>
@@ -677,17 +677,17 @@
         <div class="mobile-playoffs-hero">
           <div class="mph-top-row">
             <span class="mph-pill" [class.official]="isPlayoffsOfficial" [class.projected]="!isPlayoffsOfficial">
-              {{ isPlayoffsOfficial ? '🏆 CUADRO OFICIAL EN VIVO' : '🔮 PROYECCIÓN CON RANKING ACTUAL' }}
+              {{ isPlayoffsOfficial ? '🏆 CUADRO OFICIAL EN VIVO' : '⏳ CUADRO PENDIENTE DE DEFINICIÓN' }}
             </span>
             <span class="mph-cat-badge">🏷️ {{ currentDetailCategory?.nombre || 'General' }}</span>
           </div>
           <h3 class="mph-title">Cuadro Eliminatorio — Fase Final</h3>
           <p class="mph-desc">
-            {{ isPlayoffsOfficial ? 'Llaves oficiales de eliminación directa rumbo al título.' : 'Así quedarían los cruces hoy según la Tabla de Posiciones (Formato Oficial FIP).' }}
+            {{ isPlayoffsOfficial ? 'Llaves oficiales de eliminación directa rumbo al título.' : 'Las llaves eliminatorias se habilitarán una vez que el club publique el cuadro oficial de esta categoría.' }}
           </p>
 
           <!-- TARJETA DESTACADA DEL JUGADOR INSCRITO ("TU CAMINO AL TÍTULO") -->
-          <div class="my-playoff-path-box" *ngIf="myPlayoffStatusSummary as myPo">
+          <div class="my-playoff-path-box" *ngIf="isPlayoffsOfficial && myPlayoffStatusSummary as myPo">
             <div class="mppb-left">
               <span class="mppb-rank-pill">{{ myPo.badgeText }}</span>
               <h4 class="mppb-status">{{ myPo.statusTitle }}</h4>
@@ -700,7 +700,7 @@
         </div>
 
         <!-- SELECTOR HORIZONTAL DE RONDAS (STEPPER MOBILE) -->
-        <div class="playoff-rounds-stepper" *ngIf="availablePlayoffRoundsMobile.length > 0">
+        <div class="playoff-rounds-stepper" *ngIf="isPlayoffsOfficial && availablePlayoffRoundsMobile.length > 0">
           <button
             type="button"
             class="prs-pill"
@@ -716,95 +716,107 @@
         </div>
 
         <!-- LISTA DE LLAVES DE LA RONDA SELECCIONADA -->
-        <div *ngIf="currentPlayoffRoundMobile as currRound" class="playoff-matches-mobile-stack animate-up">
-          <div class="pmm-round-banner">
-            <div class="pmm-rb-left">
-              <span class="pmm-rb-icon">{{ currRound.icon }}</span>
-              <div>
-                <h4>{{ currRound.label }}</h4>
-                <small>{{ currRound.count }} {{ currRound.count === 1 ? 'enfrentamiento' : 'enfrentamientos' }} de eliminación directa</small>
+        <ng-container *ngIf="isPlayoffsOfficial">
+          <div *ngIf="currentPlayoffRoundMobile as currRound" class="playoff-matches-mobile-stack animate-up">
+            <div class="pmm-round-banner">
+              <div class="pmm-rb-left">
+                <span class="pmm-rb-icon">{{ currRound.icon }}</span>
+                <div>
+                  <h4>{{ currRound.label }}</h4>
+                  <small>{{ currRound.count }} {{ currRound.count === 1 ? 'enfrentamiento' : 'enfrentamientos' }} de eliminación directa</small>
+                </div>
               </div>
+            </div>
+
+            <div
+              class="playoff-match-card-mobile"
+              *ngFor="let m of currRound.matches; let mIdx = index"
+              [class.my-match-highlight]="isUserInMatch(m)"
+              [class.final-match-card]="currRound.key === 'final'"
+              (click)="openH2HModal(m, 'match')">
+              
+              <!-- Cabecera de la llave -->
+              <div class="pmcm-header">
+                <div class="pmcm-badges">
+                  <span class="pmcm-code-pill">
+                    {{ m.meta_playoff?.bracket_code || (currRound.shortLabel + ' #' + (mIdx + 1)) }}
+                  </span>
+                  <span class="pmcm-my-tag" *ngIf="isUserInMatch(m)">⭐ TU LLAVE</span>
+                  <span class="pmcm-bye-tag" *ngIf="m.meta_playoff?.seed1_label?.includes('1º') || m.meta_playoff?.seed1_label?.includes('2º') || m.meta_playoff?.seed1_label?.includes('3º') || m.meta_playoff?.seed1_label?.includes('4º')">
+                    👑 Cabeza de Serie
+                  </span>
+                </div>
+                <span class="pmcm-next-tag" *ngIf="m.meta_playoff?.next_bracket">
+                  Avanza a {{ m.meta_playoff.next_bracket }} ➔
+                </span>
+              </div>
+
+              <!-- Pareja 1 -->
+              <div class="pmcm-team-row" [class.winner]="m.pareja_ganadora_id && m.pareja_ganadora_id === m.pareja1_id">
+                <div class="pmcm-team-info">
+                  <span class="pmcm-team-dot" [class.win]="m.pareja_ganadora_id && m.pareja_ganadora_id === m.pareja1_id"></span>
+                  <span class="pmcm-team-name">{{ m.pareja1_nombre || 'Por definir' }}</span>
+                </div>
+                <div class="pmcm-team-right">
+                  <span class="pmcm-bye-chip" *ngIf="currRound.key === 'cuartos' && (m.meta_playoff?.seed1_label?.includes('1º') || m.meta_playoff?.seed1_label?.includes('2º') || m.meta_playoff?.seed1_label?.includes('3º') || m.meta_playoff?.seed1_label?.includes('4º'))">
+                    BYE
+                  </span>
+                  <span class="pmcm-score-box" *ngIf="m.estado === 'Jugado'">
+                    {{ m.set1_p1 }}-{{ m.set1_p2 }} {{ m.set2_p1 !== null ? ('| ' + m.set2_p1 + '-' + m.set2_p2) : '' }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="pmcm-vs-divider">
+                <span class="line"></span>
+                <span class="vs-badge">VS</span>
+                <span class="line"></span>
+              </div>
+
+              <!-- Pareja 2 -->
+              <div class="pmcm-team-row" [class.winner]="m.pareja_ganadora_id && m.pareja_ganadora_id === m.pareja2_id">
+                <div class="pmcm-team-info">
+                  <span class="pmcm-team-dot" [class.win]="m.pareja_ganadora_id && m.pareja_ganadora_id === m.pareja2_id"></span>
+                  <span class="pmcm-team-name" [class.tbd]="!m.pareja2_id && (m.pareja2_nombre?.includes('Ganador') || m.pareja2_nombre?.includes('Por definir'))">
+                    {{ m.pareja2_nombre || 'Por definir' }}
+                  </span>
+                </div>
+                <div class="pmcm-team-right">
+                  <span class="pmcm-win-chip" *ngIf="m.estado === 'Jugado' && m.pareja_ganadora_id">
+                    FIN
+                  </span>
+                </div>
+              </div>
+
+              <!-- Pie con Fecha, Hora, Cancha y Botón H2H -->
+              <div class="pmcm-footer">
+                <div class="pmcm-meta-items">
+                  <span *ngIf="m.cancha_nombre">📍 {{ getMatchCanchaDisplay(m) }}</span>
+                  <span *ngIf="m.fecha_hora && !m.fecha_hora.startsWith('0000')">📅 {{ getMatchFechaDisplay(m) }} • ⏰ {{ getMatchHoraDisplay(m) }}</span>
+                  <span *ngIf="!m.cancha_nombre && (!m.fecha_hora || m.fecha_hora.startsWith('0000'))" class="pending-schedule">
+                    ⏳ Horario y cancha por confirmar
+                  </span>
+                </div>
+                <span class="pmcm-h2h-link">⚔️ H2H</span>
+              </div>
+
             </div>
           </div>
+        </ng-container>
 
-          <div
-            class="playoff-match-card-mobile"
-            *ngFor="let m of currRound.matches; let mIdx = index"
-            [class.my-match-highlight]="isUserInMatch(m)"
-            [class.final-match-card]="currRound.key === 'final'"
-            (click)="openH2HModal(m, 'match')">
-            
-            <!-- Cabecera de la llave -->
-            <div class="pmcm-header">
-              <div class="pmcm-badges">
-                <span class="pmcm-code-pill">
-                  {{ m.meta_playoff?.bracket_code || (currRound.shortLabel + ' #' + (mIdx + 1)) }}
-                </span>
-                <span class="pmcm-my-tag" *ngIf="isUserInMatch(m)">⭐ TU LLAVE</span>
-                <span class="pmcm-bye-tag" *ngIf="m.meta_playoff?.seed1_label?.includes('1º') || m.meta_playoff?.seed1_label?.includes('2º') || m.meta_playoff?.seed1_label?.includes('3º') || m.meta_playoff?.seed1_label?.includes('4º')">
-                  👑 Cabeza de Serie
-                </span>
-              </div>
-              <span class="pmcm-next-tag" *ngIf="m.meta_playoff?.next_bracket">
-                Avanza a {{ m.meta_playoff.next_bracket }} ➔
-              </span>
-            </div>
-
-            <!-- Pareja 1 -->
-            <div class="pmcm-team-row" [class.winner]="m.pareja_ganadora_id && m.pareja_ganadora_id === m.pareja1_id">
-              <div class="pmcm-team-info">
-                <span class="pmcm-team-dot" [class.win]="m.pareja_ganadora_id && m.pareja_ganadora_id === m.pareja1_id"></span>
-                <span class="pmcm-team-name">{{ m.pareja1_nombre || 'Por definir' }}</span>
-              </div>
-              <div class="pmcm-team-right">
-                <span class="pmcm-bye-chip" *ngIf="currRound.key === 'cuartos' && (m.meta_playoff?.seed1_label?.includes('1º') || m.meta_playoff?.seed1_label?.includes('2º') || m.meta_playoff?.seed1_label?.includes('3º') || m.meta_playoff?.seed1_label?.includes('4º'))">
-                  BYE
-                </span>
-                <span class="pmcm-score-box" *ngIf="m.estado === 'Jugado'">
-                  {{ m.set1_p1 }}-{{ m.set1_p2 }} {{ m.set2_p1 !== null ? ('| ' + m.set2_p1 + '-' + m.set2_p2) : '' }}
-                </span>
-              </div>
-            </div>
-
-            <div class="pmcm-vs-divider">
-              <span class="line"></span>
-              <span class="vs-badge">VS</span>
-              <span class="line"></span>
-            </div>
-
-            <!-- Pareja 2 -->
-            <div class="pmcm-team-row" [class.winner]="m.pareja_ganadora_id && m.pareja_ganadora_id === m.pareja2_id">
-              <div class="pmcm-team-info">
-                <span class="pmcm-team-dot" [class.win]="m.pareja_ganadora_id && m.pareja_ganadora_id === m.pareja2_id"></span>
-                <span class="pmcm-team-name" [class.tbd]="!m.pareja2_id && (m.pareja2_nombre?.includes('Ganador') || m.pareja2_nombre?.includes('Por definir'))">
-                  {{ m.pareja2_nombre || 'Por definir' }}
-                </span>
-              </div>
-              <div class="pmcm-team-right">
-                <span class="pmcm-win-chip" *ngIf="m.estado === 'Jugado' && m.pareja_ganadora_id">
-                  FIN
-                </span>
-              </div>
-            </div>
-
-            <!-- Pie con Fecha, Hora, Cancha y Botón H2H -->
-            <div class="pmcm-footer">
-              <div class="pmcm-meta-items">
-                <span *ngIf="m.cancha_nombre">📍 {{ getMatchCanchaDisplay(m) }}</span>
-                <span *ngIf="m.fecha_hora && !m.fecha_hora.startsWith('0000')">📅 {{ getMatchFechaDisplay(m) }} • ⏰ {{ getMatchHoraDisplay(m) }}</span>
-                <span *ngIf="!m.cancha_nombre && (!m.fecha_hora || m.fecha_hora.startsWith('0000'))" class="pending-schedule">
-                  ⏳ Horario y cancha por confirmar
-                </span>
-              </div>
-              <span class="pmcm-h2h-link">⚔️ H2H</span>
-            </div>
-
+        <!-- ESTADO CUANDO EL CLUB AÚN NO HA ARMADO EL CUADRO OFICIAL -->
+        <div *ngIf="!isPlayoffsOfficial" class="empty-agentes-box animate-up" style="margin-top: 8px; padding: 28px 20px;">
+          <div class="eab-icon-circle" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+            <ion-icon name="trophy-outline"></ion-icon>
           </div>
-        </div>
-
-        <div *ngIf="availablePlayoffRoundsMobile.length === 0" class="empty-matches">
-          <ion-icon name="trophy-outline" style="font-size: 36px; color: #94a3b8; margin-bottom: 8px;"></ion-icon>
-          <p>Aún no hay suficientes parejas registradas para proyectar la Fase Final.</p>
+          <h4 style="margin-bottom: 8px; color: #0f172a; font-weight: 900;">Cuadro aún no definido por el club</h4>
+          <p style="margin-bottom: 16px; color: #64748b; font-size: 13px; line-height: 1.45;">
+            El club todavía no ha armado los cuadros oficiales de la Fase Final para <strong>{{ currentDetailCategory?.nombre || 'esta categoría' }}</strong>. Una vez finalizada la fase regular y publicados los cruces, podrás ver aquí todas las llaves, horarios y canchas.
+          </p>
+          <button class="eab-cta-btn" (click)="compDetailTab = 'posiciones'" style="background: #0f172a; color: #ccff00;">
+            <ion-icon name="podium-outline"></ion-icon>
+            <span>Ver Ranking Actual</span>
+          </button>
         </div>
       </div>
 

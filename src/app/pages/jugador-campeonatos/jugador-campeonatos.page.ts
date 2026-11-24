@@ -346,11 +346,19 @@ export class JugadorCampeonatosPage implements OnInit {
     if (cat.playoffs && Array.isArray(cat.playoffs) && cat.playoffs.length > 0) {
       return cat.playoffs;
     }
-    // Proyección en Vivo con el Ranking Actual (Estándar Oficial FIP)
-    const standings = (cat.tabla_posiciones && cat.tabla_posiciones.length > 0)
-      ? cat.tabla_posiciones
-      : (cat.inscritos || cat.parejas || []);
-    return this.buildFipSimulatedPlayoffs(standings, cat.parejas_clasifican_playoff || standings.length);
+    return [];
+  }
+
+  selectDetailCategory(idx: number): void {
+    this.selectedCategoryIdx = idx;
+    this.selectedJornadaIdx = 0;
+    if (this.compDetailTab === 'playoffs') {
+      const rounds = this.availablePlayoffRoundsMobile;
+      if (rounds.length > 0) {
+        const myRound = rounds.find(r => r.matches.some(m => this.isUserInMatch(m)));
+        this.selectedPlayoffRoundKey = myRound ? myRound.key : rounds[0].key;
+      }
+    }
   }
 
   buildFipSimulatedPlayoffs(list: any[], maxClasifican?: number): any[] {
@@ -560,7 +568,7 @@ export class JugadorCampeonatosPage implements OnInit {
   }
 
   get myPlayoffStatusSummary(): { rank: number; teamName: string; statusTitle: string; rivalText: string; badgeText: string; isDirectBye: boolean } | null {
-    if (!this.isEnrolledInSelectedComp) return null;
+    if (!this.isPlayoffsOfficial || !this.isEnrolledInSelectedComp) return null;
     const cat = this.currentDetailCategory;
     if (!cat) return null;
     const standings = cat.tabla_posiciones || [];
@@ -592,7 +600,7 @@ export class JugadorCampeonatosPage implements OnInit {
       rank,
       teamName,
       statusTitle: isDirectBye ? '👑 Pase Directo a Cuartos (BYE)' : `⚡ Clasificado a ${roundLabel}`,
-      rivalText: `Rival proyectado: ${rivalText}`,
+      rivalText: `Rival: ${rivalText}`,
       badgeText: rank > 0 ? `#${rank} del Ranking` : 'Clasificado',
       isDirectBye
     };
