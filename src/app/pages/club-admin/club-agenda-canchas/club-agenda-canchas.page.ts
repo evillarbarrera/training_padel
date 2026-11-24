@@ -302,6 +302,50 @@ export class ClubAgendaCanchasPage implements OnInit {
     }
   }
 
+  private timeToMinutes(t: string): number {
+    if (!t) return 0;
+    const clean = t.substring(0, 5);
+    if (clean === '24:00') return 1440;
+    const [h, m] = clean.split(':').map(Number);
+    return (h || 0) * 60 + (m || 0);
+  }
+
+  private minutesToTime(min: number): string {
+    const clamped = Math.max(0, Math.min(1440, min));
+    const h = Math.floor(clamped / 60);
+    const m = clamped % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+
+  private consolidateAmericanoReservas(resList: any[]): any[] {
+    if (!resList || !resList.length) return [];
+    const nonAmericano: any[] = [];
+    const americanoMap = new Map<string, any>();
+
+    for (const r of resList) {
+      if (this.isAmericano(r)) {
+        const key = `${r.cancha_id}_${r.torneo_id || r.torneo_americano_id || r.nombre_externo || 'americano'}`;
+        if (americanoMap.has(key)) {
+          const existing = americanoMap.get(key);
+          const s1 = this.timeToMinutes(existing.hora_inicio);
+          const s2 = this.timeToMinutes(r.hora_inicio);
+          let e1 = this.timeToMinutes(existing.hora_fin);
+          if (e1 <= s1) e1 = 1440;
+          let e2 = this.timeToMinutes(r.hora_fin);
+          if (e2 <= s2) e2 = 1440;
+
+          if (s2 < s1) existing.hora_inicio = r.hora_inicio;
+          if (e2 > e1) existing.hora_fin = r.hora_fin;
+        } else {
+          americanoMap.set(key, { ...r });
+        }
+      } else {
+        nonAmericano.push(r);
+      }
+    }
+    return [...nonAmericano, ...Array.from(americanoMap.values())];
+  }
+
   buildTimeline() {
     if (!this.selectedCanchaId) {
       this.slots = [];
@@ -309,50 +353,73 @@ export class ClubAgendaCanchasPage implements OnInit {
     }
 
     const cancha = this.canchas.find(c => Number(c.id) === Number(this.selectedCanchaId));
-    const reservasCancha = this.reservas.filter(r => Number(r.cancha_id) === Number(this.selectedCanchaId) && !this.isCancelada(r));
+    const rawReservasCancha = this.reservas.filter(
+      r => Number(r.cancha_id) === Number(this.selectedCanchaId) && !this.isCancelada(r)
+    );
+    const reservasCancha = this.consolidateAmericanoReservas(rawReservasCancha);
 
-    // Generar franjas estándar del día (de 08:00 a 23:30 en bloques de 90 min)
+    const getPrecioForHour = (hStart: string): number => {
+      if (!cancha) return 16000;
+      const hInicioAlto = (cancha.hora_inicio_alto || '18:00').substring(0, 5);
+      const isAlto = hStart >= hInicioAlto;
+      return (isAlto && cancha.precio_90_alto > 0) ? cancha.precio_90_alto : (cancha.precio_90 || 16000);
+    };
+
+    // 1. Ordenar las reservas reales de esta cancha por hora de inicio (cada reserva genera 1 único círculo)
+    const occupiedItems = reservasCancha
+      .map(r => {
+        const rStartStr = (r.hora_inicio || '08:00').substring(0, 5);
+        const rEndStr = (r.hora_fin || '').substring(0, 5);
+        const startMin = this.timeToMinutes(rStartStr);
+        let endMin = rEndStr ? this.timeToMinutes(rEndStr) : (startMin + (Number(r.duracion) || 90));
+        if (endMin <= startMin) {
+          endMin = endMin === 0 ? 1440 : (startMin + (Number(r.duracion) || 90));
+        }
+        return {
+          startMin,
+          endMin,
+          horaInicio: rStartStr,
+          horaFin: this.minutesToTime(endMin),
+          isOccupied: true,
+          isBlocked: r.estado === 'Bloqueada',
+          reserva: r,
+          precioSugerido: Number(r.precio) || getPrecioForHour(rStartStr)
+        };
+      })
+      .sort((a, b) => a.startMin - b.startMin);
+
+    // 2. Generar las franjas estándar de 90 min que estén realmente libres (sin solaparse con ninguna reserva)
     const baseHours = [
       '08:00', '09:30', '11:00', '12:30', '14:00', '15:30',
       '17:00', '18:30', '20:00', '21:30', '23:00'
     ];
 
-    const slotsList: any[] = [];
-
+    const freeItems: any[] = [];
     baseHours.forEach(hStart => {
-      const [h, m] = hStart.split(':').map(Number);
-      const totalMinEnd = (h * 60 + m) + 90;
-      const hEnd = Math.floor(totalMinEnd / 60);
-      const mEnd = totalMinEnd % 60;
-      const hEndStr = `${String(hEnd).padStart(2, '0')}:${String(mEnd).padStart(2, '0')}`;
+      const slotStartMin = this.timeToMinutes(hStart);
+      const slotEndMin = slotStartMin + 90;
 
-      // Verificar si hay alguna reserva que se superponga con esta franja
-      const matchingReserva = reservasCancha.find(r => {
-        const rStart = (r.hora_inicio || '').substring(0, 5);
-        const rEnd = (r.hora_fin || '').substring(0, 5);
-        // Coincide si inicia en esta hora o cubre el intervalo
-        return (rStart >= hStart && rStart < hEndStr) || (hStart >= rStart && hStart < rEnd);
-      });
+      // Si una reserva existente se cruza con este bloque estándar, no agregamos el bloque libre
+      const overlapsOccupied = occupiedItems.some(
+        occ => occ.startMin < slotEndMin && occ.endMin > slotStartMin
+      );
 
-      // Calcular precio de la franja según tarifa alta/baja
-      let precioSugerido = 0;
-      if (cancha) {
-        const hInicioAlto = (cancha.hora_inicio_alto || '18:00').substring(0, 5);
-        const isAlto = (hStart >= hInicioAlto);
-        precioSugerido = (isAlto && cancha.precio_90_alto > 0) ? cancha.precio_90_alto : (cancha.precio_90 || 16000);
+      if (!overlapsOccupied) {
+        freeItems.push({
+          startMin: slotStartMin,
+          endMin: slotEndMin,
+          horaInicio: hStart,
+          horaFin: this.minutesToTime(slotEndMin),
+          isOccupied: false,
+          isBlocked: false,
+          reserva: null,
+          precioSugerido: getPrecioForHour(hStart)
+        });
       }
-
-      slotsList.push({
-        horaInicio: matchingReserva ? matchingReserva.hora_inicio.substring(0, 5) : hStart,
-        horaFin: matchingReserva ? matchingReserva.hora_fin.substring(0, 5) : hEndStr,
-        isOccupied: !!matchingReserva,
-        isBlocked: matchingReserva?.estado === 'Bloqueada',
-        reserva: matchingReserva || null,
-        precioSugerido
-      });
     });
 
-    this.slots = slotsList;
+    // 3. Unir reservas únicas + bloques libres y ordenar cronológicamente
+    this.slots = [...occupiedItems, ...freeItems].sort((a, b) => a.startMin - b.startMin);
   }
 
   get selectedCanchaObj(): any {
